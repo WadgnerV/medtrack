@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import AdminDashboard from './pages/AdminDashboard'
 import DoctorDashboard from './pages/DoctorDashboard'
+import PatientDashboard from './pages/PatientDashboard'
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
           } />
           <Route path="/paciente/*" element={
             <ProtectedRoute allowedRoles={['patient']}>
-              <div>Panel Paciente — proximamente</div>
+              <PatientDashboard />
             </ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/login" replace />} />
