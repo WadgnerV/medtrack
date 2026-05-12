@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import UserMenu from '../components/UserMenu'
 
 const G = '#1D9E75'
 const SP = ' '
@@ -304,16 +305,7 @@ export default function DoctorDashboard() {
           </div>
         ))}
 
-        <div style={{ marginTop:'auto', padding:'10px 14px', borderTop:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500 }}>
-            {initials((profile?.first_name || '') + SP + (profile?.last_name || ''))}
-          </div>
-          <div>
-            <div style={{ fontSize:11, fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
-            <div style={{ fontSize:10, color:'#999' }}>Medico colaborador</div>
-          </div>
-          <button style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#ccc' }} onClick={handleSignOut}>x</button>
-        </div>
+        <UserMenu />
       </div>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
