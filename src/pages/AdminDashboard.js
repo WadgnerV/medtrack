@@ -28,6 +28,13 @@ export default function AdminDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
   const [selDoctor, setSelDoctor] = useState(null)
+  const [selPatient, setSelPatient] = useState(null)
+  const [patientTab, setPatientTab] = useState('progreso')
+  const [measurements, setMeasurements] = useState([])
+  const [goals, setGoals] = useState([])
+  const [patientTasks, setPatientTasks] = useState([])
+  const [treatments, setTreatments] = useState([])
+  const [notes, setNotes] = useState([])
 
   useEffect(() => { loadAll() }, [])
 
@@ -168,6 +175,100 @@ export default function AdminDashboard() {
   }
 
   const pendingCount = msgs.filter(m => !m.is_read && m.sender_role === 'patient').length
+
+  async function openPatient(p) {
+    setSelPatient(p)
+    setPatientTab('progreso')
+    setView('perfil-paciente')
+    const pid = p.id
+    const [m, g, t, tr, n] = await Promise.all([
+      supabase.from('measurements').select('*').eq('patient_id', pid).order('measured_at', { ascending: false }),
+      supabase.from('goals').select('*').eq('patient_id', pid).eq('is_active', true),
+      supabase.from('tasks').select('*').eq('patient_id', pid).order('created_at', { ascending: false }),
+      supabase.from('treatments').select('*').eq('patient_id', pid).order('appointment_date', { ascending: false }),
+      supabase.from('clinical_notes').select('*').eq('patient_id', pid).order('note_date', { ascending: false }),
+    ])
+    setMeasurements(m.data || [])
+    setGoals(g.data || [])
+    setPatientTasks(t.data || [])
+    setTreatments(tr.data || [])
+    setNotes(n.data || [])
+  }
+
+  async function adminSaveMeasurement(form) {
+    setSaving(true)
+    await supabase.from('measurements').insert({
+      patient_id: selPatient.id, recorded_by: profile?.id,
+      measured_at: form.date, weight_kg: form.weight || null,
+      body_fat_pct: form.fat || null, muscle_mass_kg: form.muscle || null,
+      visceral_fat_pts: form.visceral || null
+    })
+    const { data } = await supabase.from('measurements').select('*').eq('patient_id', selPatient.id).order('measured_at', { ascending: false })
+    setMeasurements(data || [])
+    setModal(null); setSaving(false)
+  }
+
+  async function adminSaveGoal(form) {
+    setSaving(true)
+    await supabase.from('goals').insert({
+      patient_id: selPatient.id, created_by: profile?.id,
+      name: form.name, initial_value: form.initial || null,
+      target_value: form.target || null, deadline: form.deadline || null
+    })
+    const { data } = await supabase.from('goals').select('*').eq('patient_id', selPatient.id).eq('is_active', true)
+    setGoals(data || [])
+    setModal(null); setSaving(false)
+  }
+
+  async function adminDeleteGoal(id) {
+    await supabase.from('goals').update({ is_active: false }).eq('id', id)
+    const { data } = await supabase.from('goals').select('*').eq('patient_id', selPatient.id).eq('is_active', true)
+    setGoals(data || [])
+  }
+
+  async function adminAssignTasks(selectedTasks) {
+    setSaving(true)
+    const weekStart = new Date()
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+    const inserts = selectedTasks.map(desc => ({
+      patient_id: selPatient.id, assigned_by: profile?.id,
+      description: desc, week_start: weekStart.toISOString().split('T')[0]
+    }))
+    await supabase.from('tasks').insert(inserts)
+    const { data } = await supabase.from('tasks').select('*').eq('patient_id', selPatient.id).order('created_at', { ascending: false })
+    setPatientTasks(data || [])
+    setModal(null); setSaving(false)
+  }
+
+  async function adminDeleteTask(id) {
+    await supabase.from('tasks').delete().eq('id', id)
+    const { data } = await supabase.from('tasks').select('*').eq('patient_id', selPatient.id).order('created_at', { ascending: false })
+    setPatientTasks(data || [])
+  }
+
+  async function adminSaveTreatment(form) {
+    setSaving(true)
+    await supabase.from('treatments').insert({
+      patient_id: selPatient.id, registered_by: profile?.id,
+      product_name: form.product, dose: form.dose || null,
+      zone: form.zone || null, session_label: form.session || null,
+      appointment_date: form.date || null, notes: form.notes || null
+    })
+    const { data } = await supabase.from('treatments').select('*').eq('patient_id', selPatient.id).order('appointment_date', { ascending: false })
+    setTreatments(data || [])
+    setModal(null); setSaving(false)
+  }
+
+  async function adminSaveNote(form) {
+    setSaving(true)
+    await supabase.from('clinical_notes').insert({
+      patient_id: selPatient.id, author_id: profile?.id,
+      note_date: form.date, visit_type: form.visitType, content: form.content
+    })
+    const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false })
+    setNotes(data || [])
+    setModal(null); setSaving(false)
+  }
 
   function openDelete(type, id, name) {
     setModal('confirm-delete')
@@ -355,6 +456,35 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {view === 'perfil-paciente' && selPatient && (
+            <PatientProfileAdmin
+              patient={selPatient}
+              patients={patients}
+              doctors={doctors}
+              measurements={measurements}
+              goals={goals}
+              tasks={patientTasks}
+              treatments={treatments}
+              notes={notes}
+              library={library}
+              tab={patientTab}
+              setTab={setPatientTab}
+              saving={saving}
+              modal={modal}
+              modalData={modalData}
+              setModal={setModal}
+              setModalData={setModalData}
+              onSaveMeasurement={adminSaveMeasurement}
+              onSaveGoal={adminSaveGoal}
+              onDeleteGoal={adminDeleteGoal}
+              onAssignTasks={adminAssignTasks}
+              onDeleteTask={adminDeleteTask}
+              onSaveTreatment={adminSaveTreatment}
+              onSaveNote={adminSaveNote}
+              onBack={() => { setView('pacientes'); setSelPatient(null) }}
+            />
+          )}
+
           {view === 'pacientes' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
@@ -365,7 +495,7 @@ export default function AdminDashboard() {
                 <div style={{ flex:'0 0 20%', textAlign:'right' }}>Acciones</div>
               </div>
               {patients.map(p => (
-                <div key={p.id} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center' }}>
+                  <div key={p.id} onClick={() => openPatient(p)} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}>
                   <div style={{ flex:'0 0 34%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
@@ -817,4 +947,319 @@ const s = {
   calNavBtn:  { background:'none', border:'1px solid #eee', borderRadius:8, width:28, height:28, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, color:'#666' },
   fieldLabel: { display:'block', fontSize:11, color:'#666', marginBottom:4, fontWeight:500 },
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
+}
+
+function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, notes, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onBack }) {
+  const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
+  const latest = measurements[0] || null
+
+  function age(dob) {
+    if (!dob) return '--'
+    return Math.floor((Date.now() - new Date(dob).getTime()) / (1000*60*60*24*365.25))
+  }
+
+  return (
+    <div>
+      {modal && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.42)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:40 }}
+          onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
+          <div style={{ width:420, background:'#fff', borderRadius:16, padding:24, boxShadow:'0 20px 60px rgba(0,0,0,0.2)', maxHeight:'90vh', overflowY:'auto' }}>
+            {modal === 'new-measurement' && <MeasurementForm saving={saving} onSave={onSaveMeasurement} onClose={() => setModal(null)} />}
+            {modal === 'new-goal' && <GoalForm saving={saving} onSave={onSaveGoal} onClose={() => setModal(null)} />}
+            {modal === 'assign-tasks' && <TaskPickerForm library={library.filter(l => l.type === 'task')} saving={saving} onSave={onAssignTasks} onClose={() => setModal(null)} />}
+            {modal === 'new-treatment' && <TreatmentForm library={library.filter(l => l.type === 'treatment')} saving={saving} onSave={onSaveTreatment} onClose={() => setModal(null)} />}
+            {modal === 'new-note' && <NoteForm saving={saving} onSave={onSaveNote} onClose={() => setModal(null)} />}
+          </div>
+        </div>
+      )}
+
+      <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14, display:'flex', alignItems:'center', gap:14 }}>
+        <div style={{ width:48, height:48, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:500, flexShrink:0 }}>
+          {(pName[0] || '').toUpperCase()}
+        </div>
+        <div>
+          <div style={{ fontSize:15, fontWeight:500, color:'#1a1a1a' }}>{pName}</div>
+          <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{age(patient.birth_date)} anos · {patient.height_cm ? patient.height_cm + ' cm' : ''} · {patient.sex || ''}</div>
+          <div style={{ display:'flex', gap:6, marginTop:5 }}>
+            <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{patient.specialty_type || 'Sin especialidad'}</span>
+            <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{patient.profile?.email}</span>
+          </div>
+        </div>
+        <button style={{ marginLeft:'auto', background:'none', border:'1px solid #eee', borderRadius:8, padding:'6px 12px', fontSize:12, cursor:'pointer', color:'#666' }} onClick={onBack}>
+          Volver
+        </button>
+      </div>
+
+      <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
+        {['progreso','objetivos','tareas','tratamientos','notas'].map(t => (
+          <div key={t} onClick={() => setTab(t)}
+            style={{ padding:'9px 14px', fontSize:12, cursor:'pointer', borderBottom: tab === t ? '2px solid #1D9E75' : '2px solid transparent', color: tab === t ? '#1D9E75' : '#888', fontWeight: tab === t ? 500 : 400, textTransform:'capitalize' }}>
+            {t}
+          </div>
+        ))}
+      </div>
+
+      {tab === 'progreso' && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:10 }}>
+            <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' }} onClick={() => setModal('new-measurement')}>+ Registrar medicion</button>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:14 }}>
+            {[{ l:'Peso', v:latest?.weight_kg, u:'kg' }, { l:'% Grasa', v:latest?.body_fat_pct, u:'%' }, { l:'Masa muscular', v:latest?.muscle_mass_kg, u:'kg' }, { l:'Grasa visceral', v:latest?.visceral_fat_pts, u:'pts' }].map((m,i) => (
+              <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:10, padding:'12px 14px' }}>
+                <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{m.l}</div>
+                <div style={{ fontSize:20, fontWeight:500, color:'#1a1a1a' }}>{m.v || '--'} <span style={{ fontSize:11, color:'#999', fontWeight:400 }}>{m.v ? m.u : ''}</span></div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+            <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Historial de mediciones</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 1fr 1fr', gap:8, padding:'6px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase' }}>
+              <span>Fecha</span><span>Peso</span><span>% Grasa</span><span>Muscular</span><span>Visceral</span>
+            </div>
+            {measurements.map(m => (
+              <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5', fontSize:12 }}>
+                <span style={{ color:'#888' }}>{m.measured_at}</span>
+                <span>{m.weight_kg ? m.weight_kg + ' kg' : '--'}</span>
+                <span>{m.body_fat_pct ? m.body_fat_pct + '%' : '--'}</span>
+                <span>{m.muscle_mass_kg ? m.muscle_mass_kg + ' kg' : '--'}</span>
+                <span>{m.visceral_fat_pts ? m.visceral_fat_pts + ' pts' : '--'}</span>
+              </div>
+            ))}
+            {measurements.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin mediciones registradas</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'objetivos' && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:10 }}>
+            <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' }} onClick={() => setModal('new-goal')}>+ Nuevo objetivo</button>
+          </div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+            {goals.map(g => (
+              <div key={g.id} style={{ marginBottom:14 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                  <span style={{ fontSize:12, color:'#444' }}>{g.name}</span>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ fontSize:12, fontWeight:500 }}>{g.initial_value} → {g.target_value}</span>
+                    <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30' }} onClick={() => onDeleteGoal(g.id)}>x</button>
+                  </div>
+                </div>
+                <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
+                  <div style={{ height:'100%', background:'#1D9E75', borderRadius:3, width:'0%' }} />
+                </div>
+                {g.deadline && <div style={{ fontSize:10, color:'#999', marginTop:2, textAlign:'right' }}>Hasta {g.deadline}</div>}
+              </div>
+            ))}
+            {goals.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin objetivos activos</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'tareas' && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:10 }}>
+            <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' }} onClick={() => setModal('assign-tasks')}>+ Asignar tarea</button>
+          </div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+            {tasks.map(t => (
+              <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                <div style={{ width:18, height:18, borderRadius:'50%', border: '1.5px solid ' + (t.is_completed ? '#1D9E75' : '#ddd'), background: t.is_completed ? '#1D9E75' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#fff', flexShrink:0 }}>
+                  {t.is_completed ? 'v' : ''}
+                </div>
+                <span style={{ fontSize:12, flex:1, color: t.is_completed ? '#bbb' : '#1a1a1a', textDecoration: t.is_completed ? 'line-through' : 'none' }}>{t.description}</span>
+                <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30' }} onClick={() => onDeleteTask(t.id)}>x</button>
+              </div>
+            ))}
+            {tasks.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin tareas asignadas</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'tratamientos' && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:10 }}>
+            <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' }} onClick={() => setModal('new-treatment')}>+ Registrar tratamiento</button>
+          </div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+            {treatments.map(t => (
+              <div key={t.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{t.product_name}</div>
+                <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                  {t.appointment_date && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.appointment_date}</span>}
+                  {t.dose && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>{t.dose}</span>}
+                  {t.zone && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#FAEEDA', color:'#854F0B' }}>{t.zone}</span>}
+                  {t.session_label && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.session_label}</span>}
+                </div>
+                {t.notes && <div style={{ fontSize:11, color:'#888', marginTop:4, fontStyle:'italic' }}>{t.notes}</div>}
+              </div>
+            ))}
+            {treatments.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin tratamientos registrados</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'notas' && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:10 }}>
+            <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' }} onClick={() => setModal('new-note')}>+ Nueva nota</button>
+          </div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+            {notes.map(n => (
+              <div key={n.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>{n.note_date} · {n.visit_type}</div>
+                <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>
+              </div>
+            ))}
+            {notes.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MeasurementForm({ saving, onSave, onClose }) {
+  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:'', visceral:'' })
+  const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
+  return (
+    <>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar medicion</div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Fecha</label><input type="date" value={form.date} onChange={f('date')} style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Peso (kg)</label><input type="number" value={form.weight} onChange={f('weight')} placeholder="64.2" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>% Grasa</label><input type="number" value={form.fat} onChange={f('fat')} placeholder="29.1" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Masa muscular (kg)</label><input type="number" value={form.muscle} onChange={f('muscle')} placeholder="42.3" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Grasa visceral (pts)</label><input type="number" value={form.visceral} onChange={f('visceral')} placeholder="8" style={sa.inp} /></div>
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <button style={sa.btnCancel} onClick={onClose}>Cancelar</button>
+        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : 'Guardar medicion'}</button>
+      </div>
+    </>
+  )
+}
+
+function GoalForm({ saving, onSave, onClose }) {
+  const [form, setForm] = useState({ name:'', initial:'', target:'', deadline:'' })
+  const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
+  return (
+    <>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nuevo objetivo</div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Nombre del objetivo</label><input value={form.name} onChange={f('name')} placeholder="% grasa corporal" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Valor actual</label><input type="number" value={form.initial} onChange={f('initial')} placeholder="29.1" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Meta</label><input type="number" value={form.target} onChange={f('target')} placeholder="22.0" style={sa.inp} /></div>
+        <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Fecha limite</label><input type="date" value={form.deadline} onChange={f('deadline')} style={sa.inp} /></div>
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <button style={sa.btnCancel} onClick={onClose}>Cancelar</button>
+        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : 'Guardar objetivo'}</button>
+      </div>
+    </>
+  )
+}
+
+function TaskPickerForm({ library, saving, onSave, onClose }) {
+  const [selected, setSelected] = useState(new Set())
+  const [custom, setCustom] = useState('')
+  const categories = [...new Set(library.map(l => l.category).filter(Boolean))]
+  function toggle(name) {
+    setSelected(prev => { const next = new Set(prev); if (next.has(name)) next.delete(name); else next.add(name); return next })
+  }
+  function addCustom() { if (!custom.trim()) return; setSelected(prev => new Set([...prev, custom.trim()])); setCustom('') }
+  return (
+    <>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:12 }}>Asignar tareas</div>
+      <div style={{ maxHeight:280, overflowY:'auto', marginBottom:12 }}>
+        {categories.map(cat => (
+          <div key={cat}>
+            <div style={{ fontSize:10, fontWeight:500, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 0 4px' }}>{cat}</div>
+            {library.filter(l => l.category === cat).map(item => (
+              <div key={item.id} onClick={() => toggle(item.name)}
+                style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 9px', borderRadius:8, border: '0.5px solid ' + (selected.has(item.name) ? '#1D9E75' : '#eee'), background: selected.has(item.name) ? '#E1F5EE' : '#fff', marginBottom:4, cursor:'pointer' }}>
+                <span style={{ fontSize:12, flex:1, color: selected.has(item.name) ? '#0F6E56' : '#444' }}>{item.name}</span>
+                {selected.has(item.name) && <span style={{ color:'#1D9E75' }}>v</span>}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div style={{ borderTop:'0.5px dashed #eee', paddingTop:10, marginBottom:12 }}>
+        <div style={{ fontSize:11, color:'#999', marginBottom:6 }}>Tarea personalizada:</div>
+        <div style={{ display:'flex', gap:8 }}>
+          <input value={custom} onChange={e => setCustom(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addCustom() }} placeholder="Descripcion..." style={{ flex:1, padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+          <button style={sa.btnPrimary} onClick={addCustom}>+</button>
+        </div>
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <button style={sa.btnCancel} onClick={onClose}>Cancelar</button>
+        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:(saving||selected.size===0)?0.7:1 }} disabled={saving||selected.size===0} onClick={() => onSave([...selected])}>
+          {saving ? 'Asignando...' : 'Asignar ' + selected.size + ' tarea(s)'}
+        </button>
+      </div>
+    </>
+  )
+}
+
+function TreatmentForm({ library, saving, onSave, onClose }) {
+  const [form, setForm] = useState({ product:'', dose:'', zone:'', session:'', date: new Date().toISOString().split('T')[0], notes:'' })
+  const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
+  return (
+    <>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar tratamiento</div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={sa.lbl}>Procedimiento</label>
+          <select value={form.product} onChange={f('product')} style={sa.inp}>
+            <option value="">Selecciona...</option>
+            {library.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+            <option value="otro">+ Otro</option>
+          </select>
+        </div>
+        {form.product === 'otro' && <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Nombre</label><input value={form.customProduct || ''} onChange={e => setForm(p => ({ ...p, product: e.target.value }))} style={sa.inp} /></div>}
+        <div><label style={sa.lbl}>Dosis / duracion</label><input value={form.dose} onChange={f('dose')} placeholder="2 ml / 60 min" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Zona tratada</label><input value={form.zone} onChange={f('zone')} placeholder="Cara y cuello" style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Fecha</label><input type="date" value={form.date} onChange={f('date')} style={sa.inp} /></div>
+        <div><label style={sa.lbl}>Sesion</label><input value={form.session} onChange={f('session')} placeholder="Sesion 2 de 3" style={sa.inp} /></div>
+        <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Observaciones</label><textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...sa.inp, resize:'vertical' }} placeholder="Buena tolerancia..." /></div>
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <button style={sa.btnCancel} onClick={onClose}>Cancelar</button>
+        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : 'Guardar tratamiento'}</button>
+      </div>
+    </>
+  )
+}
+
+function NoteForm({ saving, onSave, onClose }) {
+  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], visitType:'Seguimiento', content:'' })
+  const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
+  return (
+    <>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nueva nota clinica</div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        <div><label style={sa.lbl}>Fecha</label><input type="date" value={form.date} onChange={f('date')} style={sa.inp} /></div>
+        <div>
+          <label style={sa.lbl}>Tipo de consulta</label>
+          <select value={form.visitType} onChange={f('visitType')} style={sa.inp}>
+            {['Seguimiento','Primera consulta','Procedimiento','Control'].map(v => <option key={v}>{v}</option>)}
+          </select>
+        </div>
+        <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Nota clinica</label><textarea value={form.content} onChange={f('content')} rows={4} style={{ ...sa.inp, resize:'vertical' }} placeholder="Paciente refiere..." /></div>
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <button style={sa.btnCancel} onClick={onClose}>Cancelar</button>
+        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : 'Guardar nota'}</button>
+      </div>
+    </>
+  )
+}
+
+const sa = {
+  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5 },
+  btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:12, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
+  lbl:        { display:'block', fontSize:11, color:'#666', marginBottom:4, fontWeight:500 },
+  inp:        { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
