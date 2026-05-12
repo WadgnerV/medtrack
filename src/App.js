@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import AdminDashboard from './pages/AdminDashboard'
+import DoctorDashboard from './pages/DoctorDashboard'
 
 function App() {
   return (
@@ -17,12 +18,12 @@ function App() {
           } />
           <Route path="/doctor/*" element={
             <ProtectedRoute allowedRoles={['doctor']}>
-              <div>Panel Doctor — próximamente</div>
+              <DoctorDashboard />
             </ProtectedRoute>
           } />
           <Route path="/paciente/*" element={
             <ProtectedRoute allowedRoles={['patient']}>
-              <div>Panel Paciente — próximamente</div>
+              <div>Panel Paciente — proximamente</div>
             </ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/login" replace />} />
