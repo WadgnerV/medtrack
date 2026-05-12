@@ -312,17 +312,18 @@ export default function PatientDashboard() {
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                 <div style={{ fontSize:13, fontWeight:500, marginBottom:4 }}>Hidratacion de hoy</div>
                 <div style={{ fontSize:11, color:'#888', marginBottom:12 }}>{glassesCount} de {glassesGoal} vasos · {goalMl} ml meta</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:12 }}>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:12 }}>
                   {Array.from({ length: glassesGoal }).map((_, i) => (
-                    <span key={i} style={{ fontSize:20, opacity: i < glassesCount ? 1 : 0.2 }}>💧</span>
+                    <span key={i}
+                      onClick={() => i < glassesCount ? removeWater() : addWater()}
+                      style={{ fontSize:26, opacity: i < glassesCount ? 1 : 0.2, cursor:'pointer', transition:'all 0.15s', userSelect:'none' }}
+                      title={i < glassesCount ? 'Quitar vaso' : 'Agregar vaso'}>
+                      💧
+                    </span>
                   ))}
                 </div>
-                <div style={{ height:6, background:'#f0f0f0', borderRadius:3, marginBottom:12 }}>
+                <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
                   <div style={{ height:'100%', background:'#185FA5', borderRadius:3, width: waterPct + '%', transition:'width 0.3s' }} />
-                </div>
-                <div style={{ display:'flex', gap:8 }}>
-                  <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center' }} onClick={addWater}>+ Agregar vaso</button>
-                  <button style={{ ...s.btnCancel, padding:'7px 12px' }} onClick={removeWater}>-</button>
                 </div>
               </div>
             </div>
@@ -381,14 +382,15 @@ export default function PatientDashboard() {
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                 <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Hidratacion de hoy</div>
                 <div style={{ fontSize:11, color:'#888', marginBottom:10 }}>{glassesCount} de {glassesGoal} vasos completados</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:10 }}>
                   {Array.from({ length: glassesGoal }).map((_, i) => (
-                    <span key={i} style={{ fontSize:22, opacity: i < glassesCount ? 1 : 0.2 }}>💧</span>
+                    <span key={i}
+                      onClick={() => i < glassesCount ? removeWater() : addWater()}
+                      style={{ fontSize:26, opacity: i < glassesCount ? 1 : 0.2, cursor:'pointer', transition:'all 0.15s', userSelect:'none' }}
+                      title={i < glassesCount ? 'Quitar vaso' : 'Agregar vaso'}>
+                      💧
+                    </span>
                   ))}
-                </div>
-                <div style={{ display:'flex', gap:8 }}>
-                  <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center' }} onClick={addWater}>+ Vaso de agua</button>
-                  <button style={{ ...s.btnCancel }} onClick={removeWater}>-</button>
                 </div>
               </div>
             </div>
