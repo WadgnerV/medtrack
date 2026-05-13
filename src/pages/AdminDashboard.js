@@ -35,6 +35,9 @@ export default function AdminDashboard() {
   const [patientTasks, setPatientTasks] = useState([])
   const [treatments, setTreatments] = useState([])
   const [notes, setNotes] = useState([])
+  const [diagnoses, setDiagnoses] = useState([])
+  const [cie10Search, setCie10Search] = useState('')
+  const [cie10Results, setCie10Results] = useState([])
 
   useEffect(() => { loadAll() }, [])
 
@@ -96,6 +99,19 @@ export default function AdminDashboard() {
       options: { data: { first_name: form.firstName, last_name: form.lastName, role } }
     })
     if (error) { setFormError(error.message); setSaving(false); return }
+    if (role === 'patient' && signUpData?.user) {
+      await supabase.from('patients').update({
+        assigned_doctor_id: form.doctorId || null,
+        birth_date: form.birthDate || null,
+        height_cm: form.height || null,
+        sex: form.sex || null,
+        specialty_type: form.specialty || null,
+        province: form.province || null,
+        canton: form.canton || null,
+        phone: form.phone || null,
+        id_number: form.idNumber || null,
+      }).eq('profile_id', signUpData.user.id)
+    }
     if (role === 'doctor') await loadDoctors()
     else await loadPatients()
     setModal(null); setSaving(false)
@@ -110,11 +126,11 @@ export default function AdminDashboard() {
   async function deleteRecord(type, id) {
     if (type === 'appointment') { await supabase.from('appointments').delete().eq('id', id); await loadAppts() }
     if (type === 'library') { await supabase.from('library_items').delete().eq('id', id); await loadLibrary() }
+    if (type === 'patient') { await supabase.from('patients').delete().eq('id', id); await loadPatients() }
+    if (type === 'doctor') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await loadDoctors() }
     setModal(null)
   }
-
   async function saveAppt(form) {
-    setSaving(true)
     const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: 'scheduled', created_by: profile?.id }
     if (form.id) await supabase.from('appointments').update(payload).eq('id', form.id)
     else await supabase.from('appointments').insert(payload)
@@ -193,6 +209,7 @@ export default function AdminDashboard() {
     setPatientTasks(t.data || [])
     setTreatments(tr.data || [])
     setNotes(n.data || [])
+    await loadDiagnoses(pid)
   }
 
   async function adminSaveMeasurement(form) {
@@ -259,11 +276,40 @@ export default function AdminDashboard() {
     setModal(null); setSaving(false)
   }
 
+  async function loadDiagnoses(patientId) {
+    const { data } = await supabase.from('patient_diagnoses').select('*').eq('patient_id', patientId).eq('is_active', true).order('diagnosis_date', { ascending: false })
+    setDiagnoses(data || [])
+  }
+
+  async function searchCie10(term) {
+    if (!term || term.length < 2) { setCie10Results([]); return }
+    const { data } = await supabase.from('cie10').select('code, description').or(`code.ilike.%${term}%,description.ilike.%${term}%`).limit(10)
+    setCie10Results(data || [])
+  }
+
+  async function adminAddDiagnosis(code, description) {
+    await supabase.from('patient_diagnoses').insert({
+      patient_id: selPatient.id, cie10_code: code, cie10_description: description,
+      diagnosed_by: profile?.id, diagnosis_date: new Date().toISOString().split('T')[0]
+    })
+    await loadDiagnoses(selPatient.id)
+    setCie10Search(''); setCie10Results([])
+  }
+
+  async function adminDeleteDiagnosis(id) {
+    await supabase.from('patient_diagnoses').update({ is_active: false }).eq('id', id)
+    await loadDiagnoses(selPatient.id)
+  }
+
   async function adminSaveNote(form) {
     setSaving(true)
     await supabase.from('clinical_notes').insert({
       patient_id: selPatient.id, author_id: profile?.id,
-      note_date: form.date, visit_type: form.visitType, content: form.content
+      note_date: form.date, visit_type: form.visitType, content: form.content,
+      pas: form.pas || null, pad: form.pad || null, pam: form.pam || null,
+      spo2: form.spo2 || null, o2_device: form.o2device || 'aa',
+      o2_flow: form.o2flow || null, glucose: form.glucose || null,
+      heart_rate: form.hr || null
     })
     const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false })
     setNotes(data || [])
@@ -286,8 +332,8 @@ export default function AdminDashboard() {
           <div style={{ width:420, background:'#fff', borderRadius:16, padding:24, boxShadow:'0 20px 60px rgba(0,0,0,0.2)', maxHeight:'90vh', overflowY:'auto' }}>
             {modal === 'confirm-delete' && (
               <>
-                <div style={{ fontSize:15, fontWeight:500, marginBottom:12 }}>Eliminar {modalData.type}</div>
-                <p style={{ fontSize:13, color:'#666', marginBottom:18, lineHeight:1.6 }}>Se eliminara permanentemente "{modalData.name}". Esta accion no se puede deshacer.</p>
+                <div style={{ fontSize:15, fontWeight:500, marginBottom:12 }}>Eliminar {modalData.type === 'patient' ? 'paciente' : modalData.type === 'doctor' ? 'medico' : modalData.type === 'appointment' ? 'cita' : modalData.type}</div>
+                <p style={{ fontSize:13, color:'#666', marginBottom:18, lineHeight:1.6 }}>Se eliminara permanentemente <strong>"{modalData.name}"</strong>. Esta accion no se puede deshacer.</p>
                 <div style={{ display:'flex', gap:8 }}>
                   <button style={s.btnCancel} onClick={() => setModal(null)}>Cancelar</button>
                   <button style={{ flex:1, padding:8, fontSize:12, fontWeight:500, background:'#D85A30', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', opacity:saving?0.7:1 }}
@@ -481,6 +527,13 @@ export default function AdminDashboard() {
               onDeleteTask={adminDeleteTask}
               onSaveTreatment={adminSaveTreatment}
               onSaveNote={adminSaveNote}
+              diagnoses={diagnoses}
+              onAddDiagnosis={adminAddDiagnosis}
+              onDeleteDiagnosis={adminDeleteDiagnosis}
+              cie10Search={cie10Search}
+              setCie10Search={setCie10Search}
+              cie10Results={cie10Results}
+              onSearchCie10={searchCie10}
               onBack={() => { setView('pacientes'); setSelPatient(null) }}
             />
           )}
@@ -509,8 +562,8 @@ export default function AdminDashboard() {
                     <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                   <div style={{ flex:'0 0 20%', display:'flex', justifyContent:'flex-end', gap:4 }}>
-                    <button style={s.iconBtn} onClick={() => { setModal('assign'); setModalData({ patient:p }) }}>R</button>
-                    <button style={s.iconBtnDel} onClick={() => openDelete('patient', p.id, pName(p))}>X</button>
+                    <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
+                    <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
                 </div>
               ))}
@@ -788,7 +841,32 @@ export default function AdminDashboard() {
 }
 
 function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
-  const [form, setForm] = useState({ firstName:'', lastName:'', email:'', password:'', specialty:'', doctorId:'', birthDate:'', height:'', sex:'' })
+  const [specialties, setSpecialties] = useState([])
+
+  useEffect(() => {
+    async function loadSpecialties() {
+      const { data } = await supabase.from('specialties').select('name').order('name')
+      setSpecialties(data?.map(s => s.name) || [])
+    }
+    loadSpecialties()
+  }, [])
+
+  async function addSpecialty(name) {
+    await supabase.from('specialties').insert({ name })
+    const { data } = await supabase.from('specialties').select('name').order('name')
+    setSpecialties(data?.map(s => s.name) || [])
+  }
+
+  const CANTONES = {
+    'San Jose': ['San Jose','Escazu','Desamparados','Puriscal','Tarrazu','Aserri','Mora','Goicoechea','Santa Ana','Alajuelita','Vazquez de Coronado','Acosta','Tibas','Moravia','Montes de Oca','Turrubares','Dota','Curridabat','Perez Zeledon','Leon Cortes'],
+    'Alajuela': ['Alajuela','San Ramon','Grecia','San Mateo','Atenas','Naranjo','Palmares','Poas','Orotina','San Carlos','Zarcero','Valverde Vega','Upala','Los Chiles','Guatuso','Rio Cuarto'],
+    'Cartago': ['Cartago','Paraiso','La Union','Jimenez','Turrialba','Alvarado','Oreamuno','El Guarco'],
+    'Heredia': ['Heredia','Barva','Santo Domingo','Santa Barbara','San Rafael','San Isidro','Belen','Flores','San Pablo','Sarapiqui'],
+    'Guanacaste': ['Liberia','Nicoya','Santa Cruz','Bagaces','Carrillo','Canas','Abangares','Tilaran','Nandayure','La Cruz','Hojancha'],
+    'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Rio Nuevo','Monteverde','Puerto Jimenez'],
+    'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
+  }
+  const [form, setForm] = useState({ firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   return (
     <>
@@ -799,7 +877,32 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
         <Field label="Apellido" value={form.lastName} onChange={f('lastName')} placeholder="Rodriguez" />
         <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>
         <div style={{ gridColumn:'1/-1' }}><Field label="Contrasena temporal" value={form.password} onChange={f('password')} type="password" placeholder="Minimo 6 caracteres" /></div>
-        {type === 'doctor' && <div style={{ gridColumn:'1/-1' }}><Field label="Especialidad" value={form.specialty} onChange={f('specialty')} placeholder="Medicina estetica" /></div>}
+        {type === 'doctor' && <>
+          <div style={{ gridColumn:'1/-1' }}>
+            <label style={s.fieldLabel}>Especialidad</label>
+            <select value={form.specialty} onChange={f('specialty')} style={s.fieldInput}>
+              <option value="">Selecciona...</option>
+              {specialties.map(sp => <option key={sp} value={sp}>{sp}</option>)}
+              <option value="__nueva__">+ Agregar nueva especialidad...</option>
+            </select>
+          </div>
+          {form.specialty === '__nueva__' && (
+            <div style={{ gridColumn:'1/-1', display:'flex', gap:8 }}>
+              <input value={form.newSpecialty || ''} onChange={e => setForm(p => ({ ...p, newSpecialty: e.target.value }))}
+                placeholder="Nombre de la especialidad" style={s.fieldInput} />
+              <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', whiteSpace:'nowrap' }}
+                onClick={async () => {
+                  if (!form.newSpecialty?.trim()) return
+                  await addSpecialty(form.newSpecialty.trim())
+                  setForm(p => ({ ...p, specialty: form.newSpecialty.trim(), newSpecialty: '' }))
+                }}>Guardar</button>
+            </div>
+          )}
+          <div style={{ gridColumn:'1/-1' }}>
+            <label style={s.fieldLabel}>Codigo profesional (colegiado)</label>
+            <input value={form.medicalCode} onChange={f('medicalCode')} placeholder="MED-12345" style={s.fieldInput} />
+          </div>
+        </>}
         {type === 'patient' && (
           <>
             <Field label="Fecha de nacimiento" value={form.birthDate} onChange={f('birthDate')} type="date" />
@@ -820,6 +923,34 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
                 {doctors.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
               </select>
             </div>
+              <div>
+                <label style={s.fieldLabel}>Cedula / ID</label>
+                <input value={form.idNumber} onChange={f('idNumber')} placeholder="1-1234-5678" style={s.fieldInput} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Telefono</label>
+                <input type="tel" value={form.phone} onChange={f('phone')} placeholder="+506 8888-8888" style={s.fieldInput} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Provincia</label>
+                <select value={form.province} onChange={f('province')} style={s.fieldInput}>
+                  <option value="">Selecciona...</option>
+                  <option value="San Jose">San Jose</option>
+                  <option value="Alajuela">Alajuela</option>
+                  <option value="Cartago">Cartago</option>
+                  <option value="Heredia">Heredia</option>
+                  <option value="Guanacaste">Guanacaste</option>
+                  <option value="Puntarenas">Puntarenas</option>
+                  <option value="Limon">Limon</option>
+                </select>
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Canton</label>
+                <select value={form.canton} onChange={f('canton')} style={s.fieldInput} disabled={!form.province}>
+                  <option value="">Selecciona...</option>
+                  {form.province && CANTONES[form.province] && CANTONES[form.province].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
           </>
         )}
       </div>
@@ -949,7 +1080,7 @@ const s = {
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
 
-function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, notes, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onBack }) {
+function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
   const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
   const latest = measurements[0] || null
 
@@ -991,7 +1122,7 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
       </div>
 
       <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
-        {['progreso','objetivos','tareas','tratamientos','notas'].map(t => (
+        {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos'].map(t => (
           <div key={t} onClick={() => setTab(t)}
             style={{ padding:'9px 14px', fontSize:12, cursor:'pointer', borderBottom: tab === t ? '2px solid #1D9E75' : '2px solid transparent', color: tab === t ? '#1D9E75' : '#888', fontWeight: tab === t ? 500 : 400, textTransform:'capitalize' }}>
             {t}
@@ -1107,12 +1238,61 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
           </div>
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
             {notes.map(n => (
-              <div key={n.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>{n.note_date} · {n.visit_type}</div>
-                <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>
+              <div key={n.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                <div style={{ fontSize:10, color:'#999', marginBottom:6 }}>{n.note_date} · {n.visit_type}</div>
+                {(n.pas || n.spo2 || n.glucose || n.heart_rate) && (
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                    {n.pas && n.pad && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#FAECE7', color:'#854F0B' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''}</span>}
+                    {n.spo2 && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'}</span>}
+                    {n.glucose && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>Glicemia: {n.glucose} mg/dL</span>}
+                    {n.heart_rate && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#666' }}>FC: {n.heart_rate} lpm</span>}
+                  </div>
+                )}
+                {n.content && <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
               </div>
             ))}
             {notes.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'diagnosticos' && (
+        <div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
+            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Buscar diagnostico CIE-10</div>
+            <div style={{ position:'relative' }}>
+              <input
+                value={cie10Search}
+                onChange={e => { setCie10Search(e.target.value); onSearchCie10(e.target.value) }}
+                placeholder="Escribe codigo o nombre del diagnostico..."
+                style={{ width:'100%', padding:'9px 12px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }}
+              />
+              {cie10Results.length > 0 && (
+                <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', zIndex:10, maxHeight:240, overflowY:'auto' }}>
+                  {cie10Results.map(r => (
+                    <div key={r.code} onClick={() => onAddDiagnosis(r.code, r.description)}
+                      style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'0.5px solid #f0f0f0', fontSize:12 }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f8f8f8'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <span style={{ fontWeight:500, color:'#1D9E75', marginRight:8 }}>{r.code}</span>
+                      <span style={{ color:'#444' }}>{r.description}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Diagnosticos activos ({diagnoses.length})</div>
+            {diagnoses.map(d => (
+              <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5', fontWeight:500, whiteSpace:'nowrap' }}>{d.cie10_code}</span>
+                <span style={{ fontSize:12, flex:1, color:'#1a1a1a' }}>{d.cie10_description}</span>
+                <span style={{ fontSize:10, color:'#bbb', whiteSpace:'nowrap' }}>{d.diagnosis_date}</span>
+                <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30', flexShrink:0 }} onClick={() => onDeleteDiagnosis(d.id)}>x</button>
+              </div>
+            ))}
+            {diagnoses.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin diagnosticos registrados</div>}
           </div>
         </div>
       )}
@@ -1234,8 +1414,63 @@ function TreatmentForm({ library, saving, onSave, onClose }) {
 }
 
 function NoteForm({ saving, onSave, onClose }) {
-  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], visitType:'Seguimiento', content:'' })
-  const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    visitType: 'Seguimiento',
+    content: '',
+    pas: '', pad: '', spo2: '', o2device: 'aa', o2flow: '',
+    glucose: '', hr: ''
+  })
+  const f = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  const pam = form.pas && form.pad
+    ? Math.round((parseInt(form.pas) + 2 * parseInt(form.pad)) / 3)
+    : null
+
+  const DEVICES = ['aa','Canula nasal','Mascarilla simple','Mascarilla con reservorio','Ventimask','CPAP','BPAP','Tubo endotraqueal','Venturi']
+
+  function vitalStatus(type, val) {
+    const v = parseFloat(val)
+    if (!val || isNaN(v)) return null
+    if (type === 'pas') {
+      if (v >= 140) return { icon:'🔴', msg:'Hipertension grado 1+' }
+      if (v >= 120) return { icon:'⚠️', msg:'PA elevada' }
+      if (v < 90)  return { icon:'🔴', msg:'Hipotension' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'pad') {
+      if (v >= 90) return { icon:'🔴', msg:'Hipertension' }
+      if (v >= 80) return { icon:'⚠️', msg:'PA elevada' }
+      if (v < 60)  return { icon:'🔴', msg:'Hipotension' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'spo2') {
+      if (v < 90)  return { icon:'🔴', msg:'Hipoxemia critica' }
+      if (v < 95)  return { icon:'⚠️', msg:'Hipoxemia leve' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'glucose') {
+      if (v < 70)   return { icon:'🔴', msg:'Hipoglicemia' }
+      if (v >= 126) return { icon:'🔴', msg:'Hiperglicemia' }
+      if (v >= 100) return { icon:'⚠️', msg:'Prediabetes/ayuno alterado' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'hr') {
+      if (v > 120 || v < 50) return { icon:'🔴', msg: v > 120 ? 'Taquicardia severa' : 'Bradicardia severa' }
+      if (v > 100 || v < 60) return { icon:'⚠️', msg: v > 100 ? 'Taquicardia' : 'Bradicardia' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    return null
+  }
+
+  function VitalBadge({ type, val }) {
+    const st = vitalStatus(type, val)
+    if (!st) return null
+    const colors = { '✅': ['#E1F5EE','#0F6E56'], '⚠️': ['#FAEEDA','#854F0B'], '🔴': ['#FAECE7','#C24B2A'] }
+    const [bg, fg] = colors[st.icon] || ['#f0f0f0','#666']
+    return <span style={{ fontSize:10, padding:'2px 7px', borderRadius:20, background:bg, color:fg, marginLeft:6, fontWeight:500 }}>{st.icon} {st.msg}</span>
+  }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nueva nota clinica</div>
@@ -1247,11 +1482,65 @@ function NoteForm({ saving, onSave, onClose }) {
             {['Seguimiento','Primera consulta','Procedimiento','Control'].map(v => <option key={v}>{v}</option>)}
           </select>
         </div>
-        <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Nota clinica</label><textarea value={form.content} onChange={f('content')} rows={4} style={{ ...sa.inp, resize:'vertical' }} placeholder="Paciente refiere..." /></div>
       </div>
+
+      <div style={{ background:'#f8f8f8', borderRadius:10, padding:12, marginBottom:12 }}>
+        <div style={{ fontSize:12, fontWeight:500, color:'#666', marginBottom:10 }}>Signos vitales</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8 }}>
+          <div>
+            <label style={sa.lbl}>PAS (mmHg) <VitalBadge type="pas" val={form.pas} /></label>
+            <input type="number" value={form.pas} onChange={f('pas')} placeholder="120" style={{ ...sa.inp, borderColor: vitalStatus('pas',form.pas)?.icon === '🔴' ? '#D85A30' : vitalStatus('pas',form.pas)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={sa.lbl}>PAD (mmHg) <VitalBadge type="pad" val={form.pad} /></label>
+            <input type="number" value={form.pad} onChange={f('pad')} placeholder="80" style={{ ...sa.inp, borderColor: vitalStatus('pad',form.pad)?.icon === '🔴' ? '#D85A30' : vitalStatus('pad',form.pad)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={sa.lbl}>PAM (mmHg)</label>
+            <input value={pam !== null ? pam + ' mmHg' : ''} readOnly placeholder="Auto"
+              style={{ ...sa.inp, background:'#eee', color:'#666', cursor:'not-allowed' }} />
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8 }}>
+          <div>
+            <label style={sa.lbl}>SpO2 (%) <VitalBadge type="spo2" val={form.spo2} /></label>
+            <input type="number" value={form.spo2} onChange={f('spo2')} placeholder="98" style={{ ...sa.inp, borderColor: vitalStatus('spo2',form.spo2)?.icon === '🔴' ? '#D85A30' : vitalStatus('spo2',form.spo2)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={sa.lbl}>O2 / Dispositivo</label>
+            <select value={form.o2device} onChange={f('o2device')} style={sa.inp}>
+              {DEVICES.map(d => <option key={d} value={d}>{d === 'aa' ? 'Aire ambiente' : d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={sa.lbl}>Flujo O2 (L/min)</label>
+            <input type="number" value={form.o2flow} onChange={f('o2flow')} placeholder="2"
+              disabled={form.o2device === 'aa'}
+              style={{ ...sa.inp, background: form.o2device === 'aa' ? '#eee' : '#fff', cursor: form.o2device === 'aa' ? 'not-allowed' : 'text' }} />
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={sa.lbl}>Glicemia (mg/dL) <VitalBadge type="glucose" val={form.glucose} /></label>
+            <input type="number" value={form.glucose} onChange={f('glucose')} placeholder="90" style={{ ...sa.inp, borderColor: vitalStatus('glucose',form.glucose)?.icon === '🔴' ? '#D85A30' : vitalStatus('glucose',form.glucose)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={sa.lbl}>FC (lpm) <VitalBadge type="hr" val={form.hr} /></label>
+            <input type="number" value={form.hr} onChange={f('hr')} placeholder="72" style={{ ...sa.inp, borderColor: vitalStatus('hr',form.hr)?.icon === '🔴' ? '#D85A30' : vitalStatus('hr',form.hr)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom:14 }}>
+        <label style={sa.lbl}>Nota clinica</label>
+        <textarea value={form.content} onChange={f('content')} rows={4} style={{ ...sa.inp, resize:'vertical' }} placeholder="Paciente refiere..." />
+      </div>
+
       <div style={{ display:'flex', gap:8 }}>
         <button style={sa.btnCancel} onClick={onClose}>Cancelar</button>
-        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : 'Guardar nota'}</button>
+        <button style={{ ...sa.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave({ ...form, pam })}>
+          {saving ? 'Guardando...' : 'Guardar nota'}
+        </button>
       </div>
     </>
   )
