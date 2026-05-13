@@ -8,6 +8,76 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, L
 const G = '#1D9E75'
 const SP = ' '
 
+function EditDoctorForm({ doctor, saving, onSave, onClose }) {
+  const [form, setForm] = useState({
+    firstName: doctor.first_name || '',
+    lastName: doctor.last_name || '',
+    medicalCode: doctor.medical_code || '',
+    specialty: doctor.specialty || '',
+    newSpecialty: '',
+  })
+  const [specialties, setSpecialties] = useState([])
+  const { createClient } = require('@supabase/supabase-js')
+  const supabase = require('../lib/supabase').supabase
+  const f = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  useEffect(() => {
+    supabase.from('specialties').select('name').order('name').then(({ data }) => {
+      if (data) setSpecialties(data.map(s => s.name))
+    })
+  }, [])
+
+  async function addNewSpecialty() {
+    if (!form.newSpecialty?.trim()) return
+    await supabase.from('specialties').insert({ name: form.newSpecialty.trim() })
+    const { data } = await supabase.from('specialties').select('name').order('name')
+    if (data) setSpecialties(data.map(s => s.name))
+    setForm(p => ({ ...p, specialty: form.newSpecialty.trim(), newSpecialty: '' }))
+  }
+
+  const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', boxSizing:'border-box' }
+  const lbl = { fontSize:11, fontWeight:500, color:'#666', display:'block', marginBottom:4 }
+  return (
+    <>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Editar médico colaborador</div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        <div>
+          <label style={lbl}>Nombre</label>
+          <input value={form.firstName} onChange={f('firstName')} style={inp} />
+        </div>
+        <div>
+          <label style={lbl}>Apellido</label>
+          <input value={form.lastName} onChange={f('lastName')} style={inp} />
+        </div>
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={lbl}>Código profesional (colegiado)</label>
+          <input value={form.medicalCode} onChange={f('medicalCode')} placeholder="MED-12345" style={inp} />
+        </div>
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={lbl}>Especialidad</label>
+          <select value={form.specialty} onChange={f('specialty')} style={inp}>
+            <option value="">Selecciona...</option>
+            {specialties.map(sp => <option key={sp} value={sp}>{sp}</option>)}
+            <option value="__nueva__">+ Agregar nueva especialidad...</option>
+          </select>
+        </div>
+        {form.specialty === '__nueva__' && (
+          <div style={{ gridColumn:'1/-1', display:'flex', gap:8 }}>
+            <input value={form.newSpecialty} onChange={f('newSpecialty')} placeholder="Nombre de la especialidad" style={inp} />
+            <button onClick={addNewSpecialty} style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', whiteSpace:'nowrap' }}>Guardar</button>
+          </div>
+        )}
+      </div>
+      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+        <button onClick={onClose} style={{ background:'none', border:'1px solid #e0e0e0', fontSize:12, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' }}>Cancelar</button>
+        <button onClick={() => onSave(form)} disabled={saving} style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', opacity: saving ? 0.7 : 1 }}>
+          {saving ? 'Guardando...' : 'Guardar cambios'}
+        </button>
+      </div>
+    </>
+  )
+}
+
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
@@ -60,6 +130,20 @@ export default function AdminDashboard() {
   async function loadAllDiagnoses() {
     const { data } = await supabase.from('patient_diagnoses').select('cie10_code, cie10_description, patient_id').eq('is_active', true)
     setAllDiagnoses(data || [])
+  }
+
+  async function saveDoctor(form) {
+    setSaving(true)
+    const d = modalData.doctor
+    await supabase.from('profiles').update({
+      first_name: form.firstName,
+      last_name: form.lastName,
+      medical_code: form.medicalCode || null,
+      specialty: form.specialty || null,
+    }).eq('id', d.id)
+    await loadDoctors()
+    setModal(null)
+    setSaving(false)
   }
 
   async function loadDoctors() {
@@ -380,7 +464,16 @@ export default function AdminDashboard() {
                 </div>
               </>
             )}
-            {(modal === 'new-doctor' || modal === 'new-patient') && (
+            {modal === 'edit-doctor' && modalData?.doctor && (
+            <EditDoctorForm
+              doctor={modalData.doctor}
+              saving={saving}
+              onSave={saveDoctor}
+              onClose={() => setModal(null)}
+            />
+          )}
+
+          {(modal === 'new-doctor' || modal === 'new-patient') && (
               <NewUserForm
                 type={modal === 'new-doctor' ? 'doctor' : 'patient'}
                 doctors={doctors} saving={saving} error={formError}
@@ -726,11 +819,11 @@ export default function AdminDashboard() {
                     {d.role !== 'admin' && (
                       <>
                         <button style={s.iconBtn} onClick={() => setView('permisos')}>P</button>
-                        <button style={s.iconBtn}>E</button>
+                        <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
                         <button style={s.iconBtnDel} onClick={() => openDelete('doctor', d.id, d.first_name + SP + d.last_name)}>X</button>
                       </>
                     )}
-                    {d.role === 'admin' && <button style={s.iconBtn}>E</button>}
+                    {d.role === 'admin' && <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>}
                   </div>
                 </div>
               ))}
