@@ -35,6 +35,7 @@ export default function DoctorDashboard() {
   const [notes, setNotes] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
   const [allDiagnoses, setAllDiagnoses] = useState([])
+  const [searchPac, setSearchPac] = useState('')
   const [cie10Search, setCie10Search] = useState('')
   const [cie10Results, setCie10Results] = useState([])
 
@@ -493,6 +494,7 @@ export default function DoctorDashboard() {
 
       {view === 'pacientes' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
+          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:12, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 35%' }}>Paciente</div>
                 <div style={{ flex:'0 0 10%' }}>Edad</div>
@@ -500,7 +502,14 @@ export default function DoctorDashboard() {
                 <div style={{ flex:'0 0 22%', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
                 <div style={{ flex:'0 0 11%' }}>Estado</div>
               </div>
-              {patients.map(p => (
+              {patients.filter(p => {
+                const q = searchPac.toLowerCase()
+                if(!q) return true
+                const nombre = ((p.profile?.first_name||'')+' '+(p.profile?.last_name||'')).toLowerCase()
+                const email = (p.profile?.email||'').toLowerCase()
+                const diag = (allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description||'').toLowerCase()
+                return nombre.includes(q)||email.includes(q)||diag.includes(q)
+              }).map(p => (
                 <div key={p.id} onClick={() => openPatient(p)}
                   style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer', transition:'background 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#f8fffe'}

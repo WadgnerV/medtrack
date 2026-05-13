@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [view, setView] = useState('dashboard')
+  const [searchPac, setSearchPac] = useState('')
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
@@ -776,28 +777,38 @@ export default function AdminDashboard() {
 
           {view === 'pacientes' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
+          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:12, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex:'0 0 34%' }}>Paciente</div>
-                <div style={{ flex:'0 0 10%' }}>Edad</div>
-                <div style={{ flex:'0 0 22%' }}>Medico</div>
-                <div style={{ flex:'0 0 14%' }}>Estado</div>
-                <div style={{ flex:'0 0 20%', textAlign:'right' }}>Acciones</div>
+                <div style={{ flex:'0 0 28%' }}>Paciente</div>
+                <div style={{ flex:'0 0 8%' }}>Edad</div>
+                <div style={{ flex:'0 0 18%' }}>Médico</div>
+                <div style={{ flex:'0 0 18%', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 12%' }}>Estado</div>
+                <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
               </div>
-              {patients.map(p => (
+              {patients.filter(p => {
+                const q = searchPac.toLowerCase()
+                if(!q) return true
+                const nombre = ((p.first_name||'')+' '+(p.last_name||'')).toLowerCase()
+                const email = (p.email||'').toLowerCase()
+                const diag = (allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description||'').toLowerCase()
+                return nombre.includes(q)||email.includes(q)||diag.includes(q)
+              }).map(p => (
                   <div key={p.id} onClick={() => openPatient(p)} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}>
-                  <div style={{ flex:'0 0 34%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  <div style={{ flex:'0 0 28%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
                       <div style={{ fontSize:10, color:'#999' }}>{p.specialty_type || '--'}</div>
                     </div>
                   </div>
-                  <div style={{ flex:'0 0 10%', fontSize:12, color:'#666' }}>{age(p.birth_date)}</div>
-                  <div style={{ flex:'0 0 22%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.doctor ? dName(p.doctor) : 'Sin asignar'}</div>
-                  <div style={{ flex:'0 0 14%' }}>
+                  <div style={{ flex:'0 0 8%', fontSize:12, color:'#666' }}>{age(p.birth_date)}</div>
+                  <div style={{ flex:'0 0 18%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.doctor ? dName(p.doctor) : 'Sin asignar'}</div>
+                <div style={{ flex:'0 0 18%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                  <div style={{ flex:'0 0 12%' }}>
                     <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
-                  <div style={{ flex:'0 0 20%', display:'flex', justifyContent:'flex-end', gap:4 }}>
+                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
