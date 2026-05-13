@@ -449,7 +449,281 @@ export default function AdminDashboard() {
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
 
 
-          {view === 'medicos' && (
+    
+      {view === 'dashboard' && (
+        <div>
+          {/* ── KPIs ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+            {[
+              { label:'Pacientes activos', value: patients.length, icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
+              { label:'Médicos activos',   value: doctors.filter(d=>d.role==='doctor'||d.role==='admin').length, icon:'👨\u200d⚕️', color:'#1a5c8a', bg:'#e5f0fb' },
+              { label:'Citas este mes',    value: appts.filter(a=>a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length, icon:'📅', color:'#7a4000', bg:'#fff3e0' },
+              { label:'Mensajes hoy',      value: msgs.filter(m=>m.created_at?.startsWith(new Date().toISOString().substring(0,10))).length, icon:'💬', color:'#5a2d8a', bg:'#eeedfe' },
+            ].map((k,i) => (
+              <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                  <span style={{ fontSize:11, color:'#999', fontWeight:500 }}>{k.label}</span>
+                  <span style={{ fontSize:18, background:k.bg, borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center' }}>{k.icon}</span>
+                </div>
+                <div style={{ fontSize:28, fontWeight:600, color:k.color }}>{k.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── GRÁFICAS FILA 1 ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+
+            {/* 1. Pacientes por médico */}
+            {(() => {
+              const docs = doctors.filter(d=>d.role==='doctor'||d.role==='admin');
+              const max = Math.max(1, ...docs.map(d=>patients.filter(p=>p.assigned_doctor_id===d.id).length));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👨‍⚕️ Pacientes por médico</div>
+                  {docs.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos</div>}
+                  {docs.map(d => {
+                    const count = patients.filter(p=>p.assigned_doctor_id===d.id).length;
+                    const pct = Math.round(count/max*100);
+                    return (
+                      <div key={d.id} style={{ marginBottom:10 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                          <span style={{ color:'#444' }}>Dr. {d.first_name} {d.last_name}</span>
+                          <span style={{ fontWeight:600, color:'#0F6E56' }}>{count}</span>
+                        </div>
+                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
+                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:'#1D9E75', transition:'width .4s' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* 2. Distribución por sexo */}
+            {(() => {
+              const sexos = [
+                { key:'female', label:'Femenino',  color:'#e91e8c' },
+                { key:'male',   label:'Masculino', color:'#1a5c8a' },
+                { key:'other',  label:'Otro',      color:'#7a4000' },
+              ];
+              const max = Math.max(1, ...sexos.map(s=>patients.filter(p=>p.sex===s.key).length));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>⚧ Distribución por sexo</div>
+                  {sexos.map(s => {
+                    const count = patients.filter(p=>p.sex===s.key).length;
+                    const pct = Math.round(count/max*100);
+                    return (
+                      <div key={s.key} style={{ marginBottom:10 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                          <span style={{ color:'#444' }}>{s.label}</span>
+                          <span style={{ fontWeight:600, color:s.color }}>{count}</span>
+                        </div>
+                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
+                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:s.color, transition:'width .4s' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ── GRÁFICAS FILA 2 ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+
+            {/* 3. Pacientes por provincia */}
+            {(() => {
+              const provs = [...new Set(patients.map(p=>p.province).filter(Boolean))];
+              const max = Math.max(1, ...provs.map(pv=>patients.filter(p=>p.province===pv).length));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📍 Pacientes por provincia</div>
+                  {provs.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos de provincia</div>}
+                  {provs.map(pv => {
+                    const count = patients.filter(p=>p.province===pv).length;
+                    const pct = Math.round(count/max*100);
+                    return (
+                      <div key={pv} style={{ marginBottom:10 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                          <span style={{ color:'#444' }}>{pv}</span>
+                          <span style={{ fontWeight:600, color:'#1a5c8a' }}>{count}</span>
+                        </div>
+                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
+                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:'#1a5c8a', transition:'width .4s' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* 4. Citas por mes */}
+            {(() => {
+              const months = [];
+              for(let i=5;i>=0;i--){
+                const d = new Date(); d.setMonth(d.getMonth()-i);
+                const key = d.toISOString().substring(0,7);
+                const label = d.toLocaleString('es',{month:'short'});
+                months.push({ key, label, count: appts.filter(a=>a.appointment_date?.startsWith(key)).length });
+              }
+              const max = Math.max(1, ...months.map(m=>m.count));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📅 Citas por mes</div>
+                  <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:80 }}>
+                    {months.map(m => (
+                      <div key={m.key} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                        <span style={{ fontSize:10, fontWeight:600, color:'#7a4000' }}>{m.count||''}</span>
+                        <div style={{ width:'100%', background:'#fff3e0', borderRadius:4, display:'flex', alignItems:'flex-end', height:56 }}>
+                          <div style={{ width:'100%', background:'#e67e22', borderRadius:4, height: Math.max(4, Math.round(m.count/max*56))+'px', transition:'height .4s' }} />
+                        </div>
+                        <span style={{ fontSize:10, color:'#999' }}>{m.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ── GRÁFICAS FILA 3 ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+
+            {/* 5. Citas por médico este mes */}
+            {(() => {
+              const mes = new Date().toISOString().substring(0,7);
+              const docs = doctors.filter(d=>d.role==='doctor'||d.role==='admin');
+              const max = Math.max(1, ...docs.map(d=>appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📊 Citas por médico este mes</div>
+                  {docs.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos</div>}
+                  {docs.map(d => {
+                    const count = appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length;
+                    const pct = Math.round(count/max*100);
+                    return (
+                      <div key={d.id} style={{ marginBottom:10 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                          <span style={{ color:'#444' }}>Dr. {d.first_name} {d.last_name}</span>
+                          <span style={{ fontWeight:600, color:'#5a2d8a' }}>{count}</span>
+                        </div>
+                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
+                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:'#8e44ad', transition:'width .4s' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* 6. Metas alcanzadas vs no */}
+            {(() => {
+              const achieved = patients.filter(p=>p.goals_achieved===true).length;
+              const pending  = patients.filter(p=>p.goals_achieved===false).length;
+              const nodata   = patients.length - achieved - pending;
+              const items = [
+                { label:'Metas alcanzadas', count:achieved, color:'#1D9E75', bg:'#E1F5EE' },
+                { label:'En progreso',      count:pending,  color:'#e67e22', bg:'#fff3e0' },
+                { label:'Sin evaluar',      count:nodata,   color:'#999',    bg:'#f5f5f5' },
+              ];
+              const max = Math.max(1, ...items.map(i=>i.count));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>🎯 Metas de pacientes</div>
+                  {items.map(it => (
+                    <div key={it.label} style={{ marginBottom:10 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                        <span style={{ color:'#444' }}>{it.label}</span>
+                        <span style={{ fontWeight:600, color:it.color }}>{it.count}</span>
+                      </div>
+                      <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
+                        <div style={{ height:'100%', borderRadius:4, width:Math.round(it.count/max*100)+'%', background:it.color, transition:'width .4s' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ── GRÁFICAS FILA 4 ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+
+            {/* 7. Pacientes por diagnóstico */}
+            {(() => {
+              const diags = [...new Set(patients.map(p=>p.diagnosis).filter(Boolean))];
+              const max = Math.max(1, ...diags.map(dg=>patients.filter(p=>p.diagnosis===dg).length));
+              const colors = ['#0F6E56','#1a5c8a','#7a4000','#5a2d8a','#c0392b','#e67e22'];
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>🩺 Pacientes por diagnóstico</div>
+                  {diags.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin diagnósticos registrados</div>}
+                  {diags.map((dg,i) => {
+                    const count = patients.filter(p=>p.diagnosis===dg).length;
+                    const pct = Math.round(count/max*100);
+                    return (
+                      <div key={dg} style={{ marginBottom:10 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+                          <span style={{ color:'#444', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'75%' }}>{dg}</span>
+                          <span style={{ fontWeight:600, color:colors[i%colors.length] }}>{count}</span>
+                        </div>
+                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
+                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:colors[i%colors.length], transition:'width .4s' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* 8. Pacientes por grupo de edad */}
+            {(() => {
+              const grupos = [
+                { label:'18-25', min:18, max:25, color:'#1D9E75' },
+                { label:'26-35', min:26, max:35, color:'#1a5c8a' },
+                { label:'36-45', min:36, max:45, color:'#8e44ad' },
+                { label:'46-55', min:46, max:55, color:'#e67e22' },
+                { label:'56-65', min:56, max:65, color:'#c0392b' },
+                { label:'65+',   min:66, max:200, color:'#7f8c8d' },
+              ];
+              const getAge = dob => {
+                if(!dob) return null;
+                const d = new Date(dob); const now = new Date();
+                return now.getFullYear()-d.getFullYear()-(now<new Date(now.getFullYear(),d.getMonth(),d.getDate())?1:0);
+              };
+              const counts = grupos.map(g => ({
+                ...g,
+                count: patients.filter(p=>{ const a=getAge(p.date_of_birth); return a!==null&&a>=g.min&&a<=g.max; }).length
+              }));
+              const max = Math.max(1, ...counts.map(g=>g.count));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👤 Pacientes por grupo de edad</div>
+                  <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:80, marginBottom:4 }}>
+                    {counts.map(g => (
+                      <div key={g.label} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                        <span style={{ fontSize:10, fontWeight:600, color:g.color }}>{g.count||''}</span>
+                        <div style={{ width:'100%', borderRadius:4, display:'flex', alignItems:'flex-end', height:56, background:'#f5f5f5' }}>
+                          <div style={{ width:'100%', background:g.color, borderRadius:4, height: Math.max(4, Math.round(g.count/max*56))+'px', transition:'height .4s' }} />
+                        </div>
+                        <span style={{ fontSize:9, color:'#999' }}>{g.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {view === 'medicos' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 40%' }}>Medico</div>
