@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import UserMenu from '../components/UserMenu'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
 const G = '#1D9E75'
 const SP = ' '
@@ -456,9 +457,9 @@ export default function AdminDashboard() {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
             {[
               { label:'Pacientes activos', value: patients.length, icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
-              { label:'Médicos activos',   value: doctors.filter(d=>d.role==='doctor'||d.role==='admin').length, icon:'👨\u200d⚕️', color:'#1a5c8a', bg:'#e5f0fb' },
-              { label:'Citas este mes',    value: appts.filter(a=>a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length, icon:'📅', color:'#7a4000', bg:'#fff3e0' },
-              { label:'Mensajes hoy',      value: msgs.filter(m=>m.created_at?.startsWith(new Date().toISOString().substring(0,10))).length, icon:'💬', color:'#5a2d8a', bg:'#eeedfe' },
+              { label:'Médicos activos', value: doctors.filter(d=>d.role==='doctor'||d.role==='admin').length, icon:'👨‍⚕️', color:'#1a5c8a', bg:'#e5f0fb' },
+              { label:'Citas este mes', value: appts.filter(a=>a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length, icon:'📅', color:'#7a4000', bg:'#fff3e0' },
+              { label:'Mensajes hoy', value: msgs.filter(m=>m.created_at?.startsWith(new Date().toISOString().substring(0,10))).length, icon:'💬', color:'#5a2d8a', bg:'#eeedfe' },
             ].map((k,i) => (
               <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
@@ -470,252 +471,224 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* ── GRÁFICAS FILA 1 ── */}
+          {/* ── FILA 1: Citas por mes (línea) + Citas por médico este mes (barras) ── */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
-            {/* 1. Pacientes por médico */}
+            {/* Citas por mes - LineChart */}
             {(() => {
-              const docs = doctors.filter(d=>d.role==='doctor'||d.role==='admin');
-              const max = Math.max(1, ...docs.map(d=>patients.filter(p=>p.assigned_doctor_id===d.id).length));
-              return (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👨‍⚕️ Pacientes por médico</div>
-                  {docs.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos</div>}
-                  {docs.map(d => {
-                    const count = patients.filter(p=>p.assigned_doctor_id===d.id).length;
-                    const pct = Math.round(count/max*100);
-                    return (
-                      <div key={d.id} style={{ marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'#444' }}>Dr. {d.first_name} {d.last_name}</span>
-                          <span style={{ fontWeight:600, color:'#0F6E56' }}>{count}</span>
-                        </div>
-                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
-                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:'#1D9E75', transition:'width .4s' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-
-            {/* 2. Distribución por sexo */}
-            {(() => {
-              const sexos = [
-                { key:'female', label:'Femenino',  color:'#e91e8c' },
-                { key:'male',   label:'Masculino', color:'#1a5c8a' },
-                { key:'other',  label:'Otro',      color:'#7a4000' },
-              ];
-              const max = Math.max(1, ...sexos.map(s=>patients.filter(p=>p.sex===s.key).length));
-              return (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>⚧ Distribución por sexo</div>
-                  {sexos.map(s => {
-                    const count = patients.filter(p=>p.sex===s.key).length;
-                    const pct = Math.round(count/max*100);
-                    return (
-                      <div key={s.key} style={{ marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'#444' }}>{s.label}</span>
-                          <span style={{ fontWeight:600, color:s.color }}>{count}</span>
-                        </div>
-                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
-                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:s.color, transition:'width .4s' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* ── GRÁFICAS FILA 2 ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
-
-            {/* 3. Pacientes por provincia */}
-            {(() => {
-              const provs = [...new Set(patients.map(p=>p.province).filter(Boolean))];
-              const max = Math.max(1, ...provs.map(pv=>patients.filter(p=>p.province===pv).length));
-              return (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📍 Pacientes por provincia</div>
-                  {provs.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos de provincia</div>}
-                  {provs.map(pv => {
-                    const count = patients.filter(p=>p.province===pv).length;
-                    const pct = Math.round(count/max*100);
-                    return (
-                      <div key={pv} style={{ marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'#444' }}>{pv}</span>
-                          <span style={{ fontWeight:600, color:'#1a5c8a' }}>{count}</span>
-                        </div>
-                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
-                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:'#1a5c8a', transition:'width .4s' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-
-            {/* 4. Citas por mes */}
-            {(() => {
-              const months = [];
+              const data = [];
               for(let i=5;i>=0;i--){
                 const d = new Date(); d.setMonth(d.getMonth()-i);
                 const key = d.toISOString().substring(0,7);
                 const label = d.toLocaleString('es',{month:'short'});
-                months.push({ key, label, count: appts.filter(a=>a.appointment_date?.startsWith(key)).length });
+                data.push({ mes: label, citas: appts.filter(a=>a.appointment_date?.startsWith(key)).length });
               }
-              const max = Math.max(1, ...months.map(m=>m.count));
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📅 Citas por mes</div>
-                  <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:80 }}>
-                    {months.map(m => (
-                      <div key={m.key} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-                        <span style={{ fontSize:10, fontWeight:600, color:'#7a4000' }}>{m.count||''}</span>
-                        <div style={{ width:'100%', background:'#fff3e0', borderRadius:4, display:'flex', alignItems:'flex-end', height:56 }}>
-                          <div style={{ width:'100%', background:'#e67e22', borderRadius:4, height: Math.max(4, Math.round(m.count/max*56))+'px', transition:'height .4s' }} />
-                        </div>
-                        <span style={{ fontSize:10, color:'#999' }}>{m.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📈 Citas por mes</div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <LineChart data={data} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="mes" tick={{ fontSize:11, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <Line type="monotone" dataKey="citas" stroke="#e67e22" strokeWidth={2.5} dot={{ r:4, fill:'#e67e22' }} activeDot={{ r:6 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               );
             })()}
-          </div>
 
-          {/* ── GRÁFICAS FILA 3 ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
-
-            {/* 5. Citas por médico este mes */}
+            {/* Citas por médico este mes - BarChart horizontal */}
             {(() => {
               const mes = new Date().toISOString().substring(0,7);
-              const docs = doctors.filter(d=>d.role==='doctor'||d.role==='admin');
-              const max = Math.max(1, ...docs.map(d=>appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length));
+              const data = doctors
+                .filter(d=>d.role==='doctor'||d.role==='admin')
+                .map(d => ({ nombre: 'Dr. '+d.first_name+' '+d.last_name, citas: appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length }));
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📊 Citas por médico este mes</div>
-                  {docs.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos</div>}
-                  {docs.map(d => {
-                    const count = appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length;
-                    const pct = Math.round(count/max*100);
-                    return (
-                      <div key={d.id} style={{ marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'#444' }}>Dr. {d.first_name} {d.last_name}</span>
-                          <span style={{ fontWeight:600, color:'#5a2d8a' }}>{count}</span>
-                        </div>
-                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
-                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:'#8e44ad', transition:'width .4s' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-
-            {/* 6. Metas alcanzadas vs no */}
-            {(() => {
-              const achieved = patients.filter(p=>p.goals_achieved===true).length;
-              const pending  = patients.filter(p=>p.goals_achieved===false).length;
-              const nodata   = patients.length - achieved - pending;
-              const items = [
-                { label:'Metas alcanzadas', count:achieved, color:'#1D9E75', bg:'#E1F5EE' },
-                { label:'En progreso',      count:pending,  color:'#e67e22', bg:'#fff3e0' },
-                { label:'Sin evaluar',      count:nodata,   color:'#999',    bg:'#f5f5f5' },
-              ];
-              const max = Math.max(1, ...items.map(i=>i.count));
-              return (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>🎯 Metas de pacientes</div>
-                  {items.map(it => (
-                    <div key={it.label} style={{ marginBottom:10 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                        <span style={{ color:'#444' }}>{it.label}</span>
-                        <span style={{ fontWeight:600, color:it.color }}>{it.count}</span>
-                      </div>
-                      <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
-                        <div style={{ height:'100%', borderRadius:4, width:Math.round(it.count/max*100)+'%', background:it.color, transition:'width .4s' }} />
-                      </div>
-                    </div>
-                  ))}
+                  <ResponsiveContainer width="100%" height={140}>
+                    <BarChart data={data} layout="vertical" margin={{ top:0, right:20, left:0, bottom:0 }}>
+                      <XAxis type="number" tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                      <YAxis type="category" dataKey="nombre" tick={{ fontSize:11, fill:'#555' }} width={70} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <Bar dataKey="citas" fill="#8e44ad" radius={[0,4,4,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               );
             })()}
           </div>
 
-          {/* ── GRÁFICAS FILA 4 ── */}
+          {/* ── FILA 2: Pacientes por médico + Distribución por sexo ── */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
-            {/* 7. Pacientes por diagnóstico */}
+            {/* Pacientes por médico - BarChart horizontal */}
             {(() => {
-              const diags = [...new Set(patients.map(p=>p.diagnosis).filter(Boolean))];
-              const max = Math.max(1, ...diags.map(dg=>patients.filter(p=>p.diagnosis===dg).length));
-              const colors = ['#0F6E56','#1a5c8a','#7a4000','#5a2d8a','#c0392b','#e67e22'];
+              const data = doctors
+                .filter(d=>d.role==='doctor'||d.role==='admin')
+                .map(d => ({ nombre: 'Dr. '+d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.assigned_doctor_id===d.id).length }));
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>🩺 Pacientes por diagnóstico</div>
-                  {diags.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin diagnósticos registrados</div>}
-                  {diags.map((dg,i) => {
-                    const count = patients.filter(p=>p.diagnosis===dg).length;
-                    const pct = Math.round(count/max*100);
-                    return (
-                      <div key={dg} style={{ marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'#444', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'75%' }}>{dg}</span>
-                          <span style={{ fontWeight:600, color:colors[i%colors.length] }}>{count}</span>
-                        </div>
-                        <div style={{ height:7, background:'#f0f0f0', borderRadius:4 }}>
-                          <div style={{ height:'100%', borderRadius:4, width:pct+'%', background:colors[i%colors.length], transition:'width .4s' }} />
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👨‍⚕️ Pacientes por médico</div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <BarChart data={data} layout="vertical" margin={{ top:0, right:20, left:0, bottom:0 }}>
+                      <XAxis type="number" tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                      <YAxis type="category" dataKey="nombre" tick={{ fontSize:11, fill:'#555' }} width={70} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <Bar dataKey="pacientes" fill="#1D9E75" radius={[0,4,4,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               );
             })()}
 
-            {/* 8. Pacientes por grupo de edad */}
+            {/* Distribución por sexo - PieChart */}
             {(() => {
-              const grupos = [
-                { label:'18-25', min:18, max:25, color:'#1D9E75' },
-                { label:'26-35', min:26, max:35, color:'#1a5c8a' },
-                { label:'36-45', min:36, max:45, color:'#8e44ad' },
-                { label:'46-55', min:46, max:55, color:'#e67e22' },
-                { label:'56-65', min:56, max:65, color:'#c0392b' },
-                { label:'65+',   min:66, max:200, color:'#7f8c8d' },
-              ];
+              const COLORES = { female:'#e91e8c', male:'#1a5c8a', other:'#7a4000' };
+              const LABELS  = { female:'Femenino', male:'Masculino', other:'Otro' };
+              const data = ['female','male','other']
+                .map(k => ({ name: LABELS[k], value: patients.filter(p=>p.sex===k).length, color: COLORES[k] }))
+                .filter(d=>d.value>0);
+              const total = patients.length;
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:4, color:'#1a1a1a' }}>⚧ Distribución por sexo</div>
+                  {total===0
+                    ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin datos</div>
+                    : <ResponsiveContainer width="100%" height={140}>
+                        <PieChart>
+                          <Pie data={data} cx="50%" cy="50%" innerRadius={35} outerRadius={60} dataKey="value" paddingAngle={3}>
+                            {data.map((entry,i) => <Cell key={i} fill={entry.color} />)}
+                          </Pie>
+                          <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v,n)=>[v+' pacientes',n]} />
+                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize:11 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                  }
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ── FILA 3: Provincias + Grupos de edad ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+
+            {/* Pacientes por provincia - todas las 7 provincias CR */}
+            {(() => {
+              const PROVS = ['San José','Alajuela','Cartago','Heredia','Guanacaste','Puntarenas','Limón'];
+              const data = PROVS.map(pv => ({ provincia: pv.replace('San José','S. José').replace('Guanacaste','Guanac.').replace('Puntarenas','Puntar.'), pacientes: patients.filter(p=>p.province===pv).length }));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📍 Pacientes por provincia</div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <BarChart data={data} margin={{ top:0, right:10, left:-20, bottom:20 }}>
+                      <XAxis dataKey="provincia" tick={{ fontSize:9, fill:'#999' }} angle={-30} textAnchor="end" />
+                      <YAxis tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <Bar dataKey="pacientes" fill="#1a5c8a" radius={[4,4,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+
+            {/* Grupos de edad - BarChart vertical */}
+            {(() => {
               const getAge = dob => {
                 if(!dob) return null;
                 const d = new Date(dob); const now = new Date();
                 return now.getFullYear()-d.getFullYear()-(now<new Date(now.getFullYear(),d.getMonth(),d.getDate())?1:0);
               };
-              const counts = grupos.map(g => ({
-                ...g,
-                count: patients.filter(p=>{ const a=getAge(p.date_of_birth); return a!==null&&a>=g.min&&a<=g.max; }).length
+              const grupos = [
+                { label:'18-25', min:18, max:25 },
+                { label:'26-35', min:26, max:35 },
+                { label:'36-45', min:36, max:45 },
+                { label:'46-55', min:46, max:55 },
+                { label:'56-65', min:56, max:65 },
+                { label:'65+',   min:66, max:200 },
+              ];
+              const data = grupos.map(g => ({
+                grupo: g.label,
+                pacientes: patients.filter(p=>{ const a=getAge(p.birth_date); return a!==null&&a>=g.min&&a<=g.max; }).length
               }));
-              const max = Math.max(1, ...counts.map(g=>g.count));
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👤 Pacientes por grupo de edad</div>
-                  <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:80, marginBottom:4 }}>
-                    {counts.map(g => (
-                      <div key={g.label} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-                        <span style={{ fontSize:10, fontWeight:600, color:g.color }}>{g.count||''}</span>
-                        <div style={{ width:'100%', borderRadius:4, display:'flex', alignItems:'flex-end', height:56, background:'#f5f5f5' }}>
-                          <div style={{ width:'100%', background:g.color, borderRadius:4, height: Math.max(4, Math.round(g.count/max*56))+'px', transition:'height .4s' }} />
-                        </div>
-                        <span style={{ fontSize:9, color:'#999' }}>{g.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <BarChart data={data} margin={{ top:0, right:10, left:-20, bottom:0 }}>
+                      <XAxis dataKey="grupo" tick={{ fontSize:10, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <Bar dataKey="pacientes" radius={[4,4,0,0]}>
+                        {data.map((_,i) => <Cell key={i} fill={['#1D9E75','#1a5c8a','#8e44ad','#e67e22','#c0392b','#7f8c8d'][i]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ── FILA 4: Diagnósticos + Metas ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+
+            {/* Diagnósticos */}
+            {(() => {
+              const colors = ['#0F6E56','#1a5c8a','#7a4000','#5a2d8a','#c0392b','#e67e22','#16a085','#2c3e50'];
+              const diagMap = {};
+              allDiagnoses.forEach(d => {
+                const key = d.cie10_code ? d.cie10_code+' '+( d.cie10_description||'') : (d.cie10_description||'Sin desc.');
+                diagMap[key] = (diagMap[key]||0) + 1;
+              });
+              const data = Object.entries(diagMap).sort((a,b)=>b[1]-a[1]).slice(0,8)
+                .map(([name,value]) => ({ name: name.length>22 ? name.substring(0,22)+'…' : name, value }));
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>🩺 Pacientes por diagnóstico</div>
+                  {data.length===0
+                    ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin diagnósticos registrados</div>
+                    : <ResponsiveContainer width="100%" height={Math.max(120, data.length*28)}>
+                        <BarChart data={data} layout="vertical" margin={{ top:0, right:30, left:0, bottom:0 }}>
+                          <XAxis type="number" tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                          <YAxis type="category" dataKey="name" tick={{ fontSize:10, fill:'#555' }} width={120} />
+                          <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                          <Bar dataKey="value" radius={[0,4,4,0]}>
+                            {data.map((_,i) => <Cell key={i} fill={colors[i%colors.length]} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                  }
+                </div>
+              );
+            })()}
+
+            {/* Metas - PieChart */}
+            {(() => {
+              const achieved = patients.filter(p=>p.goals_achieved===true).length;
+              const pending  = patients.filter(p=>p.goals_achieved===false).length;
+              const nodata   = patients.length - achieved - pending;
+              const data = [
+                { name:'Alcanzadas', value:achieved, color:'#1D9E75' },
+                { name:'En progreso', value:pending,  color:'#e67e22' },
+                { name:'Sin evaluar', value:nodata,   color:'#ccc' },
+              ].filter(d=>d.value>0);
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:4, color:'#1a1a1a' }}>🎯 Metas de pacientes</div>
+                  {patients.length===0
+                    ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin pacientes</div>
+                    : <ResponsiveContainer width="100%" height={160}>
+                        <PieChart>
+                          <Pie data={data} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={3}>
+                            {data.map((entry,i) => <Cell key={i} fill={entry.color} />)}
+                          </Pie>
+                          <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} formatter={(v,n)=>[v+' pacientes',n]} />
+                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize:11 }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                  }
                 </div>
               );
             })()}
