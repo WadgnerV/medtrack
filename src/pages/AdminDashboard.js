@@ -529,7 +529,7 @@ export default function AdminDashboard() {
             {(() => {
               const data = doctors
                 .filter(d=>d.role==='doctor'||d.role==='admin')
-                .map(d => ({ nombre: 'Dr. '+d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.assigned_doctor_id===d.id).length }));
+                .map(d => ({ nombre: 'Dr. '+d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.doctor?.id===d.id).length }));
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👨‍⚕️ Pacientes por médico</div>
