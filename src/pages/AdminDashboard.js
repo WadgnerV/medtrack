@@ -127,6 +127,7 @@ export default function AdminDashboard() {
     if (type === 'appointment') { await supabase.from('appointments').delete().eq('id', id); await loadAppts() }
     if (type === 'library') { await supabase.from('library_items').delete().eq('id', id); await loadLibrary() }
     if (type === 'patient') { await supabase.from('patients').delete().eq('id', id); await loadPatients() }
+    if (type === 'note') { await supabase.from('clinical_notes').delete().eq('id', id); if (selPatient) { const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false }); setNotes(data || []) } }
     if (type === 'doctor') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await loadDoctors() }
     setModal(null)
   }
@@ -301,6 +302,27 @@ export default function AdminDashboard() {
     await loadDiagnoses(selPatient.id)
   }
 
+  async function adminDeleteNote(id) {
+    await supabase.from('clinical_notes').delete().eq('id', id)
+    const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false })
+    setNotes(data || [])
+    setModal(null)
+  }
+
+  async function adminEditNote(id, form) {
+    setSaving(true)
+    await supabase.from('clinical_notes').update({
+      note_date: form.date, visit_type: form.visitType, content: form.content,
+      pas: form.pas || null, pad: form.pad || null, pam: form.pam || null,
+      spo2: form.spo2 || null, o2_device: form.o2device || 'aa',
+      o2_flow: form.o2flow || null, glucose: form.glucose || null,
+      heart_rate: form.hr || null
+    }).eq('id', id)
+    const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false })
+    setNotes(data || [])
+    setModal(null); setSaving(false)
+  }
+
   async function adminSaveNote(form) {
     setSaving(true)
     await supabase.from('clinical_notes').insert({
@@ -332,7 +354,7 @@ export default function AdminDashboard() {
           <div style={{ width:420, background:'#fff', borderRadius:16, padding:24, boxShadow:'0 20px 60px rgba(0,0,0,0.2)', maxHeight:'90vh', overflowY:'auto' }}>
             {modal === 'confirm-delete' && (
               <>
-                <div style={{ fontSize:15, fontWeight:500, marginBottom:12 }}>Eliminar {modalData.type === 'patient' ? 'paciente' : modalData.type === 'doctor' ? 'medico' : modalData.type === 'appointment' ? 'cita' : modalData.type}</div>
+                <div style={{ fontSize:15, fontWeight:500, marginBottom:12 }}>Eliminar {modalData.type === 'patient' ? 'paciente' : modalData.type === 'doctor' ? 'medico' : modalData.type === 'appointment' ? 'cita' : modalData.type === 'note' ? 'nota clinica' : modalData.type === 'library' ? 'item' : modalData.type}</div>
                 <p style={{ fontSize:13, color:'#666', marginBottom:18, lineHeight:1.6 }}>Se eliminara permanentemente <strong>"{modalData.name}"</strong>. Esta accion no se puede deshacer.</p>
                 <div style={{ display:'flex', gap:8 }}>
                   <button style={s.btnCancel} onClick={() => setModal(null)}>Cancelar</button>
@@ -527,6 +549,8 @@ export default function AdminDashboard() {
               onDeleteTask={adminDeleteTask}
               onSaveTreatment={adminSaveTreatment}
               onSaveNote={adminSaveNote}
+              onEditNote={adminEditNote}
+              onDeleteNote={adminDeleteNote}
               diagnoses={diagnoses}
               onAddDiagnosis={adminAddDiagnosis}
               onDeleteDiagnosis={adminDeleteDiagnosis}
@@ -1080,7 +1104,7 @@ const s = {
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
 
-function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
+function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
   const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
   const latest = measurements[0] || null
 
@@ -1100,6 +1124,7 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
             {modal === 'assign-tasks' && <TaskPickerForm library={library.filter(l => l.type === 'task')} saving={saving} onSave={onAssignTasks} onClose={() => setModal(null)} />}
             {modal === 'new-treatment' && <TreatmentForm library={library.filter(l => l.type === 'treatment')} saving={saving} onSave={onSaveTreatment} onClose={() => setModal(null)} />}
             {modal === 'new-note' && <NoteForm saving={saving} onSave={onSaveNote} onClose={() => setModal(null)} />}
+            {modal === 'edit-note' && <NoteForm saving={saving} note={modalData.note} onSave={form => onEditNote(modalData.note.id, form)} onClose={() => setModal(null)} />}
           </div>
         </div>
       )}
@@ -1237,20 +1262,40 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
             <button style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' }} onClick={() => setModal('new-note')}>+ Nueva nota</button>
           </div>
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-            {notes.map(n => (
-              <div key={n.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                <div style={{ fontSize:10, color:'#999', marginBottom:6 }}>{n.note_date} · {n.visit_type}</div>
-                {(n.pas || n.spo2 || n.glucose || n.heart_rate) && (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                    {n.pas && n.pad && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#FAECE7', color:'#854F0B' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''}</span>}
-                    {n.spo2 && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'}</span>}
-                    {n.glucose && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>Glicemia: {n.glucose} mg/dL</span>}
-                    {n.heart_rate && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#666' }}>FC: {n.heart_rate} lpm</span>}
+            {notes.map(n => {
+              function noteAlert(type, val) {
+                const v = parseFloat(val)
+                if (!val || isNaN(v)) return null
+                if (type === 'pas') { if (v >= 140 || v < 90) return '🔴'; if (v >= 120) return '⚠️' }
+                if (type === 'pad') { if (v >= 90 || v < 60) return '🔴'; if (v >= 80) return '⚠️' }
+                if (type === 'spo2') { if (v < 90) return '🔴'; if (v < 95) return '⚠️' }
+                if (type === 'glucose') { if (v < 70 || v >= 126) return '🔴'; if (v >= 100) return '⚠️' }
+                if (type === 'hr') { if (v > 120 || v < 50) return '🔴'; if (v > 100 || v < 60) return '⚠️' }
+                return null
+              }
+              return (
+                <div key={n.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                    <div style={{ fontSize:10, color:'#999' }}>{n.note_date} · {n.visit_type}</div>
+                    <div style={{ display:'flex', gap:6 }}>
+                      <button style={{ fontSize:11, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                        onClick={() => { setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>
+                      <button style={{ fontSize:11, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                        onClick={() => { if (window.confirm('Eliminar esta nota clinica? Esta accion no se puede deshacer.')) { onDeleteNote(n.id) } }}>Eliminar</button>
+                    </div>
                   </div>
-                )}
-                {n.content && <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
-              </div>
-            ))}
+                  {(n.pas || n.spo2 || n.glucose || n.heart_rate) && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                      {n.pas && n.pad && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''} {noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || ''}</span>}
+                      {n.spo2 && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'} {noteAlert('spo2',n.spo2) || ''}</span>}
+                      {n.glucose && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>Glicemia: {n.glucose} mg/dL {noteAlert('glucose',n.glucose) || ''}</span>}
+                      {n.heart_rate && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>FC: {n.heart_rate} lpm {noteAlert('hr',n.heart_rate) || ''}</span>}
+                    </div>
+                  )}
+                  {n.content && <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
+                </div>
+              )
+            })}
             {notes.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
           </div>
         </div>
@@ -1413,13 +1458,14 @@ function TreatmentForm({ library, saving, onSave, onClose }) {
   )
 }
 
-function NoteForm({ saving, onSave, onClose }) {
+function NoteForm({ saving, onSave, onClose, note }) {
   const [form, setForm] = useState({
-    date: new Date().toISOString().split('T')[0],
-    visitType: 'Seguimiento',
-    content: '',
-    pas: '', pad: '', spo2: '', o2device: 'aa', o2flow: '',
-    glucose: '', hr: ''
+    date: note?.note_date || new Date().toISOString().split('T')[0],
+    visitType: note?.visit_type || 'Seguimiento',
+    content: note?.content || '',
+    pas: note?.pas || '', pad: note?.pad || '', spo2: note?.spo2 || '',
+    o2device: note?.o2_device || 'aa', o2flow: note?.o2_flow || '',
+    glucose: note?.glucose || '', hr: note?.heart_rate || ''
   })
   const f = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
 

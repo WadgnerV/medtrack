@@ -32,6 +32,9 @@ export default function DoctorDashboard() {
   const [tasks, setTasks] = useState([])
   const [treatments, setTreatments] = useState([])
   const [notes, setNotes] = useState([])
+  const [diagnoses, setDiagnoses] = useState([])
+  const [cie10Search, setCie10Search] = useState('')
+  const [cie10Results, setCie10Results] = useState([])
 
   useEffect(() => { if (profile?.id) loadAll() }, [profile])
 
@@ -87,6 +90,7 @@ export default function DoctorDashboard() {
     setTasks(t.data || [])
     setTreatments(tr.data || [])
     setNotes(n.data || [])
+    await loadDiagnoses(patientId)
   }
 
   function openPatient(p) {
@@ -165,11 +169,60 @@ export default function DoctorDashboard() {
     setModal(null); setSaving(false)
   }
 
+  async function loadDiagnoses(patientId) {
+    const { data } = await supabase.from('patient_diagnoses').select('*').eq('patient_id', patientId).eq('is_active', true).order('diagnosis_date', { ascending: false })
+    setDiagnoses(data || [])
+  }
+
+  async function searchCie10(term) {
+    if (!term || term.length < 2) { setCie10Results([]); return }
+    const { data } = await supabase.from('cie10').select('code, description').or(`code.ilike.%${term}%,description.ilike.%${term}%`).limit(10)
+    setCie10Results(data || [])
+  }
+
+  async function addDiagnosis(code, description) {
+    await supabase.from('patient_diagnoses').insert({
+      patient_id: selPatient.id, cie10_code: code, cie10_description: description,
+      diagnosed_by: profile?.id, diagnosis_date: new Date().toISOString().split('T')[0]
+    })
+    await loadDiagnoses(selPatient.id)
+    setCie10Search(''); setCie10Results([])
+  }
+
+  async function deleteDiagnosis(id) {
+    await supabase.from('patient_diagnoses').update({ is_active: false }).eq('id', id)
+    await loadDiagnoses(selPatient.id)
+  }
+
+  async function deleteNote(id) {
+    await supabase.from('clinical_notes').delete().eq('id', id)
+    const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false })
+    setNotes(data || [])
+  }
+
+  async function editNote(id, form) {
+    setSaving(true)
+    await supabase.from('clinical_notes').update({
+      note_date: form.date, visit_type: form.visitType, content: form.content,
+      pas: form.pas || null, pad: form.pad || null, pam: form.pam || null,
+      spo2: form.spo2 || null, o2_device: form.o2device || 'aa',
+      o2_flow: form.o2flow || null, glucose: form.glucose || null,
+      heart_rate: form.hr || null
+    }).eq('id', id)
+    const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false })
+    setNotes(data || [])
+    setModal(null); setSaving(false)
+  }
+
   async function saveNote(form) {
     setSaving(true)
     await supabase.from('clinical_notes').insert({
       patient_id: selPatient.id, author_id: profile.id,
-      note_date: form.date, visit_type: form.visitType, content: form.content
+      note_date: form.date, visit_type: form.visitType, content: form.content,
+      pas: form.pas || null, pad: form.pad || null, pam: form.pam || null,
+      spo2: form.spo2 || null, o2_device: form.o2device || 'aa',
+      o2_flow: form.o2flow || null, glucose: form.glucose || null,
+      heart_rate: form.hr || null
     })
     await loadPatientData(selPatient.id)
     setModal(null); setSaving(false)
@@ -260,6 +313,9 @@ export default function DoctorDashboard() {
             )}
             {modal === 'new-note' && (
               <NoteForm saving={saving} onSave={saveNote} onClose={() => setModal(null)} />
+            )}
+            {modal === 'edit-note' && (
+              <NoteForm saving={saving} note={modalData.note} onSave={form => editNote(modalData.note.id, form)} onClose={() => setModal(null)} />
             )}
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} saving={saving} defaultDate={selDate}
@@ -421,7 +477,7 @@ export default function DoctorDashboard() {
               </div>
 
               <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
-                {['progreso','objetivos','tareas','tratamientos','notas'].map(tab => (
+                {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos'].map(tab => (
                   <div key={tab} onClick={() => setPatientTab(tab)}
                     style={{ padding:'9px 14px', fontSize:12, cursor:'pointer', borderBottom: patientTab === tab ? ('2px solid ' + G) : '2px solid transparent', color: patientTab === tab ? G : '#888', fontWeight: patientTab === tab ? 500 : 400, textTransform:'capitalize' }}>
                     {tab}
@@ -534,13 +590,82 @@ export default function DoctorDashboard() {
                 <div>
                   <button style={{ ...s.btnPrimary, marginBottom:12 }} onClick={() => setModal('new-note')}>+ Nueva nota</button>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                    {notes.map(n => (
-                      <div key={n.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                        <div style={{ fontSize:10, color:'#999', marginBottom:4 }}>{n.note_date} · {n.visit_type}</div>
-                        <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>
+                    {notes.map(n => {
+                      function noteAlert(type, val) {
+                        const v = parseFloat(val)
+                        if (!val || isNaN(v)) return null
+                        if (type === 'pas') { if (v >= 140 || v < 90) return '🔴'; if (v >= 120) return '⚠️' }
+                        if (type === 'pad') { if (v >= 90 || v < 60) return '🔴'; if (v >= 80) return '⚠️' }
+                        if (type === 'spo2') { if (v < 90) return '🔴'; if (v < 95) return '⚠️' }
+                        if (type === 'glucose') { if (v < 70 || v >= 126) return '🔴'; if (v >= 100) return '⚠️' }
+                        if (type === 'hr') { if (v > 120 || v < 50) return '🔴'; if (v > 100 || v < 60) return '⚠️' }
+                        return null
+                      }
+                      return (
+                        <div key={n.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+                            <div style={{ fontSize:10, color:'#999' }}>{n.note_date} · {n.visit_type}</div>
+                            <div style={{ display:'flex', gap:6 }}>
+                              <button style={{ fontSize:11, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                                onClick={() => { setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>
+                              <button style={{ fontSize:11, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                                onClick={() => { if (window.confirm('Eliminar esta nota clinica?')) deleteNote(n.id) }}>Eliminar</button>
+                            </div>
+                          </div>
+                          {(n.pas || n.spo2 || n.glucose || n.heart_rate) && (
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                              {n.pas && n.pad && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''} {noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || ''}</span>}
+                              {n.spo2 && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'} {noteAlert('spo2',n.spo2) || ''}</span>}
+                              {n.glucose && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>Glicemia: {n.glucose} mg/dL {noteAlert('glucose',n.glucose) || ''}</span>}
+                              {n.heart_rate && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>FC: {n.heart_rate} lpm {noteAlert('hr',n.heart_rate) || ''}</span>}
+                            </div>
+                          )}
+                          {n.content && <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
+                        </div>
+                      )
+                    })}
+                    {notes.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
+                  </div>
+                </div>
+              )}
+
+              {patientTab === 'diagnosticos' && (
+                <div>
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
+                    <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Buscar diagnostico CIE-10</div>
+                    <div style={{ position:'relative' }}>
+                      <input
+                        value={cie10Search}
+                        onChange={e => { setCie10Search(e.target.value); searchCie10(e.target.value) }}
+                        placeholder="Escribe codigo o nombre del diagnostico..."
+                        style={{ width:'100%', padding:'9px 12px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }}
+                      />
+                      {cie10Results.length > 0 && (
+                        <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', zIndex:10, maxHeight:240, overflowY:'auto' }}>
+                          {cie10Results.map(r => (
+                            <div key={r.code} onClick={() => addDiagnosis(r.code, r.description)}
+                              style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'0.5px solid #f0f0f0', fontSize:12 }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#f8f8f8'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                              <span style={{ fontWeight:500, color:'#1D9E75', marginRight:8 }}>{r.code}</span>
+                              <span style={{ color:'#444' }}>{r.description}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                    <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Diagnosticos activos ({diagnoses.length})</div>
+                    {diagnoses.map(d => (
+                      <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                        <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5', fontWeight:500, whiteSpace:'nowrap' }}>{d.cie10_code}</span>
+                        <span style={{ fontSize:12, flex:1, color:'#1a1a1a' }}>{d.cie10_description}</span>
+                        <span style={{ fontSize:10, color:'#bbb', whiteSpace:'nowrap' }}>{d.diagnosis_date}</span>
+                        <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30', flexShrink:0 }} onClick={() => deleteDiagnosis(d.id)}>x</button>
                       </div>
                     ))}
-                    {notes.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
+                    {diagnoses.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin diagnosticos registrados</div>}
                   </div>
                 </div>
               )}
@@ -815,12 +940,59 @@ function TreatmentForm({ library, saving, onSave, onClose }) {
 }
 
 function NoteForm({ saving, onSave, onClose }) {
-  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], visitType:'Seguimiento', content:'' })
+  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], visitType:'Seguimiento', content:'', pas:'', pad:'', spo2:'', o2device:'aa', o2flow:'', glucose:'', hr:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
+  const pam = form.pas && form.pad ? Math.round((parseInt(form.pas) + 2 * parseInt(form.pad)) / 3) : null
+  const DEVICES = ['aa','Canula nasal','Mascarilla simple','Mascarilla con reservorio','Ventimask','CPAP','BPAP','Tubo endotraqueal','Venturi']
+
+  function vitalStatus(type, val) {
+    const v = parseFloat(val)
+    if (!val || isNaN(v)) return null
+    if (type === 'pas') {
+      if (v >= 140) return { icon:'🔴', msg:'Hipertension' }
+      if (v >= 120) return { icon:'⚠️', msg:'PA elevada' }
+      if (v < 90)  return { icon:'🔴', msg:'Hipotension' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'pad') {
+      if (v >= 90) return { icon:'🔴', msg:'Hipertension' }
+      if (v >= 80) return { icon:'⚠️', msg:'PA elevada' }
+      if (v < 60)  return { icon:'🔴', msg:'Hipotension' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'spo2') {
+      if (v < 90)  return { icon:'🔴', msg:'Hipoxemia critica' }
+      if (v < 95)  return { icon:'⚠️', msg:'Hipoxemia leve' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'glucose') {
+      if (v < 70)   return { icon:'🔴', msg:'Hipoglicemia' }
+      if (v >= 126) return { icon:'🔴', msg:'Hiperglicemia' }
+      if (v >= 100) return { icon:'⚠️', msg:'Prediabetes/ayuno alterado' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    if (type === 'hr') {
+      if (v > 120 || v < 50) return { icon:'🔴', msg: v > 120 ? 'Taquicardia severa' : 'Bradicardia severa' }
+      if (v > 100 || v < 60) return { icon:'⚠️', msg: v > 100 ? 'Taquicardia' : 'Bradicardia' }
+      return { icon:'✅', msg:'Normal' }
+    }
+    return null
+  }
+
+  function VitalBadge({ type, val }) {
+    const st = vitalStatus(type, val)
+    if (!st) return null
+    const colors = { '✅': ['#E1F5EE','#0F6E56'], '⚠️': ['#FAEEDA','#854F0B'], '🔴': ['#FAECE7','#C24B2A'] }
+    const [bg, fg] = colors[st.icon] || ['#f0f0f0','#666']
+    return <span style={{ fontSize:10, padding:'2px 7px', borderRadius:20, background:bg, color:fg, marginLeft:6, fontWeight:500 }}>{st.icon} {st.msg}</span>
+  }
+
+  const inp = { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nueva nota clinica</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
         <Field label="Fecha" value={form.date} onChange={f('date')} type="date" />
         <div>
           <label style={s.fieldLabel}>Tipo de consulta</label>
@@ -828,14 +1000,59 @@ function NoteForm({ saving, onSave, onClose }) {
             {['Seguimiento','Primera consulta','Procedimiento','Control'].map(v => <option key={v}>{v}</option>)}
           </select>
         </div>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={s.fieldLabel}>Nota clinica</label>
-          <textarea value={form.content} onChange={f('content')} rows={4} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Paciente refiere..." />
+      </div>
+      <div style={{ background:'#f8f8f8', borderRadius:10, padding:12, marginBottom:12 }}>
+        <div style={{ fontSize:12, fontWeight:500, color:'#666', marginBottom:10 }}>Signos vitales</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8 }}>
+          <div>
+            <label style={s.fieldLabel}>PAS (mmHg) <VitalBadge type="pas" val={form.pas} /></label>
+            <input type="number" value={form.pas} onChange={f('pas')} placeholder="120" style={{ ...inp, borderColor: vitalStatus('pas',form.pas)?.icon === '🔴' ? '#D85A30' : vitalStatus('pas',form.pas)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>PAD (mmHg) <VitalBadge type="pad" val={form.pad} /></label>
+            <input type="number" value={form.pad} onChange={f('pad')} placeholder="80" style={{ ...inp, borderColor: vitalStatus('pad',form.pad)?.icon === '🔴' ? '#D85A30' : vitalStatus('pad',form.pad)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>PAM (mmHg)</label>
+            <input value={pam !== null ? pam + ' mmHg' : ''} readOnly placeholder="Auto" style={{ ...inp, background:'#eee', color:'#666', cursor:'not-allowed' }} />
+          </div>
         </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8 }}>
+          <div>
+            <label style={s.fieldLabel}>SpO2 (%) <VitalBadge type="spo2" val={form.spo2} /></label>
+            <input type="number" value={form.spo2} onChange={f('spo2')} placeholder="98" style={{ ...inp, borderColor: vitalStatus('spo2',form.spo2)?.icon === '🔴' ? '#D85A30' : vitalStatus('spo2',form.spo2)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>O2 / Dispositivo</label>
+            <select value={form.o2device} onChange={f('o2device')} style={s.fieldInput}>
+              {DEVICES.map(d => <option key={d} value={d}>{d === 'aa' ? 'Aire ambiente' : d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={s.fieldLabel}>Flujo O2 (L/min)</label>
+            <input type="number" value={form.o2flow} onChange={f('o2flow')} placeholder="2"
+              disabled={form.o2device === 'aa'}
+              style={{ ...inp, background: form.o2device === 'aa' ? '#eee' : '#fff', cursor: form.o2device === 'aa' ? 'not-allowed' : 'text' }} />
+          </div>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.fieldLabel}>Glicemia (mg/dL) <VitalBadge type="glucose" val={form.glucose} /></label>
+            <input type="number" value={form.glucose} onChange={f('glucose')} placeholder="90" style={{ ...inp, borderColor: vitalStatus('glucose',form.glucose)?.icon === '🔴' ? '#D85A30' : vitalStatus('glucose',form.glucose)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>FC (lpm) <VitalBadge type="hr" val={form.hr} /></label>
+            <input type="number" value={form.hr} onChange={f('hr')} placeholder="72" style={{ ...inp, borderColor: vitalStatus('hr',form.hr)?.icon === '🔴' ? '#D85A30' : vitalStatus('hr',form.hr)?.icon === '⚠️' ? '#BA7517' : '#e0e0e0' }} />
+          </div>
+        </div>
+      </div>
+      <div style={{ marginBottom:14 }}>
+        <label style={s.fieldLabel}>Nota clinica</label>
+        <textarea value={form.content} onChange={f('content')} rows={4} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Paciente refiere..." />
       </div>
       <div style={{ display:'flex', gap:8 }}>
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
-        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : 'Guardar nota'}</button>
+        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave({ ...form, pam })}>{saving ? 'Guardando...' : 'Guardar nota'}</button>
       </div>
     </>
   )
