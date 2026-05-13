@@ -36,16 +36,11 @@ export default function PatientDashboard() {
 
   async function loadPatient() {
     const { data } = await supabase.from('patients')
-      .select('*')
+      .select('*, doctor:assigned_doctor_id(id, first_name, last_name, email)')
       .eq('profile_id', profile.id)
       .single()
     if (data) {
       setPatient(data)
-    if (data?.assigned_doctor_id) {
-      const { data: docData } = await supabase.from('profiles').select('id, first_name, last_name, email').eq('id', data.assigned_doctor_id).single()
-      setPatient(prev => ({ ...prev, doctor: docData }))
-      console.log("DOCTOR DATA:", docData)
-    }
       await Promise.all([
         loadMeasurements(data.id),
         loadGoals(data.id),
@@ -381,34 +376,6 @@ export default function PatientDashboard() {
                   </ResponsiveContainer>
                 </div>
               )}
-              {measurements.filter(m=>m.muscle_mass_kg).length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución masa muscular (kg)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={[...measurements].reverse().filter(m=>m.muscle_mass_kg).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:10, fill:'#999' }} />
-                      <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+' kg'} />
-                      <Line type="monotone" dataKey="muscular" stroke="#0a5c40" strokeWidth={2} dot={{ r:3, fill:'#0a5c40' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              {measurements.filter(m=>m.visceral_fat_pts).length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución grasa visceral (pts)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={[...measurements].reverse().filter(m=>m.visceral_fat_pts).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:10, fill:'#999' }} />
-                      <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+' pts'} />
-                      <Line type="monotone" dataKey="visceral" stroke="#2d8a6e" strokeWidth={2} dot={{ r:3, fill:'#2d8a6e' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
               {clinicalNotes.filter(n=>n.pas).length > 0 && (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución de presión arterial</div>
@@ -438,25 +405,35 @@ export default function PatientDashboard() {
                   </ResponsiveContainer>
                 </div>
               )}
-              {clinicalNotes.length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Historial de signos clínicos</div>
-                  {clinicalNotes.map((n,i) => (
-                    <div key={i} style={{ borderBottom:'0.5px solid #f5f5f5', paddingBottom:12, marginBottom:12 }}>
-                      <div style={{ fontSize:11, color:'#999', fontWeight:500, marginBottom:6 }}>
-                        {new Date(n.note_date).toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
-                      </div>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                        {n.pas && n.pad && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Presión arterial</div><div style={{ fontSize:13, fontWeight:600 }}>{n.pas}/{n.pad} mmHg</div></div>}
-                        {n.glucose && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Glicemia</div><div style={{ fontSize:13, fontWeight:600 }}>{n.glucose} mg/dL</div></div>}
-                        {n.heart_rate && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Frec. cardíaca</div><div style={{ fontSize:13, fontWeight:600 }}>{n.heart_rate} lpm</div></div>}
-                        {n.spo2 && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>SpO₂</div><div style={{ fontSize:13, fontWeight:600 }}>{n.spo2}%</div></div>}
-                        {n.o2flow && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>O₂ flow</div><div style={{ fontSize:13, fontWeight:600 }}>{n.o2flow} L/min</div></div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Historial completo</div>
+                {clinicalNotes.length === 0 && measurements.length === 0
+                  ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:16 }}>Sin registros aún</div>
+                  : [...clinicalNotes.map(n=>({...n, tipo:'clinico', fecha:n.note_date})), ...measurements.map(m=>({...m, tipo:'medicion', fecha:m.measured_at}))]
+                      .sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))
+                      .map((r,i) => (
+                        <div key={i} style={{ borderBottom:'0.5px solid #f5f5f5', paddingBottom:12, marginBottom:12 }}>
+                          <div style={{ fontSize:11, color:'#999', fontWeight:500, marginBottom:6 }}>
+                            {r.tipo==='clinico'?'Signos clínicos':'Medición'} · {new Date(r.fecha).toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+                          </div>
+                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                            {r.tipo==='clinico' && <>
+                              {r.pas && r.pad && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Presión</div><div style={{ fontSize:13, fontWeight:600 }}>{r.pas}/{r.pad} mmHg</div></div>}
+                              {r.glucose && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Glicemia</div><div style={{ fontSize:13, fontWeight:600 }}>{r.glucose} mg/dL</div></div>}
+                              {r.heart_rate && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>FC</div><div style={{ fontSize:13, fontWeight:600 }}>{r.heart_rate} lpm</div></div>}
+                              {r.spo2 && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>SpO₂</div><div style={{ fontSize:13, fontWeight:600 }}>{r.spo2}%</div></div>}
+                            </>}
+                            {r.tipo==='medicion' && <>
+                              {r.weight_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Peso</div><div style={{ fontSize:13, fontWeight:600 }}>{r.weight_kg} kg</div></div>}
+                              {r.body_fat_pct && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>% Grasa</div><div style={{ fontSize:13, fontWeight:600 }}>{r.body_fat_pct}%</div></div>}
+                              {r.muscle_mass_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Músculo</div><div style={{ fontSize:13, fontWeight:600 }}>{r.muscle_mass_kg} kg</div></div>}
+                              {r.visceral_fat_pts && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Visceral</div><div style={{ fontSize:13, fontWeight:600 }}>{r.visceral_fat_pts} pts</div></div>}
+                            </>}
+                          </div>
+                        </div>
+                      ))
+                }
+              </div>
             </div>
           )}
 
