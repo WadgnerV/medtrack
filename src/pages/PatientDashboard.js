@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -17,6 +18,7 @@ export default function PatientDashboard() {
   const [waterLog, setWaterLog] = useState(null)
   const [treatments, setTreatments] = useState([])
   const [msgs, setMsgs] = useState([])
+  const [clinicalNotes, setClinicalNotes] = useState([])
   const [nextAppt, setNextAppt] = useState(null)
   const [loading, setLoading] = useState(true)
   const [chatMsg, setChatMsg] = useState('')
@@ -52,6 +54,8 @@ export default function PatientDashboard() {
 
   async function loadMeasurements(pid) {
     const { data } = await supabase.from('measurements').select('*').eq('patient_id', pid).order('measured_at', { ascending: false })
+    const { data: cnData } = await supabase.from('clinical_notes').select('*').eq('patient_id', pid).order('note_date', { ascending: false })
+    setClinicalNotes(cnData || [])
     setMeasurements(data || [])
   }
 
@@ -249,15 +253,15 @@ export default function PatientDashboard() {
           {view === 'inicio' && (
             <div>
               {nextAppt ? (
-                <div style={{ background: G, borderRadius:12, padding:'14px 16px', marginBottom:14, color:'#fff' }}>
-                  <div style={{ fontSize:11, opacity:0.8, marginBottom:4 }}>Proxima cita</div>
-                  <div style={{ fontSize:15, fontWeight:500 }}>{formatDate(nextAppt.appointment_date)}</div>
-                  <div style={{ fontSize:13, opacity:0.9, marginTop:2 }}>{nextAppt.appointment_time?.substring(0,5)} hrs · {nextAppt.visit_type}</div>
+                <div style={{ background:'#0F6E56', borderRadius:12, padding:'14px 16px', marginBottom:12, color:'#fff' }}>
+                  <div style={{ fontSize:11, opacity:0.8, marginBottom:4 }}>Próxima cita</div>
+                  <div style={{ fontSize:16, fontWeight:600, marginBottom:2 }}>{new Date(nextAppt.appointment_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long' })}</div>
+                  <div style={{ fontSize:13, opacity:0.9 }}>{nextAppt.appointment_time?.substring(0,5)} hrs · {nextAppt.visit_type}</div>
                   {nextAppt.doctor && <div style={{ fontSize:12, opacity:0.8, marginTop:2 }}>Dr. {nextAppt.doctor.first_name} {nextAppt.doctor.last_name}</div>}
                 </div>
               ) : (
                 <div onClick={() => window.open('https://wa.me/50660464569?text=Hola,%20quisiera%20agendar%20una%20cita%20en%20Glow%20Clinic', '_blank')}
-                  style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', marginBottom:14, cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div>
                     <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Sin cita agendada</div>
                     <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Toca para contactarnos por WhatsApp</div>
@@ -265,92 +269,170 @@ export default function PatientDashboard() {
                   <span style={{ fontSize:20 }}>💬</span>
                 </div>
               )}
-
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
-                {[
-                  { l:'Peso actual', v: latest?.weight_kg, u:'kg' },
-                  { l:'% Grasa', v: latest?.body_fat_pct, u:'%' },
-                  { l:'Masa muscular', v: latest?.muscle_mass_kg, u:'kg' },
-                  { l:'Grasa visceral', v: latest?.visceral_fat_pts, u:'pts' },
-                ].map((m,i) => (
-                  <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:10, padding:'12px 14px' }}>
-                    <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{m.l}</div>
-                    <div style={{ fontSize:20, fontWeight:500, color:'#1a1a1a' }}>{m.v || '--'} <span style={{ fontSize:11, color:'#999', fontWeight:400 }}>{m.v ? m.u : ''}</span></div>
+              {(() => {
+                const lastNote = clinicalNotes[0] || null
+                const lastMeas = measurements[0] || null
+                const signos = [
+                  { label:'Presión arterial', value: lastNote?.pas && lastNote?.pad ? lastNote.pas+'/'+lastNote.pad+' mmHg' : null },
+                  { label:'Glicemia', value: lastNote?.glucose ? lastNote.glucose+' mg/dL' : null },
+                  { label:'Frec. cardíaca', value: lastNote?.heart_rate ? lastNote.heart_rate+' lpm' : null },
+                  { label:'SpO₂', value: lastNote?.spo2 ? lastNote.spo2+'%' : null },
+                  { label:'Peso', value: lastMeas?.weight_kg ? lastMeas.weight_kg+' kg' : null },
+                  { label:'% Grasa', value: lastMeas?.body_fat_pct ? lastMeas.body_fat_pct+'%' : null },
+                  { label:'Masa muscular', value: lastMeas?.muscle_mass_kg ? lastMeas.muscle_mass_kg+' kg' : null },
+                  { label:'Grasa visceral', value: lastMeas?.visceral_fat_pts ? lastMeas.visceral_fat_pts+' pts' : null },
+                ].filter(s => s.value !== null)
+                const fecha = lastNote?.note_date || lastMeas?.measured_at
+                return (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>Últimos signos clínicos</div>
+                      {fecha && <div style={{ fontSize:10, color:'#999' }}>{new Date(fecha).toLocaleDateString('es-CR')}</div>}
+                    </div>
+                    {signos.length === 0
+                      ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:12 }}>Sin registros clínicos aún</div>
+                      : <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                          {signos.map((s,i) => (
+                            <div key={i} style={{ background:'#f9f9f9', borderRadius:8, padding:'10px 12px' }}>
+                              <div style={{ fontSize:10, color:'#999', marginBottom:3 }}>{s.label}</div>
+                              <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{s.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                    }
                   </div>
-                ))}
+                )
+              })()}
+              {(() => {
+                const lastMsg = msgs.filter(m=>m.sender_id!==patient?.profile_id)[0]
+                return lastMsg ? (
+                  <div onClick={()=>setView('chat')} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer' }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>Último mensaje de mi médico</div>
+                    <div style={{ fontSize:12, color:'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lastMsg.content}</div>
+                    <div style={{ fontSize:10, color:'#999', marginTop:4 }}>{new Date(lastMsg.created_at).toLocaleDateString('es-CR')}</div>
+                  </div>
+                ) : null
+              })()}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>Mis tareas pendientes</div>
+                  <button onClick={()=>setView('tareas')} style={{ fontSize:11, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'3px 9px', cursor:'pointer', fontWeight:600 }}>Ver todas</button>
+                </div>
+                {tasks.filter(t=>!t.is_completed).length === 0
+                  ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:8 }}>Sin tareas pendientes</div>
+                  : tasks.filter(t=>!t.is_completed).slice(0,3).map(t => (
+                    <div key={t.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                      <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56', flexShrink:0 }} />
+                      <div style={{ fontSize:12, color:'#333', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.description||'Tarea'}</div>
+                    </div>
+                  ))
+                }
               </div>
-
-              {goals.length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
-                  <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Mis objetivos</div>
-                  {goals.map(g => {
-                    const pct = goalProgress(g)
-                    return (
-                      <div key={g.id} style={{ marginBottom:12 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                          <span style={{ color:'#444' }}>{g.name}</span>
-                          <span style={{ fontWeight:500, color:'#1a1a1a' }}>{g.initial_value} → {g.target_value}</span>
-                        </div>
-                        <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
-                          <div style={{ height:'100%', background:G, borderRadius:3, width: pct + '%', transition:'width 0.5s' }} />
-                        </div>
-                        <div style={{ fontSize:10, color:'#999', marginTop:2, textAlign:'right' }}>{pct}%</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                <div style={{ fontSize:13, fontWeight:500, marginBottom:4 }}>Hidratacion de hoy</div>
-                <div style={{ fontSize:11, color:'#888', marginBottom:12 }}>{glassesCount} de {glassesGoal} vasos · {goalMl} ml meta</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:12 }}>
-                  {Array.from({ length: glassesGoal }).map((_, i) => (
-                    <span key={i}
-                      onClick={() => i < glassesCount ? removeWater() : addWater()}
-                      style={{ fontSize:26, opacity: i < glassesCount ? 1 : 0.2, cursor:'pointer', transition:'all 0.15s', userSelect:'none' }}
-                      title={i < glassesCount ? 'Quitar vaso' : 'Agregar vaso'}>
-                      💧
-                    </span>
-                  ))}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>Tratamientos activos</div>
+                  <button onClick={()=>setView('tratamientos')} style={{ fontSize:11, color:'#1a5c8a', background:'#e5f0fb', border:'none', borderRadius:6, padding:'3px 9px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
                 </div>
-                <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
-                  <div style={{ height:'100%', background:'#185FA5', borderRadius:3, width: waterPct + '%', transition:'width 0.3s' }} />
-                </div>
+                {treatments.filter(t=>t.is_active).length === 0
+                  ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:8 }}>Sin tratamientos activos</div>
+                  : treatments.filter(t=>t.is_active).slice(0,3).map(t => (
+                    <div key={t.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                      <div style={{ width:8, height:8, borderRadius:'50%', background:'#1a5c8a', flexShrink:0 }} />
+                      <div style={{ fontSize:12, color:'#333', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.product_name||'Tratamiento'}</div>
+                    </div>
+                  ))
+                }
               </div>
             </div>
           )}
 
           {view === 'progreso' && (
             <div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:14 }}>
-                {[
-                  { l:'Peso', v: latest?.weight_kg, u:'kg' },
-                  { l:'% Grasa', v: latest?.body_fat_pct, u:'%' },
-                  { l:'Masa muscular', v: latest?.muscle_mass_kg, u:'kg' },
-                  { l:'Grasa visceral', v: latest?.visceral_fat_pts, u:'pts' },
-                ].map((m,i) => (
-                  <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:10, padding:'12px 14px' }}>
-                    <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{m.l}</div>
-                    <div style={{ fontSize:20, fontWeight:500, color:'#1a1a1a' }}>{m.v || '--'} <span style={{ fontSize:11, color:'#999', fontWeight:400 }}>{m.v ? m.u : ''}</span></div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Historial de mediciones</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 1fr 1fr', gap:8, padding:'6px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase' }}>
-                  <span>Fecha</span><span>Peso</span><span>% Grasa</span><span>Muscular</span><span>Visceral</span>
+              {measurements.length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución del peso (kg)</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                      <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} />
+                      <Line type="monotone" dataKey="peso" stroke="#0F6E56" strokeWidth={2} dot={{ r:3, fill:'#0F6E56' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
-                {measurements.map(m => (
-                  <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5', fontSize:12 }}>
-                    <span style={{ color:'#888' }}>{m.measured_at}</span>
-                    <span style={{ color:'#1a1a1a' }}>{m.weight_kg ? m.weight_kg + ' kg' : '--'}</span>
-                    <span style={{ color:'#1a1a1a' }}>{m.body_fat_pct ? m.body_fat_pct + '%' : '--'}</span>
-                    <span style={{ color:'#1a1a1a' }}>{m.muscle_mass_kg ? m.muscle_mass_kg + ' kg' : '--'}</span>
-                    <span style={{ color:'#1a1a1a' }}>{m.visceral_fat_pts ? m.visceral_fat_pts + ' pts' : '--'}</span>
-                  </div>
-                ))}
-                {measurements.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin mediciones registradas aun</div>}
+              )}
+              {measurements.filter(m=>m.body_fat_pct).length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución % grasa corporal</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                      <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+'%'} />
+                      <Line type="monotone" dataKey="grasa" stroke="#1D9E75" strokeWidth={2} dot={{ r:3, fill:'#1D9E75' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              {clinicalNotes.filter(n=>n.pas).length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución de presión arterial</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={[...clinicalNotes].reverse().filter(n=>n.pas).map(n=>({ fecha: new Date(n.note_date).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), sistolica: n.pas, diastolica: n.pad }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                      <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={(v,n)=>[v+' mmHg', n==='sistolica'?'Sistólica':'Diastólica']} />
+                      <Line type="monotone" dataKey="sistolica" stroke="#0F6E56" strokeWidth={2} dot={{ r:3, fill:'#0F6E56' }} />
+                      <Line type="monotone" dataKey="diastolica" stroke="#57c4a0" strokeWidth={2} strokeDasharray="4 2" dot={{ r:3, fill:'#57c4a0' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              {clinicalNotes.filter(n=>n.glucose).length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución de glicemia</div>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={[...clinicalNotes].reverse().filter(n=>n.glucose).map(n=>({ fecha: new Date(n.note_date).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), glicemia: n.glucose }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                      <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+' mg/dL'} />
+                      <Line type="monotone" dataKey="glicemia" stroke="#0a7a5a" strokeWidth={2} dot={{ r:3, fill:'#0a7a5a' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Historial completo</div>
+                {clinicalNotes.length === 0 && measurements.length === 0
+                  ? <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:16 }}>Sin registros aún</div>
+                  : [...clinicalNotes.map(n=>({...n, tipo:'clinico', fecha:n.note_date})), ...measurements.map(m=>({...m, tipo:'medicion', fecha:m.measured_at}))]
+                      .sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))
+                      .map((r,i) => (
+                        <div key={i} style={{ borderBottom:'0.5px solid #f5f5f5', paddingBottom:12, marginBottom:12 }}>
+                          <div style={{ fontSize:11, color:'#999', fontWeight:500, marginBottom:6 }}>
+                            {r.tipo==='clinico'?'Signos clínicos':'Medición'} · {new Date(r.fecha).toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+                          </div>
+                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                            {r.tipo==='clinico' && <>
+                              {r.pas && r.pad && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Presión</div><div style={{ fontSize:13, fontWeight:600 }}>{r.pas}/{r.pad} mmHg</div></div>}
+                              {r.glucose && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Glicemia</div><div style={{ fontSize:13, fontWeight:600 }}>{r.glucose} mg/dL</div></div>}
+                              {r.heart_rate && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>FC</div><div style={{ fontSize:13, fontWeight:600 }}>{r.heart_rate} lpm</div></div>}
+                              {r.spo2 && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>SpO₂</div><div style={{ fontSize:13, fontWeight:600 }}>{r.spo2}%</div></div>}
+                            </>}
+                            {r.tipo==='medicion' && <>
+                              {r.weight_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Peso</div><div style={{ fontSize:13, fontWeight:600 }}>{r.weight_kg} kg</div></div>}
+                              {r.body_fat_pct && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>% Grasa</div><div style={{ fontSize:13, fontWeight:600 }}>{r.body_fat_pct}%</div></div>}
+                              {r.muscle_mass_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Músculo</div><div style={{ fontSize:13, fontWeight:600 }}>{r.muscle_mass_kg} kg</div></div>}
+                              {r.visceral_fat_pts && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:10, color:'#999' }}>Visceral</div><div style={{ fontSize:13, fontWeight:600 }}>{r.visceral_fat_pts} pts</div></div>}
+                            </>}
+                          </div>
+                        </div>
+                      ))
+                }
               </div>
             </div>
           )}
