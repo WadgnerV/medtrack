@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -33,6 +34,7 @@ export default function DoctorDashboard() {
   const [treatments, setTreatments] = useState([])
   const [notes, setNotes] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
+  const [allDiagnoses, setAllDiagnoses] = useState([])
   const [cie10Search, setCie10Search] = useState('')
   const [cie10Results, setCie10Results] = useState([])
 
@@ -40,7 +42,7 @@ export default function DoctorDashboard() {
 
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms()])
+    await Promise.all([loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllDiagnoses()])
     setLoading(false)
   }
 
@@ -167,6 +169,16 @@ export default function DoctorDashboard() {
     })
     await loadPatientData(selPatient.id)
     setModal(null); setSaving(false)
+  }
+
+  async function debugPatients() {
+    console.log("PATIENTS:", patients.map(p => ({ id: p.id, patient_id: p.patient_id, keys: Object.keys(p) })))
+    console.log("ALL_DIAG:", allDiagnoses)
+  }
+
+  async function loadAllDiagnoses() {
+    const { data } = await supabase.from('patient_diagnoses').select('cie10_code, cie10_description, patient_id').eq('is_active', true)
+    setAllDiagnoses(data || [])
   }
 
   async function loadDiagnoses(patientId) {
@@ -386,73 +398,124 @@ export default function DoctorDashboard() {
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
 
           {view === 'dashboard' && (
-            <div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
-                {[
-                  { l:'Mis pacientes', v:patients.length, d:patients.filter(p => p.status === 'active').length + ' activos' },
-                  { l:'Citas programadas', v:appts.filter(a => a.status === 'scheduled').length, d:'proximas' },
-                  { l:'Chats pendientes', v:pendingCount, d:'sin responder', c:'#D85A30' },
-                ].map((m,i) => (
-                  <div key={i} style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px' }}>
-                    <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{m.l}</div>
-                    <div style={{ fontSize:22, fontWeight:500, color:m.c || '#1a1a1a' }}>{m.v}</div>
-                    <div style={{ fontSize:11, color:'#999', marginTop:3 }}>{m.d}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Mis pacientes</div>
-                  {patients.slice(0,5).map(p => (
-                    <div key={p.id} onClick={() => openPatient(p)}
-                      style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0', cursor:'pointer' }}>
-                      <div style={{ width:28, height:28, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
-                      <div>
-                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{pName(p)}</div>
-                        <div style={{ fontSize:10, color:'#999' }}>{p.specialty_type || '--'}</div>
-                      </div>
-                      <span style={{ marginLeft:'auto', fontSize:10, padding:'2px 8px', borderRadius:20, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
-                    </div>
-                  ))}
-                  {patients.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>No tienes pacientes asignados</div>}
+        <div>
+          {/* ── 4 KPIs ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+            {[
+              { label:'Pacientes asignados', value: patients.length, sub: patients.filter(p=>p.status==='active').length+' activos', icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
+              { label:'Citas esta semana', value: (() => {
+                  const now = new Date();
+                  const mon = new Date(now); mon.setDate(now.getDate()-now.getDay()+1);
+                  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+                  const monStr = mon.toISOString().substring(0,10);
+                  const sunStr = sun.toISOString().substring(0,10);
+                  return appts.filter(a=>a.appointment_date>=monStr&&a.appointment_date<=sunStr).length;
+                })(), sub:'esta semana', icon:'📅', color:'#7a4000', bg:'#fff3e0' },
+              { label:'Citas este mes', value: appts.filter(a=>a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length, sub:'este mes', icon:'🗓️', color:'#1a5c8a', bg:'#e5f0fb' },
+              { label:'Chats pendientes', value: msgs.filter(m=>!m.read_at&&m.sender_id!==user?.id).length, sub:'sin responder', icon:'💬', color: msgs.filter(m=>!m.read_at&&m.sender_id!==user?.id).length>0?'#c0392b':'#0F6E56', bg: msgs.filter(m=>!m.read_at&&m.sender_id!==user?.id).length>0?'#fdecea':'#E1F5EE' },
+            ].map((k,i) => (
+              <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'16px 18px' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+                  <span style={{ fontSize:11, color:'#999', fontWeight:500 }}>{k.label}</span>
+                  <span style={{ fontSize:18, background:k.bg, borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center' }}>{k.icon}</span>
                 </div>
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Proximas citas</div>
-                  {appts.filter(a => a.status === 'scheduled').slice(0,5).map(a => (
-                    <div key={a.id} style={{ borderBottom:'0.5px solid #f0f0f0', padding:'7px 0', fontSize:12 }}>
-                      <div style={{ fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                      <div style={{ color:'#888', marginTop:2 }}>{a.appointment_date} - {a.appointment_time?.substring(0,5)} - {a.visit_type}</div>
-                    </div>
-                  ))}
-                  {appts.filter(a => a.status === 'scheduled').length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin citas programadas</div>}
-                </div>
+                <div style={{ fontSize:30, fontWeight:600, color:k.color, lineHeight:1 }}>{k.value}</div>
+                <div style={{ fontSize:11, color:'#aaa', marginTop:4 }}>{k.sub}</div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
 
-          {view === 'pacientes' && (
+          {/* ── Gráfica + Lista pacientes ── */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+
+            {/* Citas por mes */}
+            {(() => {
+              const data = [];
+              for(let i=5;i>=0;i--){
+                const d = new Date(); d.setMonth(d.getMonth()-i);
+                const key = d.toISOString().substring(0,7);
+                const label = d.toLocaleString('es',{month:'short'});
+                data.push({ mes: label, citas: appts.filter(a=>a.appointment_date?.startsWith(key)).length });
+              }
+              return (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📈 Mis citas por mes</div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={data} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="mes" tick={{ fontSize:11, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <Line type="monotone" dataKey="citas" stroke="#0F6E56" strokeWidth={2.5} dot={{ r:4, fill:'#0F6E56' }} activeDot={{ r:6 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
+
+            {/* Lista compacta pacientes */}
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>👥 Mis pacientes</div>
+                <button onClick={()=>setView('pacientes')} style={{ fontSize:11, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'4px 10px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
+              </div>
+              {patients.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin pacientes asignados</div>}
+              {patients.slice(0,6).map(p => {
+                const initials = (p.first_name?.[0]||'')+(p.last_name?.[0]||'');
+                const citasPac = appts.filter(a=>a.patient_id===p.id).length;
+                return (
+                  <div key={p.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                    <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0 }}>
+                      {initials}
+                    </div>
+                    <div style={{ minWidth:0, flex:1 }}>
+                      <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {p.first_name} {p.last_name}
+                      </div>
+                      <div style={{ fontSize:10, color:'#999' }}>{p.specialty_type||'Sin tipo de consulta'}</div>
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
+                      <span style={{ fontSize:10, fontWeight:500, padding:'2px 7px', borderRadius:99,
+                        background: p.status==='active'?'#E1F5EE':'#f5f5f5',
+                        color: p.status==='active'?'#0F6E56':'#999' }}>
+                        {p.status==='active'?'activo':'inactivo'}
+                      </span>
+                      <span style={{ fontSize:10, color:'#bbb' }}>{citasPac} cita{citasPac!==1?'s':''}</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {patients.length>6 && <div style={{ fontSize:11, color:'#999', textAlign:'center', marginTop:8 }}>+{patients.length-6} más</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view === 'pacientes' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex:'0 0 40%' }}>Paciente</div>
-                <div style={{ flex:'0 0 15%' }}>Edad</div>
-                <div style={{ flex:'0 0 25%' }}>Especialidad</div>
-                <div style={{ flex:'0 0 20%' }}>Estado</div>
+                <div style={{ flex:'0 0 35%' }}>Paciente</div>
+                <div style={{ flex:'0 0 10%' }}>Edad</div>
+                <div style={{ flex:'0 0 22%' }}>Tipo de consulta</div>
+                <div style={{ flex:'0 0 22%', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 11%' }}>Estado</div>
               </div>
               {patients.map(p => (
                 <div key={p.id} onClick={() => openPatient(p)}
                   style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer', transition:'background 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#f8fffe'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <div style={{ flex:'0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  <div style={{ flex:'0 0 35%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
                       <div style={{ fontSize:10, color:'#999' }}>{p.profile?.email}</div>
                     </div>
                   </div>
-                  <div style={{ flex:'0 0 15%', fontSize:12, color:'#666' }}>{age(p.birth_date)} anos</div>
-                  <div style={{ flex:'0 0 25%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
-                  <div style={{ flex:'0 0 20%' }}>
+                  <div style={{ flex:'0 0 10%', fontSize:12, color:'#666' }}>{age(p.birth_date)} años</div>
+                  <div style={{ flex:'0 0 22%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
+                <div style={{ flex:'0 0 22%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                  <div style={{ flex:'0 0 11%' }}>
                     <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                 </div>
@@ -467,9 +530,9 @@ export default function DoctorDashboard() {
                 <div style={{ width:48, height:48, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:500, flexShrink:0 }}>{initials(pName(selPatient))}</div>
                 <div>
                   <div style={{ fontSize:15, fontWeight:500, color:'#1a1a1a' }}>{pName(selPatient)}</div>
-                  <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{age(selPatient.birth_date)} anos · {selPatient.height_cm ? selPatient.height_cm + ' cm' : ''} · {selPatient.sex || ''}</div>
+                  <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{age(selPatient.birth_date)} años · {selPatient.height_cm ? selPatient.height_cm + ' cm' : ''} · {selPatient.sex || ''}</div>
                   <div style={{ display:'flex', gap:6, marginTop:5 }}>
-                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{selPatient.specialty_type || 'Sin especialidad'}</span>
+                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{selPatient.specialty_type || 'Sin tipo de consulta'}</span>
                     <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{selPatient.profile?.email}</span>
                   </div>
                 </div>

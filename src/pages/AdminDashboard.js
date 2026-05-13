@@ -1115,7 +1115,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
         <div style={{ gridColumn:'1/-1' }}><Field label="Contrasena temporal" value={form.password} onChange={f('password')} type="password" placeholder="Minimo 6 caracteres" /></div>
         {type === 'doctor' && <>
           <div style={{ gridColumn:'1/-1' }}>
-            <label style={s.fieldLabel}>Especialidad</label>
+            <label style={s.fieldLabel}>Tipo de consulta</label>
             <select value={form.specialty} onChange={f('specialty')} style={s.fieldInput}>
               <option value="">Selecciona...</option>
               {specialties.map(sp => <option key={sp} value={sp}>{sp}</option>)}
@@ -1349,7 +1349,7 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
           <div style={{ fontSize:15, fontWeight:500, color:'#1a1a1a' }}>{pName}</div>
           <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{age(patient.birth_date)} anos · {patient.height_cm ? patient.height_cm + ' cm' : ''} · {patient.sex || ''}</div>
           <div style={{ display:'flex', gap:6, marginTop:5 }}>
-            <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{patient.specialty_type || 'Sin especialidad'}</span>
+            <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{patient.specialty_type || 'Sin tipo de consulta'}</span>
             <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{patient.profile?.email}</span>
           </div>
         </div>
