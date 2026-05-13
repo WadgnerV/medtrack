@@ -41,10 +41,23 @@ export default function AdminDashboard() {
 
   useEffect(() => { loadAll() }, [])
 
+  const [allGoals, setAllGoals] = useState([])
+  const [allDiagnoses, setAllDiagnoses] = useState([])
+
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms()])
+    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses()])
     setLoading(false)
+  }
+
+  async function loadAllGoals() {
+    const { data } = await supabase.from('goals').select('patient_id, is_active, target_value, initial_value')
+    setAllGoals(data || [])
+  }
+
+  async function loadAllDiagnoses() {
+    const { data } = await supabase.from('patient_diagnoses').select('cie10_code, cie10_description, patient_id').eq('is_active', true)
+    setAllDiagnoses(data || [])
   }
 
   async function loadDoctors() {
@@ -435,54 +448,6 @@ export default function AdminDashboard() {
 
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
 
-          {view === 'dashboard' && (
-            <div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:14 }}>
-                {[
-                  { l:'Total pacientes', v:patients.length, d:patients.filter(p => p.status === 'active').length + ' activos' },
-                  { l:'Medicos activos', v:doctors.length, d:doctors.filter(d => d.role === 'doctor').length + ' colaboradores' },
-                  { l:'Citas programadas', v:appts.filter(a => a.status === 'scheduled').length, d:'proximas' },
-                  { l:'Chats pendientes', v:pendingCount, d:'sin leer', c:'#D85A30' },
-                ].map((m,i) => (
-                  <div key={i} style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px' }}>
-                    <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{m.l}</div>
-                    <div style={{ fontSize:22, fontWeight:500, color:m.c || '#1a1a1a' }}>{m.v}</div>
-                    <div style={{ fontSize:11, color:'#999', marginTop:3 }}>{m.d}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Pacientes por medico</div>
-                  {doctors.map(d => {
-                    const count = patients.filter(p => p.doctor?.id === d.id).length
-                    const pct = patients.length ? (count / patients.length * 100) : 0
-                    return (
-                      <div key={d.id} style={{ marginBottom:10 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:3 }}>
-                          <span style={{ color:'#444' }}>{d.first_name} {d.last_name}</span>
-                          <span style={{ fontWeight:500 }}>{count} pac.</span>
-                        </div>
-                        <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
-                          <div style={{ height:'100%', background:G, borderRadius:3, width:pct + '%' }} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Proximas citas</div>
-                  {appts.filter(a => a.status === 'scheduled').slice(0,5).map(a => (
-                    <div key={a.id} style={{ borderBottom:'0.5px solid #f0f0f0', padding:'7px 0', fontSize:12 }}>
-                      <div style={{ fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                      <div style={{ color:'#888', marginTop:2 }}>{a.appointment_date} - {a.appointment_time?.substring(0,5)}</div>
-                    </div>
-                  ))}
-                  {appts.filter(a => a.status === 'scheduled').length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin citas programadas</div>}
-                </div>
-              </div>
-            </div>
-          )}
 
           {view === 'medicos' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
