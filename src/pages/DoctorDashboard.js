@@ -173,8 +173,6 @@ export default function DoctorDashboard() {
   }
 
   async function debugPatients() {
-    console.log("PATIENTS:", patients.map(p => ({ id: p.id, patient_id: p.patient_id, keys: Object.keys(p) })))
-    console.log("ALL_DIAG:", allDiagnoses)
   }
 
   async function loadAllDiagnoses() {
