@@ -25,6 +25,13 @@ export default function PatientDashboard() {
   const [saving, setSaving] = useState(false)
   const [showMeasForm, setShowMeasForm] = useState(false)
   const [measForm, setMeasForm] = useState({ date: new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:'', visceral:'' })
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => { if (profile?.id) loadAll() }, [profile])
 
@@ -213,7 +220,7 @@ export default function PatientDashboard() {
       )}
 
       {/* Sidebar desktop */}
-      <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', '@media(max-width:600px)': { display:'none' } }} className="sidebar-desktop">
+      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column' }}>
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -236,22 +243,25 @@ export default function PatientDashboard() {
         ))}
 
         <UserMenu />
-      </div>
+      </div>}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
               {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico' }[view]}
             </div>
-            <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
+            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
-          {view === 'progreso' && (
-            <button style={s.btnPrimary} onClick={() => setShowMeasForm(true)}>+ Registrar medicion</button>
-          )}
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {view === 'progreso' && (
+              <button style={s.btnPrimary} onClick={() => setShowMeasForm(true)}>{isMobile ? '+ Medición' : '+ Registrar medicion'}</button>
+            )}
+            {isMobile && <UserMenu />}
+          </div>
         </div>
 
-        <div className="main-content-area" style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
 
           {view === 'inicio' && (
             <div>
@@ -587,7 +597,7 @@ export default function PatientDashboard() {
       </div>
 
       {/* Bottom nav móvil */}
-      <div className="bottom-nav-mobile" style={{ display:'none' }}>
+      {isMobile && <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
         {[
           { label:'Inicio', key:'inicio', icon:'🏠' },
           { label:'Progreso', key:'progreso', icon:'📈' },
@@ -601,15 +611,7 @@ export default function PatientDashboard() {
             <span style={{ fontSize:9, marginTop:2, fontWeight: view === item.key ? 600 : 400 }}>{item.label}</span>
           </div>
         ))}
-      </div>
-
-      <style>{`
-        @media (max-width: 640px) {
-          .sidebar-desktop { display: none !important; }
-          .bottom-nav-mobile { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; border-top: 0.5px solid #eee; }
-          .main-content-area { padding-bottom: 64px !important; }
-        }
-      `}</style>
+      </div>}
     </div>
   )
 }
