@@ -17,6 +17,7 @@ const MET = { 'Caminata':3.5, 'Trote/Carrera':8, 'Cardio':6, 'Fuerza/Pesas':4, '
 const INTENSITY_MULT = { baja: 0.8, media: 1.0, alta: 1.3 }
 
 const ANTH_URL = 'https://api.anthropic.com/v1/messages'
+const ANTH_KEY = process.env.REACT_APP_ANTHROPIC_API_KEY
 
 export default function WellnessModule({ patient, profile }) {
   const [log, setLog] = useState(null)
@@ -42,8 +43,8 @@ export default function WellnessModule({ patient, profile }) {
       setForm({
         sleep_hours: data.sleep_hours || '',
         sleep_quality: data.sleep_quality || '',
-        sleep_start: data.sleep_start || '',
-        sleep_end: data.sleep_end || '',
+        sleep_start: data.sleep_start?.substring(0,5) || '',
+        sleep_end: data.sleep_end?.substring(0,5) || '',
         stress_level: data.stress_level || 5,
         stress_notes: data.stress_notes || '',
         exercise_type: data.exercise_type || '',
@@ -99,7 +100,7 @@ export default function WellnessModule({ patient, profile }) {
     try {
       const res = await fetch(ANTH_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTH_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,
@@ -115,6 +116,16 @@ export default function WellnessModule({ patient, profile }) {
       setTip('No se pudo obtener el consejo. Intentá de nuevo.')
     }
     setTipLoading(false)
+  }
+
+  function calcSleepHours(start, end) {
+    if (!start || !end) return ''
+    const [sh, sm] = start.split(':').map(Number)
+    const [eh, em] = end.split(':').map(Number)
+    let startMin = sh * 60 + sm
+    let endMin = eh * 60 + em
+    if (endMin <= startMin) endMin += 24 * 60 // cruza medianoche
+    return ((endMin - startMin) / 60).toFixed(1)
   }
 
   const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
@@ -164,15 +175,15 @@ export default function WellnessModule({ patient, profile }) {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
             <div>
               <label style={lbl}>Me dormí</label>
-              <input type="time" value={form.sleep_start} onChange={e => setForm(p => ({ ...p, sleep_start: e.target.value }))} style={inp} />
+              <input type="time" value={form.sleep_start} onChange={e => { const h = calcSleepHours(e.target.value, form.sleep_end); setForm(p => ({ ...p, sleep_start: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={inp} />
             </div>
             <div>
               <label style={lbl}>Me desperté</label>
-              <input type="time" value={form.sleep_end} onChange={e => setForm(p => ({ ...p, sleep_end: e.target.value }))} style={inp} />
+              <input type="time" value={form.sleep_end} onChange={e => { const h = calcSleepHours(form.sleep_start, e.target.value); setForm(p => ({ ...p, sleep_end: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={inp} />
             </div>
             <div>
               <label style={lbl}>Horas dormidas</label>
-              <input type="number" min="0" max="24" step="0.5" value={form.sleep_hours} onChange={e => setForm(p => ({ ...p, sleep_hours: e.target.value }))} placeholder="7.5" style={inp} />
+              <input type="number" min="0" max="24" step="0.5" value={form.sleep_hours} onChange={e => setForm(p => ({ ...p, sleep_hours: e.target.value }))} placeholder="7.5" style={{ ...inp, background:'#f8f8f8' }} readOnly={!!(form.sleep_start && form.sleep_end)} />
             </div>
           </div>
 
