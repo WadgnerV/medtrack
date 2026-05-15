@@ -237,12 +237,13 @@ export default function PatientDashboard() {
           { label:'Tratamientos', key:'tratamientos' },
           { label:'Chat con mi medico', key:'chat' },
           ...(profile?.plan === 'pro' ? [
-            { label:'Nutrición', key:'nutricion' },
+            { label:'Nutrición', key:'nutricion', pro: true },
           ] : []),
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
             style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
             {item.label}
+            {item.pro && <span style={{ fontSize:10, color:'#c8960c', marginLeft:'auto' }}>★</span>}
           </div>
         ))}
 
