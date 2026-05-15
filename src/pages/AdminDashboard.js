@@ -201,6 +201,10 @@ export default function AdminDashboard() {
 
   async function createUser(form, role) {
     setSaving(true); setFormError('')
+
+    // Guardar sesión actual para restaurarla después
+    const { data: { session: currentSession } } = await supabase.auth.getSession()
+
     const { data: signUpData, error } = await supabase.auth.signUp({
       email: form.email, password: form.password,
       options: { data: {
@@ -216,8 +220,16 @@ export default function AdminDashboard() {
     })
     if (error) { setFormError(error.message); setSaving(false); return }
     const userId = signUpData?.user?.id
+
+    // Restaurar sesión del admin
+    if (currentSession) {
+      await supabase.auth.setSession({
+        access_token: currentSession.access_token,
+        refresh_token: currentSession.refresh_token,
+      })
+    }
+
     if (role === 'patient' && userId) {
-      // Esperar a que el trigger cree el registro
       for (let i = 0; i < 10; i++) {
         await new Promise(r => setTimeout(r, 500))
         const { data } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
@@ -227,6 +239,19 @@ export default function AdminDashboard() {
         assigned_doctor_id: form.doctorId || null,
       }).eq('profile_id', userId)
     }
+    // Para doctor, guardar especialidad y código médico en profiles
+    if (role === 'doctor' && userId) {
+      for (let i = 0; i < 10; i++) {
+        await new Promise(r => setTimeout(r, 500))
+        const { data } = await supabase.from('profiles').select('id').eq('id', userId).single()
+        if (data?.id) break
+      }
+      await supabase.from('profiles').update({
+        specialty:    form.specialty    || null,
+        medical_code: form.medicalCode  || null,
+      }).eq('id', userId)
+    }
+
     if (role === 'doctor') await loadDoctors()
     else await loadPatients()
     setModal(null); setSaving(false)
