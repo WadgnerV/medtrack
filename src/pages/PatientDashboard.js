@@ -354,8 +354,8 @@ export default function PatientDashboard() {
                         <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56', flexShrink:0 }} />
                         <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.product_name||'Tratamiento'}</div>
                       </div>
-                      {(t.dosage||t.frequency) && <div style={{ fontSize:12, color:'#888', paddingLeft:16 }}>{[t.dosage, t.frequency].filter(Boolean).join(' · ')}</div>}
-                      {t.notes && <div style={{ fontSize:12, color:'#aaa', paddingLeft:16, marginTop:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.notes}</div>}
+                      {(t.dose||t.zone) && <div style={{ fontSize:12, color:'#888', paddingLeft:16, marginTop:2 }}>{[t.dose, t.zone].filter(Boolean).join(' · ')}</div>}
+                      {t.appointment_date && <div style={{ fontSize:12, color:'#aaa', paddingLeft:16, marginTop:1 }}>📅 {new Date(t.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}</div>}
                     </div>
                   ))
                 }
