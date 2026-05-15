@@ -605,21 +605,20 @@ export default function PatientDashboard() {
               {profile?.plan === 'pro' ? (
                 <div>
                   <div style={{ background:'linear-gradient(135deg, #0F6E56, #1D9E75)', borderRadius:16, padding:24, color:'#fff', marginBottom:16, textAlign:'center' }}>
-                    <div style={{ fontSize:28, marginBottom:8 }}>⭐</div>
-                    <div style={{ fontSize:18, fontWeight:700, marginBottom:4 }}>¡Sos PRO!</div>
+                    <div style={{ fontSize:18, fontWeight:700, marginBottom:4, letterSpacing:'0.05em' }}>PLAN PRO ACTIVO</div>
                     <div style={{ fontSize:13, opacity:0.9 }}>Tenés acceso a todas las funcionalidades avanzadas</div>
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                     <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Funcionalidades PRO disponibles</div>
                     {[
-                      { icon:'🍎', label:'Contador de calorías y macros', desc:'Registrá lo que comés y seguí tus macronutrientes' },
-                      { icon:'🤖', label:'Nutrición con IA', desc:'Recibí consejos y recetas personalizadas con inteligencia artificial' },
-                      { icon:'🌸', label:'Control menstrual', desc:'Seguimiento de ciclo, síntomas y predicciones' },
-                      { icon:'🤰', label:'Modo embarazo y posparto', desc:'Seguimiento semana a semana del embarazo' },
-                      { icon:'💊', label:'Anticonceptivo ideal', desc:'Cuestionario personalizado con recomendación de IA' },
+                      { label:'Contador de calorías y macros', desc:'Registrá lo que comés y seguí tus macronutrientes diarios' },
+                      { label:'Nutrición con IA', desc:'Consejos y recetas personalizadas con inteligencia artificial' },
+                      { label:'Control menstrual', desc:'Seguimiento de ciclo, síntomas y predicciones' },
+                      { label:'Modo embarazo y posparto', desc:'Seguimiento semana a semana del embarazo' },
+                      { label:'Anticonceptivo ideal', desc:'Cuestionario personalizado con recomendación de IA' },
                     ].map((f,i) => (
-                      <div key={i} style={{ display:'flex', gap:12, padding:'10px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                        <span style={{ fontSize:22 }}>{f.icon}</span>
+                      <div key={i} style={{ display:'flex', gap:12, padding:'10px 0', borderBottom:'0.5px solid #f5f5f5', alignItems:'center' }}>
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:G, flexShrink:0 }} />
                         <div>
                           <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{f.label}</div>
                           <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{f.desc}</div>
@@ -631,8 +630,7 @@ export default function PatientDashboard() {
               ) : (
                 <div>
                   <div style={{ background:'linear-gradient(135deg, #0F6E56, #1D9E75)', borderRadius:16, padding:24, color:'#fff', marginBottom:16, textAlign:'center' }}>
-                    <div style={{ fontSize:28, marginBottom:8 }}>⚡</div>
-                    <div style={{ fontSize:18, fontWeight:700, marginBottom:4 }}>Activá el Plan PRO</div>
+                    <div style={{ fontSize:18, fontWeight:700, marginBottom:4, letterSpacing:'0.05em' }}>PLAN PRO</div>
                     <div style={{ fontSize:13, opacity:0.9, marginBottom:16 }}>Desbloqueá funcionalidades avanzadas por solo $4.99/mes</div>
                     <button onClick={async () => {
                       try {
@@ -652,16 +650,18 @@ export default function PatientDashboard() {
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                     <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>¿Qué incluye el PRO?</div>
                     {[
-                      { icon:'🍎', label:'Contador de calorías y macros diarios' },
-                      { icon:'🤖', label:'Recetas y consejos de nutrición con IA' },
-                      { icon:'🌸', label:'Control menstrual con predicciones' },
-                      { icon:'🤰', label:'Modo embarazo y posparto semana a semana' },
-                      { icon:'💊', label:'Cuestionario "Mi anticonceptivo ideal" con IA' },
-                    ].map((f,i) => (
+                      'Contador de calorías y macros diarios',
+                      'Recetas y consejos de nutrición con IA',
+                      'Control menstrual con predicciones',
+                      'Modo embarazo y posparto semana a semana',
+                      'Cuestionario "Mi anticonceptivo ideal" con IA',
+                    ].map((label,i) => (
                       <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                        <span style={{ fontSize:20 }}>{f.icon}</span>
-                        <span style={{ fontSize:13, color:'#1a1a1a' }}>{f.label}</span>
-                        <span style={{ marginLeft:'auto', color:G, fontSize:14 }}>✓</span>
+                        <div style={{ width:6, height:6, borderRadius:'50%', background:G, flexShrink:0 }} />
+                        <span style={{ fontSize:13, color:'#1a1a1a' }}>{label}</span>
+                        <div style={{ marginLeft:'auto', width:18, height:18, borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <span style={{ color:G, fontSize:11, fontWeight:700 }}>✓</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -683,7 +683,7 @@ export default function PatientDashboard() {
           { label:'Progreso', key:'progreso', icon:'📈' },
           { label:'Tareas', key:'tareas', icon:'✅' },
           { label:'Chat', key:'chat', icon:'💬' },
-          { label: profile?.plan === 'pro' ? 'PRO' : '⚡PRO', key:'pro', icon:'⭐' },
+          { label: profile?.plan === 'pro' ? 'PRO' : 'PRO', key:'pro', icon:'★' },
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
             style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: view === item.key ? G : '#999', borderTop: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background:'#fff' }}>
