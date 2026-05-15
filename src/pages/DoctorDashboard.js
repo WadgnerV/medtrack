@@ -64,8 +64,14 @@ export default function DoctorDashboard() {
   }
 
   async function loadMsgs() {
+    const { data: patientData } = await supabase.from('patients')
+      .select('id')
+      .eq('assigned_doctor_id', profile.id)
+    const patientIds = (patientData || []).map(p => p.id)
+    if (patientIds.length === 0) { setMsgs([]); return }
     const { data } = await supabase.from('messages')
-      .select('*, patient:patient_id(id, profile:profile_id(first_name, last_name))')
+      .select('*, patient:patient_id(id, profile:profile_id(first_name, last_name)), sender:sender_id(first_name, last_name)')
+      .in('patient_id', patientIds)
       .order('created_at', { ascending: false })
     setMsgs(data || [])
   }
@@ -257,11 +263,20 @@ export default function DoctorDashboard() {
     await loadAppts(); setModal(null)
   }
 
+  async function openChat(c) {
+    setActiveChat(c)
+    const unreadIds = c.msgs.filter(m => !m.is_read && m.sender_role === 'patient').map(m => m.id)
+    if (unreadIds.length > 0) {
+      await supabase.from('messages').update({ is_read: true }).in('id', unreadIds)
+      await loadMsgs()
+    }
+  }
+
   async function sendMessage() {
     if (!chatMsg.trim() || !activeChat) return
     await supabase.from('messages').insert({
       patient_id: activeChat.patientId, sender_id: profile.id,
-      content: chatMsg.trim(), sender_role: 'doctor', is_read: true
+      content: chatMsg.trim(), sender_role: 'doctor', is_read: false
     })
     setChatMsg(''); await loadMsgs()
   }
@@ -335,10 +350,10 @@ export default function DoctorDashboard() {
             {modal === 'confirm-cancel' && (
               <>
                 <div style={{ fontSize:15, fontWeight:500, marginBottom:12 }}>Cancelar cita</div>
-                <p style={{ fontSize:13, color:'#666', marginBottom:18, lineHeight:1.6 }}>Esta accion no se puede deshacer.</p>
+                <p style={{ fontSize:14, color:'#666', marginBottom:18, lineHeight:1.6 }}>Esta accion no se puede deshacer.</p>
                 <div style={{ display:'flex', gap:8 }}>
                   <button style={s.btnCancel} onClick={() => setModal(null)}>No, mantener</button>
-                  <button style={{ flex:1, padding:8, fontSize:12, fontWeight:500, background:'#D85A30', color:'#fff', border:'none', borderRadius:8, cursor:'pointer' }}
+                  <button style={{ flex:1, padding:8, fontSize:14, fontWeight:500, background:'#D85A30', color:'#fff', border:'none', borderRadius:8, cursor:'pointer' }}
                     onClick={() => cancelAppt(modalData.apptId)}>Si, cancelar cita</button>
                 </div>
               </>
@@ -351,7 +366,7 @@ export default function DoctorDashboard() {
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
-            <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
+            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
             <div style={{ fontSize:9, color:'#999' }}>by Glow Clinic</div>
           </div>
         </div>
@@ -361,12 +376,12 @@ export default function DoctorDashboard() {
           { section:'Clinica', items:[{ label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, { label:'Chat', key:'chat', badge:pendingCount, badgeRed:true }] },
         ].map(group => (
           <div key={group.section}>
-            <div style={{ fontSize:10, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
+            <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
             {group.items.map(item => (
               <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null) }}
-                style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:12, borderLeft: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? ('2px solid ' + G) : '2px solid transparent', background: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? '#E1F5EE' : 'transparent', color: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? '#0F6E56' : '#666', fontWeight: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? 500 : 400 }}>
+                style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:14, borderLeft: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? ('2px solid ' + G) : '2px solid transparent', background: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? '#E1F5EE' : 'transparent', color: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? '#0F6E56' : '#666', fontWeight: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? 500 : 400 }}>
                 {item.label}
-                {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:10, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+                {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:14, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
               </div>
             ))}
           </div>
@@ -381,15 +396,15 @@ export default function DoctorDashboard() {
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
               {view === 'perfil' && selPatient ? (
                 <span>
-                  <button style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:13, marginRight:6 }}
+                  <button style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:14, marginRight:6 }}
                     onClick={() => { setView('pacientes'); setSelPatient(null) }}>{'<'} Mis pacientes</button>
                   {pName(selPatient)}
                 </span>
               ) : { dashboard:'Dashboard', pacientes:'Mis pacientes', calendario:'Calendario', chat:'Chat' }[view]}
             </div>
-            <div style={{ fontSize:11, color:'#999', marginTop:1 }}>Glow Clinic</div>
+            <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
           </div>
-          {view === 'pacientes' && <div style={{ fontSize:12, color:'#666' }}>{patients.length} pacientes asignados</div>}
+          {view === 'pacientes' && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
           {view === 'perfil' && <button style={s.btnPrimary} onClick={() => setModal('new-measurement')}>+ Registrar medicion</button>}
           {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
         </div>
@@ -411,15 +426,15 @@ export default function DoctorDashboard() {
                   return appts.filter(a=>a.appointment_date>=monStr&&a.appointment_date<=sunStr).length;
                 })(), sub:'esta semana', icon:'📅', color:'#7a4000', bg:'#fff3e0' },
               { label:'Citas este mes', value: appts.filter(a=>a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length, sub:'este mes', icon:'🗓️', color:'#1a5c8a', bg:'#e5f0fb' },
-              { label:'Chats pendientes', value: msgs.filter(m=>!m.read_at&&m.sender_id!==user?.id).length, sub:'sin responder', icon:'💬', color: msgs.filter(m=>!m.read_at&&m.sender_id!==user?.id).length>0?'#c0392b':'#0F6E56', bg: msgs.filter(m=>!m.read_at&&m.sender_id!==user?.id).length>0?'#fdecea':'#E1F5EE' },
+              { label:'Chats pendientes', value: msgs.filter(m=>!m.is_read&&m.sender_role==='patient').length, sub:'sin responder', icon:'💬', color: msgs.filter(m=>!m.is_read&&m.sender_role==='patient').length>0?'#c0392b':'#0F6E56', bg: msgs.filter(m=>!m.is_read&&m.sender_role==='patient').length>0?'#fdecea':'#E1F5EE' },
             ].map((k,i) => (
               <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'16px 18px' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                  <span style={{ fontSize:11, color:'#999', fontWeight:500 }}>{k.label}</span>
+                  <span style={{ fontSize:14, color:'#999', fontWeight:500 }}>{k.label}</span>
                   <span style={{ fontSize:18, background:k.bg, borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center' }}>{k.icon}</span>
                 </div>
                 <div style={{ fontSize:30, fontWeight:600, color:k.color, lineHeight:1 }}>{k.value}</div>
-                <div style={{ fontSize:11, color:'#aaa', marginTop:4 }}>{k.sub}</div>
+                <div style={{ fontSize:14, color:'#aaa', marginTop:4 }}>{k.sub}</div>
               </div>
             ))}
           </div>
@@ -438,13 +453,13 @@ export default function DoctorDashboard() {
               }
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:13, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📈 Mis citas por mes</div>
+                  <div style={{ fontSize:14, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📈 Mis citas por mes</div>
                   <ResponsiveContainer width="100%" height={180}>
                     <LineChart data={data} margin={{ top:5, right:10, left:-20, bottom:0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="mes" tick={{ fontSize:11, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
-                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                      <XAxis dataKey="mes" tick={{ fontSize:14, fill:'#999' }} />
+                      <YAxis tick={{ fontSize:14, fill:'#999' }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8, border:'0.5px solid #eee' }} />
                       <Line type="monotone" dataKey="citas" stroke="#0F6E56" strokeWidth={2.5} dot={{ r:4, fill:'#0F6E56' }} activeDot={{ r:6 }} />
                     </LineChart>
                   </ResponsiveContainer>
@@ -455,36 +470,36 @@ export default function DoctorDashboard() {
             {/* Lista compacta pacientes */}
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>👥 Mis pacientes</div>
-                <button onClick={()=>setView('pacientes')} style={{ fontSize:11, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'4px 10px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
+                <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>👥 Mis pacientes</div>
+                <button onClick={()=>setView('pacientes')} style={{ fontSize:14, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'4px 10px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
               </div>
-              {patients.length===0 && <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:20 }}>Sin pacientes asignados</div>}
+              {patients.length===0 && <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:20 }}>Sin pacientes asignados</div>}
               {patients.slice(0,6).map(p => {
                 const initials = (p.first_name?.[0]||'')+(p.last_name?.[0]||'');
                 const citasPac = appts.filter(a=>a.patient_id===p.id).length;
                 return (
                   <div key={p.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                    <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0 }}>
+                    <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
                       {initials}
                     </div>
                     <div style={{ minWidth:0, flex:1 }}>
-                      <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                         {p.first_name} {p.last_name}
                       </div>
-                      <div style={{ fontSize:10, color:'#999' }}>{p.specialty_type||'Sin tipo de consulta'}</div>
+                      <div style={{ fontSize:14, color:'#999' }}>{p.specialty_type||'Sin tipo de consulta'}</div>
                     </div>
                     <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3 }}>
-                      <span style={{ fontSize:10, fontWeight:500, padding:'2px 7px', borderRadius:99,
+                      <span style={{ fontSize:14, fontWeight:500, padding:'2px 7px', borderRadius:99,
                         background: p.status==='active'?'#E1F5EE':'#f5f5f5',
                         color: p.status==='active'?'#0F6E56':'#999' }}>
                         {p.status==='active'?'activo':'inactivo'}
                       </span>
-                      <span style={{ fontSize:10, color:'#bbb' }}>{citasPac} cita{citasPac!==1?'s':''}</span>
+                      <span style={{ fontSize:14, color:'#bbb' }}>{citasPac} cita{citasPac!==1?'s':''}</span>
                     </div>
                   </div>
                 );
               })}
-              {patients.length>6 && <div style={{ fontSize:11, color:'#999', textAlign:'center', marginTop:8 }}>+{patients.length-6} más</div>}
+              {patients.length>6 && <div style={{ fontSize:14, color:'#999', textAlign:'center', marginTop:8 }}>+{patients.length-6} más</div>}
             </div>
           </div>
         </div>
@@ -492,12 +507,12 @@ export default function DoctorDashboard() {
 
       {view === 'pacientes' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:12, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
-              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
+              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 35%' }}>Paciente</div>
                 <div style={{ flex:'0 0 10%' }}>Edad</div>
                 <div style={{ flex:'0 0 22%' }}>Tipo de consulta</div>
-                <div style={{ flex:'0 0 22%', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 22%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
                 <div style={{ flex:'0 0 11%' }}>Estado</div>
               </div>
               {patients.filter(p => {
@@ -513,21 +528,21 @@ export default function DoctorDashboard() {
                   onMouseEnter={e => e.currentTarget.style.background = '#f8fffe'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={{ flex:'0 0 35%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                    <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
+                    <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
-                      <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
-                      <div style={{ fontSize:10, color:'#999' }}>{p.profile?.email}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
+                      <div style={{ fontSize:14, color:'#999' }}>{p.profile?.email}</div>
                     </div>
                   </div>
-                  <div style={{ flex:'0 0 10%', fontSize:12, color:'#666' }}>{age(p.birth_date)} años</div>
-                  <div style={{ flex:'0 0 22%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
-                <div style={{ flex:'0 0 22%', fontSize:12, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                  <div style={{ flex:'0 0 10%', fontSize:14, color:'#666' }}>{age(p.birth_date)} años</div>
+                  <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
+                <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
                   <div style={{ flex:'0 0 11%' }}>
-                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
+                    <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                 </div>
               ))}
-              {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:13, color:'#999' }}>No tienes pacientes asignados aun</div>}
+              {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
             </div>
           )}
 
@@ -537,19 +552,19 @@ export default function DoctorDashboard() {
                 <div style={{ width:48, height:48, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:500, flexShrink:0 }}>{initials(pName(selPatient))}</div>
                 <div>
                   <div style={{ fontSize:15, fontWeight:500, color:'#1a1a1a' }}>{pName(selPatient)}</div>
-                  <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{age(selPatient.birth_date)} años · {selPatient.height_cm ? selPatient.height_cm + ' cm' : ''} · {selPatient.sex || ''}</div>
+                  <div style={{ fontSize:14, color:'#666', marginTop:2 }}>{age(selPatient.birth_date)} años · {selPatient.height_cm ? selPatient.height_cm + ' cm' : ''} · {selPatient.sex || ''}</div>
                   <div style={{ display:'flex', gap:6, marginTop:5 }}>
-                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{selPatient.specialty_type || 'Sin tipo de consulta'}</span>
-                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{selPatient.profile?.email}</span>
+                    <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{selPatient.specialty_type || 'Sin tipo de consulta'}</span>
+                    <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{selPatient.profile?.email}</span>
                   </div>
                 </div>
-                <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#bbb' }}>Info de solo lectura</div>
+                <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:4, fontSize:14, color:'#bbb' }}>Info de solo lectura</div>
               </div>
 
               <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
                 {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos'].map(tab => (
                   <div key={tab} onClick={() => setPatientTab(tab)}
-                    style={{ padding:'9px 14px', fontSize:12, cursor:'pointer', borderBottom: patientTab === tab ? ('2px solid ' + G) : '2px solid transparent', color: patientTab === tab ? G : '#888', fontWeight: patientTab === tab ? 500 : 400, textTransform:'capitalize' }}>
+                    style={{ padding:'9px 14px', fontSize:14, cursor:'pointer', borderBottom: patientTab === tab ? ('2px solid ' + G) : '2px solid transparent', color: patientTab === tab ? G : '#888', fontWeight: patientTab === tab ? 500 : 400, textTransform:'capitalize' }}>
                     {tab}
                   </div>
                 ))}
@@ -565,16 +580,16 @@ export default function DoctorDashboard() {
                       { l:'Grasa visceral', v: latestMeasurement?.visceral_fat_pts, u:'pts' },
                     ].map((m,i) => (
                       <div key={i} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:10, padding:'12px 14px' }}>
-                        <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{m.l}</div>
-                        <div style={{ fontSize:22, fontWeight:500, color:'#1a1a1a' }}>{m.v || '--'} <span style={{ fontSize:12, color:'#999', fontWeight:400 }}>{m.v ? m.u : ''}</span></div>
-                        {latestMeasurement && <div style={{ fontSize:10, color:'#bbb', marginTop:3 }}>{latestMeasurement.measured_at}</div>}
+                        <div style={{ fontSize:14, color:'#888', marginBottom:4 }}>{m.l}</div>
+                        <div style={{ fontSize:22, fontWeight:500, color:'#1a1a1a' }}>{m.v || '--'} <span style={{ fontSize:14, color:'#999', fontWeight:400 }}>{m.v ? m.u : ''}</span></div>
+                        {latestMeasurement && <div style={{ fontSize:14, color:'#bbb', marginTop:3 }}>{latestMeasurement.measured_at}</div>}
                       </div>
                     ))}
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                    <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Historial de mediciones</div>
+                    <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Historial de mediciones</div>
                     {measurements.slice(0,8).map(m => (
-                      <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:12 }}>
+                      <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:14 }}>
                         <span style={{ color:'#888' }}>{m.measured_at}</span>
                         <span style={{ color:'#1a1a1a' }}>{m.weight_kg ? m.weight_kg + ' kg' : '--'}</span>
                         <span style={{ color:'#1a1a1a' }}>{m.body_fat_pct ? m.body_fat_pct + '%' : '--'}</span>
@@ -582,7 +597,7 @@ export default function DoctorDashboard() {
                         <span style={{ color:'#1a1a1a' }}>{m.visceral_fat_pts ? m.visceral_fat_pts + ' pts' : '--'}</span>
                       </div>
                     ))}
-                    {measurements.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin mediciones registradas</div>}
+                    {measurements.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin mediciones registradas</div>}
                   </div>
                 </div>
               )}
@@ -598,20 +613,20 @@ export default function DoctorDashboard() {
                       return (
                         <div key={g.id} style={{ marginBottom:14 }}>
                           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                            <span style={{ fontSize:12, color:'#444' }}>{g.name}</span>
+                            <span style={{ fontSize:14, color:'#444' }}>{g.name}</span>
                             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                              <span style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{g.initial_value} → {g.target_value}</span>
-                              <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30' }} onClick={() => deleteGoal(g.id)}>x</button>
+                              <span style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{g.initial_value} → {g.target_value}</span>
+                              <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#D85A30' }} onClick={() => deleteGoal(g.id)}>x</button>
                             </div>
                           </div>
                           <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
                             <div style={{ height:'100%', background:G, borderRadius:3, width: pct + '%' }} />
                           </div>
-                          <div style={{ fontSize:10, color:'#999', marginTop:2, textAlign:'right' }}>{pct}%{g.deadline ? ' · Hasta ' + g.deadline : ''}</div>
+                          <div style={{ fontSize:14, color:'#999', marginTop:2, textAlign:'right' }}>{pct}%{g.deadline ? ' · Hasta ' + g.deadline : ''}</div>
                         </div>
                       )
                     })}
-                    {goals.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin objetivos activos</div>}
+                    {goals.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin objetivos activos</div>}
                   </div>
                 </div>
               )}
@@ -622,15 +637,15 @@ export default function DoctorDashboard() {
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     {tasks.map(t => (
                       <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                        <div style={{ width:18, height:18, borderRadius:'50%', border: '1.5px solid ' + (t.is_completed ? G : '#ddd'), background: t.is_completed ? G : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#fff', flexShrink:0 }}>
+                        <div style={{ width:18, height:18, borderRadius:'50%', border: '1.5px solid ' + (t.is_completed ? G : '#ddd'), background: t.is_completed ? G : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff', flexShrink:0 }}>
                           {t.is_completed ? 'v' : ''}
                         </div>
-                        <span style={{ fontSize:12, flex:1, color: t.is_completed ? '#bbb' : '#1a1a1a', textDecoration: t.is_completed ? 'line-through' : 'none' }}>{t.description}</span>
-                        {t.category && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.category}</span>}
-                        <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30' }} onClick={() => deleteTask(t.id)}>x</button>
+                        <span style={{ fontSize:14, flex:1, color: t.is_completed ? '#bbb' : '#1a1a1a', textDecoration: t.is_completed ? 'line-through' : 'none' }}>{t.description}</span>
+                        {t.category && <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.category}</span>}
+                        <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#D85A30' }} onClick={() => deleteTask(t.id)}>x</button>
                       </div>
                     ))}
-                    {tasks.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin tareas asignadas</div>}
+                    {tasks.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin tareas asignadas</div>}
                   </div>
                 </div>
               )}
@@ -641,17 +656,17 @@ export default function DoctorDashboard() {
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     {treatments.map(t => (
                       <div key={t.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{t.product_name}</div>
+                        <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{t.product_name}</div>
                         <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:4 }}>
-                          {t.appointment_date && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.appointment_date}</span>}
-                          {t.dose && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>{t.dose}</span>}
-                          {t.zone && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#FAEEDA', color:'#854F0B' }}>{t.zone}</span>}
-                          {t.session_label && <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.session_label}</span>}
+                          {t.appointment_date && <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.appointment_date}</span>}
+                          {t.dose && <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>{t.dose}</span>}
+                          {t.zone && <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#FAEEDA', color:'#854F0B' }}>{t.zone}</span>}
+                          {t.session_label && <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.session_label}</span>}
                         </div>
-                        {t.notes && <div style={{ fontSize:11, color:'#888', fontStyle:'italic' }}>{t.notes}</div>}
+                        {t.notes && <div style={{ fontSize:14, color:'#888', fontStyle:'italic' }}>{t.notes}</div>}
                       </div>
                     ))}
-                    {treatments.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin tratamientos registrados</div>}
+                    {treatments.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin tratamientos registrados</div>}
                   </div>
                 </div>
               )}
@@ -674,27 +689,27 @@ export default function DoctorDashboard() {
                       return (
                         <div key={n.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
                           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                            <div style={{ fontSize:10, color:'#999' }}>{n.note_date} · {n.visit_type}</div>
+                            <div style={{ fontSize:14, color:'#999' }}>{n.note_date} · {n.visit_type}</div>
                             <div style={{ display:'flex', gap:6 }}>
-                              <button style={{ fontSize:11, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                              <button style={{ fontSize:14, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
                                 onClick={() => { setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>
-                              <button style={{ fontSize:11, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                              <button style={{ fontSize:14, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
                                 onClick={() => { if (window.confirm('Eliminar esta nota clinica?')) deleteNote(n.id) }}>Eliminar</button>
                             </div>
                           </div>
                           {(n.pas || n.spo2 || n.glucose || n.heart_rate) && (
                             <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                              {n.pas && n.pad && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''} {noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || ''}</span>}
-                              {n.spo2 && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'} {noteAlert('spo2',n.spo2) || ''}</span>}
-                              {n.glucose && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>Glicemia: {n.glucose} mg/dL {noteAlert('glucose',n.glucose) || ''}</span>}
-                              {n.heart_rate && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>FC: {n.heart_rate} lpm {noteAlert('hr',n.heart_rate) || ''}</span>}
+                              {n.pas && n.pad && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''} {noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || ''}</span>}
+                              {n.spo2 && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'} {noteAlert('spo2',n.spo2) || ''}</span>}
+                              {n.glucose && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>Glicemia: {n.glucose} mg/dL {noteAlert('glucose',n.glucose) || ''}</span>}
+                              {n.heart_rate && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>FC: {n.heart_rate} lpm {noteAlert('hr',n.heart_rate) || ''}</span>}
                             </div>
                           )}
-                          {n.content && <div style={{ fontSize:12, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
+                          {n.content && <div style={{ fontSize:14, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
                         </div>
                       )
                     })}
-                    {notes.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
+                    {notes.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
                   </div>
                 </div>
               )}
@@ -702,19 +717,19 @@ export default function DoctorDashboard() {
               {patientTab === 'diagnosticos' && (
                 <div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
-                    <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Buscar diagnostico CIE-10</div>
+                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Buscar diagnostico CIE-10</div>
                     <div style={{ position:'relative' }}>
                       <input
                         value={cie10Search}
                         onChange={e => { setCie10Search(e.target.value); searchCie10(e.target.value) }}
                         placeholder="Escribe codigo o nombre del diagnostico..."
-                        style={{ width:'100%', padding:'9px 12px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }}
+                        style={{ width:'100%', padding:'9px 12px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }}
                       />
                       {cie10Results.length > 0 && (
                         <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', zIndex:10, maxHeight:240, overflowY:'auto' }}>
                           {cie10Results.map(r => (
                             <div key={r.code} onClick={() => addDiagnosis(r.code, r.description)}
-                              style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'0.5px solid #f0f0f0', fontSize:12 }}
+                              style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'0.5px solid #f0f0f0', fontSize:14 }}
                               onMouseEnter={e => e.currentTarget.style.background = '#f8f8f8'}
                               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                               <span style={{ fontWeight:500, color:'#1D9E75', marginRight:8 }}>{r.code}</span>
@@ -726,16 +741,16 @@ export default function DoctorDashboard() {
                     </div>
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                    <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Diagnosticos activos ({diagnoses.length})</div>
+                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Diagnosticos activos ({diagnoses.length})</div>
                     {diagnoses.map(d => (
                       <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                        <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5', fontWeight:500, whiteSpace:'nowrap' }}>{d.cie10_code}</span>
-                        <span style={{ fontSize:12, flex:1, color:'#1a1a1a' }}>{d.cie10_description}</span>
-                        <span style={{ fontSize:10, color:'#bbb', whiteSpace:'nowrap' }}>{d.diagnosis_date}</span>
-                        <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30', flexShrink:0 }} onClick={() => deleteDiagnosis(d.id)}>x</button>
+                        <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5', fontWeight:500, whiteSpace:'nowrap' }}>{d.cie10_code}</span>
+                        <span style={{ fontSize:14, flex:1, color:'#1a1a1a' }}>{d.cie10_description}</span>
+                        <span style={{ fontSize:14, color:'#bbb', whiteSpace:'nowrap' }}>{d.diagnosis_date}</span>
+                        <button style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#D85A30', flexShrink:0 }} onClick={() => deleteDiagnosis(d.id)}>x</button>
                       </div>
                     ))}
-                    {diagnoses.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:20 }}>Sin diagnosticos registrados</div>}
+                    {diagnoses.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin diagnosticos registrados</div>}
                   </div>
                 </div>
               )}
@@ -751,7 +766,7 @@ export default function DoctorDashboard() {
                   <button style={s.calNavBtn} onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}>{'>'}</button>
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'8px 10px 4px' }}>
-                  {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:10, fontWeight:500, color:'#999', textTransform:'uppercase' }}>{d}</div>)}
+                  {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase' }}>{d}</div>)}
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 10px 10px', gap:2, flex:1 }}>
                   {renderCalendar().map((cell, i) => {
@@ -759,7 +774,7 @@ export default function DoctorDashboard() {
                     return (
                       <div key={i} onClick={() => cell.dateStr && setSelDate(cell.dateStr)}
                         style={{ minHeight:60, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isSelected ? '#E1F5EE' : cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? ('1px solid ' + G) : '1px solid transparent' }}>
-                        <div style={{ fontSize:11, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
+                        <div style={{ fontSize:14, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
                         {dayAppts.slice(0,2).map(a => (
                           <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background:G, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                             {a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}
@@ -773,32 +788,32 @@ export default function DoctorDashboard() {
               </div>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
                 <div style={{ padding:'12px 14px', borderBottom:'0.5px solid #eee' }}>
-                  <div style={{ fontSize:13, fontWeight:500 }}>
+                  <div style={{ fontSize:14, fontWeight:500 }}>
                     {selDate ? (DAYS_FULL[new Date(selDate + 'T12:00:00').getDay()] + ' ' + new Date(selDate + 'T12:00:00').getDate() + ' de ' + MONTHS[new Date(selDate + 'T12:00:00').getMonth()]) : 'Selecciona un dia'}
                   </div>
-                  <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{selDate ? (apptsByDate(selDate).length + ' citas') : ''}</div>
+                  <div style={{ fontSize:14, color:'#999', marginTop:1 }}>{selDate ? (apptsByDate(selDate).length + ' citas') : ''}</div>
                 </div>
                 <div style={{ flex:1, overflowY:'auto', padding:10 }}>
-                  {!selDate && <div style={{ textAlign:'center', padding:30, fontSize:12, color:'#999' }}>Haz clic en un dia</div>}
+                  {!selDate && <div style={{ textAlign:'center', padding:30, fontSize:14, color:'#999' }}>Haz clic en un dia</div>}
                   {selDate && apptsByDate(selDate).length === 0 && (
-                    <div style={{ textAlign:'center', padding:20, fontSize:12, color:'#999' }}>
+                    <div style={{ textAlign:'center', padding:20, fontSize:14, color:'#999' }}>
                       <div style={{ marginBottom:10 }}>Sin citas para este dia</div>
                       <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Agendar cita</button>
                     </div>
                   )}
                   {selDate && apptsByDate(selDate).map(a => (
                     <div key={a.id} style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, borderLeft:'3px solid ' + G }}>
-                      <div style={{ fontSize:10, color:'#999', marginBottom:3 }}>{a.appointment_time?.substring(0,5)} hrs</div>
-                      <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                      <div style={{ fontSize:11, color:'#666' }}>{a.visit_type}</div>
+                      <div style={{ fontSize:14, color:'#999', marginBottom:3 }}>{a.appointment_time?.substring(0,5)} hrs</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
+                      <div style={{ fontSize:14, color:'#666' }}>{a.visit_type}</div>
                       <div style={{ display:'flex', gap:5, marginTop:6 }}>
-                        <span style={{ fontSize:10, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.duration_min} min</span>
+                        <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.duration_min} min</span>
                       </div>
-                      {a.notes && <div style={{ fontSize:11, color:'#888', marginTop:5, fontStyle:'italic' }}>{a.notes}</div>}
+                      {a.notes && <div style={{ fontSize:14, color:'#888', marginTop:5, fontStyle:'italic' }}>{a.notes}</div>}
                       <div style={{ display:'flex', gap:5, marginTop:7 }}>
-                        <button style={{ fontSize:11, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                        <button style={{ fontSize:14, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
                           onClick={() => { setModal('edit-appt'); setModalData({ appt:a }) }}>Editar</button>
-                        <button style={{ fontSize:11, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                        <button style={{ fontSize:14, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
                           onClick={() => { setModal('confirm-cancel'); setModalData({ apptId:a.id }) }}>Cancelar</button>
                       </div>
                     </div>
@@ -811,40 +826,41 @@ export default function DoctorDashboard() {
           {view === 'chat' && (
             <div style={{ display:'grid', gridTemplateColumns:'220px 1fr', height:'calc(100vh - 130px)', background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
               <div style={{ borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column' }}>
-                <div style={{ padding:'11px 12px', borderBottom:'0.5px solid #eee', fontSize:12, fontWeight:500, color:'#1a1a1a' }}>
+                <div style={{ padding:'11px 12px', borderBottom:'0.5px solid #eee', fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
                   Conversaciones
-                  {pendingCount > 0 && <span style={{ marginLeft:8, background:'#D85A30', color:'#fff', borderRadius:10, padding:'1px 7px', fontSize:10, fontWeight:500 }}>{pendingCount}</span>}
+                  {pendingCount > 0 && <span style={{ marginLeft:8, background:'#D85A30', color:'#fff', borderRadius:10, padding:'1px 7px', fontSize:14, fontWeight:500 }}>{pendingCount}</span>}
                 </div>
                 <div style={{ flex:1, overflowY:'auto' }}>
                   {pendingChats().map(c => {
                     const last = c.msgs[0]
                     const unread = c.msgs.filter(m => !m.is_read && m.sender_role === 'patient').length
                     return (
-                      <div key={c.patientId} onClick={() => setActiveChat(c)}
+                      <div key={c.patientId} onClick={() => openChat(c)}
                         style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', cursor:'pointer', background: activeChat?.patientId === c.patientId ? '#E1F5EE' : 'transparent' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:2 }}>
-                          <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{c.name || 'Paciente'}</div>
+                          <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{c.name || 'Paciente'}</div>
                           {unread > 0 && <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', marginTop:4 }} />}
                         </div>
-                        <div style={{ fontSize:11, color:'#888', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{last?.content}</div>
+                        <div style={{ fontSize:14, color:'#888', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{last?.content}</div>
                       </div>
                     )
                   })}
-                  {pendingChats().length === 0 && <div style={{ padding:20, textAlign:'center', fontSize:12, color:'#999' }}>Sin conversaciones</div>}
+                  {pendingChats().length === 0 && <div style={{ padding:20, textAlign:'center', fontSize:14, color:'#999' }}>Sin conversaciones</div>}
                 </div>
               </div>
               <div style={{ display:'flex', flexDirection:'column' }}>
-                {!activeChat && <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color:'#999' }}>Selecciona una conversacion</div>}
+                {!activeChat && <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#999' }}>Selecciona una conversacion</div>}
                 {activeChat && (
                   <>
-                    <div style={{ padding:'11px 14px', borderBottom:'0.5px solid #eee', fontSize:13, fontWeight:500 }}>{activeChat.name}</div>
+                    <div style={{ padding:'11px 14px', borderBottom:'0.5px solid #eee', fontSize:14, fontWeight:500 }}>{activeChat.name}</div>
                     <div style={{ flex:1, overflowY:'auto', padding:12, display:'flex', flexDirection:'column', gap:8 }}>
                       {[...activeChat.msgs].reverse().map(m => (
                         <div key={m.id} style={{ display:'flex', flexDirection:'column', alignItems: m.sender_role === 'doctor' ? 'flex-end' : 'flex-start' }}>
-                          <div style={{ maxWidth:'78%', padding:'8px 11px', borderRadius:12, fontSize:12, lineHeight:1.5, background: m.sender_role === 'doctor' ? G : '#f0f0f0', color: m.sender_role === 'doctor' ? '#fff' : '#1a1a1a' }}>
+                          {m.sender_role === 'doctor' && <div style={{ fontSize:11, color:'#888', marginBottom:2, textAlign:'right' }}>{m.sender?.first_name ? `Dr. ${m.sender.first_name} ${m.sender.last_name}` : 'Doctor adicional'}</div>}
+                          <div style={{ maxWidth:'78%', padding:'8px 11px', borderRadius:12, fontSize:14, lineHeight:1.5, background: m.sender_role === 'doctor' ? G : '#f0f0f0', color: m.sender_role === 'doctor' ? '#fff' : '#1a1a1a' }}>
                             {m.content}
                           </div>
-                          <div style={{ fontSize:10, color:'#999', marginTop:2 }}>{new Date(m.created_at).toLocaleTimeString('es-CR', { hour:'2-digit', minute:'2-digit' })}</div>
+                          <div style={{ fontSize:14, color:'#999', marginTop:2 }}>{new Date(m.created_at).toLocaleTimeString('es-CR', { hour:'2-digit', minute:'2-digit' })}</div>
                         </div>
                       ))}
                     </div>
@@ -852,7 +868,7 @@ export default function DoctorDashboard() {
                       <input value={chatMsg} onChange={e => setChatMsg(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
                         placeholder="Escribe tu respuesta..."
-                        style={{ flex:1, padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                        style={{ flex:1, padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
                       <button onClick={sendMessage} style={{ width:32, height:32, borderRadius:'50%', background:G, border:'none', cursor:'pointer', color:'#fff', fontSize:14 }}>{'>'}</button>
                     </div>
                   </>
@@ -934,12 +950,12 @@ function TaskPickerForm({ library, saving, onSave, onClose }) {
       <div style={{ maxHeight:300, overflowY:'auto', marginBottom:12 }}>
         {categories.map(cat => (
           <div key={cat}>
-            <div style={{ fontSize:10, fontWeight:500, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 0 4px' }}>{cat}</div>
+            <div style={{ fontSize:14, fontWeight:500, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 0 4px' }}>{cat}</div>
             {library.filter(l => l.category === cat).map(item => (
               <div key={item.id} onClick={() => toggle(item.name)}
                 style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 9px', borderRadius:8, border: '0.5px solid ' + (selected.has(item.name) ? G : '#eee'), background: selected.has(item.name) ? '#E1F5EE' : '#fff', marginBottom:4, cursor:'pointer' }}>
-                <span style={{ fontSize:12, flex:1, color: selected.has(item.name) ? '#0F6E56' : '#444' }}>{item.name}</span>
-                {selected.has(item.name) && <span style={{ color:G, fontSize:13 }}>v</span>}
+                <span style={{ fontSize:14, flex:1, color: selected.has(item.name) ? '#0F6E56' : '#444' }}>{item.name}</span>
+                {selected.has(item.name) && <span style={{ color:G, fontSize:14 }}>v</span>}
               </div>
             ))}
           </div>
@@ -947,16 +963,16 @@ function TaskPickerForm({ library, saving, onSave, onClose }) {
         {library.filter(l => !l.category).map(item => (
           <div key={item.id} onClick={() => toggle(item.name)}
             style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 9px', borderRadius:8, border: '0.5px solid ' + (selected.has(item.name) ? G : '#eee'), background: selected.has(item.name) ? '#E1F5EE' : '#fff', marginBottom:4, cursor:'pointer' }}>
-            <span style={{ fontSize:12, flex:1, color: selected.has(item.name) ? '#0F6E56' : '#444' }}>{item.name}</span>
+            <span style={{ fontSize:14, flex:1, color: selected.has(item.name) ? '#0F6E56' : '#444' }}>{item.name}</span>
             {selected.has(item.name) && <span style={{ color:G }}>v</span>}
           </div>
         ))}
       </div>
       <div style={{ borderTop:'0.5px dashed #eee', paddingTop:10, marginBottom:12 }}>
-        <div style={{ fontSize:11, color:'#999', marginBottom:6 }}>Agregar tarea personalizada:</div>
+        <div style={{ fontSize:14, color:'#999', marginBottom:6 }}>Agregar tarea personalizada:</div>
         <div style={{ display:'flex', gap:8 }}>
           <input value={custom} onChange={e => setCustom(e.target.value)} placeholder="Descripcion de la tarea..."
-            style={{ flex:1, padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+            style={{ flex:1, padding:'7px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
           <button style={s.btnPrimary} onClick={addCustom}>+</button>
         </div>
       </div>
@@ -1054,10 +1070,10 @@ function NoteForm({ saving, onSave, onClose }) {
     if (!st) return null
     const colors = { '✅': ['#E1F5EE','#0F6E56'], '⚠️': ['#FAEEDA','#854F0B'], '🔴': ['#FAECE7','#C24B2A'] }
     const [bg, fg] = colors[st.icon] || ['#f0f0f0','#666']
-    return <span style={{ fontSize:10, padding:'2px 7px', borderRadius:20, background:bg, color:fg, marginLeft:6, fontWeight:500 }}>{st.icon} {st.msg}</span>
+    return <span style={{ fontSize:14, padding:'2px 7px', borderRadius:20, background:bg, color:fg, marginLeft:6, fontWeight:500 }}>{st.icon} {st.msg}</span>
   }
 
-  const inp = { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' }
+  const inp = { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' }
 
   return (
     <>
@@ -1072,7 +1088,7 @@ function NoteForm({ saving, onSave, onClose }) {
         </div>
       </div>
       <div style={{ background:'#f8f8f8', borderRadius:10, padding:12, marginBottom:12 }}>
-        <div style={{ fontSize:12, fontWeight:500, color:'#666', marginBottom:10 }}>Signos vitales</div>
+        <div style={{ fontSize:14, fontWeight:500, color:'#666', marginBottom:10 }}>Signos vitales</div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8 }}>
           <div>
             <label style={s.fieldLabel}>PAS (mmHg) <VitalBadge type="pas" val={form.pas} /></label>
@@ -1180,9 +1196,9 @@ function Field({ label, value, onChange, type = 'text', placeholder }) {
 }
 
 const s = {
-  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:12, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
-  btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:12, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
+  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:14, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
+  btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:14, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
   calNavBtn:  { background:'none', border:'1px solid #eee', borderRadius:8, width:28, height:28, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, color:'#666' },
-  fieldLabel: { display:'block', fontSize:11, color:'#666', marginBottom:4, fontWeight:500 },
-  fieldInput: { width:'100%', padding:'8px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
+  fieldLabel: { display:'block', fontSize:14, color:'#666', marginBottom:4, fontWeight:500 },
+  fieldInput: { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }

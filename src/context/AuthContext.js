@@ -43,12 +43,27 @@ export function AuthProvider({ children }) {
     return { data, error, role: profileData?.role }
   }
 
-  async function signUp({ email, password, firstName, lastName, role = 'patient' }) {
+  async function signUp({
+    email, password, firstName, lastName, role = 'patient',
+    idNumber, phone, birthDate, sex, province, canton, heightCm
+  }) {
+    // Pasar todos los campos en metadata para que el trigger los lea
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { first_name: firstName, last_name: lastName, role }
+        data: {
+          first_name: firstName,
+          last_name:  lastName,
+          role,
+          id_number:  idNumber  || '',
+          phone:      phone     || '',
+          birth_date: birthDate || '',
+          sex:        sex       || '',
+          province:   province  || '',
+          canton:     canton    || '',
+          height_cm:  heightCm  ? String(heightCm) : '',
+        }
       }
     })
     return { data, error }
