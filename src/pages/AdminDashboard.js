@@ -201,23 +201,31 @@ export default function AdminDashboard() {
 
   async function createUser(form, role) {
     setSaving(true); setFormError('')
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: form.email, password: form.password,
-      options: { data: { first_name: form.firstName, last_name: form.lastName, role } }
+      options: { data: {
+        first_name: form.firstName, last_name: form.lastName, role,
+        id_number:  form.idNumber  || '',
+        phone:      form.phone     || '',
+        birth_date: form.birthDate || '',
+        sex:        form.sex       || '',
+        province:   form.province  || '',
+        canton:     form.canton    || '',
+        height_cm:  form.height    ? String(form.height) : '',
+      }}
     })
     if (error) { setFormError(error.message); setSaving(false); return }
-    if (role === 'patient' && signUpData?.user) {
+    const userId = signUpData?.user?.id
+    if (role === 'patient' && userId) {
+      // Esperar a que el trigger cree el registro
+      for (let i = 0; i < 10; i++) {
+        await new Promise(r => setTimeout(r, 500))
+        const { data } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
+        if (data?.id) break
+      }
       await supabase.from('patients').update({
         assigned_doctor_id: form.doctorId || null,
-        birth_date: form.birthDate || null,
-        height_cm: form.height || null,
-        sex: form.sex || null,
-        specialty_type: form.specialty || null,
-        province: form.province || null,
-        canton: form.canton || null,
-        phone: form.phone || null,
-        id_number: form.idNumber || null,
-      }).eq('profile_id', signUpData.user.id)
+      }).eq('profile_id', userId)
     }
     if (role === 'doctor') await loadDoctors()
     else await loadPatients()
