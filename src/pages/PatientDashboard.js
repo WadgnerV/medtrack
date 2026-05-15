@@ -346,9 +346,9 @@ export default function PatientDashboard() {
                   <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>Tratamientos activos</div>
                   <button onClick={()=>setView('tratamientos')} style={{ fontSize:14, color:'#1a5c8a', background:'#e5f0fb', border:'none', borderRadius:6, padding:'3px 9px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
                 </div>
-                {treatments.filter(t=>t.is_active).length === 0
+                {treatments.length === 0
                   ? <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:8 }}>Sin tratamientos activos</div>
-                  : treatments.filter(t=>t.is_active).slice(0,3).map(t => (
+                  : treatments.slice(0,3).map(t => (
                     <div key={t.id} style={{ padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
                         <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56', flexShrink:0 }} />
