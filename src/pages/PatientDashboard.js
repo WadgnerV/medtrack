@@ -610,21 +610,31 @@ export default function PatientDashboard() {
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                     <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Funcionalidades PRO disponibles</div>
-                    {[
-                      { label:'Contador de calorías y macros', desc:'Registrá lo que comés y seguí tus macronutrientes diarios' },
-                      { label:'Nutrición con IA', desc:'Consejos y recetas personalizadas con inteligencia artificial' },
-                      { label:'Control menstrual', desc:'Seguimiento de ciclo, síntomas y predicciones' },
-                      { label:'Modo embarazo y posparto', desc:'Seguimiento semana a semana del embarazo' },
-                      { label:'Anticonceptivo ideal', desc:'Cuestionario personalizado con recomendación de IA' },
-                    ].map((f,i) => (
-                      <div key={i} style={{ display:'flex', gap:12, padding:'10px 0', borderBottom:'0.5px solid #f5f5f5', alignItems:'center' }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:G, flexShrink:0 }} />
-                        <div>
-                          <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{f.label}</div>
-                          <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{f.desc}</div>
+                    {(() => {
+                      const base = [
+                        { label:'Nutrición', desc:'Contador de calorías, macros y consejos con IA' },
+                        { label:'Bienestar', desc:'Seguimiento de sueño, estrés y actividad física' },
+                      ]
+                      const female = [
+                        { label:'Control menstrual', desc:'Seguimiento de ciclo, síntomas y predicciones' },
+                        { label:'Embarazo y posparto', desc:'Seguimiento semana a semana del embarazo' },
+                        { label:'Anticonceptivo ideal', desc:'Cuestionario personalizado con recomendación de IA' },
+                      ]
+                      const male = [
+                        { label:'Salud masculina', desc:'Optimización hormonal, salud prostática y rendimiento físico' },
+                      ]
+                      const sex = patient?.sex || ''
+                      const items = sex === 'female' ? [...base, ...female] : sex === 'male' ? [...base, ...male] : [...base, ...female, ...male]
+                      return items.map((f,i) => (
+                        <div key={i} style={{ display:'flex', gap:12, padding:'10px 0', borderBottom:'0.5px solid #f5f5f5', alignItems:'center' }}>
+                          <div style={{ width:6, height:6, borderRadius:'50%', background:G, flexShrink:0 }} />
+                          <div>
+                            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{f.label}</div>
+                            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{f.desc}</div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    })()}
                   </div>
                 </div>
               ) : (
@@ -649,21 +659,32 @@ export default function PatientDashboard() {
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                     <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>¿Qué incluye el PRO?</div>
-                    {[
-                      'Contador de calorías y macros diarios',
-                      'Recetas y consejos de nutrición con IA',
-                      'Control menstrual con predicciones',
-                      'Modo embarazo y posparto semana a semana',
-                      'Cuestionario "Mi anticonceptivo ideal" con IA',
-                    ].map((label,i) => (
-                      <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                        <div style={{ width:6, height:6, borderRadius:'50%', background:G, flexShrink:0 }} />
-                        <span style={{ fontSize:13, color:'#1a1a1a' }}>{label}</span>
-                        <div style={{ marginLeft:'auto', width:18, height:18, borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          <span style={{ color:G, fontSize:11, fontWeight:700 }}>✓</span>
+                    {(() => {
+                      const base = [
+                        'Contador de calorías y macros diarios',
+                        'Nutrición personalizada con IA',
+                        'Bienestar — sueño, estrés y actividad física',
+                      ]
+                      const female = [
+                        'Control menstrual con predicciones',
+                        'Modo embarazo y posparto semana a semana',
+                        'Anticonceptivo ideal con IA',
+                      ]
+                      const male = [
+                        'Salud masculina y optimización hormonal',
+                      ]
+                      const sex = patient?.sex || ''
+                      const items = sex === 'female' ? [...base, ...female] : sex === 'male' ? [...base, ...male] : [...base, ...female, ...male]
+                      return items.map((label,i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                          <div style={{ width:6, height:6, borderRadius:'50%', background:G, flexShrink:0 }} />
+                          <span style={{ fontSize:13, color:'#1a1a1a' }}>{label}</span>
+                          <div style={{ marginLeft:'auto', width:18, height:18, borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            <span style={{ color:G, fontSize:11, fontWeight:700 }}>✓</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    })()}
                   </div>
                   <div style={{ background:'#f8f8f8', borderRadius:12, padding:'12px 16px', fontSize:12, color:'#888', textAlign:'center' }}>
                     Podés cancelar en cualquier momento desde tu cuenta de Lemon Squeezy
