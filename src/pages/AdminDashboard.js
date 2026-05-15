@@ -9,34 +9,48 @@ const G = '#1D9E75'
 const SP = ' '
 
 function EditDoctorForm({ doctor, saving, onSave, onClose }) {
+  const CANTONES = {
+    'San Jose': ['San Jose','Escazu','Desamparados','Puriscal','Tarrazu','Aserri','Mora','Goicoechea','Santa Ana','Alajuelita','Vazquez de Coronado','Acosta','Tibas','Moravia','Montes de Oca','Turrubares','Dota','Curridabat','Perez Zeledon','Leon Cortes'],
+    'Alajuela': ['Alajuela','San Ramon','Grecia','San Mateo','Atenas','Naranjo','Palmares','Poas','Orotina','San Carlos','Zarcero','Valverde Vega','Upala','Los Chiles','Guatuso','Rio Cuarto'],
+    'Cartago': ['Cartago','Paraiso','La Union','Jimenez','Turrialba','Alvarado','Oreamuno','El Guarco'],
+    'Heredia': ['Heredia','Barva','Santo Domingo','Santa Barbara','San Rafael','San Isidro','Belen','Flores','San Pablo','Sarapiqui'],
+    'Guanacaste': ['Liberia','Nicoya','Santa Cruz','Bagaces','Carrillo','Canas','Abangares','Tilaran','Nandayure','La Cruz','Hojancha'],
+    'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Monteverde'],
+    'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
+  }
   const [form, setForm] = useState({
-    firstName: doctor.first_name || '',
-    lastName: doctor.last_name || '',
+    firstName:   doctor.first_name   || '',
+    lastName:    doctor.last_name    || '',
     medicalCode: doctor.medical_code || '',
-    specialty: doctor.specialty || '',
+    specialty:   doctor.specialty    || '',
+    sex:         doctor.sex          || '',
+    idNumber:    doctor.id_number    || '',
+    phone:       doctor.phone        || '',
+    province:    doctor.province     || '',
+    canton:      doctor.canton       || '',
     newSpecialty: '',
   })
   const [specialties, setSpecialties] = useState([])
-  const { createClient } = require('@supabase/supabase-js')
-  const supabase = require('../lib/supabase').supabase
+  const supabaseLocal = require('../lib/supabase').supabase
   const f = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
 
   useEffect(() => {
-    supabase.from('specialties').select('name').order('name').then(({ data }) => {
+    supabaseLocal.from('specialties').select('name').order('name').then(({ data }) => {
       if (data) setSpecialties(data.map(s => s.name))
     })
   }, [])
 
   async function addNewSpecialty() {
     if (!form.newSpecialty?.trim()) return
-    await supabase.from('specialties').insert({ name: form.newSpecialty.trim() })
-    const { data } = await supabase.from('specialties').select('name').order('name')
+    await supabaseLocal.from('specialties').insert({ name: form.newSpecialty.trim() })
+    const { data } = await supabaseLocal.from('specialties').select('name').order('name')
     if (data) setSpecialties(data.map(s => s.name))
     setForm(p => ({ ...p, specialty: form.newSpecialty.trim(), newSpecialty: '' }))
   }
 
-  const inp = { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', boxSizing:'border-box' }
-  const lbl = { fontSize:14, fontWeight:500, color:'#666', display:'block', marginBottom:4 }
+  const inp = { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', boxSizing:'border-box', fontFamily:'inherit' }
+  const lbl = { fontSize:12, fontWeight:500, color:'#666', display:'block', marginBottom:4 }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Editar médico colaborador</div>
@@ -46,17 +60,34 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
           <input value={form.firstName} onChange={f('firstName')} style={inp} />
         </div>
         <div>
-          <label style={lbl}>Apellido</label>
+          <label style={lbl}>Apellidos</label>
           <input value={form.lastName} onChange={f('lastName')} style={inp} />
         </div>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={lbl}>Código profesional (colegiado)</label>
+        <div>
+          <label style={lbl}>Sexo</label>
+          <select value={form.sex} onChange={f('sex')} style={inp}>
+            <option value="">Seleccionar</option>
+            <option value="male">Masculino</option>
+            <option value="female">Femenino</option>
+            <option value="other">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label style={lbl}>Cédula / ID</label>
+          <input value={form.idNumber} onChange={f('idNumber')} placeholder="1-1234-5678" style={inp} />
+        </div>
+        <div>
+          <label style={lbl}>Teléfono</label>
+          <input type="tel" value={form.phone} onChange={f('phone')} placeholder="8888-8888" style={inp} />
+        </div>
+        <div>
+          <label style={lbl}>Código profesional</label>
           <input value={form.medicalCode} onChange={f('medicalCode')} placeholder="MED-12345" style={inp} />
         </div>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={lbl}>Especialidad</label>
           <select value={form.specialty} onChange={f('specialty')} style={inp}>
-            <option value="">Selecciona...</option>
+            <option value="">Seleccionar</option>
             {specialties.map(sp => <option key={sp} value={sp}>{sp}</option>)}
             <option value="__nueva__">+ Agregar nueva especialidad...</option>
           </select>
@@ -64,13 +95,27 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
         {form.specialty === '__nueva__' && (
           <div style={{ gridColumn:'1/-1', display:'flex', gap:8 }}>
             <input value={form.newSpecialty} onChange={f('newSpecialty')} placeholder="Nombre de la especialidad" style={inp} />
-            <button onClick={addNewSpecialty} style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:14, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', whiteSpace:'nowrap' }}>Guardar</button>
+            <button onClick={addNewSpecialty} style={{ background:'#0F6E56', color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', whiteSpace:'nowrap' }}>Guardar</button>
           </div>
         )}
+        <div>
+          <label style={lbl}>Provincia</label>
+          <select value={form.province} onChange={e => setForm(p => ({ ...p, province: e.target.value, canton: '' }))} style={inp}>
+            <option value="">Seleccionar</option>
+            {Object.keys(CANTONES).map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={lbl}>Cantón</label>
+          <select value={form.canton} onChange={f('canton')} style={inp} disabled={!form.province}>
+            <option value="">Seleccionar</option>
+            {form.province && CANTONES[form.province] && CANTONES[form.province].map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
       </div>
       <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
-        <button onClick={onClose} style={{ background:'none', border:'1px solid #e0e0e0', fontSize:14, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' }}>Cancelar</button>
-        <button onClick={() => onSave(form)} disabled={saving} style={{ background:'#1D9E75', color:'#fff', border:'none', fontSize:14, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', opacity: saving ? 0.7 : 1 }}>
+        <button onClick={onClose} style={{ background:'none', border:'1px solid #e0e0e0', fontSize:13, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' }}>Cancelar</button>
+        <button onClick={() => onSave(form)} disabled={saving} style={{ background:'#0F6E56', color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', opacity: saving ? 0.7 : 1 }}>
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
@@ -144,10 +189,15 @@ export default function AdminDashboard() {
     setSaving(true)
     const d = modalData.doctor
     await supabase.from('profiles').update({
-      first_name: form.firstName,
-      last_name: form.lastName,
+      first_name:   form.firstName   || null,
+      last_name:    form.lastName    || null,
       medical_code: form.medicalCode || null,
-      specialty: form.specialty || null,
+      specialty:    form.specialty   || null,
+      sex:          form.sex         || null,
+      id_number:    form.idNumber    || null,
+      phone:        form.phone       || null,
+      province:     form.province    || null,
+      canton:       form.canton      || null,
     }).eq('id', d.id)
     await loadDoctors()
     setModal(null)
@@ -239,7 +289,7 @@ export default function AdminDashboard() {
         assigned_doctor_id: form.doctorId || null,
       }).eq('profile_id', userId)
     }
-    // Para doctor, guardar especialidad y código médico en profiles
+    // Para doctor, guardar campos extra en profiles
     if (role === 'doctor' && userId) {
       for (let i = 0; i < 10; i++) {
         await new Promise(r => setTimeout(r, 500))
@@ -249,6 +299,11 @@ export default function AdminDashboard() {
       await supabase.from('profiles').update({
         specialty:    form.specialty    || null,
         medical_code: form.medicalCode  || null,
+        sex:          form.sex          || null,
+        id_number:    form.idNumber     || null,
+        phone:        form.phone        || null,
+        province:     form.province     || null,
+        canton:       form.canton       || null,
       }).eq('id', userId)
     }
 
@@ -686,7 +741,7 @@ export default function AdminDashboard() {
               const mes = new Date().toISOString().substring(0,7);
               const data = doctors
                 .filter(d=>d.role==='doctor'||d.role==='admin')
-                .map(d => ({ nombre: d.first_name+' '+d.last_name, citas: appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length }));
+                .map(d => ({ nombre: (d.sex==='female'?'Dra. ':'Dr. ')+d.first_name+' '+d.last_name, citas: appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length }));
               const chartH = Math.max(120, data.length * 40);
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
@@ -713,7 +768,7 @@ export default function AdminDashboard() {
             {(() => {
               const data = doctors
                 .filter(d=>d.role==='doctor'||d.role==='admin')
-                .map(d => ({ nombre: d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.doctor?.id===d.id).length }));
+                .map(d => ({ nombre: (d.sex==='female'?'Dra. ':'Dr. ')+d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.doctor?.id===d.id).length }));
               const chartH2 = Math.max(120, data.length * 40);
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
@@ -1339,6 +1394,37 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
           <div style={{ gridColumn:'1/-1' }}>
             <label style={s.fieldLabel}>Codigo profesional (colegiado)</label>
             <input value={form.medicalCode} onChange={f('medicalCode')} placeholder="MED-12345" style={s.fieldInput} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>Sexo</label>
+            <select value={form.sex} onChange={f('sex')} style={s.fieldInput}>
+              <option value="">Seleccionar</option>
+              <option value="male">Masculino</option>
+              <option value="female">Femenino</option>
+              <option value="other">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label style={s.fieldLabel}>Cédula / ID</label>
+            <input value={form.idNumber} onChange={f('idNumber')} placeholder="1-1234-5678" style={s.fieldInput} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>Teléfono</label>
+            <input type="tel" value={form.phone} onChange={f('phone')} placeholder="8888-8888" style={s.fieldInput} />
+          </div>
+          <div>
+            <label style={s.fieldLabel}>Provincia</label>
+            <select value={form.province} onChange={e => setForm(p => ({ ...p, province: e.target.value, canton: '' }))} style={s.fieldInput}>
+              <option value="">Seleccionar</option>
+              {Object.keys(CANTONES).map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={s.fieldLabel}>Cantón</label>
+            <select value={form.canton} onChange={f('canton')} style={s.fieldInput} disabled={!form.province}>
+              <option value="">Seleccionar</option>
+              {form.province && CANTONES[form.province] && CANTONES[form.province].map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
         </>}
         {type === 'patient' && (

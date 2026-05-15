@@ -32,6 +32,17 @@ export default function UserMenu() {
   const [credentials, setCredentials] = useState([])
   const [newCred, setNewCred] = useState({ type: 'Titulo', description: '' })
   const [passForm, setPassForm] = useState({ next: '', confirm: '' })
+  const [doctorForm, setDoctorForm] = useState(null)
+
+  const CANTONES_DOC = {
+    'San Jose': ['San Jose','Escazu','Desamparados','Puriscal','Tarrazu','Aserri','Mora','Goicoechea','Santa Ana','Alajuelita','Vazquez de Coronado','Acosta','Tibas','Moravia','Montes de Oca','Turrubares','Dota','Curridabat','Perez Zeledon','Leon Cortes'],
+    'Alajuela': ['Alajuela','San Ramon','Grecia','San Mateo','Atenas','Naranjo','Palmares','Poas','Orotina','San Carlos','Zarcero','Valverde Vega','Upala','Los Chiles','Guatuso','Rio Cuarto'],
+    'Cartago': ['Cartago','Paraiso','La Union','Jimenez','Turrialba','Alvarado','Oreamuno','El Guarco'],
+    'Heredia': ['Heredia','Barva','Santo Domingo','Santa Barbara','San Rafael','San Isidro','Belen','Flores','San Pablo','Sarapiqui'],
+    'Guanacaste': ['Liberia','Nicoya','Santa Cruz','Bagaces','Carrillo','Canas','Abangares','Tilaran','Nandayure','La Cruz','Hojancha'],
+    'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Monteverde'],
+    'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
+  }
   const [patientData, setPatientData] = useState({
     first_name: '', last_name: '', id_number: '', phone: '',
     birth_date: '', sex: '', province: '', canton: '', height_cm: ''
@@ -52,6 +63,22 @@ export default function UserMenu() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  useEffect(() => {
+    if (profile && (profile.role === 'doctor' || profile.role === 'admin')) {
+      setDoctorForm({
+        firstName:   profile.first_name   || '',
+        lastName:    profile.last_name    || '',
+        sex:         profile.sex          || '',
+        idNumber:    profile.id_number    || '',
+        phone:       profile.phone        || '',
+        province:    profile.province     || '',
+        canton:      profile.canton       || '',
+        specialty:   profile.specialty    || '',
+        medicalCode: profile.medical_code || '',
+      })
+    }
+  }, [profile])
 
   useEffect(() => {
     async function loadPatientData() {
@@ -87,6 +114,27 @@ export default function UserMenu() {
   }
 
   async function handleSignOut() { await signOut(); navigate('/login') }
+
+  async function saveDoctorProfile() {
+    if (!doctorForm?.firstName?.trim() || !doctorForm?.lastName?.trim()) {
+      setMsg('El nombre y apellido son obligatorios.'); return
+    }
+    setSaving(true); setMsg('')
+    const { error } = await supabase.from('profiles').update({
+      first_name:   doctorForm.firstName.trim(),
+      last_name:    doctorForm.lastName.trim(),
+      sex:          doctorForm.sex         || null,
+      id_number:    doctorForm.idNumber    || null,
+      phone:        doctorForm.phone       || null,
+      province:     doctorForm.province    || null,
+      canton:       doctorForm.canton      || null,
+      specialty:    doctorForm.specialty   || null,
+      medical_code: doctorForm.medicalCode || null,
+    }).eq('id', profile.id)
+    setSaving(false)
+    setMsg(error ? 'Error: ' + error.message : 'Información actualizada correctamente')
+    setTimeout(() => setMsg(''), 3000)
+  }
 
   async function saveCredentials() {
     setSaving(true); setMsg('')
@@ -247,11 +295,64 @@ export default function UserMenu() {
                   </div>
                 ) : (
                   <div>
-                    <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px', marginBottom:16, fontSize:12 }}>
-                      <div style={{ marginBottom:6 }}><span style={{ color:'#999' }}>Rol: </span><span style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.role === 'admin' ? 'Administrador' : 'Médico colaborador'}</span></div>
-                      <div style={{ marginBottom:6 }}><span style={{ color:'#999' }}>Especialidad: </span><span style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.specialty || '--'}</span></div>
-                      {profile?.medical_code && <div><span style={{ color:'#999' }}>Código profesional: </span><span style={{ fontWeight:500, color:'#1a1a1a' }}>{profile.medical_code}</span></div>}
-                    </div>
+                    {/* Info editable del doctor */}
+                    {doctorForm && (
+                      <div style={{ marginBottom:16 }}>
+                        <div style={{ background:'#f0fdf9', borderRadius:10, padding:'8px 14px', fontSize:12, marginBottom:12, color:'#0F6E56', border:'1px solid #c8e6da' }}>
+                          <span style={{ fontWeight:500 }}>Rol: </span>{profile?.role === 'admin' ? 'Administrador' : 'Médico colaborador'}
+                        </div>
+                        <div style={{ fontSize:12, fontWeight:600, color:'#555', marginBottom:10, textTransform:'uppercase', letterSpacing:'0.05em' }}>Información personal</div>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+                          <div>
+                            <label style={s.lbl}>Nombre<span style={{ color:'#c0392b' }}>*</span></label>
+                            <input style={s.inp} value={doctorForm.firstName} onChange={e => setDoctorForm(p => ({ ...p, firstName: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Apellidos<span style={{ color:'#c0392b' }}>*</span></label>
+                            <input style={s.inp} value={doctorForm.lastName} onChange={e => setDoctorForm(p => ({ ...p, lastName: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Sexo</label>
+                            <select style={s.inp} value={doctorForm.sex} onChange={e => setDoctorForm(p => ({ ...p, sex: e.target.value }))}>
+                              <option value="">Seleccionar</option>
+                              <option value="male">Masculino</option>
+                              <option value="female">Femenino</option>
+                              <option value="other">Otro</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Cédula / ID</label>
+                            <input style={s.inp} value={doctorForm.idNumber} onChange={e => setDoctorForm(p => ({ ...p, idNumber: e.target.value }))} placeholder="1-1234-5678" />
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Teléfono</label>
+                            <input style={s.inp} type="tel" value={doctorForm.phone} onChange={e => setDoctorForm(p => ({ ...p, phone: e.target.value }))} placeholder="8888-8888" />
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Código profesional</label>
+                            <input style={s.inp} value={doctorForm.medicalCode} onChange={e => setDoctorForm(p => ({ ...p, medicalCode: e.target.value }))} placeholder="MED-12345" />
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Provincia</label>
+                            <select style={s.inp} value={doctorForm.province} onChange={e => setDoctorForm(p => ({ ...p, province: e.target.value, canton: '' }))}>
+                              <option value="">Seleccionar</option>
+                              {Object.keys(CANTONES_DOC).map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={s.lbl}>Cantón</label>
+                            <select style={s.inp} value={doctorForm.canton} onChange={e => setDoctorForm(p => ({ ...p, canton: e.target.value }))} disabled={!doctorForm.province}>
+                              <option value="">Seleccionar</option>
+                              {doctorForm.province && CANTONES_DOC[doctorForm.province] && CANTONES_DOC[doctorForm.province].map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        {msg && <div style={{ fontSize:12, padding:'8px 11px', borderRadius:8, marginBottom:10, background: msg.includes('Error') || msg.includes('obligatorio') ? '#FAECE7' : '#E1F5EE', color: msg.includes('Error') || msg.includes('obligatorio') ? '#C24B2A' : '#0F6E56' }}>{msg}</div>}
+                        <button style={{ ...s.btnPrimary, width:'100%', justifyContent:'center', opacity:saving?0.7:1, marginBottom:16 }} disabled={saving} onClick={saveDoctorProfile}>
+                          {saving ? 'Guardando...' : 'Guardar información'}
+                        </button>
+                      </div>
+                    )}
                     <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Credenciales y formación académica</div>
                     {credentials.map(c => (
                       <div key={c.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, border:'0.5px solid #eee', marginBottom:6, background:'#fafafa' }}>
@@ -275,11 +376,10 @@ export default function UserMenu() {
                       </div>
                       <button style={{ ...s.btnCancel, width:'100%' }} onClick={addCredential}>+ Agregar</button>
                     </div>
-                    {msg && <div style={{ fontSize:12, padding:'8px 11px', borderRadius:8, marginBottom:12, background: msg.includes('Error') ? '#FAECE7' : '#E1F5EE', color: msg.includes('Error') ? '#C24B2A' : '#0F6E56' }}>{msg}</div>}
                     <div style={{ display:'flex', gap:8 }}>
                       <button style={s.btnCancel} onClick={() => { setView(null); setMsg('') }}>Cerrar</button>
                       <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={saveCredentials}>
-                        {saving ? 'Guardando...' : 'Guardar cambios'}
+                        {saving ? 'Guardando...' : 'Guardar credenciales'}
                       </button>
                     </div>
                   </div>
