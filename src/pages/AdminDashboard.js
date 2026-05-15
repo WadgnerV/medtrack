@@ -686,18 +686,21 @@ export default function AdminDashboard() {
               const mes = new Date().toISOString().substring(0,7);
               const data = doctors
                 .filter(d=>d.role==='doctor'||d.role==='admin')
-                .map(d => ({ nombre: 'Dr. '+d.first_name+' '+d.last_name, citas: appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length }));
+                .map(d => ({ nombre: d.first_name+' '+d.last_name, citas: appts.filter(a=>a.doctor_id===d.id&&a.appointment_date?.startsWith(mes)).length }));
+              const chartH = Math.max(120, data.length * 40);
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:14, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>📊 Citas por médico este mes</div>
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart data={data} layout="vertical" margin={{ top:0, right:20, left:0, bottom:0 }}>
-                      <XAxis type="number" tick={{ fontSize:14, fill:'#999' }} allowDecimals={false} />
-                      <YAxis type="category" dataKey="nombre" tick={{ fontSize:14, fill:'#555' }} width={70} />
-                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8, border:'0.5px solid #eee' }} />
-                      <Bar dataKey="citas" fill="#8e44ad" radius={[0,4,4,0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div style={{ overflowY: data.length > 5 ? 'auto' : 'visible', maxHeight: data.length > 5 ? 200 : 'none' }}>
+                    <ResponsiveContainer width="100%" height={chartH}>
+                      <BarChart data={data} layout="vertical" margin={{ top:0, right:20, left:0, bottom:0 }}>
+                        <XAxis type="number" tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                        <YAxis type="category" dataKey="nombre" tick={{ fontSize:11, fill:'#555' }} width={110} />
+                        <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                        <Bar dataKey="citas" fill="#0F6E56" radius={[0,4,4,0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               );
             })()}
@@ -710,18 +713,21 @@ export default function AdminDashboard() {
             {(() => {
               const data = doctors
                 .filter(d=>d.role==='doctor'||d.role==='admin')
-                .map(d => ({ nombre: 'Dr. '+d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.doctor?.id===d.id).length }));
+                .map(d => ({ nombre: d.first_name+' '+d.last_name, pacientes: patients.filter(p=>p.doctor?.id===d.id).length }));
+              const chartH2 = Math.max(120, data.length * 40);
               return (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:14, fontWeight:600, marginBottom:12, color:'#1a1a1a' }}>👨‍⚕️ Pacientes por médico</div>
-                  <ResponsiveContainer width="100%" height={140}>
-                    <BarChart data={data} layout="vertical" margin={{ top:0, right:20, left:0, bottom:0 }}>
-                      <XAxis type="number" tick={{ fontSize:14, fill:'#999' }} allowDecimals={false} />
-                      <YAxis type="category" dataKey="nombre" tick={{ fontSize:14, fill:'#555' }} width={70} />
-                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8, border:'0.5px solid #eee' }} />
-                      <Bar dataKey="pacientes" fill="#1D9E75" radius={[0,4,4,0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div style={{ overflowY: data.length > 5 ? 'auto' : 'visible', maxHeight: data.length > 5 ? 200 : 'none' }}>
+                    <ResponsiveContainer width="100%" height={chartH2}>
+                      <BarChart data={data} layout="vertical" margin={{ top:0, right:20, left:0, bottom:0 }}>
+                        <XAxis type="number" tick={{ fontSize:11, fill:'#999' }} allowDecimals={false} />
+                        <YAxis type="category" dataKey="nombre" tick={{ fontSize:11, fill:'#555' }} width={110} />
+                        <Tooltip contentStyle={{ fontSize:12, borderRadius:8, border:'0.5px solid #eee' }} />
+                        <Bar dataKey="pacientes" fill="#0F6E56" radius={[0,4,4,0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               );
             })()}
