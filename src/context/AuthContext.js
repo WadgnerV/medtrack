@@ -47,7 +47,6 @@ export function AuthProvider({ children }) {
     email, password, firstName, lastName, role = 'patient',
     idNumber, phone, birthDate, sex, province, canton, heightCm
   }) {
-    // Pasar todos los campos en metadata para que el trigger los lea
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -66,7 +65,32 @@ export function AuthProvider({ children }) {
         }
       }
     })
-    return { data, error }
+    if (error) return { data, error }
+
+    const userId = data.user?.id
+    if (!userId || role !== 'patient') return { data, error: null }
+
+    // Esperar a que el trigger cree el profile y luego insertar/actualizar patients
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 600))
+      const { data: profileData } = await supabase
+        .from('profiles').select('id').eq('id', userId).single()
+      if (profileData?.id) break
+    }
+
+    await supabase.from('patients').upsert({
+      profile_id: userId,
+      status:     'pending',
+      id_number:  idNumber  || null,
+      phone:      phone     || null,
+      birth_date: birthDate || null,
+      sex:        sex       || null,
+      province:   province  || null,
+      canton:     canton    || null,
+      height_cm:  heightCm  ? parseInt(heightCm) : null,
+    }, { onConflict: 'profile_id' })
+
+    return { data, error: null }
   }
 
   async function signOut() {

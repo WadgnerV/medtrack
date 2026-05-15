@@ -85,7 +85,12 @@ export default function Login() {
     })
 
     if (error) { setError(error.message); setLoading(false); return }
-    setError('✓ Cuenta creada. Revisá tu correo para confirmar tu cuenta.')
+    setReg({
+      firstName: '', lastName: '', idNumber: '', phone: '',
+      email: '', password: '', confirmPassword: '',
+      birthDate: '', sex: '', province: '', canton: '', heightCm: ''
+    })
+    setError('✓ Cuenta creada exitosamente.')
     setLoading(false)
   }
 
