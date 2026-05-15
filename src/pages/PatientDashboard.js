@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import NutritionModule from './NutritionModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -235,6 +236,9 @@ export default function PatientDashboard() {
           { label:'Mis tareas', key:'tareas' },
           { label:'Tratamientos', key:'tratamientos' },
           { label:'Chat con mi medico', key:'chat' },
+          ...(profile?.plan === 'pro' ? [
+            { label:'Nutrición', key:'nutricion' },
+          ] : []),
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
             style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
@@ -255,7 +259,7 @@ export default function PatientDashboard() {
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO' }[view]}
+              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición' }[view]}
             </div>
             {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
@@ -599,6 +603,11 @@ export default function PatientDashboard() {
             </div>
           )}
 
+          {/* Vista Nutrición PRO */}
+          {view === 'nutricion' && profile?.plan === 'pro' && (
+            <NutritionModule patient={patient} profile={profile} />
+          )}
+
           {/* Vista PRO */}
           {view === 'pro' && (
             <div>
@@ -704,7 +713,7 @@ export default function PatientDashboard() {
           { label:'Progreso', key:'progreso', icon:'📈' },
           { label:'Tareas', key:'tareas', icon:'✅' },
           { label:'Chat', key:'chat', icon:'💬' },
-          { label: profile?.plan === 'pro' ? 'PRO' : 'PRO', key:'pro', icon:'★' },
+          ...(profile?.plan === 'pro' ? [{ label:'Nutrición', key:'nutricion', icon:'🍎' }] : [{ label:'PRO', key:'pro', icon:'★' }]),
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
             style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: view === item.key ? G : '#999', borderTop: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background:'#fff' }}>
