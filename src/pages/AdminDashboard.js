@@ -98,6 +98,14 @@ export default function AdminDashboard() {
   const [chatMsg, setChatMsg] = useState('')
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   const [selDate, setSelDate] = useState(null)
   const [selDoctor, setSelDoctor] = useState(null)
   const [selPatient, setSelPatient] = useState(null)
@@ -513,7 +521,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      {(!isMobile || mobileMenuOpen) && <div style={{ width: isMobile ? '100%' : 210, minWidth: isMobile ? '100%' : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto', zIndex: isMobile ? 50 : 'auto' }}>
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -531,7 +539,7 @@ export default function AdminDashboard() {
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
             {group.items.map(item => (
-              <div key={item.key} onClick={() => setView(item.key)}
+              <div key={item.key} onClick={() => { setView(item.key); if(isMobile) setMobileMenuOpen(false) }}
                 style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
                 {item.label}
                 {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:14, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
@@ -541,23 +549,33 @@ export default function AdminDashboard() {
         ))}
 
         <UserMenu />
-      </div>
+      </div>}
+
+      {/* Overlay para cerrar menú en móvil */}
+      {isMobile && mobileMenuOpen && (
+        <div onClick={() => setMobileMenuOpen(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
+      )}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          {isMobile && (
+            <button onClick={() => setMobileMenuOpen(o => !o)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 4px', color:'#444' }}>☰</button>
+          )}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
               {{ dashboard:'Dashboard', medicos:'Medicos', pacientes:'Pacientes', calendario:'Calendario', chat:'Chat', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuracion' }[view]}
             </div>
-            <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
+            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
-          {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>+ Nuevo medico</button>}
-          {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
-          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
-          {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
+          {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>{isMobile ? '+ Médico' : '+ Nuevo medico'}</button>}
+          {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>{isMobile ? '+ Paciente' : '+ Nuevo paciente'}</button>}
+          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>{isMobile ? '+ Cita' : '+ Nueva cita'}</button>}
+          {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>{isMobile ? '+ Item' : '+ Nuevo item'}</button>}
         </div>
 
-        <div style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
 
 
     

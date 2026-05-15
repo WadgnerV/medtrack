@@ -28,6 +28,14 @@ export default function DoctorDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 640)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   const [measurements, setMeasurements] = useState([])
   const [goals, setGoals] = useState([])
   const [tasks, setTasks] = useState([])
@@ -362,7 +370,7 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      {(!isMobile || mobileMenuOpen) && <div style={{ width: isMobile ? '100%' : 210, minWidth: isMobile ? '100%' : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto', zIndex: isMobile ? 50 : 'auto' }}>
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -378,7 +386,7 @@ export default function DoctorDashboard() {
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
             {group.items.map(item => (
-              <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null) }}
+              <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null); if(isMobile) setMobileMenuOpen(false) }}
                 style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:14, borderLeft: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? ('2px solid ' + G) : '2px solid transparent', background: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? '#E1F5EE' : 'transparent', color: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? '#0F6E56' : '#666', fontWeight: (view === item.key || (item.key === 'pacientes' && view === 'perfil')) ? 500 : 400 }}>
                 {item.label}
                 {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:14, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
@@ -388,10 +396,19 @@ export default function DoctorDashboard() {
         ))}
 
         <UserMenu />
-      </div>
+      </div>}
+
+      {isMobile && mobileMenuOpen && (
+        <div onClick={() => setMobileMenuOpen(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
+      )}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          {isMobile && (
+            <button onClick={() => setMobileMenuOpen(o => !o)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 4px', color:'#444' }}>☰</button>
+          )}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
               {view === 'perfil' && selPatient ? (
@@ -402,14 +419,14 @@ export default function DoctorDashboard() {
                 </span>
               ) : { dashboard:'Dashboard', pacientes:'Mis pacientes', calendario:'Calendario', chat:'Chat' }[view]}
             </div>
-            <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
+            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
-          {view === 'pacientes' && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
-          {view === 'perfil' && <button style={s.btnPrimary} onClick={() => setModal('new-measurement')}>+ Registrar medicion</button>}
-          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
+          {view === 'pacientes' && !isMobile && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
+          {view === 'perfil' && <button style={s.btnPrimary} onClick={() => setModal('new-measurement')}>{isMobile ? '+ Medición' : '+ Registrar medicion'}</button>}
+          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>{isMobile ? '+ Cita' : '+ Nueva cita'}</button>}
         </div>
 
-        <div style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
 
           {view === 'dashboard' && (
         <div>
