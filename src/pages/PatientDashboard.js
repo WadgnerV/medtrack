@@ -242,6 +242,12 @@ export default function PatientDashboard() {
           </div>
         ))}
 
+        {/* Botón PRO */}
+        <div onClick={() => setView('pro')}
+          style={{ margin:'12px 10px', padding:'9px 14px', borderRadius:10, cursor:'pointer', background: view === 'pro' ? '#0F6E56' : 'linear-gradient(135deg, #0F6E56, #1D9E75)', color:'#fff', fontSize:13, fontWeight:600, textAlign:'center', boxShadow:'0 2px 8px rgba(15,110,86,0.3)' }}>
+          {profile?.plan === 'pro' ? '⭐ Mi Plan PRO' : '⚡ Activar PRO — $4.99/mes'}
+        </div>
+
         <UserMenu />
       </div>}
 
@@ -249,7 +255,7 @@ export default function PatientDashboard() {
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico' }[view]}
+              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO' }[view]}
             </div>
             {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
@@ -593,6 +599,80 @@ export default function PatientDashboard() {
             </div>
           )}
 
+          {/* Vista PRO */}
+          {view === 'pro' && (
+            <div>
+              {profile?.plan === 'pro' ? (
+                <div>
+                  <div style={{ background:'linear-gradient(135deg, #0F6E56, #1D9E75)', borderRadius:16, padding:24, color:'#fff', marginBottom:16, textAlign:'center' }}>
+                    <div style={{ fontSize:28, marginBottom:8 }}>⭐</div>
+                    <div style={{ fontSize:18, fontWeight:700, marginBottom:4 }}>¡Sos PRO!</div>
+                    <div style={{ fontSize:13, opacity:0.9 }}>Tenés acceso a todas las funcionalidades avanzadas</div>
+                  </div>
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                    <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Funcionalidades PRO disponibles</div>
+                    {[
+                      { icon:'🍎', label:'Contador de calorías y macros', desc:'Registrá lo que comés y seguí tus macronutrientes' },
+                      { icon:'🤖', label:'Nutrición con IA', desc:'Recibí consejos y recetas personalizadas con inteligencia artificial' },
+                      { icon:'🌸', label:'Control menstrual', desc:'Seguimiento de ciclo, síntomas y predicciones' },
+                      { icon:'🤰', label:'Modo embarazo y posparto', desc:'Seguimiento semana a semana del embarazo' },
+                      { icon:'💊', label:'Anticonceptivo ideal', desc:'Cuestionario personalizado con recomendación de IA' },
+                    ].map((f,i) => (
+                      <div key={i} style={{ display:'flex', gap:12, padding:'10px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                        <span style={{ fontSize:22 }}>{f.icon}</span>
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{f.label}</div>
+                          <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{f.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ background:'linear-gradient(135deg, #0F6E56, #1D9E75)', borderRadius:16, padding:24, color:'#fff', marginBottom:16, textAlign:'center' }}>
+                    <div style={{ fontSize:28, marginBottom:8 }}>⚡</div>
+                    <div style={{ fontSize:18, fontWeight:700, marginBottom:4 }}>Activá el Plan PRO</div>
+                    <div style={{ fontSize:13, opacity:0.9, marginBottom:16 }}>Desbloqueá funcionalidades avanzadas por solo $4.99/mes</div>
+                    <button onClick={async () => {
+                      try {
+                        const res = await fetch('https://mdcqdigxbmfajlmaxrta.supabase.co/functions/v1/create-checkout', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${(await (await import('../lib/supabase')).supabase.auth.getSession()).data.session?.access_token}` },
+                          body: JSON.stringify({ email: profile.email, userId: profile.id })
+                        })
+                        const data = await res.json()
+                        if (data.url) window.open(data.url, '_blank')
+                      } catch(e) { alert('Error al crear el link de pago') }
+                    }}
+                      style={{ background:'#fff', color:'#0F6E56', border:'none', borderRadius:10, padding:'12px 28px', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                      Suscribirme por $4.99/mes →
+                    </button>
+                  </div>
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                    <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>¿Qué incluye el PRO?</div>
+                    {[
+                      { icon:'🍎', label:'Contador de calorías y macros diarios' },
+                      { icon:'🤖', label:'Recetas y consejos de nutrición con IA' },
+                      { icon:'🌸', label:'Control menstrual con predicciones' },
+                      { icon:'🤰', label:'Modo embarazo y posparto semana a semana' },
+                      { icon:'💊', label:'Cuestionario "Mi anticonceptivo ideal" con IA' },
+                    ].map((f,i) => (
+                      <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                        <span style={{ fontSize:20 }}>{f.icon}</span>
+                        <span style={{ fontSize:13, color:'#1a1a1a' }}>{f.label}</span>
+                        <span style={{ marginLeft:'auto', color:G, fontSize:14 }}>✓</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ background:'#f8f8f8', borderRadius:12, padding:'12px 16px', fontSize:12, color:'#888', textAlign:'center' }}>
+                    Podés cancelar en cualquier momento desde tu cuenta de Lemon Squeezy
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -602,8 +682,8 @@ export default function PatientDashboard() {
           { label:'Inicio', key:'inicio', icon:'🏠' },
           { label:'Progreso', key:'progreso', icon:'📈' },
           { label:'Tareas', key:'tareas', icon:'✅' },
-          { label:'Tratamientos', key:'tratamientos', icon:'💊' },
           { label:'Chat', key:'chat', icon:'💬' },
+          { label: profile?.plan === 'pro' ? 'PRO' : '⚡PRO', key:'pro', icon:'⭐' },
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
             style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: view === item.key ? G : '#999', borderTop: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background:'#fff' }}>
