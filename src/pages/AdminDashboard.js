@@ -268,7 +268,12 @@ export default function AdminDashboard() {
         height_cm:  form.height    ? String(form.height) : '',
       }}
     })
-    if (error) { setFormError(error.message); setSaving(false); return }
+    if (error) {
+      const msg = error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already exists') || error.message?.toLowerCase().includes('duplicate')
+        ? 'Este correo electrónico ya está registrado en el sistema.'
+        : error.message
+      setFormError(msg); setSaving(false); return
+    }
     const userId = signUpData?.user?.id
 
     // Restaurar sesión del admin

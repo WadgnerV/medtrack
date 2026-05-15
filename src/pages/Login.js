@@ -48,7 +48,12 @@ export default function Login() {
     e.preventDefault()
     setLoading(true); setError('')
     const { error, role } = await signIn(email, password)
-    if (error) { setError(error.message); setLoading(false); return }
+    if (error) {
+      const msg = error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already exists') || error.message?.toLowerCase().includes('duplicate')
+        ? 'Este correo electrónico ya está registrado. Intentá iniciar sesión.'
+        : error.message
+      setError(msg); setLoading(false); return
+    }
     if (role === 'admin')       navigate('/admin')
     else if (role === 'doctor') navigate('/doctor')
     else                        navigate('/paciente')
@@ -84,7 +89,12 @@ export default function Login() {
       heightCm: reg.heightCm ? parseInt(reg.heightCm) : null,
     })
 
-    if (error) { setError(error.message); setLoading(false); return }
+    if (error) {
+      const msg = error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already exists') || error.message?.toLowerCase().includes('duplicate')
+        ? 'Este correo electrónico ya está registrado. Intentá iniciar sesión.'
+        : error.message
+      setError(msg); setLoading(false); return
+    }
     setReg({
       firstName: '', lastName: '', idNumber: '', phone: '',
       email: '', password: '', confirmPassword: '',
