@@ -212,7 +212,8 @@ export default function PatientDashboard() {
         </div>
       )}
 
-      <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column' }}>
+      {/* Sidebar desktop */}
+      <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', '@media(max-width:600px)': { display:'none' } }} className="sidebar-desktop">
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -250,7 +251,7 @@ export default function PatientDashboard() {
           )}
         </div>
 
-        <div style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
+        <div className="main-content-area" style={{ flex:1, overflowY:'auto', padding:'16px 18px' }}>
 
           {view === 'inicio' && (
             <div>
@@ -338,9 +339,13 @@ export default function PatientDashboard() {
                 {treatments.filter(t=>t.is_active).length === 0
                   ? <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:8 }}>Sin tratamientos activos</div>
                   : treatments.filter(t=>t.is_active).slice(0,3).map(t => (
-                    <div key={t.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                      <div style={{ width:8, height:8, borderRadius:'50%', background:'#1a5c8a', flexShrink:0 }} />
-                      <div style={{ fontSize:14, color:'#333', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.product_name||'Tratamiento'}</div>
+                    <div key={t.id} style={{ padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
+                        <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56', flexShrink:0 }} />
+                        <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.product_name||'Tratamiento'}</div>
+                      </div>
+                      {(t.dosage||t.frequency) && <div style={{ fontSize:12, color:'#888', paddingLeft:16 }}>{[t.dosage, t.frequency].filter(Boolean).join(' · ')}</div>}
+                      {t.notes && <div style={{ fontSize:12, color:'#aaa', paddingLeft:16, marginTop:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.notes}</div>}
                     </div>
                   ))
                 }
@@ -350,63 +355,78 @@ export default function PatientDashboard() {
 
           {view === 'progreso' && (
             <div>
-              {measurements.length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución del peso (kg)</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="fecha" tick={{ fontSize:14, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:14, fill:'#999' }} />
-                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8 }} />
-                      <Line type="monotone" dataKey="peso" stroke="#0F6E56" strokeWidth={2} dot={{ r:3, fill:'#0F6E56' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              {measurements.filter(m=>m.body_fat_pct).length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución % grasa corporal</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="fecha" tick={{ fontSize:14, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:14, fill:'#999' }} />
-                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8 }} formatter={v=>v+'%'} />
-                      <Line type="monotone" dataKey="grasa" stroke="#1D9E75" strokeWidth={2} dot={{ r:3, fill:'#1D9E75' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              {clinicalNotes.filter(n=>n.pas).length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución de presión arterial</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={[...clinicalNotes].reverse().filter(n=>n.pas).map(n=>({ fecha: new Date(n.note_date).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), sistolica: n.pas, diastolica: n.pad }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="fecha" tick={{ fontSize:14, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:14, fill:'#999' }} />
-                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8 }} formatter={(v,n)=>[v+' mmHg', n==='sistolica'?'Sistólica':'Diastólica']} />
-                      <Line type="monotone" dataKey="sistolica" stroke="#0F6E56" strokeWidth={2} dot={{ r:3, fill:'#0F6E56' }} />
-                      <Line type="monotone" dataKey="diastolica" stroke="#57c4a0" strokeWidth={2} strokeDasharray="4 2" dot={{ r:3, fill:'#57c4a0' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              {clinicalNotes.filter(n=>n.glucose).length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Evolución de glicemia</div>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <LineChart data={[...clinicalNotes].reverse().filter(n=>n.glucose).map(n=>({ fecha: new Date(n.note_date).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), glicemia: n.glucose }))} margin={{ top:5, right:10, left:-20, bottom:0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="fecha" tick={{ fontSize:14, fill:'#999' }} />
-                      <YAxis tick={{ fontSize:14, fill:'#999' }} />
-                      <Tooltip contentStyle={{ fontSize:14, borderRadius:8 }} formatter={v=>v+' mg/dL'} />
-                      <Line type="monotone" dataKey="glicemia" stroke="#0a7a5a" strokeWidth={2} dot={{ r:3, fill:'#0a7a5a' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+                {measurements.length > 0 && (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>Peso (kg)</div>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                        <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                        <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} />
+                        <Line type="monotone" dataKey="peso" stroke="#0F6E56" strokeWidth={2} dot={{ r:2, fill:'#0F6E56' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {measurements.filter(m=>m.body_fat_pct).length > 0 && (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>% Grasa corporal</div>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                        <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                        <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+'%'} />
+                        <Line type="monotone" dataKey="grasa" stroke="#1D9E75" strokeWidth={2} dot={{ r:2, fill:'#1D9E75' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {measurements.filter(m=>m.muscle_mass_kg).length > 0 && (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>Masa muscular (kg)</div>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                        <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                        <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+' kg'} />
+                        <Line type="monotone" dataKey="muscular" stroke="#2a8a70" strokeWidth={2} dot={{ r:2, fill:'#2a8a70' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {measurements.filter(m=>m.visceral_fat_pts).length > 0 && (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>Grasa visceral (pts)</div>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                        <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                        <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+' pts'} />
+                        <Line type="monotone" dataKey="visceral" stroke="#3a9a80" strokeWidth={2} dot={{ r:2, fill:'#3a9a80' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {clinicalNotes.filter(n=>n.glucose).length > 0 && (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>Glicemia (mg/dL)</div>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <LineChart data={[...clinicalNotes].reverse().filter(n=>n.glucose).map(n=>({ fecha: new Date(n.note_date).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), glicemia: n.glucose }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
+                        <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                        <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v=>v+' mg/dL'} />
+                        <Line type="monotone" dataKey="glicemia" stroke="#0a7a5a" strokeWidth={2} dot={{ r:2, fill:'#0a7a5a' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </div>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                 <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Historial completo</div>
                 {clinicalNotes.length === 0 && measurements.length === 0
@@ -565,6 +585,31 @@ export default function PatientDashboard() {
 
         </div>
       </div>
+
+      {/* Bottom nav móvil */}
+      <div className="bottom-nav-mobile" style={{ display:'none' }}>
+        {[
+          { label:'Inicio', key:'inicio', icon:'🏠' },
+          { label:'Progreso', key:'progreso', icon:'📈' },
+          { label:'Tareas', key:'tareas', icon:'✅' },
+          { label:'Tratamientos', key:'tratamientos', icon:'💊' },
+          { label:'Chat', key:'chat', icon:'💬' },
+        ].map(item => (
+          <div key={item.key} onClick={() => setView(item.key)}
+            style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: view === item.key ? G : '#999', borderTop: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background:'#fff' }}>
+            <span style={{ fontSize:18 }}>{item.icon}</span>
+            <span style={{ fontSize:9, marginTop:2, fontWeight: view === item.key ? 600 : 400 }}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .sidebar-desktop { display: none !important; }
+          .bottom-nav-mobile { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; border-top: 0.5px solid #eee; }
+          .main-content-area { padding-bottom: 64px !important; }
+        }
+      `}</style>
     </div>
   )
 }
