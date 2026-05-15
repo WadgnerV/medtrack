@@ -557,6 +557,27 @@ export default function AdminDashboard() {
           style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
       )}
 
+      {/* Bottom nav móvil admin */}
+      {isMobile && (
+        <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
+          {[
+            { label:'Dashboard', key:'dashboard', icon:'📊' },
+            { label:'Pacientes', key:'pacientes', icon:'👥' },
+            { label:'Calendario', key:'calendario', icon:'📅' },
+            { label:'Chat', key:'chat', icon:'💬', badge: pendingCount },
+            { label:'Más', key:'__menu__', icon:'☰' },
+          ].map(item => (
+            <div key={item.key}
+              onClick={() => item.key === '__menu__' ? setMobileMenuOpen(o => !o) : (setView(item.key), setMobileMenuOpen(false))}
+              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? G : '#999', borderTop: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? ('2px solid ' + G) : '2px solid transparent', position:'relative' }}>
+              <span style={{ fontSize:18 }}>{item.icon}</span>
+              {item.badge > 0 && <span style={{ position:'absolute', top:4, right:'20%', width:8, height:8, borderRadius:'50%', background:'#D85A30' }} />}
+              <span style={{ fontSize:9, marginTop:2, fontWeight: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? 600 : 400 }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
           {isMobile && (
@@ -575,7 +596,7 @@ export default function AdminDashboard() {
           {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>{isMobile ? '+ Item' : '+ Nuevo item'}</button>}
         </div>
 
-        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
 
 
     
