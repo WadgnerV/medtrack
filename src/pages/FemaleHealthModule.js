@@ -30,7 +30,7 @@ const PHASE_COLORS = {
   folicular: '#d4b0e8',
   ovulation: '#0F6E56',
   fertile:   '#7dbeaa',
-  none:      '#f0f0f0',
+  none:      'transparent',
 }
 
 const PHASE_LABELS = {
@@ -39,8 +39,10 @@ const PHASE_LABELS = {
   folicular: 'Fase folicular',
   ovulation: 'Ovulación',
   fertile:   'Ventana fértil',
-  none:      '',
 }
+
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+const DAYS_ES = ['Do','Lu','Ma','Mi','Ju','Vi','Sa']
 
 function addDays(dateStr, days) {
   const d = new Date(dateStr + 'T12:00:00')
@@ -64,18 +66,22 @@ function getFirstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay()
 }
 
-export default function FemaleHealthModule({ patient, profile }) {
+export default function FemaleHealthModule({ patient }) {
   const [tab, setTab] = useState('calendario')
   const [cycles, setCycles] = useState([])
-  const [periodDays, setPeriodDays] = useState({}) // { 'YYYY-MM-DD': 'ligero'|'normal'|'abundante' }
+  const [periodDays, setPeriodDays] = useState({})
   const [todaySymptoms, setTodaySymptoms] = useState(null)
   const [symptomsHistory, setSymptomsHistory] = useState([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [aiAdvice, setAiAdvice] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
-  const [selectedDay, setSelectedDay] = useState(null)
+
+  // Selección de rango
+  const [rangeStart, setRangeStart] = useState(null)
+  const [rangeHover, setRangeHover] = useState(null)
   const [showFlowPicker, setShowFlowPicker] = useState(false)
+  const [pendingRange, setPendingRange] = useState(null)
 
   const today = new Date().toISOString().split('T')[0]
   const [calYear, setCalYear] = useState(new Date().getFullYear())
@@ -93,7 +99,6 @@ export default function FemaleHealthModule({ patient, profile }) {
   }
 
   async function loadPeriodDays() {
-    // Cargar todos los días marcados como período
     const { data } = await supabase.from('menstrual_cycles')
       .select('cycle_start_date, cycle_end_date, flow_intensity')
       .eq('patient_id', patient.id)
@@ -101,9 +106,8 @@ export default function FemaleHealthModule({ patient, profile }) {
     const days = {}
     data.forEach(c => {
       if (!c.cycle_start_date) return
-      const start = c.cycle_start_date
-      const end = c.cycle_end_date || start
-      let cur = start
+      const end = c.cycle_end_date || c.cycle_start_date
+      let cur = c.cycle_start_date
       while (cur <= end) {
         days[cur] = c.flow_intensity || 'normal'
         cur = addDays(cur, 1)
@@ -128,43 +132,62 @@ export default function FemaleHealthModule({ patient, profile }) {
     setSymptomsHistory(data || [])
   }
 
-  async function togglePeriodDay(dateStr, flow) {
-    if (periodDays[dateStr]) {
-      // Quitar día — buscar y actualizar el ciclo
-      await supabase.from('menstrual_cycles')
-        .delete()
-        .eq('patient_id', patient.id)
-        .eq('cycle_start_date', dateStr)
-      setPeriodDays(p => { const n = { ...p }; delete n[dateStr]; return n })
-    } else {
-      // Agregar día
-      await supabase.from('menstrual_cycles').insert({
-        patient_id: patient.id,
-        cycle_start_date: dateStr,
-        cycle_end_date: dateStr,
-        flow_intensity: flow || 'normal',
-      })
-      setPeriodDays(p => ({ ...p, [dateStr]: flow || 'normal' }))
+  function handleDayClick(dateStr) {
+    if (periodDays[dateStr] && !rangeStart) {
+      // Toque en día ya marcado sin rango iniciado → quitar
+      deletePeriodDay(dateStr)
+      return
     }
-    await loadCycles()
-    setShowFlowPicker(false)
-    setSelectedDay(null)
+    if (!rangeStart) {
+      setRangeStart(dateStr)
+    } else {
+      const start = rangeStart <= dateStr ? rangeStart : dateStr
+      const end = rangeStart <= dateStr ? dateStr : rangeStart
+      setPendingRange({ start, end })
+      setRangeStart(null)
+      setRangeHover(null)
+      setShowFlowPicker(true)
+    }
   }
 
-  // Calcular predicciones
+  async function deletePeriodDay(dateStr) {
+    // Eliminar ciclos que contengan este día
+    await supabase.from('menstrual_cycles')
+      .delete()
+      .eq('patient_id', patient.id)
+      .eq('cycle_start_date', dateStr)
+    await loadPeriodDays()
+    await loadCycles()
+  }
+
+  async function savePeriodRange(flow) {
+    if (!pendingRange) return
+    const { start, end } = pendingRange
+    const durationDays = diffDays(start, end) + 1
+    await supabase.from('menstrual_cycles').insert({
+      patient_id: patient.id,
+      cycle_start_date: start,
+      cycle_end_date: end,
+      period_duration_days: durationDays,
+      flow_intensity: flow,
+    })
+    await loadPeriodDays()
+    await loadCycles()
+    setShowFlowPicker(false)
+    setPendingRange(null)
+  }
+
   function getPredictions() {
-    const sortedCycles = [...cycles].sort((a,b) => a.cycle_start_date > b.cycle_start_date ? -1 : 1)
-    if (sortedCycles.length === 0) return null
-    const last = sortedCycles[0]
-
-    const avgLength = sortedCycles.length >= 2
-      ? Math.round(sortedCycles.slice(0, 5).reduce((acc, c, i, arr) => {
-          if (i === 0) return acc
+    const sorted = [...cycles].sort((a,b) => a.cycle_start_date > b.cycle_start_date ? -1 : 1)
+    if (sorted.length === 0) return null
+    const last = sorted[0]
+    const avgLength = sorted.length >= 2
+      ? Math.round(sorted.slice(0,5).reduce((acc,c,i,arr) => {
+          if (i===0) return acc
           return acc + diffDays(arr[i].cycle_start_date, arr[i-1].cycle_start_date)
-        }, 0) / Math.min(sortedCycles.length - 1, 4))
+        }, 0) / Math.min(sorted.length-1, 4))
       : 28
-
-    const periodDuration = last.period_duration_days || 5
+    const periodDur = last.period_duration_days || 5
     const nextStart = addDays(last.cycle_start_date, avgLength)
     const ovulation = addDays(last.cycle_start_date, avgLength - 14)
     const fertileStart = addDays(ovulation, -5)
@@ -172,40 +195,61 @@ export default function FemaleHealthModule({ patient, profile }) {
     const daysUntilNext = diffDays(today, nextStart)
     const isLate = daysUntilNext < -5
     const daysSinceLast = diffDays(last.cycle_start_date, today)
-
     let currentPhase = 'none'
-    if (daysSinceLast < periodDuration) currentPhase = 'period'
-    else if (daysSinceLast < avgLength * 0.45) currentPhase = 'folicular'
+    if (daysSinceLast < periodDur) currentPhase = 'period'
     else if (today >= fertileStart && today <= fertileEnd) currentPhase = 'fertile'
     else if (today === ovulation) currentPhase = 'ovulation'
+    else if (daysSinceLast < avgLength * 0.45) currentPhase = 'folicular'
     else currentPhase = 'lutea'
-
-    return { nextStart, ovulation, fertileStart, fertileEnd, daysUntilNext, avgLength, isLate, daysSinceLast, currentPhase, periodDuration, lastStart: last.cycle_start_date }
+    return { nextStart, ovulation, fertileStart, fertileEnd, daysUntilNext, avgLength, isLate, daysSinceLast, currentPhase, periodDur, lastStart: last.cycle_start_date }
   }
 
   function getDayPhase(dateStr, pred) {
     if (periodDays[dateStr]) return 'period'
     if (!pred) return 'none'
-    if (dateStr >= pred.fertileStart && dateStr <= pred.fertileEnd) return 'fertile'
-    if (dateStr === pred.ovulation) return 'ovulation'
-
-    // Calcular para meses futuros/pasados basado en ciclos
+    // Calcular fase para cualquier fecha basada en ciclos
     const daysSince = diffDays(pred.lastStart, dateStr)
-    if (daysSince < 0) return 'none'
-    const cycleDay = daysSince % pred.avgLength
-    const periodDur = pred.periodDuration
-    if (cycleDay < periodDur) return 'none' // ya cubierto por periodDays
+    if (daysSince < 0) {
+      // Fechas anteriores — calcular ciclos pasados
+      const cyclesBack = Math.ceil(Math.abs(daysSince) / pred.avgLength)
+      const prevStart = addDays(pred.lastStart, -cyclesBack * pred.avgLength)
+      const daysSincePrev = diffDays(prevStart, dateStr)
+      return getPhaseFromDay(daysSincePrev, pred)
+    }
+    return getPhaseFromDay(daysSince % pred.avgLength, pred)
+  }
+
+  function getPhaseFromDay(cycleDay, pred) {
+    const fertileWindowStart = pred.avgLength - 14 - 5
+    const fertileWindowEnd = pred.avgLength - 14 + 1
+    if (cycleDay < pred.periodDur) return 'none'
     if (cycleDay < pred.avgLength * 0.45) return 'folicular'
-    if (cycleDay >= pred.avgLength - 14 - 5 && cycleDay <= pred.avgLength - 14 + 1) return 'fertile'
+    if (cycleDay >= fertileWindowStart && cycleDay <= fertileWindowEnd) return 'fertile'
     if (cycleDay === pred.avgLength - 14) return 'ovulation'
     return 'lutea'
   }
 
-  const pred = getPredictions()
-  const daysInMonth = getDaysInMonth(calYear, calMonth)
-  const firstDay = getFirstDayOfMonth(calYear, calMonth)
-  const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
-  const DAYS_ES = ['Do','Lu','Ma','Mi','Ju','Vi','Sa']
+  function getWeekPhases(weekDates, pred) {
+    // Detectar qué fases hay en la semana y sus rangos
+    const phases = []
+    let currentPhase = null
+    let phaseStart = 0
+
+    weekDates.forEach((dateStr, idx) => {
+      const phase = dateStr ? getDayPhase(dateStr, pred) : 'none'
+      if (phase !== currentPhase) {
+        if (currentPhase && currentPhase !== 'none') {
+          phases.push({ phase: currentPhase, start: phaseStart, end: idx - 1 })
+        }
+        currentPhase = phase
+        phaseStart = idx
+      }
+    })
+    if (currentPhase && currentPhase !== 'none') {
+      phases.push({ phase: currentPhase, start: phaseStart, end: weekDates.length - 1 })
+    }
+    return phases
+  }
 
   async function saveSymptoms() {
     setSaving(true)
@@ -225,6 +269,7 @@ export default function FemaleHealthModule({ patient, profile }) {
 
   async function getAiAdvice() {
     setAiLoading(true); setAiAdvice('')
+    const pred = getPredictions()
     const recentSymptoms = symptomsHistory.slice(0,3).flatMap(s => s.symptoms || [])
     const uniqueSymptoms = [...new Set(recentSymptoms)]
     try {
@@ -237,24 +282,37 @@ export default function FemaleHealthModule({ patient, profile }) {
           max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `Soy una paciente de medicina regenerativa. Fase actual del ciclo: ${pred ? PHASE_LABELS[pred.currentPhase] : 'desconocida'}. Síntomas recientes: ${uniqueSymptoms.join(', ') || 'ninguno'}. Duración promedio del ciclo: ${pred?.avgLength || 28} días. Dame consejos personalizados para mi fase actual: alimentación, ejercicio y autocuidado. Máximo 150 palabras. En español.`
+            content: `Soy una paciente de medicina regenerativa. Fase actual: ${pred ? PHASE_LABELS[pred.currentPhase] || 'desconocida' : 'desconocida'}. Síntomas recientes: ${uniqueSymptoms.join(', ') || 'ninguno'}. Ciclo promedio: ${pred?.avgLength || 28} días. Dame consejos de alimentación, ejercicio y autocuidado para mi fase actual. Máximo 150 palabras. En español.`
           }]
         })
       })
       const data = await res.json()
       setAiAdvice(data.content?.[0]?.text || '')
     } catch(e) {
-      setAiAdvice('No se pudo obtener el consejo. Intentá de nuevo.')
+      setAiAdvice('No se pudo obtener el consejo.')
     }
     setAiLoading(false)
   }
+
+  const pred = getPredictions()
+  const daysInMonth = getDaysInMonth(calYear, calMonth)
+  const firstDay = getFirstDayOfMonth(calYear, calMonth)
+
+  // Construir semanas
+  const allCells = []
+  for (let i = 0; i < firstDay; i++) allCells.push(null)
+  for (let i = 1; i <= daysInMonth; i++) {
+    allCells.push(`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`)
+  }
+  while (allCells.length % 7 !== 0) allCells.push(null)
+  const weeks = []
+  for (let i = 0; i < allCells.length; i += 7) weeks.push(allCells.slice(i, i+7))
 
   const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
   const lbl = { fontSize:12, fontWeight:500, color:'#666', display:'block', marginBottom:4 }
 
   return (
     <div>
-      {/* Tabs */}
       <div style={{ display:'flex', gap:6, marginBottom:14 }}>
         {[
           { key:'calendario', label:'Calendario' },
@@ -268,22 +326,30 @@ export default function FemaleHealthModule({ patient, profile }) {
         ))}
       </div>
 
-      {/* Calendario */}
       {tab === 'calendario' && (
         <div>
           {/* Fase actual */}
           {pred && pred.currentPhase !== 'none' && (
-            <div style={{ background: PHASE_COLORS[pred.currentPhase], borderRadius:12, padding:'12px 16px', color: pred.currentPhase === 'folicular' || pred.currentPhase === 'lutea' ? '#1a1a1a' : '#fff', marginBottom:12 }}>
-              <div style={{ fontSize:12, opacity:0.8, marginBottom:2 }}>Fase actual</div>
+            <div style={{ background: PHASE_COLORS[pred.currentPhase], borderRadius:12, padding:'12px 16px', marginBottom:12, color: ['folicular','lutea'].includes(pred.currentPhase) ? '#1a1a1a' : '#fff' }}>
+              <div style={{ fontSize:12, opacity:0.8 }}>Fase actual</div>
               <div style={{ fontSize:15, fontWeight:700, marginBottom:2 }}>{PHASE_LABELS[pred.currentPhase]}</div>
-              {pred.isLate && <div style={{ fontSize:12, marginTop:4, opacity:0.9 }}>Tu ciclo lleva {Math.abs(pred.daysUntilNext)} días de retraso</div>}
-              {!pred.isLate && <div style={{ fontSize:12, opacity:0.85 }}>Próximo período en {pred.daysUntilNext} días · {formatDate(pred.nextStart)}</div>}
+              {pred.isLate
+                ? <div style={{ fontSize:12, opacity:0.9 }}>Tu ciclo lleva {Math.abs(pred.daysUntilNext)} días de retraso</div>
+                : <div style={{ fontSize:12, opacity:0.85 }}>Próximo período en {pred.daysUntilNext} días · {formatDate(pred.nextStart)}</div>
+              }
             </div>
           )}
 
+          {/* Instrucciones */}
+          <div style={{ fontSize:12, color:'#888', marginBottom:10, background:'#f8f8f8', borderRadius:8, padding:'8px 12px' }}>
+            {rangeStart
+              ? `Inicio seleccionado: ${formatDate(rangeStart)}. Ahora tocá el día en que terminó tu período.`
+              : 'Tocá el primer día de tu período, luego el último para marcar el rango.'}
+          </div>
+
           {/* Leyenda */}
-          <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:12 }}>
-            {Object.entries(PHASE_LABELS).filter(([k]) => k !== 'none').map(([key, label]) => (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:10 }}>
+            {Object.entries(PHASE_LABELS).map(([key, label]) => (
               <div key={key} style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#555' }}>
                 <div style={{ width:12, height:12, borderRadius:3, background: PHASE_COLORS[key] }} />
                 {label}
@@ -291,86 +357,129 @@ export default function FemaleHealthModule({ patient, profile }) {
             ))}
           </div>
 
-          {/* Navegación mes */}
+          {/* Calendario */}
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
-              <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}
-                style={{ background:'none', border:'1px solid #eee', borderRadius:8, padding:'4px 10px', cursor:'pointer', fontSize:14 }}>‹</button>
+              <button onClick={() => { if (calMonth===0) { setCalMonth(11); setCalYear(y=>y-1) } else setCalMonth(m=>m-1) }}
+                style={{ background:'none', border:'1px solid #eee', borderRadius:8, padding:'4px 12px', cursor:'pointer', fontSize:16 }}>‹</button>
               <div style={{ fontSize:14, fontWeight:600 }}>{MONTHS_ES[calMonth]} {calYear}</div>
-              <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}
-                style={{ background:'none', border:'1px solid #eee', borderRadius:8, padding:'4px 10px', cursor:'pointer', fontSize:14 }}>›</button>
+              <button onClick={() => { if (calMonth===11) { setCalMonth(0); setCalYear(y=>y+1) } else setCalMonth(m=>m+1) }}
+                style={{ background:'none', border:'1px solid #eee', borderRadius:8, padding:'4px 12px', cursor:'pointer', fontSize:16 }}>›</button>
             </div>
 
-            {/* Días de semana */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:4 }}>
+            {/* Header días */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:6 }}>
               {DAYS_ES.map(d => <div key={d} style={{ textAlign:'center', fontSize:11, color:'#aaa', fontWeight:500, padding:'2px 0' }}>{d}</div>)}
             </div>
 
-            {/* Días del mes */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2 }}>
-              {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1
-                const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
-                const phase = getDayPhase(dateStr, pred)
-                const isPeriod = !!periodDays[dateStr]
-                const isToday = dateStr === today
-                const isSelected = selectedDay === dateStr
-                const bgColor = isPeriod ? (FLOW_OPTIONS.find(f => f.value === periodDays[dateStr])?.color || '#c0392b') : PHASE_COLORS[phase]
+            {/* Semanas con barras de fase */}
+            {weeks.map((week, wi) => {
+              const weekPhases = getWeekPhases(week, pred)
+              return (
+                <div key={wi} style={{ marginBottom:4 }}>
+                  {/* Días */}
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:2 }}>
+                    {week.map((dateStr, di) => {
+                      if (!dateStr) return <div key={di} />
+                      const day = parseInt(dateStr.split('-')[2])
+                      const isPeriod = !!periodDays[dateStr]
+                      const isToday = dateStr === today
+                      const isRangeStart = rangeStart === dateStr
+                      const isHoverRange = rangeStart && rangeHover && dateStr >= Math.min(rangeStart, rangeHover) && dateStr <= Math.max(rangeStart, rangeHover)
+                      const isPending = pendingRange && dateStr >= pendingRange.start && dateStr <= pendingRange.end
 
-                return (
-                  <div key={day} onClick={() => { setSelectedDay(isSelected ? null : dateStr); setShowFlowPicker(!isSelected) }}
-                    style={{
-                      aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center',
-                      borderRadius:8, cursor:'pointer', fontSize:12, fontWeight: isToday ? 700 : 400,
-                      background: bgColor,
-                      color: isPeriod || phase === 'ovulation' || phase === 'fertile' ? '#fff' : '#1a1a1a',
-                      border: isToday ? '2px solid #0F6E56' : isSelected ? '2px solid #333' : '2px solid transparent',
-                      transition:'all 0.15s'
-                    }}>
-                    {day}
+                      let bg = '#f8f8f8'
+                      if (isPeriod) bg = FLOW_OPTIONS.find(f => f.value === periodDays[dateStr])?.color || '#c0392b'
+                      else if (isHoverRange || isPending) bg = '#fdecea'
+                      else if (isRangeStart) bg = '#c0392b'
+
+                      return (
+                        <div key={di}
+                          onClick={() => handleDayClick(dateStr)}
+                          onMouseEnter={() => rangeStart && setRangeHover(dateStr)}
+                          onMouseLeave={() => setRangeHover(null)}
+                          style={{
+                            aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center',
+                            borderRadius:8, cursor:'pointer', fontSize:12,
+                            fontWeight: isToday ? 700 : 400,
+                            background: bg,
+                            color: isPeriod || isRangeStart ? '#fff' : '#1a1a1a',
+                            border: isToday ? `2px solid ${G}` : isRangeStart ? '2px solid #c0392b' : '2px solid transparent',
+                            transition:'all 0.1s'
+                          }}>
+                          {day}
+                        </div>
+                      )
+                    })}
                   </div>
-                )
-              })}
-            </div>
+
+                  {/* Barras de fase de la semana */}
+                  {weekPhases.length > 0 && (
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:2 }}>
+                      {(() => {
+                        const bars = Array(7).fill(null)
+                        weekPhases.forEach(({ phase, start, end }) => {
+                          for (let i = start; i <= end; i++) bars[i] = { phase, isStart: i === start, isEnd: i === end, label: i === Math.floor((start+end)/2) ? PHASE_LABELS[phase] : '' }
+                        })
+                        return bars.map((bar, i) => (
+                          <div key={i} style={{
+                            height: 16,
+                            background: bar ? PHASE_COLORS[bar.phase] : 'transparent',
+                            borderRadius: bar ? `${bar.isStart ? '6px' : '0'} ${bar.isEnd ? '6px' : '0'} ${bar.isEnd ? '6px' : '0'} ${bar.isStart ? '6px' : '0'}` : 0,
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                            overflow:'hidden',
+                          }}>
+                            {bar?.label && (
+                              <span style={{ fontSize:8, color: ['folicular','lutea'].includes(bar.phase) ? '#555' : '#fff', fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', padding:'0 2px' }}>
+                                {bar.label}
+                              </span>
+                            )}
+                          </div>
+                        ))
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
 
-          {/* Flow picker */}
-          {showFlowPicker && selectedDay && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-              <div style={{ fontSize:13, fontWeight:500, marginBottom:10 }}>
-                {periodDays[selectedDay] ? 'Quitar período de este día' : `Marcar ${formatDate(selectedDay)} como período`}
-              </div>
-              {!periodDays[selectedDay] ? (
-                <div>
-                  <div style={{ fontSize:12, color:'#888', marginBottom:8 }}>Intensidad del flujo:</div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    {FLOW_OPTIONS.map(f => (
-                      <button key={f.value} onClick={() => togglePeriodDay(selectedDay, f.value)}
-                        style={{ flex:1, padding:'8px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: f.color, color:'#fff' }}>
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
+          {/* Flow picker modal */}
+          {showFlowPicker && pendingRange && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:200 }}
+              onClick={() => { setShowFlowPicker(false); setPendingRange(null) }}>
+              <div style={{ background:'#fff', borderRadius:16, padding:24, width:300, boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}
+                onClick={e => e.stopPropagation()}>
+                <div style={{ fontSize:15, fontWeight:600, marginBottom:4 }}>Período registrado</div>
+                <div style={{ fontSize:13, color:'#888', marginBottom:16 }}>
+                  {formatDate(pendingRange.start)} → {formatDate(pendingRange.end)} ({diffDays(pendingRange.start, pendingRange.end)+1} días)
                 </div>
-              ) : (
-                <button onClick={() => togglePeriodDay(selectedDay)}
-                  style={{ width:'100%', padding:'8px', borderRadius:8, border:'1px solid #e0e0e0', cursor:'pointer', fontSize:13, color:'#c0392b', background:'#fdecea' }}>
-                  Quitar marca de período
+                <div style={{ fontSize:13, fontWeight:500, color:'#555', marginBottom:10 }}>¿Cuál fue la intensidad del flujo?</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {FLOW_OPTIONS.map(f => (
+                    <button key={f.value} onClick={() => savePeriodRange(f.value)}
+                      style={{ padding:'10px 14px', borderRadius:10, border:'none', cursor:'pointer', fontSize:13, fontWeight:600, background: f.color, color:'#fff', textAlign:'left' }}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => { setShowFlowPicker(false); setPendingRange(null) }}
+                  style={{ width:'100%', marginTop:10, padding:'8px', borderRadius:8, border:'1px solid #eee', cursor:'pointer', fontSize:12, color:'#888', background:'#f8f8f8' }}>
+                  Cancelar
                 </button>
-              )}
+              </div>
             </div>
           )}
 
-          {/* Resumen predicciones */}
+          {/* Predicciones */}
           {pred && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
               <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Predicciones del ciclo</div>
               {[
                 { label:'Próximo período', value: pred.isLate ? `${Math.abs(pred.daysUntilNext)} días de retraso` : formatDate(pred.nextStart), color: pred.isLate ? '#c0392b' : G },
-                { label:'Ovulación estimada', value: formatDate(pred.ovulation), color:'#0F6E56' },
-                { label:'Ventana fértil', value: `${formatDate(pred.fertileStart)} – ${formatDate(pred.fertileEnd)}`, color:'#7dbeaa' },
-                { label:'Duración promedio', value: `${pred.avgLength} días`, color:'#555' },
+                { label:'Ovulación estimada', value: formatDate(pred.ovulation), color: PHASE_COLORS.ovulation },
+                { label:'Ventana fértil', value: `${formatDate(pred.fertileStart)} – ${formatDate(pred.fertileEnd)}`, color: PHASE_COLORS.fertile },
+                { label:'Duración promedio del ciclo', value: `${pred.avgLength} días`, color:'#555' },
               ].map((item, i) => (
                 <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
                   <span style={{ fontSize:12, color:'#888' }}>{item.label}</span>
@@ -381,14 +490,13 @@ export default function FemaleHealthModule({ patient, profile }) {
           )}
 
           {cycles.length === 0 && (
-            <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>
-              Tocá cualquier día del calendario para marcar tu período.
+            <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>
+              Tocá el primer día de tu período para comenzar.
             </div>
           )}
         </div>
       )}
 
-      {/* Síntomas */}
       {tab === 'sintomas' && (
         <div>
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
@@ -428,7 +536,6 @@ export default function FemaleHealthModule({ patient, profile }) {
               {saving ? 'Guardando...' : 'Guardar síntomas de hoy'}
             </button>
           </div>
-
           {symptomsHistory.length > 0 && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
               <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Historial reciente</div>
@@ -452,13 +559,12 @@ export default function FemaleHealthModule({ patient, profile }) {
         </div>
       )}
 
-      {/* Consejo IA */}
       {tab === 'ia' && (
         <div>
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
             <div style={{ fontSize:14, fontWeight:600, marginBottom:6 }}>Consejo personalizado según tu ciclo</div>
             <div style={{ fontSize:13, color:'#888', marginBottom:12 }}>
-              La IA analiza tu fase actual y síntomas para darte recomendaciones de alimentación, ejercicio y autocuidado.
+              La IA analiza tu fase actual y síntomas recientes para darte recomendaciones personalizadas.
             </div>
             <button onClick={getAiAdvice} disabled={aiLoading || !pred}
               style={{ width:'100%', padding:'10px', background: !pred ? '#f0f0f0' : G, color: !pred ? '#bbb' : '#fff', border:'none', borderRadius:10, cursor: !pred ? 'default' : 'pointer', fontSize:13, fontWeight:500, opacity: aiLoading ? 0.7 : 1 }}>
