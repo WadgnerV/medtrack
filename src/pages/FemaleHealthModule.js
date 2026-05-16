@@ -220,12 +220,13 @@ export default function FemaleHealthModule({ patient }) {
   }
 
   function getPhaseFromDay(cycleDay, pred) {
-    const fertileWindowStart = pred.avgLength - 14 - 5
-    const fertileWindowEnd = pred.avgLength - 14 + 1
+    const ovulationDay = pred.avgLength - 14
+    const fertileWindowStart = ovulationDay - 5
+    const fertileWindowEnd = ovulationDay + 1
     if (cycleDay < pred.periodDur) return 'none'
-    if (cycleDay < pred.avgLength * 0.45) return 'folicular'
+    if (cycleDay < fertileWindowStart) return 'folicular'
+    if (cycleDay === ovulationDay) return 'ovulation'
     if (cycleDay >= fertileWindowStart && cycleDay <= fertileWindowEnd) return 'fertile'
-    if (cycleDay === pred.avgLength - 14) return 'ovulation'
     return 'lutea'
   }
 
