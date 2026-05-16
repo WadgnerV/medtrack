@@ -22,6 +22,7 @@ export default function WellnessModule({ patient, profile }) {
   const [log, setLog] = useState(null)
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [tip, setTip] = useState('')
   const [tipLoading, setTipLoading] = useState(false)
   const [section, setSection] = useState('sueno')
@@ -82,12 +83,16 @@ export default function WellnessModule({ patient, profile }) {
       calories_burned: calories_burned || null,
     }
     if (log?.id) {
-      await supabase.from('wellness_logs').update(payload).eq('id', log.id)
+      const { error } = await supabase.from('wellness_logs').update(payload).eq('id', log.id)
+      if (error) { console.error('Update error:', error); setSaving(false); return }
     } else {
-      await supabase.from('wellness_logs').insert(payload)
+      const { error } = await supabase.from('wellness_logs').insert(payload)
+      if (error) { console.error('Insert error:', error); setSaving(false); return }
     }
     await loadLog()
     setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 3000)
   }
 
   async function getTip() {
@@ -187,6 +192,44 @@ export default function WellnessModule({ patient, profile }) {
             </div>
           </div>
 
+          {/* Gráfico de cuadritos de sueño */}
+          {(form.sleep_hours || log?.sleep_hours) && (
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:12, color:'#888', marginBottom:8 }}>
+                Visualización: {form.sleep_hours || log?.sleep_hours}h de sueño
+              </div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                {Array.from({ length: 18 }).map((_, i) => {
+                  const hours = (form.sleep_hours || log?.sleep_hours || 0)
+                  const filled = (i + 1) * 0.5 <= hours
+                  const halfFilled = !filled && i * 0.5 < hours && (i + 1) * 0.5 > hours
+                  return (
+                    <div key={i} style={{
+                      width: 28, height: 28, borderRadius: 6,
+                      background: filled ? G : halfFilled ? '#7dbeaa' : '#f0f0f0',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize: 9, color: filled || halfFilled ? '#fff' : '#ccc',
+                      fontWeight: 500, transition:'all 0.2s'
+                    }}>
+                      {(i + 1) % 2 === 0 ? `${(i+1)/2}h` : ''}
+                    </div>
+                  )
+                })}
+              </div>
+              <div style={{ display:'flex', gap:12, marginTop:6, fontSize:11, color:'#888' }}>
+                <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:3, background:G }} /> Dormido</span>
+                <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:3, background:'#7dbeaa' }} /> Parcial</span>
+                <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:3, background:'#f0f0f0', border:'1px solid #ddd' }} /> No dormido</span>
+              </div>
+            </div>
+          )}
+
+          {saved && (
+            <div style={{ background:'#E1F5EE', borderRadius:8, padding:'8px 12px', marginBottom:10, fontSize:13, color:G, fontWeight:500 }}>
+              ✓ Registro guardado correctamente
+            </div>
+          )}
+
           <button onClick={save} disabled={saving}
             style={{ width:'100%', padding:'10px', background:G, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Guardando...' : 'Guardar registro de sueño'}
@@ -220,6 +263,7 @@ export default function WellnessModule({ patient, profile }) {
               style={{ ...inp, height:80, resize:'vertical' }} />
           </div>
 
+          {saved && <div style={{ background:'#E1F5EE', borderRadius:8, padding:'8px 12px', marginBottom:10, fontSize:13, color:G, fontWeight:500 }}>✓ Registro guardado correctamente</div>}
           <button onClick={save} disabled={saving}
             style={{ width:'100%', padding:'10px', background:G, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Guardando...' : 'Guardar nivel de estrés'}
@@ -266,6 +310,7 @@ export default function WellnessModule({ patient, profile }) {
             </div>
           )}
 
+          {saved && <div style={{ background:'#E1F5EE', borderRadius:8, padding:'8px 12px', marginBottom:10, fontSize:13, color:G, fontWeight:500 }}>✓ Registro guardado correctamente</div>}
           <button onClick={save} disabled={saving}
             style={{ width:'100%', padding:'10px', background:G, color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Guardando...' : 'Guardar actividad'}
