@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import NutritionModule from './NutritionModule'
 import WellnessModule from './WellnessModule'
+import FemaleHealthModule from './FemaleHealthModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -240,6 +241,7 @@ export default function PatientDashboard() {
           ...(profile?.plan === 'pro' ? [
             { label:'Nutrición', key:'nutricion', pro: true },
             { label:'Bienestar', key:'bienestar', pro: true },
+            ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem', pro: true }] : []),
           ] : []),
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
@@ -262,7 +264,7 @@ export default function PatientDashboard() {
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar' }[view]}
+              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina' }[view]}
             </div>
             {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
@@ -614,6 +616,11 @@ export default function PatientDashboard() {
           {/* Vista Bienestar PRO */}
           {view === 'bienestar' && profile?.plan === 'pro' && (
             <WellnessModule patient={patient} profile={profile} />
+          )}
+
+          {/* Vista Salud Femenina PRO */}
+          {view === 'saludfem' && profile?.plan === 'pro' && patient?.sex === 'female' && (
+            <FemaleHealthModule patient={patient} profile={profile} />
           )}
 
           {/* Vista PRO */}
