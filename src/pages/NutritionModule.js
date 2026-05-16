@@ -12,8 +12,7 @@ const MEALS = [
   { key:'snack', label:'Snack' },
 ]
 
-const ANTH_URL = 'https://api.anthropic.com/v1/messages'
-const ANTH_KEY = process.env.REACT_APP_ANTHROPIC_API_KEY
+const ANTH_URL = 'https://mdcqdigxbmfajlmaxrta.supabase.co/functions/v1/claude-proxy'
 
 export default function NutritionModule({ patient, profile }) {
   const [logs, setLogs] = useState([])
@@ -85,7 +84,7 @@ export default function NutritionModule({ patient, profile }) {
     try {
       const res = await fetch(ANTH_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTH_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,
@@ -101,7 +100,8 @@ export default function NutritionModule({ patient, profile }) {
       setAiResult(parsed)
       setForm(p => ({ ...p, ...Object.fromEntries(Object.entries(parsed).map(([k,v]) => [k, String(v)])) }))
     } catch(e) {
-      alert('No se pudo analizar el alimento. Intentá de nuevo.')
+      console.error('Error API:', e)
+      alert('Error: ' + e.message)
     }
     setAiLoading(false)
   }
@@ -145,7 +145,7 @@ export default function NutritionModule({ patient, profile }) {
     try {
       const res = await fetch(ANTH_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTH_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,

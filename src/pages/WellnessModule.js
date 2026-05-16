@@ -16,8 +16,7 @@ const EXERCISE_TYPES = ['Caminata', 'Trote/Carrera', 'Cardio', 'Fuerza/Pesas', '
 const MET = { 'Caminata':3.5, 'Trote/Carrera':8, 'Cardio':6, 'Fuerza/Pesas':4, 'Yoga/Pilates':2.5, 'Natación':7, 'Ciclismo':6, 'HIIT':9, 'Otro':4 }
 const INTENSITY_MULT = { baja: 0.8, media: 1.0, alta: 1.3 }
 
-const ANTH_URL = 'https://api.anthropic.com/v1/messages'
-const ANTH_KEY = process.env.REACT_APP_ANTHROPIC_API_KEY
+const ANTH_URL = 'https://mdcqdigxbmfajlmaxrta.supabase.co/functions/v1/claude-proxy'
 
 export default function WellnessModule({ patient, profile }) {
   const [log, setLog] = useState(null)
@@ -100,7 +99,7 @@ export default function WellnessModule({ patient, profile }) {
     try {
       const res = await fetch(ANTH_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTH_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,
