@@ -23,6 +23,8 @@ export default function WellnessModule({ patient, profile }) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [wellnessHistory, setWellnessHistory] = useState([])
+  const [historyMonth, setHistoryMonth] = useState(new Date().toISOString().substring(0,7))
   const [tip, setTip] = useState('')
   const [tipLoading, setTipLoading] = useState(false)
   const [section, setSection] = useState('sueno')
@@ -33,7 +35,20 @@ export default function WellnessModule({ patient, profile }) {
     exercise_type: '', exercise_duration_min: '', exercise_intensity: 'media',
   })
 
-  useEffect(() => { if (patient?.id) loadLog() }, [patient, date])
+  useEffect(() => { if (patient?.id) { loadLog(); loadWellnessHistory() } }, [patient, date])
+
+  async function loadWellnessHistory(month) {
+    const m = month || historyMonth
+    const startDate = m + '-01'
+    const endDate = new Date(m.split('-')[0], parseInt(m.split('-')[1]), 0).toISOString().split('T')[0]
+    const { data } = await supabase.from('wellness_logs')
+      .select('log_date, sleep_hours, sleep_quality, stress_level, exercise_type, exercise_duration_min, calories_burned')
+      .eq('patient_id', patient.id)
+      .gte('log_date', startDate)
+      .lte('log_date', endDate)
+      .order('log_date', { ascending: false })
+    setWellnessHistory(data || [])
+  }
 
   async function loadLog() {
     const { data } = await supabase.from('wellness_logs')
@@ -148,6 +163,7 @@ export default function WellnessModule({ patient, profile }) {
             { key:'estres', label:'Estrés' },
             { key:'ejercicio', label:'Ejercicio' },
             { key:'tips', label:'Tips IA' },
+            { key:'historial', label:'Historial' },
           ].map(t => (
             <button key={t.key} onClick={() => setSection(t.key)}
               style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: section === t.key ? G : '#f0f0f0', color: section === t.key ? '#fff' : '#666' }}>
@@ -377,6 +393,100 @@ export default function WellnessModule({ patient, profile }) {
           )}
         </div>
       )}
+      {/* Historial heatmap */}
+      {section === 'historial' && (
+        <div>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+            <label style={{ fontSize:13, color:'#666', fontWeight:500 }}>Mes:</label>
+            <input type="month" value={historyMonth}
+              onChange={e => { setHistoryMonth(e.target.value); loadWellnessHistory(e.target.value) }}
+              style={{ padding:'6px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+          </div>
+
+          {wellnessHistory.length === 0 ? (
+            <div style={{ textAlign:'center', padding:40, color:'#bbb', fontSize:13 }}>
+              No hay registros para este mes.
+            </div>
+          ) : (
+            <>
+              {/* Heatmap Sueño */}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Sueño por día</div>
+                <div style={{ fontSize:11, color:'#888', marginBottom:12, display:'flex', gap:12 }}>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:2, background:'#0F6E56' }} /> 7–9h óptimo</span>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:2, background:'#e67e22' }} /> 5–6.5h aceptable</span>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:2, background:'#c0392b' }} /> menos de 5h</span>
+                </div>
+                <div style={{ overflowX:'auto' }}>
+                  <div style={{ minWidth:400 }}>
+                    {/* Header horas */}
+                    <div style={{ display:'flex', marginBottom:4, paddingLeft:70 }}>
+                      {Array.from({ length:18 }).map((_,i) => (
+                        <div key={i} style={{ width:20, textAlign:'center', fontSize:9, color:'#bbb', flexShrink:0 }}>
+                          {(i+1) % 2 === 0 ? `${(i+1)/2}h` : ''}
+                        </div>
+                      ))}
+                    </div>
+                    {wellnessHistory.filter(d => d.sleep_hours).map((d, idx) => {
+                      const hours = d.sleep_hours || 0
+                      const color = hours >= 7 && hours <= 9 ? '#0F6E56' : hours >= 5 ? '#e67e22' : '#c0392b'
+                      const fecha = new Date(d.log_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'short' })
+                      return (
+                        <div key={idx} style={{ display:'flex', alignItems:'center', marginBottom:4 }}>
+                          <div style={{ width:66, fontSize:11, color:'#666', flexShrink:0, textAlign:'right', paddingRight:4 }}>{fecha}</div>
+                          {Array.from({ length:18 }).map((_,i) => {
+                            const filled = (i+1) * 0.5 <= hours
+                            const half = !filled && i * 0.5 < hours
+                            return (
+                              <div key={i} style={{ width:20, height:16, borderRadius:3, margin:'0 0.5px', flexShrink:0, background: filled ? color : half ? color + '88' : '#f0f0f0' }} />
+                            )
+                          })}
+                          <div style={{ fontSize:10, color:'#888', marginLeft:6 }}>{hours}h</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Heatmap Estrés */}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Estrés por día</div>
+                <div style={{ fontSize:11, color:'#888', marginBottom:12, display:'flex', gap:12 }}>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:2, background:'#0F6E56' }} /> 1–3 bajo</span>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:2, background:'#e67e22' }} /> 4–6 moderado</span>
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}><div style={{ width:10, height:10, borderRadius:2, background:'#c0392b' }} /> 7–10 alto</span>
+                </div>
+                <div style={{ overflowX:'auto' }}>
+                  <div style={{ minWidth:300 }}>
+                    {/* Header niveles */}
+                    <div style={{ display:'flex', marginBottom:4, paddingLeft:70 }}>
+                      {Array.from({ length:10 }).map((_,i) => (
+                        <div key={i} style={{ width:24, textAlign:'center', fontSize:10, color:'#bbb', flexShrink:0 }}>{i+1}</div>
+                      ))}
+                    </div>
+                    {wellnessHistory.filter(d => d.stress_level).map((d, idx) => {
+                      const level = d.stress_level || 0
+                      const color = level <= 3 ? '#0F6E56' : level <= 6 ? '#e67e22' : '#c0392b'
+                      const fecha = new Date(d.log_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'short' })
+                      return (
+                        <div key={idx} style={{ display:'flex', alignItems:'center', marginBottom:4 }}>
+                          <div style={{ width:66, fontSize:11, color:'#666', flexShrink:0, textAlign:'right', paddingRight:4 }}>{fecha}</div>
+                          {Array.from({ length:10 }).map((_,i) => (
+                            <div key={i} style={{ width:24, height:16, borderRadius:3, margin:'0 0.5px', flexShrink:0, background: i < level ? color : '#f0f0f0' }} />
+                          ))}
+                          <div style={{ fontSize:10, color:'#888', marginLeft:6 }}>{level}/10</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
     </div>
   )
 }
