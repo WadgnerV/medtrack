@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 const G = '#0F6E56'
 
@@ -26,6 +27,7 @@ export default function NutritionModule({ patient, profile }) {
   const [aiResult, setAiResult] = useState(null)
   const [aiAdvice, setAiAdvice] = useState('')
   const [adviceLoading, setAdviceLoading] = useState(false)
+  const [history, setHistory] = useState([])
   const [form, setForm] = useState({
     food_name:'', quantity:'1', unit:'porción',
     calories:'', protein_g:'', carbs_g:'', fat_g:'',
@@ -34,7 +36,33 @@ export default function NutritionModule({ patient, profile }) {
     potassium_mg:'', calcium_mg:'', iron_mg:''
   })
 
-  useEffect(() => { if (patient?.id) { loadLogs(); loadGoals() } }, [patient, date])
+  useEffect(() => { if (patient?.id) { loadLogs(); loadGoals(); loadHistory() } }, [patient, date])
+
+  async function loadHistory() {
+    const { data } = await supabase.from('nutrition_logs')
+      .select('log_date, calories, protein_g, carbs_g, fat_g')
+      .eq('patient_id', patient.id)
+      .order('log_date', { ascending: true })
+    if (!data) return
+    // Agrupar por fecha
+    const byDate = {}
+    data.forEach(l => {
+      if (!byDate[l.log_date]) byDate[l.log_date] = { fecha: l.log_date, calorias: 0, proteina: 0, carbos: 0, grasa: 0, count: 0 }
+      byDate[l.log_date].calorias += l.calories || 0
+      byDate[l.log_date].proteina += l.protein_g || 0
+      byDate[l.log_date].carbos += l.carbs_g || 0
+      byDate[l.log_date].grasa += l.fat_g || 0
+      byDate[l.log_date].count++
+    })
+    setHistory(Object.values(byDate).map(d => ({
+      ...d,
+      calorias: Math.round(d.calorias),
+      proteina: Math.round(d.proteina),
+      carbos: Math.round(d.carbos),
+      grasa: Math.round(d.grasa),
+      fechaLabel: new Date(d.fecha + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'short' })
+    })))
+  }
 
   async function loadLogs() {
     const { data } = await supabase.from('nutrition_logs')
@@ -191,7 +219,7 @@ export default function NutritionModule({ patient, profile }) {
     <div>
       {/* Tabs */}
       <div style={{ display:'flex', gap:8, marginBottom:14 }}>
-        {[{ key:'diario', label:'Diario' }, { key:'ia', label:'Consejo IA' }].map(t => (
+        {[{ key:'diario', label:'Diario' }, { key:'ia', label:'Consejo IA' }, { key:'historial', label:'Historial' }].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{ padding:'7px 16px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? G : '#f0f0f0', color: tab === t.key ? '#fff' : '#666' }}>
             {t.label}
@@ -370,6 +398,67 @@ export default function NutritionModule({ patient, profile }) {
           )}
         </div>
       )}
+      {tab === 'historial' && (
+        <div>
+          {history.length === 0 ? (
+            <div style={{ textAlign:'center', padding:40, color:'#bbb', fontSize:13 }}>
+              Aún no hay registros históricos. Empezá registrando lo que comés cada día.
+            </div>
+          ) : (
+            <>
+              {/* Gráfico calorías */}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Calorías por día</div>
+                <div style={{ fontSize:12, color:'#888', marginBottom:12 }}>Consumido vs meta ({goals?.calories_goal || '--'} kcal)</div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={history} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="fechaLabel" tick={{ fontSize:10, fill:'#999' }} />
+                    <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                    <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v => v + ' kcal'} />
+                    {goals?.calories_goal && <ReferenceLine y={goals.calories_goal} stroke="#c0392b" strokeDasharray="4 2" label={{ value:'Meta', fontSize:10, fill:'#c0392b' }} />}
+                    <Line type="monotone" dataKey="calorias" stroke={G} strokeWidth={2} dot={{ r:3, fill:G }} name="Consumido" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Gráfico macros */}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Macros por día (g)</div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={history} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="fechaLabel" tick={{ fontSize:10, fill:'#999' }} />
+                    <YAxis tick={{ fontSize:10, fill:'#999' }} />
+                    <Tooltip contentStyle={{ fontSize:11, borderRadius:8 }} formatter={v => v + 'g'} />
+                    <Line type="monotone" dataKey="proteina" stroke="#2a8a70" strokeWidth={2} dot={{ r:2 }} name="Proteína" />
+                    <Line type="monotone" dataKey="carbos" stroke="#3a9a80" strokeWidth={2} dot={{ r:2 }} name="Carbos" />
+                    <Line type="monotone" dataKey="grasa" stroke="#4aaa90" strokeWidth={2} dot={{ r:2 }} name="Grasa" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Tabla resumen */}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Resumen por día</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:4, padding:'6px 0', borderBottom:'0.5px solid #eee', fontSize:11, fontWeight:600, color:'#888' }}>
+                  <span>Fecha</span><span style={{ textAlign:'right' }}>Kcal</span><span style={{ textAlign:'right' }}>P(g)</span><span style={{ textAlign:'right' }}>C(g)</span><span style={{ textAlign:'right' }}>G(g)</span>
+                </div>
+                {[...history].reverse().map((d,i) => (
+                  <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:4, padding:'6px 0', borderBottom:'0.5px solid #f5f5f5', fontSize:12 }}>
+                    <span style={{ color:'#555' }}>{d.fechaLabel}</span>
+                    <span style={{ textAlign:'right', fontWeight:500, color: goals?.calories_goal && d.calorias > goals.calories_goal ? '#c0392b' : G }}>{d.calorias}</span>
+                    <span style={{ textAlign:'right', color:'#666' }}>{d.proteina}</span>
+                    <span style={{ textAlign:'right', color:'#666' }}>{d.carbos}</span>
+                    <span style={{ textAlign:'right', color:'#666' }}>{d.grasa}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
     </div>
   )
 }
