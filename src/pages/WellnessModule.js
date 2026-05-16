@@ -97,9 +97,10 @@ export default function WellnessModule({ patient, profile }) {
     const weight = patient?.weight_kg || 70
     const fat = patient?.body_fat_pct || null
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(ANTH_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1000,
