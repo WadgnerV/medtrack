@@ -253,6 +253,7 @@ export default function MaleHealthModule({ patient }) {
       </div>
       <input type="range" min="1" max="10" value={value}
         onChange={e => setLogForm(p => ({ ...p, [field]: parseInt(e.target.value) }))}
+        onInput={e => setLogForm(p => ({ ...p, [field]: parseInt(e.target.value) }))}
         style={{ width:'100%', accentColor: value <= 3 ? '#c0392b' : value <= 6 ? '#e67e22' : G }} />
       <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'#ccc' }}>
         <span>Muy bajo</span><span>Óptimo</span>

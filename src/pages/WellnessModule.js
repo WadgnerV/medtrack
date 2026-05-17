@@ -266,6 +266,7 @@ export default function WellnessModule({ patient, profile }) {
             </div>
             <input type="range" min="1" max="10" value={form.stress_level}
               onChange={e => setForm(p => ({ ...p, stress_level: parseInt(e.target.value) }))}
+              onInput={e => setForm(p => ({ ...p, stress_level: parseInt(e.target.value) }))}
               style={{ width:'100%', accentColor: form.stress_level <= 3 ? G : form.stress_level <= 6 ? '#e67e22' : '#c0392b' }} />
             <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#bbb', marginTop:4 }}>
               {[1,2,3,4,5,6,7,8,9,10].map(n => <span key={n}>{n}</span>)}
