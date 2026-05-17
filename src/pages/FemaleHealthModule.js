@@ -720,8 +720,9 @@ export default function FemaleHealthModule({ patient }) {
               <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.7, whiteSpace:'pre-wrap' }}>{renderMarkdown(aiAdvice)}</div>
             </div>
           )}
+        </div>
+      )}
     </>
     )}
-  </div>
   )
 }
