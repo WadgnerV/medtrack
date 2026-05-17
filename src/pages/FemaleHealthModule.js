@@ -124,6 +124,11 @@ export default function FemaleHealthModule({ patient }) {
 
   useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory(); checkControls() } }, [patient])
 
+  async function checkControls() {
+    const { data } = await supabase.from('female_medical_controls').select('id').eq('patient_id', patient.id).limit(1)
+    setHasControls(data && data.length > 0)
+  }
+
   async function deactivatePregnancy() {
     await supabase.from('patients').update({ is_pregnant: false, pregnancy_start_date: null }).eq('id', patient.id)
     window.location.reload()
