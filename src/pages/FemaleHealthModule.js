@@ -75,7 +75,9 @@ function getFirstDayOfMonth(year, month) {
 }
 
 export default function FemaleHealthModule({ patient }) {
-  const [tab, setTab] = useState('calendario')
+  const [tab, setTab] = useState(() => localStorage.getItem('femaleHealthTab') || 'calendario')
+
+  useEffect(() => { localStorage.setItem('femaleHealthTab', tab) }, [tab])
   const [cycles, setCycles] = useState([])
   const [periodDays, setPeriodDays] = useState({})
   const [todaySymptoms, setTodaySymptoms] = useState(null)

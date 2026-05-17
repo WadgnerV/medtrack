@@ -27,7 +27,9 @@ export default function WellnessModule({ patient, profile }) {
   const [historyMonth, setHistoryMonth] = useState(new Date().toISOString().substring(0,7))
   const [tip, setTip] = useState('')
   const [tipLoading, setTipLoading] = useState(false)
-  const [section, setSection] = useState('sueno')
+  const [section, setSection] = useState(() => localStorage.getItem('wellnessSection') || 'sueno')
+
+  useEffect(() => { localStorage.setItem('wellnessSection', section) }, [section])
 
   const [form, setForm] = useState({
     sleep_hours: '', sleep_quality: '', sleep_start: '', sleep_end: '',

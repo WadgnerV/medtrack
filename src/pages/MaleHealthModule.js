@@ -75,7 +75,9 @@ function formatDate(d) {
 }
 
 export default function MaleHealthModule({ patient }) {
-  const [tab, setTab] = useState('hormonal')
+  const [tab, setTab] = useState(() => localStorage.getItem('maleHealthTab') || 'hormonal')
+
+  useEffect(() => { localStorage.setItem('maleHealthTab', tab) }, [tab])
   const [logs, setLogs] = useState([])
   const [controls, setControls] = useState([])
   const [todayLog, setTodayLog] = useState(null)

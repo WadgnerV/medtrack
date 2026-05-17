@@ -14,7 +14,9 @@ const G = '#1D9E75'
 export default function PatientDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState('inicio')
+  const [view, setView] = useState(() => localStorage.getItem('patientView') || 'inicio')
+
+  useEffect(() => { localStorage.setItem('patientView', view) }, [view])
   const [patient, setPatient] = useState(null)
   const [measurements, setMeasurements] = useState([])
   const [goals, setGoals] = useState([])

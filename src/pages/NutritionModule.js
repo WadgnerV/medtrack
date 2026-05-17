@@ -18,7 +18,9 @@ const ANTH_URL = 'https://mdcqdigxbmfajlmaxrta.supabase.co/functions/v1/claude-p
 export default function NutritionModule({ patient, profile }) {
   const [logs, setLogs] = useState([])
   const [goals, setGoals] = useState(null)
-  const [tab, setTab] = useState('diario')
+  const [tab, setTab] = useState(() => localStorage.getItem('nutritionTab') || 'diario')
+
+  useEffect(() => { localStorage.setItem('nutritionTab', tab) }, [tab])
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [showAddForm, setShowAddForm] = useState(false)
   const [activeMeal, setActiveMeal] = useState('desayuno')
