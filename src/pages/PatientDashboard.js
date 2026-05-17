@@ -651,6 +651,10 @@ export default function PatientDashboard() {
                   <div style={{ background:'linear-gradient(135deg, #0F6E56, #1D9E75)', borderRadius:16, padding:24, color:'#fff', marginBottom:16, textAlign:'center' }}>
                     <div style={{ fontSize:18, fontWeight:700, marginBottom:4, letterSpacing:'0.05em' }}>PLAN PRO ACTIVO</div>
                     <div style={{ fontSize:13, opacity:0.9 }}>Tenés acceso a todas las funcionalidades avanzadas</div>
+                  <button onClick={() => window.open('https://app.lemonsqueezy.com/my-orders', '_blank')}
+                    style={{ marginTop:12, padding:'7px 16px', background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.4)', borderRadius:8, cursor:'pointer', fontSize:12, color:'#fff', fontWeight:500 }}>
+                    Gestionar o cancelar suscripción
+                  </button>
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                     <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Funcionalidades PRO disponibles</div>
