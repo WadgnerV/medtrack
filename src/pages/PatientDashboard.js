@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import NutritionModule from './NutritionModule'
 import WellnessModule from './WellnessModule'
 import FemaleHealthModule from './FemaleHealthModule'
+import MaleHealthModule from './MaleHealthModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -242,6 +243,7 @@ export default function PatientDashboard() {
             { label:'Nutrición', key:'nutricion', pro: true },
             { label:'Bienestar', key:'bienestar', pro: true },
             ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem', pro: true }] : []),
+            ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc', pro: true }] : []),
           ] : []),
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
@@ -264,7 +266,7 @@ export default function PatientDashboard() {
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina' }[view]}
+              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina', saludmasc:'Salud masculina' }[view]}
             </div>
             {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
@@ -621,6 +623,11 @@ export default function PatientDashboard() {
           {/* Vista Salud Femenina PRO */}
           {view === 'saludfem' && profile?.plan === 'pro' && patient?.sex === 'female' && (
             <FemaleHealthModule patient={patient} profile={profile} />
+          )}
+
+          {/* Vista Salud Masculina PRO */}
+          {view === 'saludmasc' && profile?.plan === 'pro' && patient?.sex === 'male' && (
+            <MaleHealthModule patient={patient} profile={profile} />
           )}
 
           {/* Vista PRO */}
