@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import FemaleControlModule from './FemaleControlModule'
 import ContraceptiveModule from './ContraceptiveModule'
+import PregnancyModule from './PregnancyModule'
 
 const G = '#0F6E56'
 
@@ -121,7 +122,12 @@ export default function FemaleHealthModule({ patient }) {
 
   const [sympForm, setSympForm] = useState({ symptoms: [], mood: '', notes: '' })
 
-  useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory() } }, [patient])
+  useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory(); checkControls() } }, [patient])
+
+  async function deactivatePregnancy() {
+    await supabase.from('patients').update({ is_pregnant: false, pregnancy_start_date: null }).eq('id', patient.id)
+    window.location.reload()
+  }
 
   async function loadCycles() {
     const { data } = await supabase.from('menstrual_cycles')
@@ -351,6 +357,10 @@ export default function FemaleHealthModule({ patient }) {
 
   return (
     <div>
+      {patient?.is_pregnant ? (
+        <PregnancyModule patient={patient} onDeactivate={deactivatePregnancy} />
+      ) : (
+      <>
       <div style={{ display:'flex', gap:6, marginBottom:14 }}>
         {[
           { key:'calendario', label:'Calendario' },
@@ -592,6 +602,28 @@ export default function FemaleHealthModule({ patient }) {
             </div>
           )}
 
+          {/* Botón activar embarazo si hay retraso */}
+          {pred && pred.isLate && !patient?.is_pregnant && (
+            <div style={{ background:'#fff8e1', border:'1px solid #ffe082', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:'#795548', marginBottom:6 }}>
+                Tu ciclo lleva {Math.abs(pred.daysUntilNext)} días de retraso
+              </div>
+              <div style={{ fontSize:12, color:'#888', marginBottom:10 }}>
+                Si creés que podrías estar embarazada, podés activar el modo embarazo. Tu médico también puede activarlo desde su panel.
+              </div>
+              <button onClick={async () => {
+                const confirm = window.confirm('¿Confirmar que estás embarazada y activar el modo embarazo? Tu médico podrá ver esta información.')
+                if (!confirm) return
+                const startDate = pred.lastStart
+                await supabase.from('patients').update({ is_pregnant: true, pregnancy_start_date: startDate }).eq('id', patient.id)
+                window.location.reload()
+              }}
+                style={{ width:'100%', padding:'9px', background:'#795548', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+                Activar modo embarazo
+              </button>
+            </div>
+          )}
+
           {cycles.length === 0 && (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>
               Tocá el primer día de tu período para comenzar.
@@ -689,6 +721,9 @@ export default function FemaleHealthModule({ patient }) {
             </div>
           )}
         </div>
+      )}
+    </div>
+      </>
       )}
     </div>
   )
