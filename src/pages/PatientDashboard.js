@@ -508,7 +508,18 @@ export default function PatientDashboard() {
 
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(48px, 1fr))', gap:10, marginBottom:16 }}>
                   {Array.from({ length: glassesGoal }).map((_, i) => (
-                    <div key={i} onClick={() => i < glassesCount ? removeWater() : addWater()}
+                    <div key={i} onClick={async () => {
+                      const newCount = i + 1
+                      if (newCount === glassesCount) return
+                      const today = new Date().toISOString().split('T')[0]
+                      const goalMlVal = latest?.weight_kg ? Math.round(latest.weight_kg * 35) : 2000
+                      if (waterLog?.id) {
+                        await supabase.from('water_logs').update({ glasses_count: newCount }).eq('id', waterLog.id)
+                      } else {
+                        await supabase.from('water_logs').insert({ patient_id: patient.id, log_date: today, glasses_count: newCount, goal_ml: goalMlVal })
+                      }
+                      await loadWater(patient.id)
+                    }}
                       style={{ display:'flex', flexDirection:'column', alignItems:'center', cursor:'pointer', userSelect:'none' }}>
                       <div style={{
                         width:44, height:44, borderRadius:12,
