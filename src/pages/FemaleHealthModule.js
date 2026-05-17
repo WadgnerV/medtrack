@@ -357,10 +357,6 @@ export default function FemaleHealthModule({ patient }) {
 
   return (
     <div>
-      {patient?.is_pregnant ? (
-        <PregnancyModule patient={patient} onDeactivate={deactivatePregnancy} />
-      ) : (
-      <>
       <div style={{ display:'flex', gap:6, marginBottom:14 }}>
         {[
           { key:'calendario', label:'Calendario' },
