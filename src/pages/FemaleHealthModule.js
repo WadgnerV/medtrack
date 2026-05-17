@@ -120,6 +120,7 @@ export default function FemaleHealthModule({ patient }) {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
 
+  const [hasControls, setHasControls] = useState(true)
   const [sympForm, setSympForm] = useState({ symptoms: [], mood: '', notes: '' })
 
   useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory(); checkControls() } }, [patient])
