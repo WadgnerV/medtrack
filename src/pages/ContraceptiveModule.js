@@ -235,20 +235,19 @@ export default function ContraceptiveModule({ patient }) {
                 </div>
               </div>
 
-              {/* Nombre específico */}
+              {/* Nombre específico — aparece inline debajo del método seleccionado */}
               {form.method_type && form.method_type !== 'ninguno' && selectedMethod?.names.length > 0 && (
-                <div style={{ marginBottom:12 }}>
-                  <label style={lbl}>¿Cuál específicamente?</label>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                <div style={{ marginLeft:26, marginBottom:8, marginTop:-4 }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, marginBottom:6 }}>
                     {selectedMethod.names.map(name => (
                       <button key={name} onClick={() => { setForm(p => ({ ...p, method_name: name, method_name_other:'' })); setShowOther(name === 'Otro') }}
-                        style={{ padding:'6px 12px', borderRadius:20, border:'none', cursor:'pointer', fontSize:12, fontWeight:500, background: form.method_name === name ? G : '#f0f0f0', color: form.method_name === name ? '#fff' : '#666' }}>
+                        style={{ padding:'7px 10px', borderRadius:8, border: form.method_name === name ? `2px solid ${G}` : '2px solid #eee', cursor:'pointer', fontSize:12, fontWeight:500, background: form.method_name === name ? '#E1F5EE' : '#f8f8f8', color: form.method_name === name ? G : '#555', textAlign:'left' }}>
                         {name}
                       </button>
                     ))}
                   </div>
                   {(form.method_name === 'Otro' || showOther) && (
-                    <input style={{ ...inp, marginTop:8 }} value={form.method_name_other}
+                    <input style={{ ...inp, marginTop:4 }} value={form.method_name_other}
                       onChange={e => setForm(p => ({ ...p, method_name_other: e.target.value }))}
                       placeholder="Escribí el nombre del método..." />
                   )}
