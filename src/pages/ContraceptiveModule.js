@@ -82,6 +82,8 @@ export default function ContraceptiveModule({ patient }) {
         notes: data.notes || ''
       })
       setShowOther(isOther)
+      // Cargar info IA automáticamente
+      getMethodInfo(data.method_type || 'ninguno', data.method_name || '')
     } else {
       setEditing(true)
     }
@@ -113,6 +115,10 @@ export default function ContraceptiveModule({ patient }) {
     setEditing(false)
     setSaving(false); setSaved(true)
     setTimeout(() => setSaved(false), 3000)
+    // Cargar info IA automáticamente
+    const finalMethodType = form.is_using ? form.method_type : 'ninguno'
+    const finalMethodName = form.method_name === 'Otro' ? form.method_name_other : form.method_name
+    getMethodInfo(finalMethodType, finalMethodName)
   }
 
   async function getMethodInfo(methodType, methodName) {
@@ -167,10 +173,7 @@ export default function ContraceptiveModule({ patient }) {
               <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px', fontSize:13, color:'#555', marginBottom:12 }}>
                 No estás usando anticonceptivos actualmente.
               </div>
-              <button onClick={() => getMethodInfo('ninguno', '')} disabled={aiLoading}
-                style={{ width:'100%', padding:'9px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: aiLoading ? 0.7 : 1 }}>
-                {aiLoading ? 'Cargando...' : '¿Querés información sobre anticonceptivos?'}
-              </button>
+
             </div>
           ) : (
             <div>
@@ -186,14 +189,16 @@ export default function ContraceptiveModule({ patient }) {
               {record.notes && (
                 <div style={{ fontSize:12, color:'#888', padding:'8px 0' }}>{record.notes}</div>
               )}
-              <button onClick={() => getMethodInfo(record.method_type, record.method_name)} disabled={aiLoading}
-                style={{ width:'100%', padding:'9px', background:'#f0f0f0', color:'#555', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, marginTop:8, opacity: aiLoading ? 0.7 : 1 }}>
-                {aiLoading ? 'Cargando información...' : aiInfo ? 'Actualizar información' : 'Ver información sobre este método'}
-              </button>
+
             </div>
           )}
 
-          {aiInfo && (
+          {aiLoading && (
+            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px', marginTop:12, fontSize:13, color:'#aaa', textAlign:'center' }}>
+              Cargando información...
+            </div>
+          )}
+          {aiInfo && !aiLoading && (
             <div style={{ background:'#f8f8f8', border:'1px solid #eee', borderRadius:10, padding:'12px 14px', marginTop:12, fontSize:13, color:'#444', lineHeight:1.7 }}>
               <div style={{ fontSize:11, fontWeight:600, color:'#888', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Información educativa</div>
               {aiInfo}
