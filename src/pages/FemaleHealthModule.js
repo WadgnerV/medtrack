@@ -400,8 +400,8 @@ export default function FemaleHealthModule({ patient }) {
                           onMouseEnter={() => rangeStart && setRangeHover(dateStr)}
                           onMouseLeave={() => setRangeHover(null)}
                           style={{
-                            aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center',
-                            borderRadius:6, cursor:'pointer', fontSize:11,
+                            height:36, display:'flex', alignItems:'center', justifyContent:'center',
+                            borderRadius:6, cursor:'pointer', fontSize:12,
                             fontWeight: isToday ? 700 : 400,
                             background: bg,
                             color: isPeriod || isRangeStart ? '#fff' : '#1a1a1a',
@@ -424,14 +424,14 @@ export default function FemaleHealthModule({ patient }) {
                         })
                         return bars.map((bar, i) => (
                           <div key={i} style={{
-                            height: 13,
+                            height: 18,
                             background: bar ? PHASE_COLORS[bar.phase] : 'transparent',
                             borderRadius: bar ? `${bar.isStart ? '6px' : '0'} ${bar.isEnd ? '6px' : '0'} ${bar.isEnd ? '6px' : '0'} ${bar.isStart ? '6px' : '0'}` : 0,
                             display:'flex', alignItems:'center', justifyContent:'center',
                             overflow:'hidden',
                           }}>
                             {bar?.label && (
-                              <span style={{ fontSize:7, color: ['folicular','lutea'].includes(bar.phase) ? '#555' : '#fff', fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', padding:'0 2px' }}>
+                              <span style={{ fontSize:9, color: ['folicular','lutea'].includes(bar.phase) ? '#555' : '#fff', fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', padding:'0 2px' }}>
                                 {bar.label}
                               </span>
                             )}
