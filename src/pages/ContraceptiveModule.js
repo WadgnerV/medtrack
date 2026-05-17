@@ -161,7 +161,7 @@ export default function ContraceptiveModule({ patient }) {
       const { data: { session } } = await supabase.auth.getSession()
       const prompt = methodType === 'ninguno'
         ? 'La paciente no usa anticonceptivos. Dale un mensaje breve, amable y sin presión indicando que si en algún momento desea iniciar un método anticonceptivo, lo ideal es visitar a su médico tratante para recibir orientación personalizada. Máximo 60 palabras. En español.'
-        : `Explica de forma breve y clara para una paciente el método anticonceptivo: "${name}". Incluye: 1) Qué es y cómo funciona (1-2 oraciones), 2) Componentes principales si aplica (muy breve), 3) Las 2-3 advertencias o contraindicaciones más importantes. Usa lenguaje simple, no técnico. Termina recordando que ante dudas debe consultar a su médico. Máximo 120 palabras. En español.`
+        : `Explica de forma breve y clara para una paciente el método anticonceptivo: "${name}". Incluye en este orden: 1) Qué es y cómo funciona (1-2 oraciones simples), 2) Composición farmacológica: si contiene hormonas indica exactamente qué tipo de estrógeno y/o progestágeno tiene y en qué dosis si es relevante; si no tiene componente farmacológico indica claramente "No contiene componentes farmacológicos", 3) Las 2-3 advertencias o contraindicaciones más importantes en lenguaje simple. Termina con una línea recordando consultar al médico ante dudas. Máximo 150 palabras. En español.`
       const res = await fetch(ANTH_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
