@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import FemaleControlModule from './FemaleControlModule'
+import ContraceptiveModule from './ContraceptiveModule'
 
 const G = '#0F6E56'
 const ANTH_URL = 'https://mdcqdigxbmfajlmaxrta.supabase.co/functions/v1/claude-proxy'
@@ -332,6 +333,7 @@ export default function FemaleHealthModule({ patient }) {
           { key:'calendario', label:'Calendario' },
           { key:'sintomas', label:'Síntomas' },
           { key:'control', label:'Control médico', badge: true },
+          { key:'anticonceptivo', label:'Anticonceptivo' },
           { key:'ia', label:'Consejo IA' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
@@ -639,6 +641,10 @@ export default function FemaleHealthModule({ patient }) {
 
       {tab === 'control' && (
         <FemaleControlModule patient={patient} />
+      )}
+
+      {tab === 'anticonceptivo' && (
+        <ContraceptiveModule patient={patient} />
       )}
 
       {tab === 'ia' && (
