@@ -369,8 +369,8 @@ export default function FemaleHealthModule({ patient }) {
             </div>
 
             {/* Header días */}
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:6 }}>
-              {DAYS_ES.map(d => <div key={d} style={{ textAlign:'center', fontSize:11, color:'#aaa', fontWeight:500, padding:'2px 0' }}>{d}</div>)}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1, marginBottom:4 }}>
+              {DAYS_ES.map(d => <div key={d} style={{ textAlign:'center', fontSize:10, color:'#aaa', fontWeight:500, padding:'2px 0' }}>{d}</div>)}
             </div>
 
             {/* Semanas con barras de fase */}
@@ -379,7 +379,7 @@ export default function FemaleHealthModule({ patient }) {
               return (
                 <div key={wi} style={{ marginBottom:4 }}>
                   {/* Días */}
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:2 }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1, marginBottom:1 }}>
                     {week.map((dateStr, di) => {
                       if (!dateStr) return <div key={di} />
                       const day = parseInt(dateStr.split('-')[2])
@@ -401,7 +401,7 @@ export default function FemaleHealthModule({ patient }) {
                           onMouseLeave={() => setRangeHover(null)}
                           style={{
                             aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center',
-                            borderRadius:8, cursor:'pointer', fontSize:12,
+                            borderRadius:6, cursor:'pointer', fontSize:11,
                             fontWeight: isToday ? 700 : 400,
                             background: bg,
                             color: isPeriod || isRangeStart ? '#fff' : '#1a1a1a',
@@ -416,7 +416,7 @@ export default function FemaleHealthModule({ patient }) {
 
                   {/* Barras de fase de la semana */}
                   {weekPhases.length > 0 && (
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:2 }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1, marginBottom:1 }}>
                       {(() => {
                         const bars = Array(7).fill(null)
                         weekPhases.forEach(({ phase, start, end }) => {
@@ -424,14 +424,14 @@ export default function FemaleHealthModule({ patient }) {
                         })
                         return bars.map((bar, i) => (
                           <div key={i} style={{
-                            height: 16,
+                            height: 13,
                             background: bar ? PHASE_COLORS[bar.phase] : 'transparent',
                             borderRadius: bar ? `${bar.isStart ? '6px' : '0'} ${bar.isEnd ? '6px' : '0'} ${bar.isEnd ? '6px' : '0'} ${bar.isStart ? '6px' : '0'}` : 0,
                             display:'flex', alignItems:'center', justifyContent:'center',
                             overflow:'hidden',
                           }}>
                             {bar?.label && (
-                              <span style={{ fontSize:8, color: ['folicular','lutea'].includes(bar.phase) ? '#555' : '#fff', fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', padding:'0 2px' }}>
+                              <span style={{ fontSize:7, color: ['folicular','lutea'].includes(bar.phase) ? '#555' : '#fff', fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', padding:'0 2px' }}>
                                 {bar.label}
                               </span>
                             )}
