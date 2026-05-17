@@ -221,27 +221,30 @@ export default function ContraceptiveModule({ patient }) {
 
           {form.is_using && (
             <>
-              {/* Tipo de método */}
+              {/* Tipo de método con nombres inline */}
               <div style={{ marginBottom:12 }}>
                 <label style={lbl}>Tipo de método</label>
-                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                   {METHODS.map(m => (
-                    <div key={m.type} onClick={() => setForm(p => ({ ...p, method_type: m.type, method_name:'', method_name_other:'' }))}
-                      style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:10, cursor:'pointer', border: form.method_type === m.type ? `2px solid ${G}` : '2px solid #eee', background: form.method_type === m.type ? '#E1F5EE' : '#f8f8f8' }}>
-                      <div style={{ width:16, height:16, borderRadius:'50%', border: form.method_type === m.type ? `2px solid ${G}` : '2px solid #ccc', background: form.method_type === m.type ? G : '#fff', flexShrink:0 }} />
-                      <span style={{ fontSize:13, color:'#1a1a1a' }}>{m.label}</span>
+                    <div key={m.type}>
+                      <div onClick={() => setForm(p => ({ ...p, method_type: m.type, method_name:'', method_name_other:'' }))}
+                        style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 12px', borderRadius:10, cursor:'pointer', border: form.method_type === m.type ? `2px solid ${G}` : '2px solid #eee', background: form.method_type === m.type ? '#E1F5EE' : '#f8f8f8' }}>
+                        <div style={{ width:14, height:14, borderRadius:'50%', border: form.method_type === m.type ? `2px solid ${G}` : '2px solid #ccc', background: form.method_type === m.type ? G : '#fff', flexShrink:0 }} />
+                        <span style={{ fontSize:12, color:'#1a1a1a', fontWeight: form.method_type === m.type ? 500 : 400 }}>{m.label}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Nombre específico — aparece inline debajo del método seleccionado */}
+              {/* Nombres específicos inline */}
               {form.method_type && form.method_type !== 'ninguno' && selectedMethod?.names.length > 0 && (
-                <div style={{ marginLeft:26, marginBottom:8, marginTop:-4 }}>
+                <div style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px', marginBottom:12, border:'1px solid #eee' }}>
+                  <div style={{ fontSize:12, color:'#888', marginBottom:8, fontWeight:500 }}>Seleccioná el método específico:</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, marginBottom:6 }}>
                     {selectedMethod.names.map(name => (
                       <button key={name} onClick={() => { setForm(p => ({ ...p, method_name: name, method_name_other:'' })); setShowOther(name === 'Otro') }}
-                        style={{ padding:'7px 10px', borderRadius:8, border: form.method_name === name ? `2px solid ${G}` : '2px solid #eee', cursor:'pointer', fontSize:12, fontWeight:500, background: form.method_name === name ? '#E1F5EE' : '#f8f8f8', color: form.method_name === name ? G : '#555', textAlign:'left' }}>
+                        style={{ padding:'7px 10px', borderRadius:8, border: form.method_name === name ? `2px solid ${G}` : '2px solid #eee', cursor:'pointer', fontSize:12, fontWeight:500, background: form.method_name === name ? '#E1F5EE' : '#fff', color: form.method_name === name ? G : '#555', textAlign:'left' }}>
                         {name}
                       </button>
                     ))}
