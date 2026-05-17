@@ -138,7 +138,7 @@ export default function ContraceptiveModule({ patient }) {
           max_tokens: 500,
           messages: [{
             role: 'user',
-            content: `La paciente escribió "${query}" como nombre de su anticonceptivo. Buscá qué anticonceptivos o métodos anticonceptivos tienen ese nombre o nombre similar. Devuelve SOLO un JSON array con máximo 3 opciones, sin markdown, formato: [{"name": "nombre exacto", "type": "tipo de anticonceptivo en español"}]. Si no encontrás ningún anticonceptivo con ese nombre, devuelve []. Solo incluí medicamentos anticonceptivos reales.`
+            content: `La paciente escribió "${query}" como nombre de su anticonceptivo (puede estar en cualquier idioma o ser un nombre comercial regional de cualquier país). Identificá qué anticonceptivos reales corresponden a ese nombre o nombre similar globalmente. Devuelve SOLO un JSON array con máximo 3 opciones, sin markdown, formato: [{"name": "nombre comercial más conocido", "type": "tipo de anticonceptivo en español"}]. Si hay múltiples nombres para el mismo producto en distintos países, incluí el más relevante. Si no encontrás ningún anticonceptivo con ese nombre, devuelve []. Solo incluí medicamentos anticonceptivos reales.`
           }]
         })
       })
