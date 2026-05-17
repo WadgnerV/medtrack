@@ -722,7 +722,6 @@ export default function FemaleHealthModule({ patient }) {
           )}
         </div>
       )}
-    </>
-    )}
+    </div>
   )
 }
