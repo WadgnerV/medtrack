@@ -55,6 +55,10 @@ export default function ContraceptiveModule({ patient }) {
   const [showOther, setShowOther] = useState(false)
   const [aiInfo, setAiInfo] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
+  const [searchResults, setSearchResults] = useState([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [confirmedName, setConfirmedName] = useState('')
+  const searchTimeout = useState(null)
 
   const [form, setForm] = useState({
     is_using: false,
@@ -119,6 +123,33 @@ export default function ContraceptiveModule({ patient }) {
     const finalMethodType = form.is_using ? form.method_type : 'ninguno'
     const finalMethodName = form.method_name === 'Otro' ? form.method_name_other : form.method_name
     getMethodInfo(finalMethodType, finalMethodName)
+  }
+
+  async function searchMedication(query) {
+    if (!query || query.length < 2) { setSearchResults([]); return }
+    setSearchLoading(true); setSearchResults([])
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(ANTH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{
+            role: 'user',
+            content: `La paciente escribió "${query}" como nombre de su anticonceptivo. Buscá qué anticonceptivos o métodos anticonceptivos tienen ese nombre o nombre similar. Devuelve SOLO un JSON array con máximo 3 opciones, sin markdown, formato: [{"name": "nombre exacto", "type": "tipo de anticonceptivo en español"}]. Si no encontrás ningún anticonceptivo con ese nombre, devuelve []. Solo incluí medicamentos anticonceptivos reales.`
+          }]
+        })
+      })
+      const data = await res.json()
+      const text = data.content?.[0]?.text || '[]'
+      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+      setSearchResults(Array.isArray(parsed) ? parsed : [])
+    } catch(e) {
+      setSearchResults([])
+    }
+    setSearchLoading(false)
   }
 
   async function getMethodInfo(methodType, methodName) {
@@ -255,9 +286,45 @@ export default function ContraceptiveModule({ patient }) {
                     ))}
                   </div>
                   {(form.method_name === 'Otro' || showOther) && (
-                    <input style={{ ...inp, marginTop:4 }} value={form.method_name_other}
-                      onChange={e => setForm(p => ({ ...p, method_name_other: e.target.value }))}
-                      placeholder="Escribí el nombre del método..." />
+                    <div style={{ marginTop:4 }}>
+                      <input style={inp} value={form.method_name_other}
+                        onChange={e => {
+                          const val = e.target.value
+                          setForm(p => ({ ...p, method_name_other: val }))
+                          setConfirmedName('')
+                          setSearchResults([])
+                          clearTimeout(searchTimeout[0])
+                          searchTimeout[0] = setTimeout(() => searchMedication(val), 600)
+                        }}
+                        placeholder="Escribí el nombre del anticonceptivo..." />
+                      {searchLoading && (
+                        <div style={{ fontSize:12, color:'#aaa', padding:'6px 4px' }}>Buscando...</div>
+                      )}
+                      {searchResults.length > 0 && !confirmedName && (
+                        <div style={{ background:'#fff', border:'1px solid #eee', borderRadius:8, marginTop:4, overflow:'hidden' }}>
+                          <div style={{ fontSize:11, color:'#888', padding:'6px 10px', background:'#f8f8f8', borderBottom:'1px solid #eee' }}>
+                            Seleccioná el correcto:
+                          </div>
+                          {searchResults.map((r, i) => (
+                            <div key={i} onClick={() => {
+                              setForm(p => ({ ...p, method_name_other: r.name }))
+                              setConfirmedName(r.name)
+                              setSearchResults([])
+                            }}
+                              style={{ padding:'8px 12px', cursor:'pointer', borderBottom:'0.5px solid #f5f5f5', fontSize:13 }}>
+                              <span style={{ fontWeight:500, color:'#1a1a1a' }}>{r.name}</span>
+                              <span style={{ fontSize:11, color:'#888', marginLeft:6 }}>· {r.type}</span>
+                            </div>
+                          ))}
+                          {searchResults.length === 0 && !searchLoading && form.method_name_other.length > 2 && (
+                            <div style={{ padding:'8px 12px', fontSize:12, color:'#aaa' }}>No se encontraron resultados. Verificá el nombre con tu médico.</div>
+                          )}
+                        </div>
+                      )}
+                      {confirmedName && (
+                        <div style={{ fontSize:12, color:G, padding:'4px 4px', fontWeight:500 }}>✓ Seleccionado: {confirmedName}</div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
