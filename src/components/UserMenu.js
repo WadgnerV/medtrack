@@ -45,7 +45,8 @@ export default function UserMenu() {
   }
   const [patientData, setPatientData] = useState({
     first_name: '', last_name: '', id_number: '', phone: '',
-    birth_date: '', sex: '', province: '', canton: '', height_cm: ''
+    birth_date: '', sex: '', province: '', canton: '', height_cm: '',
+    is_menopause: false
   })
   const [doctor, setDoctor] = useState(null)
   const credTypes = ['Titulo','Maestria','Doctorado','Especialidad','Certificacion','Reconocimiento','Otro']
@@ -84,7 +85,7 @@ export default function UserMenu() {
     async function loadPatientData() {
       if (profile?.role !== 'patient' || !profile?.id) return
       const { data } = await supabase.from('patients')
-        .select('birth_date, sex, province, canton, phone, height_cm, id_number, doctor:assigned_doctor_id(first_name, last_name)')
+        .select('birth_date, sex, province, canton, phone, height_cm, id_number, is_menopause, doctor:assigned_doctor_id(first_name, last_name)')
         .eq('profile_id', profile.id)
         .single()
       if (data) {
@@ -98,6 +99,7 @@ export default function UserMenu() {
           province:    data.province      || '',
           canton:      data.canton        || '',
           height_cm:   data.height_cm     || '',
+          is_menopause: data.is_menopause || false,
         })
         if (data.doctor) setDoctor(data.doctor)
       }
@@ -155,13 +157,14 @@ export default function UserMenu() {
         last_name:  patientData.last_name.trim(),
       }).eq('id', profile.id),
       supabase.from('patients').update({
-        phone:      patientData.phone.trim()    || null,
-        birth_date: patientData.birth_date      || null,
-        sex:        patientData.sex             || null,
-        province:   patientData.province        || null,
-        canton:     patientData.canton          || null,
-        height_cm:  patientData.height_cm ? parseInt(patientData.height_cm) : null,
-        id_number:  patientData.id_number.trim() || null,
+        phone:        patientData.phone.trim()    || null,
+        birth_date:   patientData.birth_date      || null,
+        sex:          patientData.sex             || null,
+        province:     patientData.province        || null,
+        canton:       patientData.canton          || null,
+        height_cm:    patientData.height_cm ? parseInt(patientData.height_cm) : null,
+        id_number:    patientData.id_number.trim() || null,
+        is_menopause: patientData.is_menopause || false,
       }).eq('profile_id', profile.id)
     ])
     setSaving(false)
@@ -284,6 +287,19 @@ export default function UserMenu() {
                       <label style={s.lbl}>Estatura (cm)</label>
                       <input style={s.inp} type="number" min="100" max="250" value={patientData.height_cm} onChange={e=>setP('height_cm',e.target.value)} placeholder="170" />
                     </div>
+
+                    {patientData.sex === 'female' && (
+                      <div style={{ marginBottom:14, background:'#f8f8f8', borderRadius:10, padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <div>
+                          <div style={{ fontSize:12, fontWeight:500, color:'#555' }}>En menopausia</div>
+                          <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Activa esta opción si ya no tenés ciclos menstruales</div>
+                        </div>
+                        <div onClick={() => setP('is_menopause', !patientData.is_menopause)}
+                          style={{ width:40, height:22, borderRadius:11, cursor:'pointer', transition:'background 0.2s', position:'relative', background: patientData.is_menopause ? G : '#e0e0e0', flexShrink:0 }}>
+                          <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:3, left: patientData.is_menopause ? 21 : 3, transition:'left 0.2s', boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
+                        </div>
+                      </div>
+                    )}
 
                     {msg && <div style={{ fontSize:12, padding:'8px 11px', borderRadius:8, marginBottom:12, background: msg.includes('Error') || msg.includes('obligatorio') ? '#FAECE7' : '#E1F5EE', color: msg.includes('Error') || msg.includes('obligatorio') ? '#C24B2A' : '#0F6E56' }}>{msg}</div>}
                     <div style={{ display:'flex', gap:8 }}>

@@ -24,8 +24,14 @@ const FLOW_OPTIONS = [
   { value:'abundante', label:'Abundante', color:'#c0392b' },
 ]
 
+const BLEEDING_TYPES = [
+  { value:'normal', label:'Menstruación normal', desc:'Ciclo regular', color:'#c0392b' },
+  { value:'irregular', label:'Sangrado irregular', desc:'Manchado o sangrado fuera de ciclo', color:'#e67e22' },
+]
+
 const PHASE_COLORS = {
   period:    '#c0392b',
+  irregular: '#e67e22',
   lutea:     '#e8a0b4',
   folicular: '#d4b0e8',
   ovulation: '#0F6E56',
@@ -82,6 +88,7 @@ export default function FemaleHealthModule({ patient }) {
   const [rangeHover, setRangeHover] = useState(null)
   const [showFlowPicker, setShowFlowPicker] = useState(false)
   const [pendingRange, setPendingRange] = useState(null)
+  const [pendingType, setPendingType] = useState('normal')
 
   const today = new Date().toISOString().split('T')[0]
   const [calYear, setCalYear] = useState(new Date().getFullYear())
@@ -107,9 +114,10 @@ export default function FemaleHealthModule({ patient }) {
     data.forEach(c => {
       if (!c.cycle_start_date) return
       const end = c.cycle_end_date || c.cycle_start_date
+      const isIrregular = c.notes === 'sangrado_irregular'
       let cur = c.cycle_start_date
       while (cur <= end) {
-        days[cur] = c.flow_intensity || 'normal'
+        days[cur] = isIrregular ? '__irregular__' : (c.flow_intensity || 'normal')
         cur = addDays(cur, 1)
       }
     })
@@ -170,15 +178,18 @@ export default function FemaleHealthModule({ patient }) {
       cycle_end_date: end,
       period_duration_days: durationDays,
       flow_intensity: flow,
+      notes: pendingType === 'irregular' ? 'sangrado_irregular' : null,
     })
     await loadPeriodDays()
     await loadCycles()
     setShowFlowPicker(false)
     setPendingRange(null)
+    setPendingType('normal')
   }
 
   function getPredictions() {
-    const sorted = [...cycles].sort((a,b) => a.cycle_start_date > b.cycle_start_date ? -1 : 1)
+    const normalCycles = cycles.filter(c => c.notes !== 'sangrado_irregular')
+    const sorted = [...normalCycles].sort((a,b) => a.cycle_start_date > b.cycle_start_date ? -1 : 1)
     if (sorted.length === 0) return null
     const last = sorted[0]
     const avgLength = sorted.length >= 2
@@ -205,6 +216,7 @@ export default function FemaleHealthModule({ patient }) {
   }
 
   function getDayPhase(dateStr, pred) {
+    if (periodDays[dateStr] === '__irregular__') return 'irregular'
     if (periodDays[dateStr]) return 'period'
     if (!pred) return 'none'
     // Calcular fase para cualquier fecha basada en ciclos
@@ -356,6 +368,10 @@ export default function FemaleHealthModule({ patient }) {
                 {label}
               </div>
             ))}
+            <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#555' }}>
+              <div style={{ width:12, height:12, borderRadius:3, background: PHASE_COLORS.irregular }} />
+              Sangrado irregular
+            </div>
           </div>
 
           {/* Calendario */}
@@ -448,15 +464,43 @@ export default function FemaleHealthModule({ patient }) {
           {/* Flow picker modal */}
           {showFlowPicker && pendingRange && (
             <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:200 }}
-              onClick={() => { setShowFlowPicker(false); setPendingRange(null) }}>
-              <div style={{ background:'#fff', borderRadius:16, padding:24, width:300, boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}
+              onClick={() => { setShowFlowPicker(false); setPendingRange(null); setPendingType('normal') }}>
+              <div style={{ background:'#fff', borderRadius:16, padding:24, width:320, boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}
                 onClick={e => e.stopPropagation()}>
-                <div style={{ fontSize:15, fontWeight:600, marginBottom:4 }}>Período registrado</div>
-                <div style={{ fontSize:13, color:'#888', marginBottom:16 }}>
-                  {formatDate(pendingRange.start)} → {formatDate(pendingRange.end)} ({diffDays(pendingRange.start, pendingRange.end)+1} días)
+                <div style={{ fontSize:15, fontWeight:600, marginBottom:4 }}>Registrar sangrado</div>
+                <div style={{ fontSize:13, color:'#888', marginBottom:14 }}>
+                  {formatDate(pendingRange.start)} → {formatDate(pendingRange.end)} · {diffDays(pendingRange.start, pendingRange.end)+1} días
                 </div>
-                <div style={{ fontSize:13, fontWeight:500, color:'#555', marginBottom:10 }}>¿Cuál fue la intensidad del flujo?</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+
+                {/* Alerta menopausia */}
+                {patient?.is_menopause && (
+                  <div style={{ background:'#fdecea', border:'1px solid #f5c6c6', borderRadius:10, padding:'10px 12px', marginBottom:14, fontSize:12, color:'#c0392b' }}>
+                    <strong>Importante:</strong> Tenés registrada menopausia. Un sangrado genital en menopausia requiere evaluación médica. Consultá con tu médico a la brevedad.
+                  </div>
+                )}
+
+                {/* Tipo de sangrado */}
+                {!patient?.is_menopause && (
+                  <div style={{ marginBottom:14 }}>
+                    <div style={{ fontSize:12, fontWeight:500, color:'#555', marginBottom:8 }}>Tipo de sangrado</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                      {BLEEDING_TYPES.map(t => (
+                        <div key={t.value} onClick={() => setPendingType(t.value)}
+                          style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:10, cursor:'pointer', border: pendingType === t.value ? `2px solid ${t.color}` : '2px solid #eee', background: pendingType === t.value ? '#fff8f8' : '#f8f8f8' }}>
+                          <div style={{ width:12, height:12, borderRadius:'50%', background: t.color, flexShrink:0 }} />
+                          <div>
+                            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{t.label}</div>
+                            <div style={{ fontSize:11, color:'#888' }}>{t.desc}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Intensidad */}
+                <div style={{ fontSize:12, fontWeight:500, color:'#555', marginBottom:8 }}>Intensidad del flujo</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
                   {FLOW_OPTIONS.map(f => (
                     <button key={f.value} onClick={() => savePeriodRange(f.value)}
                       style={{ padding:'10px 14px', borderRadius:10, border:'none', cursor:'pointer', fontSize:13, fontWeight:600, background: f.color, color:'#fff', textAlign:'left' }}>
@@ -464,8 +508,9 @@ export default function FemaleHealthModule({ patient }) {
                     </button>
                   ))}
                 </div>
-                <button onClick={() => { setShowFlowPicker(false); setPendingRange(null) }}
-                  style={{ width:'100%', marginTop:10, padding:'8px', borderRadius:8, border:'1px solid #eee', cursor:'pointer', fontSize:12, color:'#888', background:'#f8f8f8' }}>
+
+                <button onClick={() => { setShowFlowPicker(false); setPendingRange(null); setPendingType('normal') }}
+                  style={{ width:'100%', padding:'8px', borderRadius:8, border:'1px solid #eee', cursor:'pointer', fontSize:12, color:'#888', background:'#f8f8f8' }}>
                   Cancelar
                 </button>
               </div>
@@ -487,6 +532,33 @@ export default function FemaleHealthModule({ patient }) {
                   <span style={{ fontSize:12, fontWeight:600, color: item.color }}>{item.value}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Alerta edad menopausia */}
+          {(() => {
+            const age = patient?.birth_date ? Math.floor((Date.now() - new Date(patient.birth_date + 'T12:00:00')) / (1000*60*60*24*365.25)) : 0
+            if (age >= 40 && !patient?.is_menopause) {
+              return (
+                <div style={{ background:'#fff8e1', border:'1px solid #ffe082', borderRadius:10, padding:'10px 14px', marginBottom:12, fontSize:12, color:'#795548' }}>
+                  Recordá actualizar tu perfil si ya iniciaste la menopausia.
+                </div>
+              )
+            }
+            return null
+          })()}
+
+          {/* Alerta ciclo prolongado */}
+          {pred && cycles.filter(c => c.notes !== 'sangrado_irregular').some(c => c.period_duration_days > 8) && (
+            <div style={{ background:'#fff3e0', border:'1px solid #ffcc80', borderRadius:10, padding:'10px 14px', marginBottom:12, fontSize:12, color:'#e65100' }}>
+              Se detectó un sangrado de más de 8 días. Te recomendamos comentarlo con tu médico en tu próxima consulta.
+            </div>
+          )}
+
+          {/* Alerta sangrado irregular */}
+          {cycles.some(c => c.notes === 'sangrado_irregular') && (
+            <div style={{ background:'#fff3e0', border:'1px solid #ffcc80', borderRadius:10, padding:'10px 14px', marginBottom:12, fontSize:12, color:'#e65100' }}>
+              Tenés registrado sangrado irregular. Tu médico puede verlo en tu historial durante la consulta.
             </div>
           )}
 
