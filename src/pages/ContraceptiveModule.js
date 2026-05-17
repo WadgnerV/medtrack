@@ -42,6 +42,17 @@ const METHODS = [
   },
 ]
 
+function renderMarkdown(text) {
+  if (!text) return null
+  const parts = text.split(/(\*\*[^*]+\*\*)/)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
 function formatDate(d) {
   if (!d) return ''
   return new Date(d + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })
@@ -232,7 +243,7 @@ export default function ContraceptiveModule({ patient }) {
           {aiInfo && !aiLoading && (
             <div style={{ background:'#f8f8f8', border:'1px solid #eee', borderRadius:10, padding:'12px 14px', marginTop:12, fontSize:13, color:'#444', lineHeight:1.7 }}>
               <div style={{ fontSize:11, fontWeight:600, color:'#888', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Información educativa</div>
-              {aiInfo}
+              {renderMarkdown(aiInfo)}
             </div>
           )}
         </div>
