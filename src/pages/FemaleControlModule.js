@@ -81,6 +81,7 @@ export default function FemaleControlModule({ patient }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({ study_type: '', study_date: new Date().toISOString().split('T')[0], result: '', notes: '' })
+  const [editingId, setEditingId] = useState(null)
 
   const age = patient?.birth_date
     ? Math.floor((Date.now() - new Date(patient.birth_date + 'T12:00:00')) / (1000*60*60*24*365.25))
@@ -98,17 +99,34 @@ export default function FemaleControlModule({ patient }) {
   async function saveControl() {
     if (!form.study_type || !form.result || !form.study_date) return
     setSaving(true)
-    await supabase.from('female_medical_controls').insert({
-      patient_id: patient.id,
-      study_type: form.study_type,
-      study_date: form.study_date,
-      result: form.result,
-      notes: form.notes || null,
-    })
+    if (editingId) {
+      await supabase.from('female_medical_controls').update({
+        study_type: form.study_type,
+        study_date: form.study_date,
+        result: form.result,
+        notes: form.notes || null,
+      }).eq('id', editingId)
+    } else {
+      await supabase.from('female_medical_controls').insert({
+        patient_id: patient.id,
+        study_type: form.study_type,
+        study_date: form.study_date,
+        result: form.result,
+        notes: form.notes || null,
+      })
+    }
     await loadControls()
     setForm({ study_type: '', study_date: new Date().toISOString().split('T')[0], result: '', notes: '' })
+    setEditingId(null)
     setSaving(false); setSaved(true); setShowForm(false)
     setTimeout(() => setSaved(false), 3000)
+  }
+
+  function startEdit(c) {
+    setForm({ study_type: c.study_type, study_date: c.study_date, result: c.result, notes: c.notes || '' })
+    setEditingId(c.id)
+    setShowForm(true)
+    setShowHistory(true)
   }
 
   // Obtener último resultado por estudio
@@ -153,7 +171,7 @@ export default function FemaleControlModule({ patient }) {
         {/* Formulario */}
         {showForm && (
           <div style={{ background:'#f8f8f8', borderRadius:10, padding:'14px', marginBottom:14, border:'1px solid #eee' }}>
-            <div style={{ fontSize:13, fontWeight:500, marginBottom:10 }}>Nuevo registro</div>
+            <div style={{ fontSize:13, fontWeight:500, marginBottom:10 }}>{editingId ? 'Editar registro' : 'Nuevo registro'}</div>
             <div style={{ marginBottom:10 }}>
               <label style={lbl}>Estudio</label>
               <select style={inp} value={form.study_type} onChange={e => setForm(p => ({ ...p, study_type: e.target.value, result: '' }))}>
@@ -179,13 +197,13 @@ export default function FemaleControlModule({ patient }) {
               <textarea style={{ ...inp, height:50, resize:'vertical' }} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Observaciones del médico, institución, etc." />
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={() => setShowForm(false)}
+              <button onClick={() => { setShowForm(false); setEditingId(null); setForm({ study_type: '', study_date: new Date().toISOString().split('T')[0], result: '', notes: '' }) }}
                 style={{ padding:'7px 14px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
                 Cancelar
               </button>
               <button onClick={saveControl} disabled={saving || !form.study_type || !form.result}
                 style={{ flex:1, padding:'7px', background: (!form.study_type || !form.result) ? '#f0f0f0' : G, color: (!form.study_type || !form.result) ? '#bbb' : '#fff', border:'none', borderRadius:8, cursor: (!form.study_type || !form.result) ? 'default' : 'pointer', fontSize:13, fontWeight:500 }}>
-                {saving ? 'Guardando...' : 'Guardar'}
+                {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Guardar'}
               </button>
             </div>
           </div>
@@ -245,7 +263,13 @@ export default function FemaleControlModule({ patient }) {
                 <div key={c.id} style={{ padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{study?.label || c.study_type}</div>
-                    <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background: isAbnormal ? '#fdecea' : '#E1F5EE', color: isAbnormal ? '#c0392b' : G, fontWeight:500 }}>{c.result}</span>
+                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background: isAbnormal ? '#fdecea' : '#E1F5EE', color: isAbnormal ? '#c0392b' : G, fontWeight:500 }}>{c.result}</span>
+                      <button onClick={() => startEdit(c)}
+                        style={{ background:'none', border:'1px solid #e0e0e0', borderRadius:6, padding:'2px 8px', cursor:'pointer', fontSize:11, color:'#666' }}>
+                        Editar
+                      </button>
+                    </div>
                   </div>
                   <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>{formatDate(c.study_date)}{c.notes ? ` · ${c.notes}` : ''}</div>
                 </div>
