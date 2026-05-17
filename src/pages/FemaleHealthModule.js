@@ -331,12 +331,15 @@ export default function FemaleHealthModule({ patient }) {
         {[
           { key:'calendario', label:'Calendario' },
           { key:'sintomas', label:'Síntomas' },
-          { key:'control', label:'Control médico' },
+          { key:'control', label:'Control médico', badge: true },
           { key:'ia', label:'Consejo IA' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            style={{ padding:'6px 16px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? G : '#f0f0f0', color: tab === t.key ? '#fff' : '#666' }}>
+            style={{ padding:'6px 16px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? G : '#f0f0f0', color: tab === t.key ? '#fff' : '#666', position:'relative' }}>
             {t.label}
+            {t.badge && cycles.length === 0 && tab !== t.key && (
+              <span style={{ position:'absolute', top:-4, right:-4, width:8, height:8, borderRadius:'50%', background:'#c0392b' }} />
+            )}
           </button>
         ))}
       </div>
