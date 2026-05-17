@@ -4,6 +4,27 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const G = '#0F6E56'
 
+function renderMarkdown(text) {
+  if (!text) return null
+  return text.split('\n').map((line, li) => {
+    const isH2 = line.startsWith('## ')
+    const isH3 = line.startsWith('### ')
+    const cleanLine = line.replace(/^##+ /, '')
+    const parts = cleanLine.split(/(\*\*[^*]+\*\*)/)
+    const rendered = parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i}>{part.slice(2,-2)}</strong>
+      }
+      return part
+    })
+    if (isH2 || isH3) {
+      return <div key={li} style={{ fontWeight:700, fontSize: isH2 ? 14 : 13, color:'#1a1a1a', marginTop:8, marginBottom:2 }}>{rendered}</div>
+    }
+    if (line.trim() === '') return <br key={li} />
+    return <span key={li}>{rendered}<br/></span>
+  })
+}
+
 const MEALS = [
   { key:'desayuno', label:'Desayuno' },
   { key:'merienda_am', label:'Merienda AM' },
@@ -369,7 +390,7 @@ export default function NutritionModule({ patient, profile }) {
           {aiAdvice && (
             <div style={{ background:'#E1F5EE', border:'1px solid #c8e6da', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
               <div style={{ fontSize:13, fontWeight:500, color:'#0F6E56', marginBottom:8 }}>Análisis de hoy</div>
-              <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.7, whiteSpace:'pre-wrap' }}>{aiAdvice}</div>
+              <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.7, whiteSpace:'pre-wrap' }}>{renderMarkdown(aiAdvice)}</div>
             </div>
           )}
 
