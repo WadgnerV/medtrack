@@ -2204,8 +2204,8 @@ function CareModulesAdmin({ patient, doctors }) {
                         </option>
                       ))}
                     </select>
-                    {saving === type + '_prof' && <span style={{ fontSize:12, color:'#aaa', alignSelf:'center' }}>Guardando...</span>}
-                    {saved === type + '_prof' && <span style={{ fontSize:12, color:G, alignSelf:'center' }}>✓</span>}
+                    {saving === m.key + '_prof' && <span style={{ fontSize:12, color:'#aaa', alignSelf:'center' }}>Guardando...</span>}
+                    {saved === m.key + '_prof' && <span style={{ fontSize:12, color:G, alignSelf:'center' }}>✓</span>}
                   </div>
                   {!mod?.assigned_professional_id && (
                     <div style={{ fontSize:11, color:'#e67e22', marginTop:4 }}>
