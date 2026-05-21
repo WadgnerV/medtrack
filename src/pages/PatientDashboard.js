@@ -3,6 +3,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import NutritionModule from './NutritionModule'
 import WellnessModule from './WellnessModule'
 import FemaleHealthModule from './FemaleHealthModule'
+import IntegralModule from './IntegralModule'
+import MetabolicModule from './MetabolicModule'
 import MaleHealthModule from './MaleHealthModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -712,9 +714,13 @@ export default function PatientDashboard() {
                     Aún no ha sido asignado un profesional para esta categoría.
                   </div>
                 )}
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'30px', textAlign:'center', color:'#bbb', fontSize:13 }}>
-                  Módulo en construcción — próximamente disponible
-                </div>
+                {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} />}
+                {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} />}
+                {moduleType !== 'integral' && moduleType !== 'metabolica' && (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'30px', textAlign:'center', color:'#bbb', fontSize:13 }}>
+                    Módulo en construcción — próximamente disponible
+                  </div>
+                )}
               </div>
             )
           })()}
