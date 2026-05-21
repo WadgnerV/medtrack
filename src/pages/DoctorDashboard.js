@@ -650,8 +650,6 @@ export default function DoctorDashboard() {
                   const sortedModules = [...patientCareModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
                   const tabs = [
                     ...sortedModules.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
-                    { key:'notas', label:'Notas clínicas', color: G },
-                    { key:'diagnosticos', label:'Diagnósticos', color: G },
                   ]
                   return tabs.map(tab => (
                     <div key={tab.key} onClick={() => setPatientTab(tab.key)}

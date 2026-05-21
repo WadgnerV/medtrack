@@ -9,14 +9,42 @@ export default function MetabolicModule({ patient, careModule }) {
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
-  const [tab, setTab] = useState(() => localStorage.getItem('metabolicTab') || 'composicion')
+  const [tab, setTab] = useState(() => localStorage.getItem('metabolicTab') || 'notas')
+  const [notes, setNotes] = useState([])
+  const [noteForm, setNoteForm] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'' })
 
   useEffect(() => { localStorage.setItem('metabolicTab', tab) }, [tab])
-  useEffect(() => { if (patient?.id) { loadMeasurements(); loadTreatments(); loadTasks(); loadDiagnoses() } }, [patient])
+  useEffect(() => { if (patient?.id) { loadMeasurements(); loadTreatments(); loadTasks(); loadDiagnoses(); loadNotes() } }, [patient])
+
+  async function loadNotes() {
+    const { data } = await supabase.from('clinical_notes')
+      .select('*, author:recorded_by(first_name, last_name)')
+      .eq('patient_id', patient.id)
+      .eq('module_type', 'metabolica')
+      .order('note_date', { ascending: false })
+    setNotes(data || [])
+  }
+
+  async function saveNote() {
+    if (!noteForm.trim()) return
+    setSavingNote(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('clinical_notes').insert({
+      patient_id: patient.id,
+      module_type: 'metabolica',
+      note_text: noteForm.trim(),
+      note_date: new Date().toISOString().split('T')[0],
+      recorded_by: user.id,
+    })
+    setNoteForm('')
+    await loadNotes()
+    setSavingNote(false)
+  }
 
   async function loadMeasurements() {
     const { data } = await supabase.from('measurements').select('*').eq('patient_id', patient.id).order('measured_at', { ascending: false })
@@ -67,6 +95,7 @@ export default function MetabolicModule({ patient, careModule }) {
   const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
 
   const TABS = [
+    { key:'notas', label:'Notas clínicas' },
     { key:'composicion', label:'Composición corporal' },
     { key:'tratamientos', label:'Tratamientos' },
     { key:'diagnosticos', label:'Diagnósticos' },
@@ -83,6 +112,36 @@ export default function MetabolicModule({ patient, careModule }) {
           </button>
         ))}
       </div>
+
+      {tab === 'notas' && (
+        <div>
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+            <div style={{ fontSize:14, fontWeight:600, marginBottom:10 }}>Nueva nota clínica</div>
+            <textarea value={noteForm} onChange={e => setNoteForm(e.target.value)}
+              placeholder="Escribí la nota clínica de esta consulta..."
+              style={{ width:'100%', padding:'10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', height:100, resize:'vertical' }} />
+            <button onClick={saveNote} disabled={savingNote || !noteForm.trim()}
+              style={{ marginTop:8, padding:'8px 16px', background: COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: savingNote ? 0.7 : 1 }}>
+              {savingNote ? 'Guardando...' : 'Guardar nota'}
+            </button>
+          </div>
+          {notes.length === 0 ? (
+            <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas registradas aún.</div>
+          ) : notes.map(n => (
+            <div key={n.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:8 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                <div style={{ fontSize:12, fontWeight:500, color: COLOR }}>
+                  {n.author ? `${n.author.first_name} ${n.author.last_name}` : 'Médico'}
+                </div>
+                <div style={{ fontSize:11, color:'#aaa' }}>
+                  {new Date(n.note_date).toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}
+                </div>
+              </div>
+              <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{n.note_text}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {tab === 'composicion' && (
         <div>
