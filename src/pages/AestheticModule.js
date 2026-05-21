@@ -1,55 +1,55 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const COLOR = '#8e44ad'
 
 const BODY_ZONES_FRONT = [
-  { id:'cabeza_front', label:'Cabeza', x:'50%', y:'4%' },
-  { id:'frente', label:'Frente', x:'50%', y:'6%' },
-  { id:'ojeras', label:'Ojeras', x:'50%', y:'9%' },
-  { id:'nariz', label:'Nariz', x:'50%', y:'11%' },
-  { id:'pomulos', label:'Pómulos', x:'50%', y:'9.5%' },
-  { id:'labios', label:'Labios', x:'50%', y:'13%' },
-  { id:'menton', label:'Mentón', x:'50%', y:'15%' },
-  { id:'cuello_ant', label:'Cuello', x:'50%', y:'18%' },
-  { id:'axila_der', label:'Axila der.', x:'28%', y:'26%' },
-  { id:'axila_izq', label:'Axila izq.', x:'72%', y:'26%' },
-  { id:'pecho', label:'Pecho/Mamas', x:'50%', y:'30%' },
-  { id:'abdomen', label:'Abdomen', x:'50%', y:'42%' },
-  { id:'brazo_ant_der', label:'Brazo ant. der.', x:'20%', y:'36%' },
-  { id:'brazo_ant_izq', label:'Brazo ant. izq.', x:'80%', y:'36%' },
-  { id:'mano_ant_der', label:'Mano ant. der.', x:'15%', y:'50%' },
-  { id:'mano_ant_izq', label:'Mano ant. izq.', x:'85%', y:'50%' },
-  { id:'zona_genital', label:'Zona genital', x:'50%', y:'54%' },
-  { id:'muslo_ant_der', label:'Muslo ant. der.', x:'37%', y:'64%' },
-  { id:'muslo_ant_izq', label:'Muslo ant. izq.', x:'63%', y:'64%' },
-  { id:'rodilla_der', label:'Rodilla der.', x:'37%', y:'76%' },
-  { id:'rodilla_izq', label:'Rodilla izq.', x:'63%', y:'76%' },
-  { id:'pantorrilla_ant_der', label:'Pantorrilla ant. der.', x:'37%', y:'85%' },
-  { id:'pantorrilla_ant_izq', label:'Pantorrilla ant. izq.', x:'63%', y:'85%' },
-  { id:'tobillo_der', label:'Tobillo der.', x:'37%', y:'93%' },
-  { id:'tobillo_izq', label:'Tobillo izq.', x:'63%', y:'93%' },
-  { id:'pie_der', label:'Pie der.', x:'35%', y:'97%' },
-  { id:'pie_izq', label:'Pie izq.', x:'65%', y:'97%' },
+  { id:'cabeza_front', label:'Cabeza', cx:100, cy:16 },
+  { id:'frente', label:'Frente', cx:100, cy:26 },
+  { id:'ojeras', label:'Ojeras', cx:100, cy:38 },
+  { id:'nariz', label:'Nariz', cx:100, cy:46 },
+  { id:'pomulos', label:'Pómulos', cx:100, cy:42 },
+  { id:'labios', label:'Labios', cx:100, cy:54 },
+  { id:'menton', label:'Mentón', cx:100, cy:62 },
+  { id:'cuello_ant', label:'Cuello', cx:100, cy:74 },
+  { id:'axila_der', label:'Axila der.', cx:70, cy:102 },
+  { id:'axila_izq', label:'Axila izq.', cx:130, cy:102 },
+  { id:'pecho', label:'Pecho/Mamas', cx:100, cy:118 },
+  { id:'abdomen', label:'Abdomen', cx:100, cy:155 },
+  { id:'brazo_ant_der', label:'Brazo ant. der.', cx:55, cy:130 },
+  { id:'brazo_ant_izq', label:'Brazo ant. izq.', cx:145, cy:130 },
+  { id:'mano_ant_der', label:'Mano ant. der.', cx:57, cy:180 },
+  { id:'mano_ant_izq', label:'Mano ant. izq.', cx:143, cy:180 },
+  { id:'zona_genital', label:'Zona genital', cx:100, cy:210 },
+  { id:'muslo_ant_der', label:'Muslo ant. der.', cx:82, cy:270 },
+  { id:'muslo_ant_izq', label:'Muslo ant. izq.', cx:118, cy:270 },
+  { id:'rodilla_der', label:'Rodilla der.', cx:82, cy:338 },
+  { id:'rodilla_izq', label:'Rodilla izq.', cx:118, cy:338 },
+  { id:'pantorrilla_ant_der', label:'Pantorrilla ant. der.', cx:82, cy:375 },
+  { id:'pantorrilla_ant_izq', label:'Pantorrilla ant. izq.', cx:118, cy:375 },
+  { id:'tobillo_der', label:'Tobillo der.', cx:82, cy:408 },
+  { id:'tobillo_izq', label:'Tobillo izq.', cx:118, cy:408 },
+  { id:'pie_der', label:'Pie der.', cx:82, cy:422 },
+  { id:'pie_izq', label:'Pie izq.', cx:118, cy:422 },
 ]
 
 const BODY_ZONES_BACK = [
-  { id:'cabeza_back', label:'Cabeza/Nuca', x:'50%', y:'4%' },
-  { id:'cuello_post', label:'Cuello post.', x:'50%', y:'18%' },
-  { id:'espalda_alta', label:'Espalda alta', x:'50%', y:'27%' },
-  { id:'espalda_media', label:'Espalda media', x:'50%', y:'36%' },
-  { id:'lumbar', label:'Zona lumbar', x:'50%', y:'44%' },
-  { id:'gluteos', label:'Glúteos', x:'50%', y:'54%' },
-  { id:'brazo_post_der', label:'Brazo post. der.', x:'20%', y:'36%' },
-  { id:'brazo_post_izq', label:'Brazo post. izq.', x:'80%', y:'36%' },
-  { id:'mano_post_der', label:'Mano post. der.', x:'15%', y:'50%' },
-  { id:'mano_post_izq', label:'Mano post. izq.', x:'85%', y:'50%' },
-  { id:'muslo_post_der', label:'Muslo post. der.', x:'37%', y:'64%' },
-  { id:'muslo_post_izq', label:'Muslo post. izq.', x:'63%', y:'64%' },
-  { id:'pantorrilla_post_der', label:'Pantorrilla post. der.', x:'37%', y:'85%' },
-  { id:'pantorrilla_post_izq', label:'Pantorrilla post. izq.', x:'63%', y:'85%' },
-  { id:'tobillo_post_der', label:'Tobillo post. der.', x:'37%', y:'93%' },
-  { id:'tobillo_post_izq', label:'Tobillo post. izq.', x:'63%', y:'93%' },
+  { id:'cabeza_back', label:'Cabeza/Nuca', cx:100, cy:16 },
+  { id:'cuello_post', label:'Cuello post.', cx:100, cy:74 },
+  { id:'espalda_alta', label:'Espalda alta', cx:100, cy:110 },
+  { id:'espalda_media', label:'Espalda media', cx:100, cy:145 },
+  { id:'lumbar', label:'Zona lumbar', cx:100, cy:175 },
+  { id:'gluteos', label:'Glúteos', cx:100, cy:220 },
+  { id:'brazo_post_der', label:'Brazo post. der.', cx:55, cy:130 },
+  { id:'brazo_post_izq', label:'Brazo post. izq.', cx:145, cy:130 },
+  { id:'mano_post_der', label:'Mano post. der.', cx:57, cy:180 },
+  { id:'mano_post_izq', label:'Mano post. izq.', cx:143, cy:180 },
+  { id:'muslo_post_der', label:'Muslo post. der.', cx:82, cy:270 },
+  { id:'muslo_post_izq', label:'Muslo post. izq.', cx:118, cy:270 },
+  { id:'pantorrilla_post_der', label:'Pantorrilla post. der.', cx:82, cy:375 },
+  { id:'pantorrilla_post_izq', label:'Pantorrilla post. izq.', cx:118, cy:375 },
+  { id:'tobillo_post_der', label:'Tobillo post. der.', cx:82, cy:408 },
+  { id:'tobillo_post_izq', label:'Tobillo post. izq.', cx:118, cy:408 },
 ]
 
 function formatDate(d) {
@@ -58,97 +58,153 @@ function formatDate(d) {
 }
 
 function BodyDiagram({ view, zones, procedures, selectedZone, onSelect }) {
-  const containerRef = useRef(null)
-  const chartRef = useRef(null)
-  const zonesWithProc = new Set(procedures.map(p => p.body_zone))
   const [hovered, setHovered] = useState(null)
-  const [dims, setDims] = useState({ width: 0, height: 0 })
+  const zonesWithProc = new Set(procedures.map(p => p.body_zone))
+  const VW = 200
+  const VH = 500
 
-  useEffect(() => {
-    async function init() {
-      if (!containerRef.current) return
-      containerRef.current.innerHTML = ''
-      try {
-        const { BodyChart, ViewSide } = await import('body-muscles')
-        // Deshabilitar clicks de body-muscles — solo usamos como silueta visual
-        const bodyState = {}
-        chartRef.current = new BodyChart(containerRef.current, {
-          view: view === 'front' ? ViewSide.FRONT : ViewSide.BACK,
-          bodyState,
-          onMuscleClick: () => {},
-          onMuscleHover: () => {},
-        })
-        // Deshabilitar pointer events del SVG interno
-        const svg = containerRef.current.querySelector('svg')
-        if (svg) {
-          svg.style.pointerEvents = 'none'
-          const rect = svg.getBoundingClientRect()
-          const parent = containerRef.current.getBoundingClientRect()
-          setDims({ width: parent.width, height: parent.height })
-        }
-      } catch(e) { console.error(e) }
-    }
-    init()
-    return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null } }
-  }, [view])
+  // Silueta frontal — outline minimalista estilo médico
+  const FrontSilhouette = () => (
+    <g stroke="#b0a0b8" strokeWidth="1.8" fill="none" strokeLinejoin="round" strokeLinecap="round">
+      {/* Cabeza */}
+      <ellipse cx="100" cy="38" rx="24" ry="28" />
+      {/* Cuello */}
+      <path d="M88 64 L86 78 M112 64 L114 78" />
+      {/* Clavícula */}
+      <path d="M86 78 Q100 74 114 78" />
+      {/* Hombro izq → brazo */}
+      <path d="M86 78 Q72 82 66 95 Q58 115 56 140 Q55 158 58 172" />
+      {/* Hombro der → brazo */}
+      <path d="M114 78 Q128 82 134 95 Q142 115 144 140 Q145 158 142 172" />
+      {/* Mano izq */}
+      <ellipse cx="57" cy="180" rx="9" ry="12" />
+      {/* Mano der */}
+      <ellipse cx="143" cy="180" rx="9" ry="12" />
+      {/* Torso izq */}
+      <path d="M86 78 Q80 100 79 130 Q78 155 80 175 Q83 188 86 195" />
+      {/* Torso der */}
+      <path d="M114 78 Q120 100 121 130 Q122 155 120 175 Q117 188 114 195" />
+      {/* Cintura */}
+      <path d="M86 195 Q100 199 114 195" />
+      {/* Cadera izq */}
+      <path d="M86 195 Q78 210 76 225 Q74 238 80 248" />
+      {/* Cadera der */}
+      <path d="M114 195 Q122 210 124 225 Q126 238 120 248" />
+      {/* Entrepierna */}
+      <path d="M80 248 Q90 255 100 257 Q110 255 120 248" />
+      {/* Muslo izq exterior */}
+      <path d="M80 248 Q72 275 74 305 Q76 322 80 334" />
+      {/* Muslo izq interior */}
+      <path d="M100 257 Q94 280 94 308 Q94 324 97 334" />
+      {/* Muslo der interior */}
+      <path d="M100 257 Q106 280 106 308 Q106 324 103 334" />
+      {/* Muslo der exterior */}
+      <path d="M120 248 Q128 275 126 305 Q124 322 120 334" />
+      {/* Rodilla izq */}
+      <path d="M80 334 Q85 340 97 340 Q103 338 103 334" />
+      {/* Rodilla der */}
+      <path d="M103 334 Q108 340 120 340 Q124 338 120 334" />
+      {/* Pierna izq exterior */}
+      <path d="M80 338 Q76 365 78 390 Q80 408 84 414" />
+      {/* Pierna izq interior */}
+      <path d="M97 338 Q94 365 94 390 Q94 408 96 414" />
+      {/* Pierna der interior */}
+      <path d="M103 338 Q106 365 106 390 Q106 408 104 414" />
+      {/* Pierna der exterior */}
+      <path d="M120 338 Q124 365 122 390 Q120 408 116 414" />
+      {/* Pie izq */}
+      <path d="M78 412 Q80 422 88 426 Q96 428 97 424" />
+      {/* Pie der */}
+      <path d="M122 412 Q120 422 112 426 Q104 428 103 424" />
+    </g>
+  )
 
-  useEffect(() => {
-    if (!containerRef.current) return
-    const obs = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setDims({ width: entry.contentRect.width, height: entry.contentRect.height })
-      }
-    })
-    obs.observe(containerRef.current)
-    return () => obs.disconnect()
-  }, [])
-
-  function parsePos(val, total) {
-    if (typeof val === 'string' && val.endsWith('%')) {
-      return (parseFloat(val) / 100) * total
-    }
-    return parseFloat(val)
-  }
+  // Silueta posterior
+  const BackSilhouette = () => (
+    <g stroke="#b0a0b8" strokeWidth="1.8" fill="none" strokeLinejoin="round" strokeLinecap="round">
+      {/* Cabeza */}
+      <ellipse cx="100" cy="38" rx="24" ry="28" />
+      {/* Cuello */}
+      <path d="M88 64 L86 78 M112 64 L114 78" />
+      {/* Hombro izq → brazo */}
+      <path d="M86 78 Q72 82 66 95 Q58 115 56 140 Q55 158 58 172" />
+      {/* Hombro der → brazo */}
+      <path d="M114 78 Q128 82 134 95 Q142 115 144 140 Q145 158 142 172" />
+      {/* Mano izq */}
+      <ellipse cx="57" cy="180" rx="9" ry="12" />
+      {/* Mano der */}
+      <ellipse cx="143" cy="180" rx="9" ry="12" />
+      {/* Torso izq */}
+      <path d="M86 78 Q80 100 79 130 Q78 155 80 175 Q83 188 86 195" />
+      {/* Torso der */}
+      <path d="M114 78 Q120 100 121 130 Q122 155 120 175 Q117 188 114 195" />
+      {/* Cintura */}
+      <path d="M86 195 Q100 199 114 195" />
+      {/* Cadera */}
+      <path d="M86 195 Q78 210 76 225 Q74 238 80 248" />
+      <path d="M114 195 Q122 210 124 225 Q126 238 120 248" />
+      <path d="M80 248 Q90 255 100 257 Q110 255 120 248" />
+      {/* Muslos */}
+      <path d="M80 248 Q72 275 74 305 Q76 322 80 334" />
+      <path d="M100 257 Q94 280 94 308 Q94 324 97 334" />
+      <path d="M100 257 Q106 280 106 308 Q106 324 103 334" />
+      <path d="M120 248 Q128 275 126 305 Q124 322 120 334" />
+      {/* Rodillas */}
+      <path d="M80 334 Q85 340 97 340 Q103 338 103 334" />
+      <path d="M103 334 Q108 340 120 340 Q124 338 120 334" />
+      {/* Piernas */}
+      <path d="M80 338 Q76 365 78 390 Q80 408 84 414" />
+      <path d="M97 338 Q94 365 94 390 Q94 408 96 414" />
+      <path d="M103 338 Q106 365 106 390 Q106 408 104 414" />
+      <path d="M120 338 Q124 365 122 390 Q120 408 116 414" />
+      {/* Pies */}
+      <path d="M78 412 Q80 422 88 426 Q96 428 97 424" />
+      <path d="M122 412 Q120 422 112 426 Q104 428 103 424" />
+      {/* Línea columna */}
+      <path d="M100 78 Q100 130 100 195" strokeDasharray="3 3" strokeWidth="1" />
+    </g>
+  )
 
   return (
-    <div style={{ position:'relative', width:'100%' }}>
-      <div ref={containerRef} style={{ width:'100%' }} />
-      {/* Overlay de puntos propios */}
-      {dims.width > 0 && dims.height > 0 && (
-        <div style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none' }}>
-          {zones.map(zone => {
-            const hasProcedure = zonesWithProc.has(zone.id)
-            const isSelected = selectedZone?.id === zone.id
-            const isHov = hovered === zone.id
-            const cx = parsePos(zone.x, dims.width)
-            const cy = parsePos(zone.y, dims.height)
-            const r = isSelected ? 10 : isHov ? 9 : hasProcedure ? 8 : 6
-            return (
-              <div key={zone.id} style={{ position:'absolute', left: cx, top: cy, transform:'translate(-50%,-50%)', pointerEvents:'all', cursor:'pointer', zIndex:10 }}
-                onClick={() => onSelect(isSelected ? null : zone)}
-                onMouseEnter={() => setHovered(zone.id)}
-                onMouseLeave={() => setHovered(null)}>
-                {/* Halo */}
-                {(isSelected || isHov) && (
-                  <div style={{ position:'absolute', width: r*3, height: r*3, borderRadius:'50%', background: COLOR, opacity:0.15, top:'50%', left:'50%', transform:'translate(-50%,-50%)' }} />
-                )}
-                {/* Punto */}
-                <div style={{ width: r*2, height: r*2, borderRadius:'50%', background: isSelected || hasProcedure ? COLOR : '#fff', border:`2px solid ${COLOR}`, opacity: isSelected || hasProcedure ? 1 : 0.5, display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s', boxShadow: isSelected ? `0 0 0 3px ${COLOR}40` : 'none' }}>
-                  {hasProcedure && !isSelected && <div style={{ width:4, height:4, borderRadius:'50%', background:'#fff' }} />}
-                  {isSelected && <span style={{ fontSize:8, color:'#fff', fontWeight:'bold' }}>✓</span>}
-                </div>
-                {/* Tooltip */}
-                {isHov && (
-                  <div style={{ position:'absolute', bottom:'120%', left:'50%', transform:'translateX(-50%)', background:'#222', color:'#fff', fontSize:10, padding:'3px 8px', borderRadius:6, whiteSpace:'nowrap', pointerEvents:'none', zIndex:20 }}>
-                    {zone.label}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
+    <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width:'100%', maxWidth:260, display:'block', margin:'0 auto' }}>
+      {view === 'front' ? <FrontSilhouette /> : <BackSilhouette />}
+
+      {/* Marcadores */}
+      {zones.map(zone => {
+        const hasProcedure = zonesWithProc.has(zone.id)
+        const isSelected = selectedZone?.id === zone.id
+        const isHov = hovered === zone.id
+        const r = isSelected ? 9 : isHov ? 8 : hasProcedure ? 7 : 5
+        return (
+          <g key={zone.id}
+            onClick={() => onSelect(isSelected ? null : zone)}
+            onMouseEnter={() => setHovered(zone.id)}
+            onMouseLeave={() => setHovered(null)}
+            style={{ cursor:'pointer' }}>
+            {(isSelected || isHov) && (
+              <circle cx={zone.cx} cy={zone.cy} r={r+6} fill={COLOR} opacity="0.12" />
+            )}
+            <circle cx={zone.cx} cy={zone.cy} r={r}
+              fill={isSelected || hasProcedure ? COLOR : '#fff'}
+              stroke={COLOR} strokeWidth="1.5"
+              opacity={isSelected || hasProcedure ? 1 : 0.55}
+              style={{ transition:'r 0.15s' }} />
+            {hasProcedure && !isSelected && (
+              <circle cx={zone.cx} cy={zone.cy} r="2.5" fill="#fff" />
+            )}
+            {isSelected && (
+              <text x={zone.cx} y={zone.cy+3.5} textAnchor="middle" fontSize="8" fill="#fff" fontWeight="bold">✓</text>
+            )}
+            {isHov && (
+              <g>
+                <rect x={zone.cx-40} y={zone.cy-28} width="80" height="16" rx="5" fill="#222" opacity="0.88" />
+                <text x={zone.cx} y={zone.cy-17} textAnchor="middle" fontSize="9" fill="#fff">{zone.label}</text>
+              </g>
+            )}
+          </g>
+        )
+      })}
+    </svg>
   )
 }
 
