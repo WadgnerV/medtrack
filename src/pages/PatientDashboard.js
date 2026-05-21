@@ -5,6 +5,7 @@ import WellnessModule from './WellnessModule'
 import FemaleHealthModule from './FemaleHealthModule'
 import IntegralModule from './IntegralModule'
 import MetabolicModule from './MetabolicModule'
+import AestheticModule from './AestheticModule'
 import MaleHealthModule from './MaleHealthModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -717,7 +718,8 @@ export default function PatientDashboard() {
                 )}
                 {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} />}
                 {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} />}
-                {moduleType !== 'integral' && moduleType !== 'metabolica' && (
+                {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} />}
+                {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'30px', textAlign:'center', color:'#bbb', fontSize:13 }}>
                     Módulo en construcción — próximamente disponible
                   </div>
