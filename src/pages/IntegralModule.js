@@ -150,13 +150,17 @@ export default function IntegralModule({ patient, careModule }) {
           <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Tratamientos activos</div>
           {treatments.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin tratamientos activos.</div>
-          ) : treatments.map(t => (
-            <div key={t.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-              <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name}</div>
-              {t.description && <div style={{ fontSize:12, color:'#888' }}>{t.description}</div>}
-              {t.dosage && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Dosis: {t.dosage}</div>}
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              {treatments.map(t => (
+                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                  <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name}</div>
+                  {t.description && <div style={{ fontSize:12, color:'#888' }}>{t.description}</div>}
+                  {t.dosage && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Dosis: {t.dosage}</div>}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -166,15 +170,17 @@ export default function IntegralModule({ patient, careModule }) {
           <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Diagnósticos activos</div>
           {diagnoses.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin diagnósticos registrados.</div>
-          ) : diagnoses.map(d => (
-            <div key={d.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{d.cie10_description}</div>
-                <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:COLOR, fontWeight:500 }}>{d.cie10_code}</span>
-              </div>
-              {d.diagnosis_date && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>{new Date(d.diagnosis_date).toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}</div>}
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              {diagnoses.map(d => (
+                <div key={d.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                  <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{d.cie10_description}</div>
+                  <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:COLOR, fontWeight:500 }}>{d.cie10_code}</span>
+                  {d.diagnosis_date && <div style={{ fontSize:10, color:'#aaa', marginTop:4 }}>{new Date(d.diagnosis_date).toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}</div>}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -184,13 +190,17 @@ export default function IntegralModule({ patient, careModule }) {
           <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Tareas pendientes</div>
           {tasks.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin tareas pendientes.</div>
-          ) : tasks.map(t => (
-            <div key={t.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-              <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.title}</div>
-              {t.description && <div style={{ fontSize:12, color:'#888' }}>{t.description}</div>}
-              {t.due_date && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Vence: {new Date(t.due_date).toLocaleDateString('es-CR', { day:'numeric', month:'long' })}</div>}
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              {tasks.map(t => (
+                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                  <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.title}</div>
+                  {t.description && <div style={{ fontSize:12, color:'#888' }}>{t.description}</div>}
+                  {t.due_date && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Vence: {new Date(t.due_date).toLocaleDateString('es-CR', { day:'numeric', month:'long' })}</div>}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
