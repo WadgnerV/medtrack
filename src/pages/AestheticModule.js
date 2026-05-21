@@ -324,33 +324,7 @@ export default function AestheticModule({ patient }) {
       </div>
 
       {tab === 'notas' && (
-        <div>
-          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-            <div style={{ fontSize:14, fontWeight:600, marginBottom:10 }}>Nueva nota clínica</div>
-            <textarea value={noteForm} onChange={e => setNoteForm(e.target.value)}
-              placeholder="Escribí la nota clínica de esta consulta..."
-              style={{ width:'100%', padding:'10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', height:100, resize:'vertical' }} />
-            <button onClick={saveNote} disabled={savingNote || !noteForm.trim()}
-              style={{ marginTop:8, padding:'8px 16px', background: COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: savingNote ? 0.7 : 1 }}>
-              {savingNote ? 'Guardando...' : 'Guardar nota'}
-            </button>
-          </div>
-          {notes.length === 0 ? (
-            <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas registradas aún.</div>
-          ) : notes.map(n => (
-            <div key={n.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:8 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                <div style={{ fontSize:12, fontWeight:500, color: COLOR }}>
-                  {n.author ? `${n.author.first_name} ${n.author.last_name}` : 'Médico'}
-                </div>
-                <div style={{ fontSize:11, color:'#aaa' }}>
-                  {new Date(n.note_date).toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}
-                </div>
-              </div>
-              <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{n.note_text}</div>
-            </div>
-          ))}
-        </div>
+        <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' />
       )}
 
       {tab === 'diagrama' && (
@@ -371,33 +345,7 @@ export default function AestheticModule({ patient }) {
               </button>
             </div>
             {tab === 'notas' && (
-        <div>
-          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-            <div style={{ fontSize:14, fontWeight:600, marginBottom:10 }}>Nueva nota clínica</div>
-            <textarea value={noteForm} onChange={e => setNoteForm(e.target.value)}
-              placeholder="Escribí la nota clínica de esta consulta..."
-              style={{ width:'100%', padding:'10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', height:100, resize:'vertical' }} />
-            <button onClick={saveNote} disabled={savingNote || !noteForm.trim()}
-              style={{ marginTop:8, padding:'8px 16px', background: COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: savingNote ? 0.7 : 1 }}>
-              {savingNote ? 'Guardando...' : 'Guardar nota'}
-            </button>
-          </div>
-          {notes.length === 0 ? (
-            <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas registradas aún.</div>
-          ) : notes.map(n => (
-            <div key={n.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:8 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                <div style={{ fontSize:12, fontWeight:500, color: COLOR }}>
-                  {n.author ? `${n.author.first_name} ${n.author.last_name}` : 'Médico'}
-                </div>
-                <div style={{ fontSize:11, color:'#aaa' }}>
-                  {new Date(n.note_date).toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}
-                </div>
-              </div>
-              <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{n.note_text}</div>
-            </div>
-          ))}
-        </div>
+        <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' />
       )}
 
       {tab === 'diagrama' && (
