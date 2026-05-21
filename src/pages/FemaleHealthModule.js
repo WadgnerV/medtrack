@@ -162,6 +162,7 @@ export default function FemaleHealthModule({ patient }) {
     if (toInsert.length > 0) {
       await supabase.from('patient_diagnoses').insert(toInsert)
     }
+    await supabase.from('patients').update({ cycle_delay_acknowledged: true }).eq('id', patient.id)
     await loadDiagnoses()
     setShowConditionModal(false)
     setSelectedConditions([])
@@ -260,6 +261,9 @@ export default function FemaleHealthModule({ patient }) {
       flow_intensity: flow,
       notes: pendingType === 'irregular' ? 'sangrado_irregular' : null,
     })
+    if (pendingType !== 'irregular') {
+      await supabase.from('patients').update({ cycle_delay_acknowledged: false }).eq('id', patient.id)
+    }
     await loadPeriodDays()
     await loadCycles()
     setShowFlowPicker(false)
@@ -442,7 +446,7 @@ export default function FemaleHealthModule({ patient }) {
             </div>
           )}
 
-          {pred && pred.isLate && !patient?.is_pregnant && (
+          {pred && pred.isLate && !patient?.is_pregnant && !patient?.cycle_delay_acknowledged && (
             <div style={{ background:'#fdecea', border:'1px solid #f5c6c6', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
               <div style={{ fontSize:13, fontWeight:700, color:'#c0392b', marginBottom:4 }}>
                 Tu ciclo lleva {Math.abs(pred.daysUntilNext)} días de retraso
