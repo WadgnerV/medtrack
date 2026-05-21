@@ -122,9 +122,51 @@ export default function FemaleHealthModule({ patient }) {
 
   const [hasControls, setHasControls] = useState(true)
   const [showPregnancyConfirm, setShowPregnancyConfirm] = useState(false)
+  const [showConditionModal, setShowConditionModal] = useState(false)
+  const [selectedConditions, setSelectedConditions] = useState([])
+  const [savingCondition, setSavingCondition] = useState(false)
+  const [existingDiagnoses, setExistingDiagnoses] = useState([])
   const [sympForm, setSympForm] = useState({ symptoms: [], mood: '', notes: '' })
 
-  useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory(); checkControls() } }, [patient])
+  useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory(); checkControls(); loadDiagnoses() } }, [patient])
+
+  async function loadDiagnoses() {
+    const { data } = await supabase.from('patient_diagnoses')
+      .select('cie10_code').eq('patient_id', patient.id)
+    setExistingDiagnoses(data?.map(d => d.cie10_code) || [])
+  }
+
+  async function saveConditions() {
+    if (selectedConditions.length === 0) return
+    setSavingCondition(true)
+    const CONDITIONS = [
+      { code:'E28.2', label:'Síndrome ovárico poliendocrino metabólico' },
+      { code:'E28.3', label:'Insuficiencia ovárica primaria' },
+      { code:'E22.1', label:'Hiperprolactinemia' },
+      { code:'E03.9', label:'Hipotiroidismo' },
+      { code:'E05.9', label:'Hipertiroidismo' },
+      { code:'E24.9', label:'Síndrome de Cushing' },
+      { code:'Z51.1', label:'Neoplasia en tratamiento con quimioterapéuticos' },
+      { code:'Z73.3', label:'Estrés significativo' },
+      { code:'N95.1', label:'Perimenopausia' },
+    ]
+    const toInsert = selectedConditions
+      .filter(code => !existingDiagnoses.includes(code))
+      .map(code => ({
+        patient_id: patient.id,
+        cie10_code: code,
+        cie10_description: CONDITIONS.find(c => c.code === code)?.label || '',
+        diagnosis_date: new Date().toISOString().split('T')[0],
+        is_active: true,
+      }))
+    if (toInsert.length > 0) {
+      await supabase.from('patient_diagnoses').insert(toInsert)
+    }
+    await loadDiagnoses()
+    setShowConditionModal(false)
+    setSelectedConditions([])
+    setSavingCondition(false)
+  }
 
   async function checkControls() {
     const { data } = await supabase.from('female_medical_controls').select('id').eq('patient_id', patient.id).limit(1)
@@ -400,6 +442,27 @@ export default function FemaleHealthModule({ patient }) {
             </div>
           )}
 
+          {pred && pred.isLate && !patient?.is_pregnant && (
+            <div style={{ background:'#fdecea', border:'1px solid #f5c6c6', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#c0392b', marginBottom:4 }}>
+                Tu ciclo lleva {Math.abs(pred.daysUntilNext)} días de retraso
+              </div>
+              <div style={{ fontSize:12, color:'#555', marginBottom:12 }}>
+                Un atraso menstrual puede tener distintas causas. ¿Qué aplica en tu caso?
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                <button onClick={() => setShowPregnancyConfirm(true)}
+                  style={{ padding:'10px 14px', background:'#795548', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, textAlign:'left' }}>
+                  Creo que estoy embarazada
+                </button>
+                <button onClick={() => setShowConditionModal(true)}
+                  style={{ padding:'10px 14px', background:'#fff', color:'#c0392b', border:'1px solid #f5c6c6', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, textAlign:'left' }}>
+                  No estoy embarazada, tengo una condición médica específica
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Instrucciones */}
           <div style={{ fontSize:12, color:'#888', marginBottom:10, background:'#f8f8f8', borderRadius:8, padding:'8px 12px' }}>
             {rangeStart
@@ -610,18 +673,55 @@ export default function FemaleHealthModule({ patient }) {
           )}
 
           {/* Botón activar embarazo si hay retraso */}
-          {pred && pred.isLate && !patient?.is_pregnant && (
-            <div style={{ background:'#fff8e1', border:'1px solid #ffe082', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-              <div style={{ fontSize:13, fontWeight:600, color:'#795548', marginBottom:6 }}>
-                Tu ciclo lleva {Math.abs(pred.daysUntilNext)} días de retraso
+
+
+          {/* Modal condiciones médicas */}
+          {showConditionModal && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:300 }}
+              onClick={() => setShowConditionModal(false)}>
+              <div style={{ background:'#fff', borderRadius:16, padding:24, width:340, maxHeight:'80vh', overflowY:'auto', boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}
+                onClick={e => e.stopPropagation()}>
+                <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Condición médica asociada</div>
+                <div style={{ fontSize:12, color:'#888', marginBottom:16 }}>Seleccioná las condiciones que aplican. Se agregarán a tus diagnósticos activos.</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+                  {[
+                    { code:'E28.2', label:'Síndrome ovárico poliendocrino metabólico' },
+                    { code:'E28.3', label:'Insuficiencia ovárica primaria' },
+                    { code:'E22.1', label:'Hiperprolactinemia' },
+                    { code:'E03.9', label:'Hipotiroidismo' },
+                    { code:'E05.9', label:'Hipertiroidismo' },
+                    { code:'E24.9', label:'Síndrome de Cushing' },
+                    { code:'Z51.1', label:'Neoplasia en tratamiento con quimioterapéuticos' },
+                    { code:'Z73.3', label:'Estrés significativo' },
+                    { code:'N95.1', label:'Perimenopausia' },
+                  ].map(c => {
+                    const already = existingDiagnoses.includes(c.code)
+                    const selected = selectedConditions.includes(c.code)
+                    return (
+                      <div key={c.code} onClick={() => !already && setSelectedConditions(p => p.includes(c.code) ? p.filter(x => x !== c.code) : [...p, c.code])}
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:10, cursor: already ? 'default' : 'pointer', border: selected ? '2px solid #c0392b' : already ? '2px solid #E1F5EE' : '2px solid #eee', background: already ? '#E1F5EE' : selected ? '#fdecea' : '#f8f8f8', opacity: already ? 0.7 : 1 }}>
+                        <div style={{ width:16, height:16, borderRadius:4, border: selected ? '2px solid #c0392b' : already ? '2px solid #0F6E56' : '2px solid #ccc', background: selected ? '#c0392b' : already ? '#0F6E56' : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                          {(selected || already) && <span style={{ color:'#fff', fontSize:10, fontWeight:700 }}>✓</span>}
+                        </div>
+                        <div>
+                          <div style={{ fontSize:13, color:'#1a1a1a' }}>{c.label}</div>
+                          <div style={{ fontSize:10, color:'#aaa' }}>{c.code}{already ? ' · Ya registrado' : ''}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => { setShowConditionModal(false); setSelectedConditions([]) }}
+                    style={{ flex:1, padding:'9px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
+                    Cancelar
+                  </button>
+                  <button onClick={saveConditions} disabled={savingCondition || selectedConditions.length === 0}
+                    style={{ flex:1, padding:'9px', background: selectedConditions.length === 0 ? '#f0f0f0' : '#c0392b', color: selectedConditions.length === 0 ? '#bbb' : '#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+                    {savingCondition ? 'Guardando...' : 'Guardar diagnósticos'}
+                  </button>
+                </div>
               </div>
-              <div style={{ fontSize:12, color:'#888', marginBottom:10 }}>
-                Si creés que podrías estar embarazada, podés activar el modo embarazo. Tu médico también puede activarlo desde su panel.
-              </div>
-              <button onClick={() => setShowPregnancyConfirm(true)}
-                style={{ width:'100%', padding:'9px', background:'#795548', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
-                Activar modo embarazo
-              </button>
             </div>
           )}
 
