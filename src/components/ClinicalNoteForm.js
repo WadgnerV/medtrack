@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const PLAN_OPTIONS = [
@@ -34,7 +34,6 @@ const emptyForm = {
 }
 
 function parseNoteText(text) {
-  // Intenta parsear una nota guardada de vuelta al form
   const form = { ...emptyForm, planOpciones: [] }
   if (!text) return form
   const sections = text.split('\n\n')
@@ -46,33 +45,27 @@ function parseNoteText(text) {
     else if (s.startsWith('Plan de seguimiento:\n')) {
       const items = s.replace('Plan de seguimiento:\n', '').split('\n').map(l => l.replace('• ', ''))
       items.forEach(item => {
-        if (item.startsWith('Otro: ')) {
-          form.planOtroChecked = true
-          form.planOtro = item.replace('Otro: ', '')
-        } else if (PLAN_OPTIONS.includes(item)) {
-          form.planOpciones.push(item)
-        }
+        if (item.startsWith('Otro: ')) { form.planOtroChecked = true; form.planOtro = item.replace('Otro: ', '') }
+        else if (PLAN_OPTIONS.includes(item)) form.planOpciones.push(item)
       })
     }
   })
   return form
 }
 
-export default function ClinicalNoteForm({ patientId, moduleType, color, onSaved }) {
+export default function ClinicalNoteForm({ patientId, moduleType, color }) {
   const [notes, setNotes] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState('motivo')
   const [form, setForm] = useState(emptyForm)
 
   const G = color || '#0F6E56'
+  const inp1 = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+  const inpM = { ...inp1, height:90, resize:'vertical' }
+  const label = { fontSize:12, fontWeight:600, color:'#555', marginBottom:4, display:'block' }
 
-  useState(() => { if (patientId) load() }, [patientId])
-
-  // Usar useEffect correctamente
-  const { useEffect } = require('react')
   useEffect(() => { if (patientId) load() }, [patientId])
 
   async function load() {
@@ -91,31 +84,19 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, onSaved
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     const payload = {
-      patient_id: patientId,
-      module_type: moduleType,
-      note_text: text,
-      note_date: new Date().toISOString().split('T')[0],
+      patient_id: patientId, module_type: moduleType,
+      note_text: text, note_date: new Date().toISOString().split('T')[0],
       recorded_by: user.id,
     }
-    if (editingId) {
-      await supabase.from('clinical_notes').update(payload).eq('id', editingId)
-    } else {
-      await supabase.from('clinical_notes').insert(payload)
-    }
-    setForm(emptyForm)
-    setEditingId(null)
-    setShowForm(false)
-    setActiveTab('motivo')
-    await load()
-    setSaving(false)
-    if (onSaved) onSaved()
+    if (editingId) await supabase.from('clinical_notes').update(payload).eq('id', editingId)
+    else await supabase.from('clinical_notes').insert(payload)
+    setForm(emptyForm); setEditingId(null); setShowForm(false)
+    await load(); setSaving(false)
   }
 
   function startEdit(note) {
     setForm(parseNoteText(note.note_text))
-    setEditingId(note.id)
-    setShowForm(true)
-    setActiveTab('motivo')
+    setEditingId(note.id); setShowForm(true)
   }
 
   function togglePlan(opt) {
@@ -127,105 +108,90 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, onSaved
     }))
   }
 
-  const NOTE_TABS = [
-    { key:'motivo', label:'Motivo' },
-    { key:'padecimiento', label:'Padecimiento' },
-    { key:'examen', label:'Examen físico' },
-    { key:'procedimiento', label:'Procedimiento' },
-    { key:'plan', label:'Plan' },
-  ]
-
-  const inp = { width:'100%', padding:'9px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', resize:'vertical' }
-
   return (
     <div>
       {/* Botón nueva nota */}
       {!showForm && (
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
-          <button onClick={() => { setShowForm(true); setForm(emptyForm); setEditingId(null); setActiveTab('motivo') }}
+          <button onClick={() => { setShowForm(true); setForm(emptyForm); setEditingId(null) }}
             style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
             + Nueva nota
           </button>
         </div>
       )}
 
-      {/* Formulario */}
+      {/* Formulario en columna */}
       {showForm && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'16px', marginBottom:16 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-            <div style={{ fontSize:14, fontWeight:600 }}>{editingId ? 'Editar nota' : 'Nueva nota clínica'}</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+            <div style={{ fontSize:14, fontWeight:600 }}>{editingId ? 'Editar nota clínica' : 'Nueva nota clínica'}</div>
             <button onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa', lineHeight:1 }}>×</button>
           </div>
 
-          {/* Sub-tabs */}
-          <div style={{ display:'flex', gap:4, marginBottom:14, overflowX:'auto' }}>
-            {NOTE_TABS.map(t => (
-              <button key={t.key} onClick={() => setActiveTab(t.key)}
-                style={{ padding:'5px 12px', borderRadius:6, border:'none', cursor:'pointer', fontSize:12, fontWeight:500, background: activeTab === t.key ? G : '#f0f0f0', color: activeTab === t.key ? '#fff' : '#666', whiteSpace:'nowrap', flexShrink:0 }}>
-                {t.label}
-                {activeTab !== t.key && (
-                  t.key === 'motivo' && form.motivo ? ' ✓' :
-                  t.key === 'padecimiento' && form.padecimiento ? ' ✓' :
-                  t.key === 'examen' && form.examen ? ' ✓' :
-                  t.key === 'procedimiento' && form.procedimiento ? ' ✓' :
-                  t.key === 'plan' && (form.planOpciones.length > 0 || form.planOtroChecked) ? ' ✓' : ''
-                )}
-              </button>
-            ))}
-          </div>
-
-          {activeTab === 'motivo' && (
-            <textarea style={{ ...inp, height:120 }} value={form.motivo}
-              onChange={e => setForm(p => ({ ...p, motivo: e.target.value }))}
-              placeholder="Describí el motivo de consulta..." />
-          )}
-          {activeTab === 'padecimiento' && (
-            <textarea style={{ ...inp, height:120 }} value={form.padecimiento}
-              onChange={e => setForm(p => ({ ...p, padecimiento: e.target.value }))}
-              placeholder="Describí el padecimiento actual..." />
-          )}
-          {activeTab === 'examen' && (
-            <textarea style={{ ...inp, height:120 }} value={form.examen}
-              onChange={e => setForm(p => ({ ...p, examen: e.target.value }))}
-              placeholder="Hallazgos del examen físico..." />
-          )}
-          {activeTab === 'procedimiento' && (
-            <textarea style={{ ...inp, height:120 }} value={form.procedimiento}
-              onChange={e => setForm(p => ({ ...p, procedimiento: e.target.value }))}
-              placeholder="Notas del procedimiento realizado..." />
-          )}
-          {activeTab === 'plan' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            {/* Motivo */}
             <div>
-              <div style={{ fontSize:12, color:'#888', marginBottom:8 }}>Seleccioná todas las que aplican:</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:10 }}>
+              <label style={label}>Motivo de consulta</label>
+              <input type="text" style={inp1} value={form.motivo}
+                onChange={e => setForm(p => ({ ...p, motivo: e.target.value }))}
+                placeholder="Ej: Dolor de cabeza, control rutinario..." />
+            </div>
+
+            {/* Padecimiento */}
+            <div>
+              <label style={label}>Padecimiento actual</label>
+              <textarea style={inpM} value={form.padecimiento}
+                onChange={e => setForm(p => ({ ...p, padecimiento: e.target.value }))}
+                placeholder="Descripción del padecimiento actual..." />
+            </div>
+
+            {/* Examen físico */}
+            <div>
+              <label style={label}>Examen físico</label>
+              <textarea style={inpM} value={form.examen}
+                onChange={e => setForm(p => ({ ...p, examen: e.target.value }))}
+                placeholder="Hallazgos del examen físico..." />
+            </div>
+
+            {/* Procedimiento */}
+            <div>
+              <label style={label}>Notas de procedimiento</label>
+              <input type="text" style={inp1} value={form.procedimiento}
+                onChange={e => setForm(p => ({ ...p, procedimiento: e.target.value }))}
+                placeholder="Procedimiento realizado..." />
+            </div>
+
+            {/* Plan de seguimiento */}
+            <div>
+              <label style={label}>Plan de seguimiento</label>
+              <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
                 {PLAN_OPTIONS.map(opt => (
                   <div key={opt} onClick={() => togglePlan(opt)}
-                    style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, cursor:'pointer', background: form.planOpciones.includes(opt) ? '#E1F5EE' : '#f8f8f8', border: form.planOpciones.includes(opt) ? `1px solid ${G}` : '1px solid transparent' }}>
-                    <div style={{ width:16, height:16, borderRadius:4, border: form.planOpciones.includes(opt) ? `2px solid ${G}` : '2px solid #ccc', background: form.planOpciones.includes(opt) ? G : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      {form.planOpciones.includes(opt) && <span style={{ color:'#fff', fontSize:10, fontWeight:700 }}>✓</span>}
+                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, cursor:'pointer', background: form.planOpciones.includes(opt) ? G+'12' : '#f8f8f8', border: form.planOpciones.includes(opt) ? `1px solid ${G}` : '1px solid transparent' }}>
+                    <div style={{ width:15, height:15, borderRadius:3, border: form.planOpciones.includes(opt) ? `2px solid ${G}` : '2px solid #ccc', background: form.planOpciones.includes(opt) ? G : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      {form.planOpciones.includes(opt) && <span style={{ color:'#fff', fontSize:9, fontWeight:700, lineHeight:1 }}>✓</span>}
                     </div>
-                    <span style={{ fontSize:13, color:'#1a1a1a' }}>{opt}</span>
+                    <span style={{ fontSize:12, color:'#333' }}>{opt}</span>
                   </div>
                 ))}
-                {/* Opción Otra */}
                 <div onClick={() => setForm(p => ({ ...p, planOtroChecked: !p.planOtroChecked }))}
-                  style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, cursor:'pointer', background: form.planOtroChecked ? '#E1F5EE' : '#f8f8f8', border: form.planOtroChecked ? `1px solid ${G}` : '1px solid transparent' }}>
-                  <div style={{ width:16, height:16, borderRadius:4, border: form.planOtroChecked ? `2px solid ${G}` : '2px solid #ccc', background: form.planOtroChecked ? G : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    {form.planOtroChecked && <span style={{ color:'#fff', fontSize:10, fontWeight:700 }}>✓</span>}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, cursor:'pointer', background: form.planOtroChecked ? G+'12' : '#f8f8f8', border: form.planOtroChecked ? `1px solid ${G}` : '1px solid transparent' }}>
+                  <div style={{ width:15, height:15, borderRadius:3, border: form.planOtroChecked ? `2px solid ${G}` : '2px solid #ccc', background: form.planOtroChecked ? G : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    {form.planOtroChecked && <span style={{ color:'#fff', fontSize:9, fontWeight:700, lineHeight:1 }}>✓</span>}
                   </div>
-                  <span style={{ fontSize:13, color:'#1a1a1a' }}>Otra</span>
+                  <span style={{ fontSize:12, color:'#333' }}>Otra</span>
                 </div>
                 {form.planOtroChecked && (
-                  <textarea style={{ ...inp, height:60, marginTop:4 }} value={form.planOtro}
+                  <input type="text" style={{ ...inp1, marginTop:2 }} value={form.planOtro}
                     onChange={e => setForm(p => ({ ...p, planOtro: e.target.value }))}
-                    placeholder="Describí la acción adicional..." />
+                    placeholder="Especificá la acción adicional..." />
                 )}
               </div>
             </div>
-          )}
+          </div>
 
-          <div style={{ display:'flex', gap:8, marginTop:12 }}>
+          <div style={{ display:'flex', gap:8, marginTop:14 }}>
             <button onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}
               style={{ padding:'8px 14px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
               Cancelar
