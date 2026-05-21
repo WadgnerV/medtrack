@@ -362,6 +362,10 @@ export default function FemaleHealthModule({ patient }) {
   const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
   const lbl = { fontSize:12, fontWeight:500, color:'#666', display:'block', marginBottom:4 }
 
+  if (patient?.is_pregnant) {
+    return <PregnancyModule patient={patient} onDeactivate={deactivatePregnancy} />
+  }
+
   return (
     <div>
       <div style={{ display:'flex', gap:6, marginBottom:14 }}>
