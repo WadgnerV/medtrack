@@ -168,6 +168,7 @@ export default function FemaleHealthModule({ patient }) {
     setShowConditionModal(false)
     setSelectedConditions([])
     setSavingCondition(false)
+    window.location.reload()
   }
 
   async function checkControls() {
