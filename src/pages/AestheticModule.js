@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const COLOR = '#8e44ad'
@@ -59,50 +59,93 @@ function formatDate(d) {
 }
 
 function BodySVG({ zones, zonesWithProcedures, selectedZone, onSelect, isBack }) {
+  const [hovered, setHovered] = React.useState(null)
+  const skin = '#f5ede8'
+  const skinStroke = '#d4b8a8'
   return (
-    <svg viewBox="0 0 300 410" style={{ width:'100%', maxWidth:220, cursor:'pointer' }}>
-      {/* Cabeza */}
-      <ellipse cx="150" cy="42" rx="28" ry="32" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Cuello */}
-      <rect x="139" y="72" width="22" height="20" rx="4" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Torso */}
-      <rect x="108" y="90" width="84" height="120" rx="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Brazo der */}
-      <rect x="75" y="94" width="30" height="100" rx="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Brazo izq */}
-      <rect x="195" y="94" width="30" height="100" rx="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Mano der */}
-      <ellipse cx="90" cy="205" rx="14" ry="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Mano izq */}
-      <ellipse cx="210" cy="205" rx="14" ry="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Cadera */}
-      <rect x="108" y="208" width="84" height="38" rx="8" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Muslo der */}
-      <rect x="110" y="243" width="36" height="68" rx="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Muslo izq */}
-      <rect x="154" y="243" width="36" height="68" rx="10" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Pierna der */}
-      <rect x="113" y="308" width="30" height="62" rx="8" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Pierna izq */}
-      <rect x="157" y="308" width="30" height="62" rx="8" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Pie der */}
-      <ellipse cx="122" cy="378" rx="18" ry="8" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
-      {/* Pie izq */}
-      <ellipse cx="178" cy="378" rx="18" ry="8" fill="#f0e8f0" stroke="#d4b0e8" strokeWidth="1.5" />
+    <svg viewBox="0 0 300 480" style={{ width:'100%', maxWidth:280, filter:'drop-shadow(0 2px 8px rgba(0,0,0,0.08))' }}>
+      <defs>
+        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fdf0ea" />
+          <stop offset="100%" stopColor="#ecd4c8" />
+        </linearGradient>
+      </defs>
 
-      {/* Puntos de zonas */}
+      {/* Cabeza */}
+      <ellipse cx="150" cy="48" rx="32" ry="36" fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Orejas */}
+      <ellipse cx="118" cy="52" rx="7" ry="10" fill={skin} stroke={skinStroke} strokeWidth="1" />
+      <ellipse cx="182" cy="52" rx="7" ry="10" fill={skin} stroke={skinStroke} strokeWidth="1" />
+      {/* Cuello */}
+      <path d="M138 82 Q150 86 162 82 L164 104 Q150 108 136 104 Z" fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Hombros y torso */}
+      <path d="M100 108 Q78 112 72 130 L70 160 Q82 158 90 155 L90 220 Q120 228 150 228 Q180 228 210 220 L210 155 Q218 158 230 160 L228 130 Q222 112 200 108 Q175 100 150 100 Q125 100 100 108 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Brazo der */}
+      <path d="M72 132 Q60 140 58 165 Q56 190 62 210 Q66 220 74 222 Q80 220 84 210 Q88 190 86 165 Q84 142 78 132 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Brazo izq */}
+      <path d="M228 132 Q240 140 242 165 Q244 190 238 210 Q234 220 226 222 Q220 220 216 210 Q212 190 214 165 Q216 142 222 132 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Mano der */}
+      <ellipse cx="68" cy="232" rx="12" ry="14" fill={skin} stroke={skinStroke} strokeWidth="1" />
+      {/* Mano izq */}
+      <ellipse cx="232" cy="232" rx="12" ry="14" fill={skin} stroke={skinStroke} strokeWidth="1" />
+      {/* Cadera */}
+      <path d="M90 220 Q90 240 95 250 Q120 260 150 260 Q180 260 205 250 Q210 240 210 220 Q180 228 150 228 Q120 228 90 220 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Muslo der */}
+      <path d="M95 252 Q88 270 90 300 Q92 325 102 335 Q112 340 118 335 Q126 325 126 300 Q126 270 122 252 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Muslo izq */}
+      <path d="M205 252 Q212 270 210 300 Q208 325 198 335 Q188 340 182 335 Q174 325 174 300 Q174 270 178 252 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Pierna der */}
+      <path d="M102 336 Q96 360 98 390 Q100 410 110 416 Q118 418 122 414 Q128 408 128 390 Q128 360 124 336 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Pierna izq */}
+      <path d="M198 336 Q204 360 202 390 Q200 410 190 416 Q182 418 178 414 Q172 408 172 390 Q172 360 176 336 Z"
+        fill="url(#bodyGrad)" stroke={skinStroke} strokeWidth="1.2" />
+      {/* Pie der */}
+      <ellipse cx="110" cy="424" rx="20" ry="9" fill={skin} stroke={skinStroke} strokeWidth="1" />
+      {/* Pie izq */}
+      <ellipse cx="190" cy="424" rx="20" ry="9" fill={skin} stroke={skinStroke} strokeWidth="1" />
+
+      {/* Marcadores de zonas */}
       {zones.map(zone => {
         const hasProcedure = zonesWithProcedures.has(zone.id)
         const isSelected = selectedZone?.id === zone.id
+        const isHovered = hovered === zone.id
+        const r = isSelected ? 10 : isHovered ? 8 : hasProcedure ? 7 : 5
         return (
-          <g key={zone.id} onClick={() => onSelect(isSelected ? null : zone)} style={{ cursor:'pointer' }}>
-            <circle cx={zone.x} cy={zone.y} r={isSelected ? 9 : hasProcedure ? 7 : 5}
-              fill={isSelected ? COLOR : hasProcedure ? COLOR : '#fff'}
-              stroke={COLOR} strokeWidth="1.5"
-              opacity={hasProcedure || isSelected ? 1 : 0.5}
+          <g key={zone.id}
+            onClick={() => onSelect(isSelected ? null : zone)}
+            onMouseEnter={() => setHovered(zone.id)}
+            onMouseLeave={() => setHovered(null)}
+            style={{ cursor:'pointer' }}>
+            {/* Halo */}
+            {(isSelected || isHovered) && (
+              <circle cx={zone.x} cy={zone.y} r={r + 5} fill={COLOR} opacity={0.15} />
+            )}
+            {/* Marcador */}
+            <circle cx={zone.x} cy={zone.y} r={r}
+              fill={isSelected ? COLOR : hasProcedure ? COLOR + 'dd' : '#fff'}
+              stroke={COLOR} strokeWidth={isSelected ? 0 : 1.5}
               style={{ transition:'all 0.15s' }} />
+            {/* Punto interior si tiene procedimiento */}
             {hasProcedure && !isSelected && (
               <circle cx={zone.x} cy={zone.y} r="3" fill="#fff" />
+            )}
+            {/* Check si seleccionado */}
+            {isSelected && (
+              <text x={zone.x} y={zone.y + 4} textAnchor="middle" fontSize="10" fill="#fff" fontWeight="bold">✓</text>
+            )}
+            {/* Tooltip al hover */}
+            {isHovered && !isSelected && (
+              <g>
+                <rect x={zone.x - 35} y={zone.y - 28} width="70" height="18" rx="6" fill="#1a1a1a" opacity={0.85} />
+                <text x={zone.x} y={zone.y - 16} textAnchor="middle" fontSize="9" fill="#fff">{zone.label}</text>
+              </g>
             )}
           </g>
         )
