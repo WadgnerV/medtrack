@@ -165,7 +165,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color }) {
             {/* Plan de seguimiento */}
             <div>
               <label style={label}>Plan de seguimiento</label>
-              <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5 }}>
                 {PLAN_OPTIONS.map(opt => (
                   <div key={opt} onClick={() => togglePlan(opt)}
                     style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, cursor:'pointer', background: form.planOpciones.includes(opt) ? G+'12' : '#f8f8f8', border: form.planOpciones.includes(opt) ? `1px solid ${G}` : '1px solid transparent' }}>
@@ -182,12 +182,12 @@ export default function ClinicalNoteForm({ patientId, moduleType, color }) {
                   </div>
                   <span style={{ fontSize:12, color:'#333' }}>Otra</span>
                 </div>
-                {form.planOtroChecked && (
-                  <input type="text" style={{ ...inp1, marginTop:2 }} value={form.planOtro}
-                    onChange={e => setForm(p => ({ ...p, planOtro: e.target.value }))}
-                    placeholder="Especificá la acción adicional..." />
-                )}
               </div>
+              {form.planOtroChecked && (
+                <input type="text" style={{ ...inp1, marginTop:6 }} value={form.planOtro}
+                  onChange={e => setForm(p => ({ ...p, planOtro: e.target.value }))}
+                  placeholder="Especificá la acción adicional..." />
+              )}
             </div>
           </div>
 
@@ -225,7 +225,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color }) {
               Editar
             </button>
           </div>
-          <div style={{ fontSize:13, color:'#1a1a1a', lineHeight:1.8, whiteSpace:'pre-wrap', background:'#f8f8f8', borderRadius:8, padding:'10px 12px' }}>
+          <div style={{ fontSize:11, color:'#444', lineHeight:1.7, whiteSpace:'pre-wrap', background:'#f8f8f8', borderRadius:8, padding:'10px 12px' }}>
             {n.note_text}
           </div>
         </div>
