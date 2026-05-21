@@ -2173,7 +2173,7 @@ function CareModulesAdmin({ patient, doctors }) {
       <div style={{ fontSize:12, color:'#888', marginBottom:14 }}>
         Activá los módulos de atención asignados a este paciente y asigná un profesional a cada uno.
       </div>
-      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
         {MODULE_TYPES.map(m => {
           const mod = getModule(m.key)
           const isActive = mod?.is_active || false
