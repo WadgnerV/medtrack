@@ -262,21 +262,22 @@ export default function PatientDashboard() {
             fisioterapia: '#e67e22',
             enfermeria:   '#c0392b',
           }
+          const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
           const hasModules = careModules.length > 0
+          const sortedModules = hasModules ? [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type)) : []
           const items = [
             { label:'Inicio', key:'inicio' },
-            ...(hasModules ? careModules.map(m => ({
+            ...sortedModules.map(m => ({
               label: MODULE_LABELS[m.module_type] || m.module_type,
               key: 'modulo_' + m.module_type,
               color: MODULE_COLORS[m.module_type],
               module: m,
-            })) : []),
+            })),
             { label:'Chat con mi médico', key:'chat' },
           ]
           return items.map(item => (
             <div key={item.key} onClick={() => setView(item.key)}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${item.color || G}` : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? (item.color || G) : '#666', fontWeight: view === item.key ? 500 : 400 }}>
-              {item.color && <div style={{ width:6, height:6, borderRadius:'50%', background: item.color, flexShrink:0 }} />}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${item.color || G}` : '2px solid transparent', background: item.color && view === item.key ? item.color + '18' : view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? (item.color || G) : item.color ? item.color : '#666', fontWeight: view === item.key ? 500 : 400 }}>
               {item.label}
             </div>
           ))
