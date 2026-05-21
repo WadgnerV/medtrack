@@ -121,6 +121,7 @@ export default function FemaleHealthModule({ patient }) {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
 
   const [hasControls, setHasControls] = useState(true)
+  const [showPregnancyConfirm, setShowPregnancyConfirm] = useState(false)
   const [sympForm, setSympForm] = useState({ symptoms: [], mood: '', notes: '' })
 
   useEffect(() => { if (patient?.id) { loadCycles(); loadPeriodDays(); loadTodaySymptoms(); loadSymptomsHistory(); checkControls() } }, [patient])
@@ -613,17 +614,39 @@ export default function FemaleHealthModule({ patient }) {
               <div style={{ fontSize:12, color:'#888', marginBottom:10 }}>
                 Si creés que podrías estar embarazada, podés activar el modo embarazo. Tu médico también puede activarlo desde su panel.
               </div>
-              <button onClick={async () => {
-                const confirm = window.confirm('¿Confirmar que estás embarazada y activar el modo embarazo? Tu médico podrá ver esta información.')
-                if (!confirm) return
-                const startDate = pred.lastStart
-                const { error } = await supabase.from('patients').update({ is_pregnant: true, pregnancy_start_date: startDate }).eq('id', patient.id)
-                if (error) { console.error('Error:', error); alert('Error: ' + error.message); return }
-                window.location.reload()
-              }}
+              <button onClick={() => setShowPregnancyConfirm(true)}
                 style={{ width:'100%', padding:'9px', background:'#795548', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
                 Activar modo embarazo
               </button>
+            </div>
+          )}
+
+          {/* Modal confirmacion embarazo */}
+          {showPregnancyConfirm && pred && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:300 }}
+              onClick={() => setShowPregnancyConfirm(false)}>
+              <div style={{ background:'#fff', borderRadius:16, padding:24, width:300, boxShadow:'0 8px 32px rgba(0,0,0,0.2)' }}
+                onClick={e => e.stopPropagation()}>
+                <div style={{ fontSize:15, fontWeight:600, marginBottom:8 }}>Activar modo embarazo</div>
+                <div style={{ fontSize:13, color:'#555', marginBottom:16, lineHeight:1.6 }}>
+                  ¿Confirmás que estás embarazada? Tu médico podrá ver esta información en tu historial.
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => setShowPregnancyConfirm(false)}
+                    style={{ flex:1, padding:'9px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
+                    Cancelar
+                  </button>
+                  <button onClick={async () => {
+                    const { error } = await supabase.from('patients').update({ is_pregnant: true, pregnancy_start_date: pred.lastStart }).eq('id', patient.id)
+                    if (error) { console.error('Error:', error); setShowPregnancyConfirm(false); return }
+                    setShowPregnancyConfirm(false)
+                    window.location.reload()
+                  }}
+                    style={{ flex:1, padding:'9px', background:'#795548', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                    Confirmar
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
