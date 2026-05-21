@@ -157,7 +157,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color }) {
             {/* Procedimiento */}
             <div>
               <label style={label}>Notas de procedimiento</label>
-              <input type="text" style={inp1} value={form.procedimiento}
+              <textarea style={inpM} value={form.procedimiento}
                 onChange={e => setForm(p => ({ ...p, procedimiento: e.target.value }))}
                 placeholder="Procedimiento realizado..." />
             </div>
