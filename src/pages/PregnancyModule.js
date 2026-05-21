@@ -41,6 +41,19 @@ function getCurrentWeek(startDate) {
   return Math.floor(diff / (1000*60*60*24*7))
 }
 
+function getCurrentExtraDays(startDate) {
+  if (!startDate) return 0
+  const totalDays = Math.floor((Date.now() - new Date(startDate + 'T12:00:00').getTime()) / (1000*60*60*24))
+  return totalDays % 7
+}
+
+function getEDD(startDate) {
+  if (!startDate) return null
+  const d = new Date(startDate + 'T12:00:00')
+  d.setDate(d.getDate() + 280)
+  return d.toISOString().split('T')[0]
+}
+
 function formatDate(d) {
   if (!d) return ''
   return new Date(d + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })
@@ -81,6 +94,8 @@ export default function PregnancyModule({ patient, onDeactivate }) {
   useEffect(() => { localStorage.setItem('pregnancyTab', tab) }, [tab])
 
   const currentWeek = getCurrentWeek(patient?.pregnancy_start_date)
+  const currentExtraDays = getCurrentExtraDays(patient?.pregnancy_start_date)
+  const edd = getEDD(patient?.pregnancy_start_date)
 
   const [infoForm, setInfoForm] = useState({
     is_first_pregnancy: true,
@@ -249,10 +264,15 @@ export default function PregnancyModule({ patient, onDeactivate }) {
       {currentWeek && (
         <div style={{ background:'linear-gradient(135deg, #0F6E56, #1D9E75)', borderRadius:12, padding:'14px 16px', color:'#fff', marginBottom:12 }}>
           <div style={{ fontSize:12, opacity:0.85 }}>{trimesterLabel}</div>
-          <div style={{ fontSize:22, fontWeight:700 }}>Semana {currentWeek}</div>
+          <div style={{ fontSize:22, fontWeight:700 }}>Semana {currentWeek}{currentExtraDays > 0 ? ` + ${currentExtraDays}d` : ''}</div>
           <div style={{ fontSize:12, opacity:0.85, marginTop:2 }}>
-            Desde: {formatDate(patient.pregnancy_start_date)}
+            FUR: {formatDate(patient.pregnancy_start_date)}
           </div>
+          {edd && (
+            <div style={{ fontSize:12, opacity:0.85, marginTop:2 }}>
+              Fecha probable de parto (FUR): {formatDate(edd)}
+            </div>
+          )}
           {pregnancyInfo?.is_multiple && (
             <div style={{ fontSize:12, marginTop:4, background:'rgba(255,255,255,0.2)', borderRadius:6, padding:'3px 8px', display:'inline-block' }}>
               {pregnancyInfo.multiple_type || 'Embarazo múltiple'}
@@ -289,15 +309,17 @@ export default function PregnancyModule({ patient, onDeactivate }) {
               {upcomingStudies.length > 0 && (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                   <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Estudios próximos o pendientes</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                   {upcomingStudies.map(s => (
-                    <div key={s.key} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                      <div style={{ width:8, height:8, borderRadius:'50%', background:'#e67e22', flexShrink:0 }} />
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:13, fontWeight:500 }}>{s.label}</div>
-                        <div style={{ fontSize:11, color:'#aaa' }}>Semanas {s.weeks}</div>
+                    <div key={s.key} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'8px 10px', background:'#f8f8f8', borderRadius:8 }}>
+                      <div style={{ width:8, height:8, borderRadius:'50%', background:'#e67e22', flexShrink:0, marginTop:3 }} />
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{s.label}</div>
+                        <div style={{ fontSize:11, color:'#aaa' }}>Sem {s.weeks}</div>
                       </div>
                     </div>
                   ))}
+                </div>
                 </div>
               )}
 
@@ -422,28 +444,38 @@ export default function PregnancyModule({ patient, onDeactivate }) {
                 <div style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.05em', padding:'8px 0 4px', marginTop:4 }}>
                   {tri === 1 ? '1er' : tri === 2 ? '2do' : '3er'} trimestre
                 </div>
-                {visibleStudies.filter(s => s.trimester === tri).map(study => {
-                  const last = getLastControl(study.key)
-                  const isAnormal = last?.result === 'Anormal'
-                  return (
-                    <div key={study.key} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                      <div style={{ width:8, height:8, borderRadius:'50%', flexShrink:0, background: isAnormal ? '#c0392b' : !last ? '#bbb' : G }} />
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:12, fontWeight:500 }}>{study.label}</div>
-                        <div style={{ fontSize:11, color:'#aaa' }}>
-                          {last ? `${formatDate(last.study_date)} · ${last.result || 'Sin resultado'}${last.week_done ? ` · sem ${last.week_done}` : ''}` : `Semanas ${study.weeks} · Sin registro`}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                  {visibleStudies.filter(s => s.trimester === tri).map(study => {
+                    const last = getLastControl(study.key)
+                    const isAnormal = last?.result === 'Anormal'
+                    return (
+                      <div key={study.key} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
+                          <div style={{ width:7, height:7, borderRadius:'50%', flexShrink:0, background: isAnormal ? '#c0392b' : !last ? '#bbb' : G }} />
+                          <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a', lineHeight:1.3 }}>{study.label}</div>
+                        </div>
+                        <div style={{ fontSize:10, color:'#aaa', marginBottom:4 }}>
+                          {last ? `${formatDate(last.study_date)}${last.week_done ? ` · sem ${last.week_done}` : ''}` : `Sem ${study.weeks}`}
+                        </div>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                          {last ? (
+                            <span style={{ fontSize:10, padding:'1px 6px', borderRadius:10, background: isAnormal ? '#fdecea' : '#E1F5EE', color: isAnormal ? '#c0392b' : G, fontWeight:500 }}>
+                              {last.result || 'Sin resultado'}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize:10, color:'#ccc' }}>Sin registro</span>
+                          )}
+                          {last && (
+                            <button onClick={() => startEditControl(last)}
+                              style={{ background:'none', border:'1px solid #e0e0e0', borderRadius:6, padding:'1px 6px', cursor:'pointer', fontSize:10, color:'#666' }}>
+                              Editar
+                            </button>
+                          )}
                         </div>
                       </div>
-                      {last && (
-                        <button onClick={() => startEditControl(last)}
-                          style={{ background:'none', border:'1px solid #e0e0e0', borderRadius:6, padding:'2px 8px', cursor:'pointer', fontSize:11, color:'#666' }}>
-                          Editar
-                        </button>
-                      )}
-                      {isAnormal && <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#fdecea', color:'#c0392b', fontWeight:500 }}>Atención</span>}
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
             ))}
           </div>
