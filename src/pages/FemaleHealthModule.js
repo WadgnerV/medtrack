@@ -160,7 +160,8 @@ export default function FemaleHealthModule({ patient }) {
         is_active: true,
       }))
     if (toInsert.length > 0) {
-      await supabase.from('patient_diagnoses').insert(toInsert)
+      const { error } = await supabase.from('patient_diagnoses').insert(toInsert)
+      if (error) console.error('Insert diagnoses error:', error)
     }
     await supabase.from('patients').update({ cycle_delay_acknowledged: true }).eq('id', patient.id)
     await loadDiagnoses()
