@@ -1609,7 +1609,7 @@ const s = {
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
 
-function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
+function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
   const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
   const latest = measurements[0] || null
 
@@ -1652,7 +1652,7 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
       </div>
 
       <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
-        {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos'].map(t => (
+        {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos','modulos'].map(t => (
           <div key={t} onClick={() => setTab(t)}
             style={{ padding:'9px 14px', fontSize:14, cursor:'pointer', borderBottom: tab === t ? '2px solid #1D9E75' : '2px solid transparent', color: tab === t ? '#1D9E75' : '#888', fontWeight: tab === t ? 500 : 400, textTransform:'capitalize' }}>
             {t}
@@ -1804,6 +1804,10 @@ function PatientProfileAdmin({ patient, measurements, goals, tasks, treatments, 
             {notes.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
           </div>
         </div>
+      )}
+
+      {tab === 'modulos' && (
+        <CareModulesAdmin patient={patient} doctors={doctors} />
       )}
 
       {tab === 'diagnosticos' && (
@@ -2102,4 +2106,118 @@ const sa = {
   btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:14, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
   lbl:        { display:'block', fontSize:14, color:'#666', marginBottom:4, fontWeight:500 },
   inp:        { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
+}
+
+
+function CareModulesAdmin({ patient, doctors }) {
+  const G = '#0F6E56'
+  const [modules, setModules] = useState([])
+  const [saving, setSaving] = useState(null)
+  const [saved, setSaved] = useState(null)
+
+  const MODULE_TYPES = [
+    { key:'integral', label:'Atención médica integral' },
+    { key:'metabolica', label:'Atención médica metabólica' },
+    { key:'estetica', label:'Atención médica estética' },
+    { key:'fisioterapia', label:'Atención de fisioterapia' },
+    { key:'enfermeria', label:'Atención de enfermería' },
+  ]
+
+  useEffect(() => { if (patient?.id) loadModules() }, [patient])
+
+  async function loadModules() {
+    const { data } = await supabase.from('patient_care_modules')
+      .select('*').eq('patient_id', patient.id)
+    setModules(data || [])
+  }
+
+  function getModule(type) {
+    return modules.find(m => m.module_type === type)
+  }
+
+  async function toggleModule(type) {
+    const existing = getModule(type)
+    setSaving(type)
+    if (existing) {
+      await supabase.from('patient_care_modules').update({ is_active: !existing.is_active }).eq('id', existing.id)
+    } else {
+      await supabase.from('patient_care_modules').insert({
+        patient_id: patient.id,
+        module_type: type,
+        is_active: true,
+      })
+    }
+    await loadModules()
+    setSaving(null); setSaved(type); setTimeout(() => setSaved(null), 2000)
+  }
+
+  async function assignProfessional(type, professionalId) {
+    const existing = getModule(type)
+    setSaving(type + '_prof')
+    if (existing) {
+      await supabase.from('patient_care_modules').update({ assigned_professional_id: professionalId || null }).eq('id', existing.id)
+      // Si es integral, también actualizar assigned_doctor_id en patients
+      if (type === 'integral') {
+        await supabase.from('patients').update({ assigned_doctor_id: professionalId || null }).eq('id', patient.id)
+      }
+    }
+    await loadModules()
+    setSaving(null); setSaved(type + '_prof'); setTimeout(() => setSaved(null), 2000)
+  }
+
+  const inp = { width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+
+  return (
+    <div>
+      <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Módulos de atención</div>
+      <div style={{ fontSize:12, color:'#888', marginBottom:14 }}>
+        Activá los módulos de atención asignados a este paciente y asigná un profesional a cada uno.
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+        {MODULE_TYPES.map(m => {
+          const mod = getModule(m.key)
+          const isActive = mod?.is_active || false
+          return (
+            <div key={m.key} style={{ background:'#fff', border: isActive ? `1.5px solid ${G}` : '1px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: isActive ? 12 : 0 }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:600, color: isActive ? G : '#555' }}>{m.label}</div>
+                  {!isActive && <div style={{ fontSize:11, color:'#bbb' }}>No asignado</div>}
+                </div>
+                <div onClick={() => toggleModule(m.key)}
+                  style={{ width:40, height:22, borderRadius:11, cursor:'pointer', transition:'background 0.2s', position:'relative', background: isActive ? G : '#e0e0e0', flexShrink:0 }}>
+                  <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:3, left: isActive ? 21 : 3, transition:'left 0.2s', boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
+                </div>
+              </div>
+
+              {isActive && (
+                <div>
+                  <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>Profesional asignado</div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <select style={{ ...inp, flex:1 }}
+                      value={mod?.assigned_professional_id || ''}
+                      onChange={e => assignProfessional(m.key, e.target.value)}>
+                      <option value="">Sin asignar</option>
+                      {doctors.map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.sex === 'female' ? 'Dra.' : 'Dr.'} {d.first_name} {d.last_name} · {d.specialty || ''}
+                        </option>
+                      ))}
+                    </select>
+                    {saving === type + '_prof' && <span style={{ fontSize:12, color:'#aaa', alignSelf:'center' }}>Guardando...</span>}
+                    {saved === type + '_prof' && <span style={{ fontSize:12, color:G, alignSelf:'center' }}>✓</span>}
+                  </div>
+                  {!mod?.assigned_professional_id && (
+                    <div style={{ fontSize:11, color:'#e67e22', marginTop:4 }}>
+                      Aún no ha sido asignado un profesional para esta categoría
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
