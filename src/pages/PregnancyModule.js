@@ -90,6 +90,8 @@ export default function PregnancyModule({ patient, onDeactivate }) {
   const [aiAdvice, setAiAdvice] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [editingControlId, setEditingControlId] = useState(null)
+  const [showEditFUR, setShowEditFUR] = useState(false)
+  const [newFUR, setNewFUR] = useState('')
 
   useEffect(() => { localStorage.setItem('pregnancyTab', tab) }, [tab])
 
@@ -276,6 +278,34 @@ export default function PregnancyModule({ patient, onDeactivate }) {
           {pregnancyInfo?.is_multiple && (
             <div style={{ fontSize:12, marginTop:4, background:'rgba(255,255,255,0.2)', borderRadius:6, padding:'3px 8px', display:'inline-block' }}>
               {pregnancyInfo.multiple_type || 'Embarazo múltiple'}
+            </div>
+          )}
+          <button onClick={() => { setNewFUR(patient.pregnancy_start_date || ''); setShowEditFUR(true) }}
+            style={{ marginTop:10, padding:'5px 12px', background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:8, cursor:'pointer', fontSize:11, color:'#fff' }}>
+            Modificar fecha de última menstruación
+          </button>
+
+          {showEditFUR && (
+            <div style={{ marginTop:10, background:'rgba(255,255,255,0.15)', borderRadius:10, padding:'12px' }}>
+              <div style={{ fontSize:12, color:'#fff', marginBottom:8 }}>Nueva fecha de última menstruación (FUR):</div>
+              <input type="date" value={newFUR} onChange={e => setNewFUR(e.target.value)}
+                style={{ width:'100%', padding:'7px 10px', fontSize:13, border:'none', borderRadius:8, outline:'none', marginBottom:8, boxSizing:'border-box' }} />
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={() => setShowEditFUR(false)}
+                  style={{ flex:1, padding:'7px', background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.3)', borderRadius:8, cursor:'pointer', fontSize:12, color:'#fff' }}>
+                  Cancelar
+                </button>
+                <button onClick={async () => {
+                  if (!newFUR) return
+                  const { error } = await supabase.from('patients').update({ pregnancy_start_date: newFUR }).eq('id', patient.id)
+                  if (error) { console.error(error); return }
+                  setShowEditFUR(false)
+                  window.location.reload()
+                }}
+                  style={{ flex:1, padding:'7px', background:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:600, color:'#0F6E56' }}>
+                  Guardar FUR
+                </button>
+              </div>
             </div>
           )}
         </div>
