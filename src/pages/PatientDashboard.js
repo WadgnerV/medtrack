@@ -277,7 +277,7 @@ export default function PatientDashboard() {
           ]
           return items.map(item => (
             <div key={item.key} onClick={() => setView(item.key)}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${item.color || G}` : '2px solid transparent', background: item.color && view === item.key ? item.color + '18' : view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? (item.color || G) : item.color ? item.color : '#666', fontWeight: view === item.key ? 500 : 400 }}>
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${item.color || G}` : '2px solid transparent', background: item.color ? (view === item.key ? item.color + '30' : item.color + '12') : view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#1a1a1a' : '#444', fontWeight: view === item.key ? 600 : 400, borderRadius: item.color ? '0 8px 8px 0' : 0, marginRight: item.color ? 8 : 0 }}>
               {item.label}
             </div>
           ))
