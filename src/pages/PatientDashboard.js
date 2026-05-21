@@ -26,6 +26,7 @@ export default function PatientDashboard() {
   const [msgs, setMsgs] = useState([])
   const [clinicalNotes, setClinicalNotes] = useState([])
   const [nextAppt, setNextAppt] = useState(null)
+  const [careModules, setCareModules] = useState([])
   const [loading, setLoading] = useState(true)
   const [chatMsg, setChatMsg] = useState('')
   const [saving, setSaving] = useState(false)
@@ -62,8 +63,17 @@ export default function PatientDashboard() {
         loadTreatments(data.id),
         loadNextAppt(data.id),
         loadMsgs(data.id),
+        loadCareModules(data.id),
       ])
     }
+  }
+
+  async function loadCareModules(pid) {
+    const { data } = await supabase.from('patient_care_modules')
+      .select('*, professional:assigned_professional_id(id, first_name, last_name, specialty, sex, medical_code)')
+      .eq('patient_id', pid)
+      .eq('is_active', true)
+    setCareModules(data || [])
   }
 
   async function loadMeasurements(pid) {
@@ -235,23 +245,52 @@ export default function PatientDashboard() {
           </div>
         </div>
 
-        {[
-          { label:'Inicio', key:'inicio' },
-          { label:'Mi progreso', key:'progreso' },
-          { label:'Mis tareas', key:'tareas' },
-          { label:'Tratamientos', key:'tratamientos' },
-          { label:'Chat con mi medico', key:'chat' },
-          ...(profile?.plan === 'pro' ? [
-            { label:'Nutrición', key:'nutricion', pro: true },
-            { label:'Bienestar', key:'bienestar', pro: true },
-            ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem', pro: true }] : []),
-            ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc', pro: true }] : []),
-          ] : []),
+        {(() => {
+          const MODULE_LABELS = {
+            integral:     'Atención médica integral',
+            metabolica:   'Atención médica metabólica',
+            estetica:     'Atención médica estética',
+            fisioterapia: 'Atención de fisioterapia',
+            enfermeria:   'Atención de enfermería',
+          }
+          const MODULE_COLORS = {
+            integral:     '#1a5c8a',
+            metabolica:   '#0F6E56',
+            estetica:     '#8e44ad',
+            fisioterapia: '#e67e22',
+            enfermeria:   '#c0392b',
+          }
+          const hasModules = careModules.length > 0
+          const items = [
+            { label:'Inicio', key:'inicio' },
+            ...(hasModules ? careModules.map(m => ({
+              label: MODULE_LABELS[m.module_type] || m.module_type,
+              key: 'modulo_' + m.module_type,
+              color: MODULE_COLORS[m.module_type],
+              module: m,
+            })) : []),
+            { label:'Chat con mi médico', key:'chat' },
+          ]
+          return items.map(item => (
+            <div key={item.key} onClick={() => setView(item.key)}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${item.color || G}` : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? (item.color || G) : '#666', fontWeight: view === item.key ? 500 : 400 }}>
+              {item.color && <div style={{ width:6, height:6, borderRadius:'50%', background: item.color, flexShrink:0 }} />}
+              {item.label}
+            </div>
+          ))
+        })()}
+
+        {/* Items PRO */}
+        {profile?.plan === 'pro' && [
+          { label:'Nutrición', key:'nutricion', pro: true },
+          { label:'Bienestar', key:'bienestar', pro: true },
+          ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem', pro: true }] : []),
+          ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc', pro: true }] : []),
         ].map(item => (
           <div key={item.key} onClick={() => setView(item.key)}
-            style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
+            style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${G}` : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#666', fontWeight: view === item.key ? 500 : 400 }}>
             {item.label}
-            {item.pro && <span style={{ fontSize:10, color:'#c8960c', marginLeft:'auto' }}>★</span>}
+            <span style={{ fontSize:10, color:'#c8960c', marginLeft:'auto' }}>★</span>
           </div>
         ))}
 
@@ -268,7 +307,17 @@ export default function PatientDashboard() {
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {{ inicio:'Inicio', progreso:'Mi progreso', tareas:'Mis tareas', tratamientos:'Mis tratamientos', chat:'Chat con mi medico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina', saludmasc:'Salud masculina' }[view]}
+              {(() => {
+                const MODULE_LABELS = {
+                  modulo_integral:     'Atención médica integral',
+                  modulo_metabolica:   'Atención médica metabólica',
+                  modulo_estetica:     'Atención médica estética',
+                  modulo_fisioterapia: 'Atención de fisioterapia',
+                  modulo_enfermeria:   'Atención de enfermería',
+                }
+                const base = { inicio:'Inicio', chat:'Chat con mi médico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina', saludmasc:'Salud masculina' }
+                return { ...base, ...MODULE_LABELS }[view] || view
+              })()}
             </div>
             {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
           </div>
@@ -632,6 +681,43 @@ export default function PatientDashboard() {
           {view === 'bienestar' && profile?.plan === 'pro' && (
             <WellnessModule patient={patient} profile={profile} />
           )}
+
+          {/* Vistas módulos de atención */}
+          {view.startsWith('modulo_') && (() => {
+            const moduleType = view.replace('modulo_', '')
+            const mod = careModules.find(m => m.module_type === moduleType)
+            const MODULE_COLORS = {
+              integral:     '#1a5c8a',
+              metabolica:   '#0F6E56',
+              estetica:     '#8e44ad',
+              fisioterapia: '#e67e22',
+              enfermeria:   '#c0392b',
+            }
+            const color = MODULE_COLORS[moduleType] || G
+            return (
+              <div>
+                {/* Header del módulo */}
+                {mod?.professional && (
+                  <div style={{ background: color, borderRadius:12, padding:'14px 16px', color:'#fff', marginBottom:12 }}>
+                    <div style={{ fontSize:11, opacity:0.8, marginBottom:2 }}>Profesional asignado</div>
+                    <div style={{ fontSize:15, fontWeight:700 }}>
+                      {mod.professional.sex === 'female' ? 'Dra.' : 'Dr.'} {mod.professional.first_name} {mod.professional.last_name}
+                    </div>
+                    {mod.professional.specialty && <div style={{ fontSize:12, opacity:0.85 }}>{mod.professional.specialty}</div>}
+                    {mod.professional.medical_code && <div style={{ fontSize:11, opacity:0.7 }}>Cód. {mod.professional.medical_code}</div>}
+                  </div>
+                )}
+                {!mod?.professional && (
+                  <div style={{ background:'#f8f8f8', border:'1px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, fontSize:13, color:'#888' }}>
+                    Aún no ha sido asignado un profesional para esta categoría.
+                  </div>
+                )}
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'30px', textAlign:'center', color:'#bbb', fontSize:13 }}>
+                  Módulo en construcción — próximamente disponible
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Vista Salud Femenina PRO */}
           {view === 'saludfem' && profile?.plan === 'pro' && patient?.sex === 'female' && (
