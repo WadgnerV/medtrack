@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import IntegralModule from './IntegralModule'
+import MetabolicModule from './MetabolicModule'
+import AestheticModule from './AestheticModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -19,6 +22,7 @@ export default function DoctorDashboard() {
   const [perms, setPerms] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selPatient, setSelPatient] = useState(null)
+  const [patientCareModules, setPatientCareModules] = useState([])
   const [patientTab, setPatientTab] = useState('progreso')
   const [modal, setModal] = useState(null)
   const [modalData, setModalData] = useState({})
@@ -56,11 +60,22 @@ export default function DoctorDashboard() {
   }
 
   async function loadPatients() {
-    const { data } = await supabase.from('patients')
-      .select('id, status, specialty_type, birth_date, sex, province, height_cm, profile:profile_id(id, first_name, last_name, email)')
-      .eq('assigned_doctor_id', profile.id)
-      .order('created_at', { ascending: false })
-    setPatients(data || [])
+    // Pacientes asignados por assigned_doctor_id O por módulo de atención
+    const [byDoctor, byModule] = await Promise.all([
+      supabase.from('patients')
+        .select('id, status, specialty_type, birth_date, sex, province, height_cm, profile:profile_id(id, first_name, last_name, email)')
+        .eq('assigned_doctor_id', profile.id),
+      supabase.from('patient_care_modules')
+        .select('patient:patient_id(id, status, specialty_type, birth_date, sex, province, height_cm, profile:profile_id(id, first_name, last_name, email))')
+        .eq('assigned_professional_id', profile.id)
+        .eq('is_active', true)
+    ])
+    const fromDoctor = byDoctor.data || []
+    const fromModule = (byModule.data || []).map(m => m.patient).filter(Boolean)
+    // Combinar sin duplicados
+    const allIds = new Set(fromDoctor.map(p => p.id))
+    const combined = [...fromDoctor, ...fromModule.filter(p => !allIds.has(p.id))]
+    setPatients(combined)
   }
 
   async function loadAppts() {
@@ -110,11 +125,27 @@ export default function DoctorDashboard() {
     await loadDiagnoses(patientId)
   }
 
+  async function loadPatientCareModules(patientId) {
+    const { data } = await supabase.from('patient_care_modules')
+      .select('*, professional:assigned_professional_id(id, first_name, last_name)')
+      .eq('patient_id', patientId)
+      .eq('is_active', true)
+    const myModules = (data || []).filter(m => m.assigned_professional_id === profile.id)
+    setPatientCareModules(myModules)
+    // Establecer primera pestaña según módulos asignados
+    if (myModules.length > 0) {
+      setPatientTab('modulo_' + myModules[0].module_type)
+    } else {
+      setPatientTab('progreso')
+    }
+  }
+
   function openPatient(p) {
     setSelPatient(p)
     setPatientTab('progreso')
     setView('perfil')
     loadPatientData(p.id)
+    loadPatientCareModules(p.id)
   }
 
   function pName(p) { return ((p.profile?.first_name || '') + SP + (p.profile?.last_name || '')).trim() }
@@ -600,13 +631,54 @@ export default function DoctorDashboard() {
               </div>
 
               <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
-                {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos'].map(tab => (
-                  <div key={tab} onClick={() => setPatientTab(tab)}
-                    style={{ padding:'9px 14px', fontSize:14, cursor:'pointer', borderBottom: patientTab === tab ? ('2px solid ' + G) : '2px solid transparent', color: patientTab === tab ? G : '#888', fontWeight: patientTab === tab ? 500 : 400, textTransform:'capitalize' }}>
-                    {tab}
-                  </div>
-                ))}
+                {(() => {
+                  const MODULE_LABELS = {
+                    integral:     'Atención integral',
+                    metabolica:   'Atención metabólica',
+                    estetica:     'Atención estética',
+                    fisioterapia: 'Fisioterapia',
+                    enfermeria:   'Enfermería',
+                  }
+                  const MODULE_COLORS = {
+                    integral:     '#1a5c8a',
+                    metabolica:   '#0F6E56',
+                    estetica:     '#8e44ad',
+                    fisioterapia: '#e67e22',
+                    enfermeria:   '#c0392b',
+                  }
+                  const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                  const sortedModules = [...patientCareModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
+                  const tabs = [
+                    ...sortedModules.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
+                    { key:'notas', label:'Notas clínicas', color: G },
+                    { key:'diagnosticos', label:'Diagnósticos', color: G },
+                  ]
+                  return tabs.map(tab => (
+                    <div key={tab.key} onClick={() => setPatientTab(tab.key)}
+                      style={{ padding:'9px 14px', fontSize:13, cursor:'pointer', borderBottom: patientTab === tab.key ? `2px solid ${tab.color}` : '2px solid transparent', color: patientTab === tab.key ? tab.color : '#888', fontWeight: patientTab === tab.key ? 500 : 400, whiteSpace:'nowrap' }}>
+                      {tab.label}
+                    </div>
+                  ))
+                })()}
               </div>
+
+              {/* Vistas de módulos de atención */}
+              {patientTab.startsWith('modulo_') && (() => {
+                const moduleType = patientTab.replace('modulo_', '')
+                const mod = patientCareModules.find(m => m.module_type === moduleType)
+                return (
+                  <div>
+                    {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} />}
+                    {moduleType === 'metabolica' && <MetabolicModule patient={selPatient} careModule={mod} />}
+                    {moduleType === 'estetica' && <AestheticModuleDoctor patient={selPatient} careModule={mod} profile={profile} />}
+                    {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
+                      <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:30, textAlign:'center', color:'#bbb', fontSize:13 }}>
+                        Módulo en construcción
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
 
               {patientTab === 'progreso' && (
                 <div>
