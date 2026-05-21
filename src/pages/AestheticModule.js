@@ -3,15 +3,21 @@ import { supabase } from '../lib/supabase'
 
 const COLOR = '#8e44ad'
 
+// Vista cara — coordenadas sobre viewBox 200x280 (solo cabeza+cuello)
+const BODY_ZONES_FACE = [
+  { id:'cabeza_front', label:'Cabeza', cx:100, cy:18 },
+  { id:'frente', label:'Frente', cx:100, cy:38 },
+  { id:'ojeras', label:'Ojeras', cx:100, cy:72 },
+  { id:'nariz', label:'Nariz', cx:100, cy:95 },
+  { id:'pomulos', label:'Pómulos izq.', cx:68, cy:80 },
+  { id:'pomulos_der', label:'Pómulos der.', cx:132, cy:80 },
+  { id:'labios', label:'Labios', cx:100, cy:118 },
+  { id:'menton', label:'Mentón', cx:100, cy:138 },
+  { id:'cuello_ant', label:'Cuello', cx:100, cy:200 },
+]
+
+// Vista frontal — sin puntos faciales
 const BODY_ZONES_FRONT = [
-  { id:'cabeza_front', label:'Cabeza', cx:100, cy:16 },
-  { id:'frente', label:'Frente', cx:100, cy:26 },
-  { id:'ojeras', label:'Ojeras', cx:100, cy:38 },
-  { id:'nariz', label:'Nariz', cx:100, cy:46 },
-  { id:'pomulos', label:'Pómulos', cx:100, cy:42 },
-  { id:'labios', label:'Labios', cx:100, cy:54 },
-  { id:'menton', label:'Mentón', cx:100, cy:62 },
-  { id:'cuello_ant', label:'Cuello', cx:100, cy:74 },
   { id:'axila_der', label:'Axila der.', cx:70, cy:102 },
   { id:'axila_izq', label:'Axila izq.', cx:130, cy:102 },
   { id:'pecho', label:'Pecho/Mamas', cx:100, cy:118 },
@@ -119,6 +125,35 @@ function BodyDiagram({ view, zones, procedures, selectedZone, onSelect }) {
     </g>
   )
 
+  // Silueta cara (zoom cabeza+cuello, viewBox 200x280)
+  const FaceSilhouette = () => (
+    <g stroke="#b0a0b8" strokeWidth="1.8" fill="none" strokeLinejoin="round" strokeLinecap="round">
+      {/* Cabeza */}
+      <ellipse cx="100" cy="80" rx="52" ry="62" />
+      {/* Orejas */}
+      <path d="M48 70 Q38 80 40 95 Q42 108 50 112" />
+      <path d="M152 70 Q162 80 160 95 Q158 108 150 112" />
+      {/* Cuello */}
+      <path d="M72 138 Q68 160 70 185 Q72 200 76 210" />
+      <path d="M128 138 Q132 160 130 185 Q128 200 124 210" />
+      {/* Hombros */}
+      <path d="M76 210 Q88 220 100 222 Q112 220 124 210" />
+      {/* Ceja izq */}
+      <path d="M68 68 Q82 62 92 66" strokeWidth="2" />
+      {/* Ceja der */}
+      <path d="M108 66 Q118 62 132 68" strokeWidth="2" />
+      {/* Ojos */}
+      <ellipse cx="82" cy="76" rx="10" ry="7" />
+      <ellipse cx="118" cy="76" rx="10" ry="7" />
+      {/* Nariz */}
+      <path d="M96 88 Q92 108 94 115 Q100 120 106 115 Q108 108 104 88" />
+      {/* Boca */}
+      <path d="M82 128 Q100 138 118 128" />
+      {/* Mentón */}
+      <path d="M78 138 Q100 152 122 138" strokeDasharray="2 2" strokeWidth="1" />
+    </g>
+  )
+
   // Silueta posterior
   const BackSilhouette = () => (
     <g stroke="#b0a0b8" strokeWidth="1.8" fill="none" strokeLinejoin="round" strokeLinecap="round">
@@ -166,8 +201,10 @@ function BodyDiagram({ view, zones, procedures, selectedZone, onSelect }) {
   )
 
   return (
-    <svg viewBox={`0 0 ${VW} ${VH}`} style={{ width:'100%', maxWidth:260, display:'block', margin:'0 auto' }}>
-      {view === 'front' ? <FrontSilhouette /> : <BackSilhouette />}
+    <svg viewBox={view === 'face' ? '0 0 200 280' : `0 0 ${VW} ${VH}`} style={{ width:'100%', maxWidth: view === 'face' ? 200 : 260, display:'block', margin:'0 auto' }}>
+      {view === 'front' && <FrontSilhouette />}
+      {view === 'back' && <BackSilhouette />}
+      {view === 'face' && <FaceSilhouette />}
 
       {/* Marcadores */}
       {zones.map(zone => {
@@ -260,19 +297,23 @@ export default function AestheticModule({ patient }) {
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px' }}>
             <div style={{ display:'flex', gap:4, marginBottom:12, background:'#f0f0f0', borderRadius:8, padding:3 }}>
               <button onClick={() => { setView('front'); setSelectedZone(null) }}
-                style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'none', cursor:'pointer', fontSize:12, fontWeight:500, background: view === 'front' ? COLOR : 'transparent', color: view === 'front' ? '#fff' : '#666' }}>
-                Vista frontal
+                style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'none', cursor:'pointer', fontSize:11, fontWeight:500, background: view === 'front' ? COLOR : 'transparent', color: view === 'front' ? '#fff' : '#666' }}>
+                Frontal
               </button>
               <button onClick={() => { setView('back'); setSelectedZone(null) }}
-                style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'none', cursor:'pointer', fontSize:12, fontWeight:500, background: view === 'back' ? COLOR : 'transparent', color: view === 'back' ? '#fff' : '#666' }}>
-                Vista posterior
+                style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'none', cursor:'pointer', fontSize:11, fontWeight:500, background: view === 'back' ? COLOR : 'transparent', color: view === 'back' ? '#fff' : '#666' }}>
+                Posterior
+              </button>
+              <button onClick={() => { setView('face'); setSelectedZone(null) }}
+                style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'none', cursor:'pointer', fontSize:11, fontWeight:500, background: view === 'face' ? COLOR : 'transparent', color: view === 'face' ? '#fff' : '#666' }}>
+                Cara
               </button>
             </div>
             {tab === 'diagrama' && (
               <BodyDiagram
                 key={view}
                 view={view}
-                zones={currentZones}
+                zones={view === 'face' ? BODY_ZONES_FACE : currentZones}
                 procedures={procedures}
                 selectedZone={selectedZone}
                 onSelect={setSelectedZone}
