@@ -617,7 +617,8 @@ export default function FemaleHealthModule({ patient }) {
                 const confirm = window.confirm('¿Confirmar que estás embarazada y activar el modo embarazo? Tu médico podrá ver esta información.')
                 if (!confirm) return
                 const startDate = pred.lastStart
-                await supabase.from('patients').update({ is_pregnant: true, pregnancy_start_date: startDate }).eq('id', patient.id)
+                const { error } = await supabase.from('patients').update({ is_pregnant: true, pregnancy_start_date: startDate }).eq('id', patient.id)
+                if (error) { console.error('Error:', error); alert('Error: ' + error.message); return }
                 window.location.reload()
               }}
                 style={{ width:'100%', padding:'9px', background:'#795548', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
