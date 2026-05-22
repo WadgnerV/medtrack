@@ -492,17 +492,17 @@ export default function PatientDashboard() {
               {(treatments.length > 0 || aestheticProcedures.length > 0) && (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Tratamientos activos</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {treatments.slice(0,4).map(t => (
-                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px' }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name || t.product_name || 'Tratamiento'}</div>
-                        {t.dosage && <div style={{ fontSize:11, color:'#aaa' }}>Dosis: {t.dosage}</div>}
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                    {treatments.slice(0,6).map(t => (
+                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'7px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
+                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:1 }}>{t.name || t.product_name || 'Tratamiento'}</div>
+                        {t.dosage && <div style={{ fontSize:10, color:'#aaa' }}>{t.dosage}</div>}
                       </div>
                     ))}
-                    {aestheticProcedures.slice(0,4).map(p => (
-                      <div key={p.id} style={{ background:'#f0e8f8', borderRadius:8, padding:'8px 10px' }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{p.procedure_name}</div>
-                        <div style={{ fontSize:11, color:'#8e44ad' }}>Estética · {new Date(p.procedure_date+'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'})}</div>
+                    {aestheticProcedures.slice(0,6).map(p => (
+                      <div key={p.id} style={{ background:'#f0e8f8', borderRadius:8, padding:'7px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
+                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:1 }}>{p.procedure_name}</div>
+                        <div style={{ fontSize:10, color:'#8e44ad' }}>{new Date(p.procedure_date+'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'})}</div>
                       </div>
                     ))}
                   </div>
