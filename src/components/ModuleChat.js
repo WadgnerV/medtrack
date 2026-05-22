@@ -179,7 +179,7 @@ export default function ModuleChat({ patient, careModules, profile, senderRole }
   const activeMod = sorted.find(m => m.module_type === activeModule)
 
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'200px 1fr', gap:12, height:'calc(100vh - 160px)' }}>
+    <div style={{ display:'grid', gridTemplateColumns:'min(200px, 35%) 1fr', gap:12, height:'calc(100vh - 160px)', maxWidth:'100%', overflow:'hidden' }}>
       {/* Lista de chats */}
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
         {sorted.map(mod => {
