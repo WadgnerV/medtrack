@@ -220,15 +220,33 @@ export default function WellnessModule({ patient, profile }) {
             <div style={{ display:'flex', gap:10 }}>
               <div style={{ minWidth:0, flex:1 }}>
                 <label style={lbl}>Me dormí</label>
-                <input type="text" inputMode="numeric" placeholder="22:30" value={form.sleep_start}
-                  onChange={e => { const v = e.target.value; setForm(p => ({ ...p, sleep_start: v })); const h = calcSleepHours(v, form.sleep_end); if(h) setForm(p => ({ ...p, sleep_hours: h })) }}
-                  style={{ display:'block', width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
+                <div style={{ display:'flex', gap:4 }}>
+                  <select value={form.sleep_start?.split(':')[0] || ''} onChange={e => { const v = e.target.value + ':' + (form.sleep_start?.split(':')[1] || '00'); const h = calcSleepHours(v, form.sleep_end); setForm(p => ({ ...p, sleep_start: v, ...(h ? { sleep_hours: h } : {}) })) }}
+                    style={{ flex:1, padding:'8px 4px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', background:'#fff' }}>
+                    <option value="">HH</option>
+                    {Array.from({length:24},(_,i)=>String(i).padStart(2,'0')).map(h=><option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <select value={form.sleep_start?.split(':')[1] || ''} onChange={e => { const v = (form.sleep_start?.split(':')[0] || '00') + ':' + e.target.value; const h = calcSleepHours(v, form.sleep_end); setForm(p => ({ ...p, sleep_start: v, ...(h ? { sleep_hours: h } : {}) })) }}
+                    style={{ flex:1, padding:'8px 4px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', background:'#fff' }}>
+                    <option value="">MM</option>
+                    {['00','15','30','45'].map(m=><option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
               </div>
               <div style={{ minWidth:0, flex:1 }}>
                 <label style={lbl}>Me desperté</label>
-                <input type="text" inputMode="numeric" placeholder="07:00" value={form.sleep_end}
-                  onChange={e => { const v = e.target.value; setForm(p => ({ ...p, sleep_end: v })); const h = calcSleepHours(form.sleep_start, v); if(h) setForm(p => ({ ...p, sleep_hours: h })) }}
-                  style={{ display:'block', width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
+                <div style={{ display:'flex', gap:4 }}>
+                  <select value={form.sleep_end?.split(':')[0] || ''} onChange={e => { const v = e.target.value + ':' + (form.sleep_end?.split(':')[1] || '00'); const h = calcSleepHours(form.sleep_start, v); setForm(p => ({ ...p, sleep_end: v, ...(h ? { sleep_hours: h } : {}) })) }}
+                    style={{ flex:1, padding:'8px 4px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', background:'#fff' }}>
+                    <option value="">HH</option>
+                    {Array.from({length:24},(_,i)=>String(i).padStart(2,'0')).map(h=><option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <select value={form.sleep_end?.split(':')[1] || ''} onChange={e => { const v = (form.sleep_end?.split(':')[0] || '00') + ':' + e.target.value; const h = calcSleepHours(form.sleep_start, v); setForm(p => ({ ...p, sleep_end: v, ...(h ? { sleep_hours: h } : {}) })) }}
+                    style={{ flex:1, padding:'8px 4px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', background:'#fff' }}>
+                    <option value="">MM</option>
+                    {['00','15','30','45'].map(m=><option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
             <div style={{ maxWidth:160 }}>
