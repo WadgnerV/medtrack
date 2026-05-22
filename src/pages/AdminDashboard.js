@@ -648,7 +648,6 @@ export default function AdminDashboard() {
           </div>
         ))}
 
-        <UserMenu />
       </div>}
 
       {/* Overlay para cerrar menú en móvil */}
@@ -679,14 +678,11 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-            <div style={{ padding:'14px', borderTop:'0.5px solid #eee' }}>
-              <UserMenu />
-            </div>
           </div>
         </>
       )}
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0, maxWidth:'100%' }}>
         {isMobile ? (
           <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'sticky', top:0, zIndex:50 }}>
             <button onClick={() => setShowDrawer(true)}
