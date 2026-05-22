@@ -29,6 +29,7 @@ export default function PatientDashboard() {
   const [tasks, setTasks] = useState([])
   const [waterLog, setWaterLog] = useState(null)
   const [treatments, setTreatments] = useState([])
+  const [aestheticProcedures, setAestheticProcedures] = useState([])
   const [msgs, setMsgs] = useState([])
   const [clinicalNotes, setClinicalNotes] = useState([])
   const [nextAppt, setNextAppt] = useState(null)
@@ -68,6 +69,7 @@ export default function PatientDashboard() {
         loadTasks(data.id),
         loadWater(data.id),
         loadTreatments(data.id),
+        loadAestheticProcedures(data.id),
         loadNextAppt(data.id),
         loadMsgs(data.id),
         loadCareModules(data.id),
@@ -104,6 +106,13 @@ export default function PatientDashboard() {
     const today = new Date().toISOString().split('T')[0]
     const { data } = await supabase.from('water_logs').select('*').eq('patient_id', pid).eq('log_date', today).single()
     setWaterLog(data || { glasses_count: 0, goal_ml: patient?.weight_kg ? Math.round(patient.weight_kg * 35) : 2000 })
+  }
+
+  async function loadAestheticProcedures(pid) {
+    const { data } = await supabase.from('aesthetic_procedures')
+      .select('*').eq('patient_id', pid)
+      .order('procedure_date', { ascending: false }).limit(6)
+    setAestheticProcedures(data || [])
   }
 
   async function loadTreatments(pid) {
@@ -479,15 +488,21 @@ export default function PatientDashboard() {
                 </div>
               )}
 
-              {/* Tratamientos activos por módulo */}
-              {treatments.length > 0 && (
+              {/* Tratamientos activos + procedimientos estéticos */}
+              {(treatments.length > 0 || aestheticProcedures.length > 0) && (
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Tratamientos activos</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {treatments.slice(0,6).map(t => (
+                    {treatments.slice(0,4).map(t => (
                       <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px' }}>
                         <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name || t.product_name || 'Tratamiento'}</div>
                         {t.dosage && <div style={{ fontSize:11, color:'#aaa' }}>Dosis: {t.dosage}</div>}
+                      </div>
+                    ))}
+                    {aestheticProcedures.slice(0,4).map(p => (
+                      <div key={p.id} style={{ background:'#f0e8f8', borderRadius:8, padding:'8px 10px' }}>
+                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{p.procedure_name}</div>
+                        <div style={{ fontSize:11, color:'#8e44ad' }}>Estética · {new Date(p.procedure_date+'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'})}</div>
                       </div>
                     ))}
                   </div>
