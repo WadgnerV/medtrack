@@ -59,8 +59,9 @@ export default function EnfermeriaModule({ patient, careModule, canEdit }) {
     const name = tratSeleccionado === 'otra' ? tratOtra.trim() : tratSeleccionado
     if (!name) return
     setSavingTrat(true)
+    const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('treatments').insert({
-      patient_id: patient.id, name, description: tratDescription, dosage: tratDosage, status:'active'
+      patient_id: patient.id, name, description: tratDescription, dosage: tratDosage, status:'active', created_by: user.id
     })
     setTratSeleccionado(''); setTratOtra(''); setTratDosage(''); setTratDescription('')
     setShowTratForm(false); setSavingTrat(false)

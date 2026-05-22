@@ -104,7 +104,8 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
     const name = tratSeleccionado === 'otra' ? tratOtra.trim() : tratSeleccionado
     if (!name) return
     setSavingTrat(true)
-    await supabase.from('treatments').insert({ patient_id: patient.id, name, description: tratDescription, dosage: tratDosage, status:'active' })
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('treatments').insert({ patient_id: patient.id, name, description: tratDescription, dosage: tratDosage, status:'active', created_by: user.id })
     setTratSeleccionado(''); setTratOtra(''); setTratDosage(''); setTratDescription('')
     setShowTratForm(false); setSavingTrat(false)
     await loadTreatments()
