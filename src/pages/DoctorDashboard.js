@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import IntegralModule from './IntegralModule'
+import ModuleChat from '../components/ModuleChat'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
 import FisioterapiaModule from './FisioterapiaModule'
@@ -652,6 +653,7 @@ export default function DoctorDashboard() {
                   const sortedModules = [...patientCareModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
                   const tabs = [
                     ...sortedModules.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
+                    { key:'chat_modulos', label:'Chat', color:'#555' },
                   ]
                   return tabs.map(tab => (
                     <div key={tab.key} onClick={() => setPatientTab(tab.key)}
@@ -661,6 +663,15 @@ export default function DoctorDashboard() {
                   ))
                 })()}
               </div>
+
+              {patientTab === 'chat_modulos' && (
+                <ModuleChat
+                  patient={selPatient}
+                  careModules={patientCareModules}
+                  profile={profile}
+                  senderRole="doctor"
+                />
+              )}
 
               {/* Vistas de módulos de atención */}
               {patientTab.startsWith('modulo_') && (() => {

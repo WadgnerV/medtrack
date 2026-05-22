@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import IntegralModule from './IntegralModule'
+import ModuleChat from '../components/ModuleChat'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
 import FisioterapiaModule from './FisioterapiaModule'
@@ -1614,7 +1615,7 @@ const s = {
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
 
-function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
+function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
   const [careModules, setCareModules] = React.useState([])
 
   React.useEffect(() => {
@@ -1689,6 +1690,7 @@ function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, tre
           const sorted = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
           const tabs = [
             ...sorted.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
+            { key:'chat_modulos', label:'Chat', color:'#555' },
             { key:'modulos', label:'Módulos', color:'#888' },
           ]
           return tabs.map(t => (
@@ -1844,6 +1846,15 @@ function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, tre
             {notes.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin notas clinicas</div>}
           </div>
         </div>
+      )}
+
+      {tab === 'chat_modulos' && (
+        <ModuleChat
+          patient={patient}
+          careModules={careModules}
+          profile={profile}
+          senderRole="admin"
+        />
       )}
 
       {tab.startsWith('modulo_') && (() => {

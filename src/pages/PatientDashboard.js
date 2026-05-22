@@ -4,6 +4,7 @@ import NutritionModule from './NutritionModule'
 import WellnessModule from './WellnessModule'
 import FemaleHealthModule from './FemaleHealthModule'
 import IntegralModule from './IntegralModule'
+import ModuleChat from '../components/ModuleChat'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
 import FisioterapiaModule from './FisioterapiaModule'
@@ -636,46 +637,12 @@ export default function PatientDashboard() {
           )}
 
           {view === 'chat' && (
-            <div style={{ display:'flex', flexDirection:'column', height:'calc(100vh - 130px)', background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-              <div style={{ padding:'12px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:10 }}>
-                {patient?.doctor && (
-                  <>
-                    <div style={{ width:32, height:32, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500 }}>
-                      {initials(patient.doctor.first_name, patient.doctor.last_name)}
-                    </div>
-                    <div>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Dr. {patient.doctor.first_name} {patient.doctor.last_name}</div>
-                      <div style={{ fontSize:14, color:'#999' }}>Tu medico asignado</div>
-                    </div>
-                  </>
-                )}
-                {!patient?.doctor && <div style={{ fontSize:14, color:'#999' }}>Sin medico asignado aun</div>}
-              </div>
-              <div style={{ flex:1, overflowY:'auto', padding:16, display:'flex', flexDirection:'column', gap:8 }}>
-                {msgs.map(m => (
-                  <div key={m.id} style={{ display:'flex', flexDirection:'column', alignItems: m.sender_role === 'patient' ? 'flex-end' : 'flex-start' }}>
-                    {m.sender_role === 'doctor' && <div style={{ fontSize:14, color:'#888', marginBottom:2 }}>{m.sender?.first_name ? `Dr. ${m.sender.first_name} ${m.sender.last_name}` : 'Doctor adicional'}</div>}
-                    <div style={{ maxWidth:'78%', padding:'9px 12px', borderRadius:12, fontSize:14, lineHeight:1.5, background: m.sender_role === 'patient' ? G : '#f0f0f0', color: m.sender_role === 'patient' ? '#fff' : '#1a1a1a', borderBottomRightRadius: m.sender_role === 'patient' ? 3 : 12, borderBottomLeftRadius: m.sender_role === 'doctor' ? 3 : 12 }}>
-                      {m.content}
-                    </div>
-                    <div style={{ fontSize:14, color:'#bbb', marginTop:2 }}>{new Date(m.created_at).toLocaleTimeString('es-CR', { hour:'2-digit', minute:'2-digit' })}</div>
-                  </div>
-                ))}
-                {msgs.length === 0 && (
-                  <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, color:'#bbb' }}>
-                    <span style={{ fontSize:32 }}>💬</span>
-                    <div style={{ fontSize:14 }}>Inicia una conversacion con tu medico</div>
-                  </div>
-                )}
-              </div>
-              <div style={{ padding:'10px 14px', borderTop:'0.5px solid #eee', display:'flex', gap:8 }}>
-                <input value={chatMsg} onChange={e => setChatMsg(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
-                  placeholder="Escribe un mensaje..."
-                  style={{ flex:1, padding:'9px 12px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
-                <button onClick={sendMessage} style={{ width:36, height:36, borderRadius:'50%', background:G, border:'none', cursor:'pointer', color:'#fff', fontSize:16 }}>{'>'}</button>
-              </div>
-            </div>
+            <ModuleChat
+              patient={patient}
+              careModules={careModules}
+              profile={profile}
+              senderRole="patient"
+            />
           )}
 
           {/* Vista Nutrición PRO */}
