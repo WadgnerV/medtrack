@@ -216,7 +216,7 @@ export default function WellnessModule({ patient, profile }) {
             </div>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))', gap:10, marginBottom:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
             <div>
               <label style={lbl}>Me dormí</label>
               <input type="time" value={form.sleep_start} onChange={e => { const h = calcSleepHours(e.target.value, form.sleep_end); setForm(p => ({ ...p, sleep_start: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={inp} />
