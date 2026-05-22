@@ -899,21 +899,41 @@ export default function PatientDashboard() {
       </div>
 
       {/* Bottom nav móvil */}
-      {isMobile && <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
-        {[
-          { label:'Inicio', key:'inicio', icon:'🏠' },
-          { label:'Progreso', key:'progreso', icon:'📈' },
-          { label:'Tareas', key:'tareas', icon:'✅' },
-          { label:'Chat', key:'chat', icon:'💬' },
-          ...(profile?.plan === 'pro' ? [{ label:'Nutrición', key:'nutricion', icon:'🍎' }] : [{ label:'PRO', key:'pro', icon:'★' }]),
-        ].map(item => (
-          <div key={item.key} onClick={() => setView(item.key)}
-            style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: view === item.key ? G : '#999', borderTop: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background:'#fff' }}>
-            <span style={{ fontSize:18 }}>{item.icon}</span>
-            <span style={{ fontSize:9, marginTop:2, fontWeight: view === item.key ? 600 : 400 }}>{item.label}</span>
+      {isMobile && (() => {
+        const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
+        const MODULE_ICONS = { integral:'🩺', metabolica:'⚖️', estetica:'✨', fisioterapia:'🦽', enfermeria:'💉' }
+        const MODULE_SHORT = { integral:'Integral', metabolica:'Metabólica', estetica:'Estética', fisioterapia:'Fisio', enfermeria:'Enferm.' }
+        const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+        const sortedMods = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
+
+        const items = [
+          { label:'Inicio', key:'inicio', icon:'🏠', color: G },
+          ...sortedMods.map(m => ({
+            label: MODULE_SHORT[m.module_type] || m.module_type,
+            key: 'modulo_' + m.module_type,
+            icon: MODULE_ICONS[m.module_type] || '📋',
+            color: MODULE_COLORS[m.module_type] || G,
+          })),
+          { label:'Chat', key:'chat', icon:'💬', color: G },
+          ...(profile?.plan === 'pro' ? [{ label:'PRO', key:'nutricion', icon:'⭐', color:'#c8960c' }] : [{ label:'PRO', key:'pro', icon:'⚡', color:'#c8960c' }]),
+        ]
+
+        // Mostrar máximo 5 items, si hay más usar scroll horizontal
+        return (
+          <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff', display:'flex', overflowX:'auto' }}>
+            {items.map(item => {
+              const isActive = view === item.key
+              return (
+                <div key={item.key} onClick={() => setView(item.key)}
+                  style={{ flex: items.length <= 5 ? 1 : '0 0 64px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 4px', cursor:'pointer', color: isActive ? item.color : '#999', borderTop: isActive ? `2px solid ${item.color}` : '2px solid transparent', background:'#fff', minWidth:52 }}>
+                  <span style={{ fontSize:16 }}>{item.icon}</span>
+                  <span style={{ fontSize:9, marginTop:2, fontWeight: isActive ? 600 : 400, whiteSpace:'nowrap' }}>{item.label}</span>
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </div>}
+        )
+      })()}
     </div>
   )
 }
