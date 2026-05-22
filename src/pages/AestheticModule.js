@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import ClinicalNoteForm from '../components/ClinicalNoteForm'
 import { supabase } from '../lib/supabase'
 
 const COLOR = '#8e44ad'
@@ -380,7 +381,7 @@ export default function AestheticModule({ patient, canEdit }) {
   const zonesWithProcedures = new Set(procedures.map(p => p.body_zone))
 
   const TABS = [
-    { key:'notas', label:'Notas clínicas' },
+    ...(canEdit ? [{ key:'notas', label:'Notas clínicas' }] : []),
     { key:'diagrama', label:'Diagrama corporal' },
     { key:'programa', label:'Mi programa' },
     { key:'diagnosticos', label:'Diagnósticos' },

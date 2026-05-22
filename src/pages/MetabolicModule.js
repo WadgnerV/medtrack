@@ -165,7 +165,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
 
   const TABS = [
-    { key:'notas', label:'Notas clínicas' },
+    ...(canEdit ? [{ key:'notas', label:'Notas clínicas' }] : []),
     { key:'composicion', label:'Composición corporal' },
     { key:'tratamientos', label:'Tratamientos' },
     { key:'diagnosticos', label:'Diagnósticos' },

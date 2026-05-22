@@ -153,7 +153,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
   }
 
   const TABS = [
-    { key:'notas', label:'Notas clínicas' },
+    ...(canEdit ? [{ key:'notas', label:'Notas clínicas' }] : []),
     { key:'signos', label:'Signos clínicos' },
     { key:'tratamientos', label:'Tratamientos' },
     { key:'diagnosticos', label:'Diagnósticos' },
