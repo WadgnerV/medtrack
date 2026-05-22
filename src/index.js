@@ -1,4 +1,5 @@
 import React from 'react'
+import './mobile.css'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { register } from './serviceWorkerRegistration'
