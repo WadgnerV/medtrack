@@ -34,6 +34,8 @@ export default function PatientDashboard() {
   const [clinicalNotes, setClinicalNotes] = useState([])
   const [nextAppt, setNextAppt] = useState(null)
   const [nextAppts, setNextAppts] = useState([])
+  const [showDrawer, setShowDrawer] = useState(false)
+  const [showProMenu, setShowProMenu] = useState(false)
   const [careModules, setCareModules] = useState([])
   const [loading, setLoading] = useState(true)
   const [chatMsg, setChatMsg] = useState('')
@@ -343,30 +345,39 @@ export default function PatientDashboard() {
       </div>}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
-          <div>
-            <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {(() => {
-                const MODULE_LABELS = {
-                  modulo_integral:     'Atención médica integral',
-                  modulo_metabolica:   'Atención médica metabólica',
-                  modulo_estetica:     'Atención médica estética',
-                  modulo_fisioterapia: 'Atención de fisioterapia',
-                  modulo_enfermeria:   'Atención de enfermería',
-                }
-                const base = { inicio:'Inicio', chat:'Chat con mi médico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina', saludmasc:'Salud masculina' }
-                return { ...base, ...MODULE_LABELS }[view] || view
-              })()}
+        {/* Header móvil fijo */}
+        {isMobile ? (
+          <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'sticky', top:0, zIndex:50 }}>
+            <button onClick={() => setShowDrawer(true)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:'#555', padding:'2px 6px', lineHeight:1 }}>☰</button>
+            <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a', letterSpacing:'-0.3px' }}>MedTrack</div>
+            <UserMenu />
+          </div>
+        ) : (
+          <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+            <div>
+              <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
+                {(() => {
+                  const MODULE_LABELS = {
+                    modulo_integral:     'Atención médica integral',
+                    modulo_metabolica:   'Atención médica metabólica',
+                    modulo_estetica:     'Atención médica estética',
+                    modulo_fisioterapia: 'Atención de fisioterapia',
+                    modulo_enfermeria:   'Atención de enfermería',
+                  }
+                  const base = { inicio:'Inicio', chat:'Chat con mi médico', pro: profile?.plan === 'pro' ? 'Mi Plan PRO' : 'Activar PRO', nutricion:'Nutrición', bienestar:'Bienestar', saludfem:'Salud femenina', saludmasc:'Salud masculina' }
+                  return { ...base, ...MODULE_LABELS }[view] || view
+                })()}
+              </div>
+              <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
-            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              {view === 'progreso' && (
+                <button style={s.btnPrimary} onClick={() => setShowMeasForm(true)}>+ Registrar medicion</button>
+              )}
+            </div>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            {view === 'progreso' && (
-              <button style={s.btnPrimary} onClick={() => setShowMeasForm(true)}>{isMobile ? '+ Medición' : '+ Registrar medicion'}</button>
-            )}
-            {isMobile && <UserMenu />}
-          </div>
-        </div>
+        )}
 
         <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
 
@@ -899,41 +910,73 @@ export default function PatientDashboard() {
       </div>
 
       {/* Bottom nav móvil */}
-      {isMobile && (() => {
-        const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
-        const MODULE_ICONS = { integral:'🩺', metabolica:'⚖️', estetica:'✨', fisioterapia:'🦽', enfermeria:'💉' }
-        const MODULE_SHORT = { integral:'Integral', metabolica:'Metabólica', estetica:'Estética', fisioterapia:'Fisio', enfermeria:'Enferm.' }
-        const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
-        const sortedMods = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
+      {/* Drawer móvil */}
+      {isMobile && showDrawer && (
+        <>
+          {/* Overlay */}
+          <div onClick={() => setShowDrawer(false)}
+            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
+          {/* Panel */}
+          <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
+            {/* Header del drawer */}
+            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
+              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+            </div>
+            {/* Items del menú */}
+            <div style={{ flex:1, padding:'8px 0' }}>
+              {(() => {
+                const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
+                const MODULE_LABELS = { integral:'Atención médica integral', metabolica:'Atención médica metabólica', estetica:'Atención médica estética', fisioterapia:'Atención de fisioterapia', enfermeria:'Atención de enfermería' }
+                const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                const sortedMods = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
 
-        const items = [
-          { label:'Inicio', key:'inicio', icon:'🏠', color: G },
-          ...sortedMods.map(m => ({
-            label: MODULE_SHORT[m.module_type] || m.module_type,
-            key: 'modulo_' + m.module_type,
-            icon: MODULE_ICONS[m.module_type] || '📋',
-            color: MODULE_COLORS[m.module_type] || G,
-          })),
-          { label:'Chat', key:'chat', icon:'💬', color: G },
-          ...(profile?.plan === 'pro' ? [{ label:'PRO', key:'nutricion', icon:'⭐', color:'#c8960c' }] : [{ label:'PRO', key:'pro', icon:'⚡', color:'#c8960c' }]),
-        ]
+                const sections = [
+                  { label:'Inicio', key:'inicio' },
+                  ...sortedMods.map(m => ({ label: MODULE_LABELS[m.module_type], key:'modulo_'+m.module_type, color: MODULE_COLORS[m.module_type] })),
+                  { label:'Chat con mi médico', key:'chat' },
+                ]
 
-        // Mostrar máximo 5 items, si hay más usar scroll horizontal
-        return (
-          <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff', display:'flex', overflowX:'auto' }}>
-            {items.map(item => {
-              const isActive = view === item.key
-              return (
-                <div key={item.key} onClick={() => setView(item.key)}
-                  style={{ flex: items.length <= 5 ? 1 : '0 0 64px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 4px', cursor:'pointer', color: isActive ? item.color : '#999', borderTop: isActive ? `2px solid ${item.color}` : '2px solid transparent', background:'#fff', minWidth:52 }}>
-                  <span style={{ fontSize:16 }}>{item.icon}</span>
-                  <span style={{ fontSize:9, marginTop:2, fontWeight: isActive ? 600 : 400, whiteSpace:'nowrap' }}>{item.label}</span>
-                </div>
-              )
-            })}
+                const proItems = profile?.plan === 'pro' ? [
+                  { label:'Nutrición', key:'nutricion' },
+                  { label:'Bienestar', key:'bienestar' },
+                  ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem' }] : []),
+                  ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc' }] : []),
+                ] : []
+
+                return (
+                  <>
+                    {sections.map(item => (
+                      <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 16px', cursor:'pointer', background: view === item.key ? (item.color ? item.color+'15' : '#E1F5EE') : 'transparent', borderLeft: view === item.key ? `3px solid ${item.color || G}` : '3px solid transparent', color: view === item.key ? (item.color || G) : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
+                        {item.color && <div style={{ width:8, height:8, borderRadius:'50%', background:item.color, flexShrink:0 }} />}
+                        {item.label}
+                      </div>
+                    ))}
+                    {proItems.length > 0 && (
+                      <>
+                        <div style={{ padding:'8px 16px 4px', fontSize:11, color:'#c8960c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', marginTop:8 }}>⭐ Plan PRO</div>
+                        {proItems.map(item => (
+                          <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
+                            style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 16px', cursor:'pointer', background: view === item.key ? '#FFF8E1' : 'transparent', borderLeft: view === item.key ? `3px solid #c8960c` : '3px solid transparent', color: view === item.key ? '#c8960c' : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
+                            {item.label}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    {profile?.plan !== 'pro' && (
+                      <div onClick={() => { setView('pro'); setShowDrawer(false) }}
+                        style={{ margin:'12px 12px 0', padding:'10px 14px', borderRadius:10, background:'linear-gradient(135deg, #0F6E56, #1D9E75)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'center' }}>
+                        ⚡ Activar Plan PRO
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
+            </div>
           </div>
-        )
-      })()}
+        </>
+      )}
     </div>
   )
 }

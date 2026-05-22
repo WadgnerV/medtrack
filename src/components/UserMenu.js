@@ -446,7 +446,7 @@ export default function UserMenu() {
         </div>
 
         {open && (
-          <div style={{ position:'absolute', bottom:'calc(100% + 4px)', left:0, minWidth:180, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:200 }}>
+          <div style={{ position:'fixed', top:'auto', bottom:60, right:8, minWidth:180, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
             <div onClick={() => { setView('profile'); setOpen(false) }} style={s.menuItem}>
               <span style={{ fontSize:14 }}>👤</span><span>Mi perfil</span>
             </div>
