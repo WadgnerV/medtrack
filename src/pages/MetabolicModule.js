@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import ClinicalNoteForm from '../components/ClinicalNoteForm'
+import { TAREAS_PREDEFINIDAS, TRATAMIENTOS_PREDEFINIDOS } from '../components/ListasPredefinidas'
 import { supabase } from '../lib/supabase'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -15,13 +16,18 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [showTratForm, setShowTratForm] = useState(false)
-  const [tratForm, setTratForm] = useState({ name:'', description:'', dosage:'' })
+  const [tratSeleccionado, setTratSeleccionado] = useState('')
+  const [tratOtra, setTratOtra] = useState('')
+  const [tratDosage, setTratDosage] = useState('')
+  const [tratDescription, setTratDescription] = useState('')
   const [savingTrat, setSavingTrat] = useState(false)
   const [showDiagForm, setShowDiagForm] = useState(false)
   const [diagSearch, setDiagSearch] = useState('')
   const [diagResults, setDiagResults] = useState([])
   const [showTareaForm, setShowTareaForm] = useState(false)
-  const [tareaForm, setTareaForm] = useState({ title:'', description:'', due_date:'' })
+  const [tareasSeleccionadas, setTareasSeleccionadas] = useState([])
+  const [tareaOtra, setTareaOtra] = useState('')
+  const [tareaOtraChecked, setTareaOtraChecked] = useState(false)
   const [savingTarea, setSavingTarea] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -79,10 +85,12 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   }
 
   async function saveTratamiento() {
-    if (!tratForm.name.trim()) return
+    const name = tratSeleccionado === 'otra' ? tratOtra.trim() : tratSeleccionado
+    if (!name) return
     setSavingTrat(true)
-    await supabase.from('treatments').insert({ patient_id: patient.id, name: tratForm.name, description: tratForm.description, dosage: tratForm.dosage, status:'active' })
-    setTratForm({ name:'', description:'', dosage:'' }); setShowTratForm(false); setSavingTrat(false)
+    await supabase.from('treatments').insert({ patient_id: patient.id, name, description: tratDescription, dosage: tratDosage, status:'active' })
+    setTratSeleccionado(''); setTratOtra(''); setTratDosage(''); setTratDescription('')
+    setShowTratForm(false); setSavingTrat(false)
     await loadTreatments()
   }
 
@@ -106,10 +114,15 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   }
 
   async function saveTarea() {
-    if (!tareaForm.title.trim()) return
+    const toSave = [...tareasSeleccionadas]
+    if (tareaOtraChecked && tareaOtra.trim()) toSave.push(tareaOtra.trim())
+    if (toSave.length === 0) return
     setSavingTarea(true)
-    await supabase.from('tasks').insert({ patient_id: patient.id, title: tareaForm.title, description: tareaForm.description, due_date: tareaForm.due_date || null, status:'pending' })
-    setTareaForm({ title:'', description:'', due_date:'' }); setShowTareaForm(false); setSavingTarea(false)
+    await Promise.all(toSave.map(title =>
+      supabase.from('tasks').insert({ patient_id: patient.id, title, status:'pending' })
+    ))
+    setTareasSeleccionadas([]); setTareaOtra(''); setTareaOtraChecked(false)
+    setShowTareaForm(false); setSavingTarea(false)
     await loadTasks()
   }
 
@@ -326,9 +339,20 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
           {canEdit && showTratForm && (
             <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
               <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
-                <input placeholder="Nombre del tratamiento *" value={tratForm.name} onChange={e => setTratForm(p=>({...p,name:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
-                <input placeholder="Descripción" value={tratForm.description} onChange={e => setTratForm(p=>({...p,description:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
-                <input placeholder="Dosis" value={tratForm.dosage} onChange={e => setTratForm(p=>({...p,dosage:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <select value={tratSeleccionado} onChange={e => setTratSeleccionado(e.target.value)}
+                  style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', background:'#fff' }}>
+                  <option value="">Seleccioná un tratamiento...</option>
+                  {TRATAMIENTOS_PREDEFINIDOS.map(t => <option key={t} value={t}>{t}</option>)}
+                  <option value="otra">+ Otro tratamiento</option>
+                </select>
+                {tratSeleccionado === 'otra' && (
+                  <input placeholder="Nombre del tratamiento *" value={tratOtra} onChange={e => setTratOtra(e.target.value)}
+                    style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                )}
+                <input placeholder="Descripción (opcional)" value={tratDescription} onChange={e => setTratDescription(e.target.value)}
+                  style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <input placeholder="Dosis (opcional)" value={tratDosage} onChange={e => setTratDosage(e.target.value)}
+                  style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
               </div>
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => setShowTratForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
@@ -400,14 +424,36 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
           </div>
           {canEdit && showTareaForm && (
             <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
-                <input placeholder="Título de la tarea *" value={tareaForm.title} onChange={e => setTareaForm(p=>({...p,title:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
-                <input placeholder="Descripción" value={tareaForm.description} onChange={e => setTareaForm(p=>({...p,description:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
-                <input type="date" value={tareaForm.due_date} onChange={e => setTareaForm(p=>({...p,due_date:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+              <div style={{ fontSize:12, color:'#666', marginBottom:8 }}>Seleccioná una o varias tareas:</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:10, maxHeight:220, overflowY:'auto' }}>
+                {TAREAS_PREDEFINIDAS.map(t => (
+                  <div key={t} onClick={() => setTareasSeleccionadas(p => p.includes(t) ? p.filter(x=>x!==t) : [...p,t])}
+                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, cursor:'pointer', background: tareasSeleccionadas.includes(t) ? COLOR+'12' : '#fff', border: tareasSeleccionadas.includes(t) ? `1px solid ${COLOR}` : '1px solid transparent' }}>
+                    <div style={{ width:15, height:15, borderRadius:3, border: tareasSeleccionadas.includes(t) ? `2px solid ${COLOR}` : '2px solid #ccc', background: tareasSeleccionadas.includes(t) ? COLOR : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      {tareasSeleccionadas.includes(t) && <span style={{ color:'#fff', fontSize:9, fontWeight:700 }}>✓</span>}
+                    </div>
+                    <span style={{ fontSize:12 }}>{t}</span>
+                  </div>
+                ))}
+                <div onClick={() => setTareaOtraChecked(p => !p)}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:8, cursor:'pointer', background: tareaOtraChecked ? COLOR+'12' : '#fff', border: tareaOtraChecked ? `1px solid ${COLOR}` : '1px solid transparent' }}>
+                  <div style={{ width:15, height:15, borderRadius:3, border: tareaOtraChecked ? `2px solid ${COLOR}` : '2px solid #ccc', background: tareaOtraChecked ? COLOR : '#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    {tareaOtraChecked && <span style={{ color:'#fff', fontSize:9, fontWeight:700 }}>✓</span>}
+                  </div>
+                  <span style={{ fontSize:12 }}>Otra tarea</span>
+                </div>
+                {tareaOtraChecked && (
+                  <input placeholder="Describí la tarea..." value={tareaOtra} onChange={e => setTareaOtra(e.target.value)}
+                    style={{ padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', marginTop:2 }} />
+                )}
               </div>
               <div style={{ display:'flex', gap:8 }}>
-                <button onClick={() => setShowTareaForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
-                <button onClick={saveTarea} disabled={savingTarea} style={{ flex:1, padding:'6px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>{savingTarea ? 'Guardando...' : 'Guardar'}</button>
+                <button onClick={() => { setShowTareaForm(false); setTareasSeleccionadas([]); setTareaOtra(''); setTareaOtraChecked(false) }}
+                  style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
+                <button onClick={saveTarea} disabled={savingTarea}
+                  style={{ flex:1, padding:'6px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>
+                  {savingTarea ? 'Guardando...' : `Asignar ${tareasSeleccionadas.length + (tareaOtraChecked && tareaOtra ? 1 : 0)} tarea(s)`}
+                </button>
               </div>
             </div>
           )}
