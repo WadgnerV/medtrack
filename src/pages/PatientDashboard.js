@@ -498,7 +498,16 @@ export default function PatientDashboard() {
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Tratamientos activos</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                    {treatments.slice(0,6).map(t => (
+                    {(() => {
+                      // Solo el tratamiento más reciente por nombre
+                      const seen = new Set()
+                      const unique = treatments.filter(t => {
+                        const key = (t.name || '').toLowerCase().trim()
+                        if (seen.has(key)) return false
+                        seen.add(key); return true
+                      })
+                      return unique.slice(0,6)
+                    })().map(t => (
                       <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
                         <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>{t.name || 'Tratamiento'}</div>
                         {t.dosage && <div style={{ fontSize:10, color:'#555', marginBottom:2 }}>{t.dosage}</div>}
