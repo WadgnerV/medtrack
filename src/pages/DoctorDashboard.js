@@ -517,7 +517,7 @@ export default function DoctorDashboard() {
           </div>
 
           {/* ── Gráfica + Lista pacientes ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12 }}>
 
             {/* Citas por mes */}
             {(() => {
@@ -583,14 +583,50 @@ export default function DoctorDashboard() {
       )}
 
       {view === 'pacientes' && (
+        <div>
+          {/* Buscador */}
+          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
+            <div style={{ padding:'10px 12px', position:'relative', display:'flex', alignItems:'center' }}>
+              <span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span>
+              <input type="text" placeholder="Buscar por nombre o email..." value={searchPac} onChange={e=>setSearchPac(e.target.value)}
+                style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
+            </div>
+          </div>
+
+          {isMobile ? (
+            /* Vista móvil: cards */
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {patients.filter(p => {
+                const q = searchPac.toLowerCase()
+                if(!q) return true
+                const nombre = ((p.profile?.first_name||'')+' '+(p.profile?.last_name||'')).toLowerCase()
+                const email = (p.profile?.email||'').toLowerCase()
+                return nombre.includes(q)||email.includes(q)
+              }).map(p => (
+                <div key={p.id} onClick={() => openPatient(p)}
+                  style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ width:40, height:40, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:600, flexShrink:0 }}>{initials(pName(p))}</div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{pName(p)}</div>
+                    <div style={{ fontSize:12, color:'#888', marginTop:1 }}>{p.profile?.email}</div>
+                    <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>{age(p.birth_date)} años · {p.specialty_type || '--'}</div>
+                  </div>
+                  <span style={{ fontSize:11, padding:'3px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>
+                    {p.status === 'active' ? 'activo' : 'pendiente'}
+                  </span>
+                </div>
+              ))}
+              {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
+            </div>
+          ) : (
+            /* Vista desktop: tabla */
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
-              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex: isMobile ? '1' : '0 0 35%' }}>Paciente</div>
-                {!isMobile && <div style={{ flex:'0 0 10%' }}>Edad</div>}
-                {!isMobile && <div style={{ flex:'0 0 22%' }}>Tipo de consulta</div>}
-                {!isMobile && <div style={{ flex:'0 0 22%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>}
-                <div style={{ flex: isMobile ? '0 0 60px' : '0 0 11%' }}>Estado</div>
+              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:12, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                <div style={{ flex:'0 0 35%' }}>Paciente</div>
+                <div style={{ flex:'0 0 10%' }}>Edad</div>
+                <div style={{ flex:'0 0 22%' }}>Tipo de consulta</div>
+                <div style={{ flex:'0 0 22%' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 11%' }}>Estado</div>
               </div>
               {patients.filter(p => {
                 const q = searchPac.toLowerCase()
@@ -601,27 +637,29 @@ export default function DoctorDashboard() {
                 return nombre.includes(q)||email.includes(q)||diag.includes(q)
               }).map(p => (
                 <div key={p.id} onClick={() => openPatient(p)}
-                  style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer', transition:'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f8fffe'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <div style={{ flex: isMobile ? '1' : '0 0 35%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.background='#f8fffe'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                  <div style={{ flex:'0 0 35%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
-                      <div style={{ fontSize:14, color:'#999' }}>{p.profile?.email}</div>
+                      <div style={{ fontSize:12, color:'#999' }}>{p.profile?.email}</div>
                     </div>
                   </div>
-                  {!isMobile && <div style={{ flex:'0 0 10%', fontSize:14, color:'#666' }}>{age(p.birth_date)} años</div>}
-                  {!isMobile && <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>}
-                  {!isMobile && <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>}
-                  {!isMobile && <div style={{ flex:'0 0 11%' }}>
-                    <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
+                  <div style={{ flex:'0 0 10%', fontSize:14, color:'#666' }}>{age(p.birth_date)} años</div>
+                  <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
+                  <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                  <div style={{ flex:'0 0 11%' }}>
+                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                 </div>
               ))}
               {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
             </div>
           )}
+        </div>
+      )}
 
           {view === 'perfil' && selPatient && (
             <div>
@@ -1012,7 +1050,7 @@ function MeasurementForm({ saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar medicion</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}><Field label="Fecha" value={form.date} onChange={f('date')} type="date" /></div>
         <Field label="Peso (kg)" value={form.weight} onChange={f('weight')} type="number" placeholder="64.2" />
         <Field label="% Grasa" value={form.fat} onChange={f('fat')} type="number" placeholder="29.1" />
@@ -1033,7 +1071,7 @@ function GoalForm({ saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nuevo objetivo</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}><Field label="Nombre del objetivo" value={form.name} onChange={f('name')} placeholder="% grasa corporal" /></div>
         <Field label="Valor actual" value={form.initial} onChange={f('initial')} type="number" placeholder="29.1" />
         <Field label="Meta" value={form.target} onChange={f('target')} type="number" placeholder="22.0" />
@@ -1115,7 +1153,7 @@ function TreatmentForm({ library, saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar tratamiento</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={s.fieldLabel}>Procedimiento / producto</label>
           <select value={form.product} onChange={f('product')} style={s.fieldInput}>
@@ -1201,7 +1239,7 @@ function NoteForm({ saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nueva nota clinica</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:12 }}>
         <Field label="Fecha" value={form.date} onChange={f('date')} type="date" />
         <div>
           <label style={s.fieldLabel}>Tipo de consulta</label>
@@ -1274,7 +1312,7 @@ function ApptForm({ appt, patients, saving, defaultDate, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={s.fieldLabel}>Paciente</label>
           <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
