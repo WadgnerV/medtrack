@@ -32,6 +32,7 @@ export default function PatientDashboard() {
   const [msgs, setMsgs] = useState([])
   const [clinicalNotes, setClinicalNotes] = useState([])
   const [nextAppt, setNextAppt] = useState(null)
+  const [nextAppts, setNextAppts] = useState([])
   const [careModules, setCareModules] = useState([])
   const [loading, setLoading] = useState(true)
   const [chatMsg, setChatMsg] = useState('')
@@ -113,7 +114,7 @@ export default function PatientDashboard() {
   async function loadNextAppt(pid) {
     const today = new Date().toISOString().split('T')[0]
     const { data } = await supabase.from('appointments')
-      .select('*, doctor:doctor_id(first_name, last_name)')
+      .select('*, doctor:doctor_id(first_name, last_name, sex, specialty)')
       .eq('patient_id', pid)
       .eq('status', 'scheduled')
       .gte('appointment_date', today)
@@ -122,6 +123,23 @@ export default function PatientDashboard() {
       .limit(1)
       .single()
     setNextAppt(data || null)
+
+    // Cargar próxima cita por módulo (una por tipo)
+    const { data: allAppts } = await supabase.from('appointments')
+      .select('*, doctor:doctor_id(first_name, last_name, sex, specialty)')
+      .eq('patient_id', pid)
+      .eq('status', 'scheduled')
+      .gte('appointment_date', today)
+      .order('appointment_date')
+      .order('appointment_time')
+    // Una cita por visit_type (módulo)
+    const seen = new Set()
+    const byModule = (allAppts || []).filter(a => {
+      const key = a.visit_type || 'general'
+      if (seen.has(key)) return false
+      seen.add(key); return true
+    })
+    setNextAppts(byModule)
   }
 
   async function loadMsgs(pid) {
@@ -340,21 +358,99 @@ export default function PatientDashboard() {
 
           {view === 'inicio' && (
             <div>
-              {nextAppt ? (
-                <div style={{ background:'#0F6E56', borderRadius:12, padding:'14px 16px', marginBottom:12, color:'#fff' }}>
-                  <div style={{ fontSize:14, opacity:0.8, marginBottom:4 }}>Próxima cita</div>
-                  <div style={{ fontSize:16, fontWeight:600, marginBottom:2 }}>{new Date(nextAppt.appointment_date + "T12:00:00").toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long' })}</div>
-                  <div style={{ fontSize:14, opacity:0.9 }}>{nextAppt.appointment_time?.substring(0,5)} hrs · {nextAppt.visit_type}</div>
-                  {nextAppt.doctor && <div style={{ fontSize:14, opacity:0.8, marginTop:2 }}>Dr. {nextAppt.doctor.first_name} {nextAppt.doctor.last_name}</div>}
-                </div>
-              ) : (
-                <div onClick={() => window.open('https://wa.me/50660464569?text=Hola,%20quisiera%20agendar%20una%20cita%20en%20Glow%20Clinic', '_blank')}
-                  style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <div>
-                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Sin cita agendada</div>
-                    <div style={{ fontSize:14, color:'#888', marginTop:2 }}>Toca para contactarnos por WhatsApp</div>
+              {/* Citas próximas por módulo */}
+              {(() => {
+                const MODULE_COLORS = {
+                  integral:     '#1a5c8a',
+                  metabolica:   '#0F6E56',
+                  estetica:     '#8e44ad',
+                  fisioterapia: '#e67e22',
+                  enfermeria:   '#c0392b',
+                }
+                const MODULE_LABELS = {
+                  integral:     'Medicina integral',
+                  metabolica:   'Medicina metabólica',
+                  estetica:     'Medicina estética',
+                  fisioterapia: 'Fisioterapia',
+                  enfermeria:   'Enfermería',
+                }
+                // Mapear visit_type a module_type
+                function getModuleFromVisit(visitType) {
+                  if (!visitType) return null
+                  const v = visitType.toLowerCase()
+                  if (v.includes('integral') || v.includes('general') || v.includes('seguimiento') || v.includes('consulta')) return 'integral'
+                  if (v.includes('metab')) return 'metabolica'
+                  if (v.includes('estet') || v.includes('estét')) return 'estetica'
+                  if (v.includes('fisio')) return 'fisioterapia'
+                  if (v.includes('enferm')) return 'enfermeria'
+                  return null
+                }
+                if (nextAppts.length === 0) return (
+                  <div onClick={() => window.open('https://wa.me/50660464569?text=Hola,%20quisiera%20agendar%20una%20cita%20en%20Glow%20Clinic', '_blank')}
+                    style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Sin cita agendada</div>
+                      <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Tocá para contactarnos por WhatsApp</div>
+                    </div>
+                    <span style={{ fontSize:20 }}>💬</span>
                   </div>
-                  <span style={{ fontSize:20 }}>💬</span>
+                )
+                return (
+                  <div style={{ marginBottom:12 }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Próximas citas</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {nextAppts.map((appt, i) => {
+                        const moduleType = getModuleFromVisit(appt.visit_type)
+                        const color = MODULE_COLORS[moduleType] || G
+                        const modLabel = MODULE_LABELS[moduleType] || appt.visit_type
+                        const docTitle = appt.doctor?.sex === 'female' ? 'Dra.' : 'Dr.'
+                        return (
+                          <div key={i} style={{ background: color+'12', border:`1.5px solid ${color}30`, borderLeft:`4px solid ${color}`, borderRadius:12, padding:'12px 14px' }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
+                              <div style={{ fontSize:12, fontWeight:700, color, textTransform:'uppercase', letterSpacing:'0.04em' }}>{modLabel}</div>
+                              <div style={{ fontSize:11, color:'#888' }}>{new Date(appt.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'short', day:'numeric', month:'short' })}</div>
+                            </div>
+                            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>
+                              {appt.appointment_time?.substring(0,5)} hrs
+                            </div>
+                            {appt.doctor && (
+                              <div style={{ fontSize:12, color:'#666' }}>{docTitle} {appt.doctor.first_name} {appt.doctor.last_name}{appt.doctor.specialty ? ` · ${appt.doctor.specialty}` : ''}</div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Profesionales asignados */}
+              {careModules.length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Mis profesionales</div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {(() => {
+                      const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
+                      const MODULE_LABELS = { integral:'Medicina integral', metabolica:'Medicina metabólica', estetica:'Medicina estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                      const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                      return [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type)).map(mod => {
+                        const color = MODULE_COLORS[mod.module_type] || G
+                        return (
+                          <div key={mod.module_type} style={{ display:'flex', alignItems:'center', gap:10 }}>
+                            <div style={{ width:8, height:8, borderRadius:'50%', background:color, flexShrink:0 }} />
+                            <div style={{ fontSize:12, color:'#888', minWidth:130 }}>{MODULE_LABELS[mod.module_type]}</div>
+                            {mod.professional ? (
+                              <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>
+                                {mod.professional.sex === 'female' ? 'Dra.' : 'Dr.'} {mod.professional.first_name} {mod.professional.last_name}
+                              </div>
+                            ) : (
+                              <div style={{ fontSize:11, color:'#bbb' }}>Sin asignar</div>
+                            )}
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
                 </div>
               )}
               {(() => {
@@ -395,9 +491,9 @@ export default function PatientDashboard() {
                 const lastMsg = msgs.filter(m=>m.sender_id!==patient?.profile_id)[0]
                 return lastMsg ? (
                   <div onClick={()=>setView('chat')} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer' }}>
-                    <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:8 }}>Último mensaje de mi médico</div>
-                    <div style={{ fontSize:14, color:'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lastMsg.content}</div>
-                    <div style={{ fontSize:14, color:'#999', marginTop:4 }}>{new Date(lastMsg.created_at).toLocaleDateString('es-CR')}</div>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Último mensaje</div>
+                    <div style={{ fontSize:13, color:'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lastMsg.content}</div>
+                    <div style={{ fontSize:11, color:'#999', marginTop:4 }}>{new Date(lastMsg.created_at).toLocaleDateString('es-CR')}</div>
                   </div>
                 ) : null
               })()}
