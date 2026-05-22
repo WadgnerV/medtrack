@@ -981,11 +981,11 @@ export default function AdminDashboard() {
                   {!isMobile && <div style={{ flex:'0 0 16%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
                   </div>
-                  <div style={{ flex:'0 0 14%', fontSize:14, color:'#666' }}>{patients.filter(p => p.doctor?.id === d.id).length}</div>
-                  <div style={{ flex:'0 0 14%' }}>
+                  {!isMobile && <div style={{ flex:'0 0 14%', fontSize:14, color:'#666' }}>{patients.filter(p => p.doctor?.id === d.id).length}</div>}
+                  {!isMobile && <div style={{ flex:'0 0 14%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background:'#E1F5EE', color:'#0F6E56' }}>activo</span>
                   </div>
-                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
+                  <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     {d.role !== 'admin' && (
                       <>
                         <button style={s.iconBtn} onClick={() => setView('permisos')}>P</button>
@@ -1046,8 +1046,8 @@ export default function AdminDashboard() {
                 {!isMobile && <div style={{ flex:'0 0 8%' }}>Edad</div>}
                 {!isMobile && <div style={{ flex:'0 0 18%' }}>Médico</div>}
                 {!isMobile && <div style={{ flex:'0 0 18%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>}
-                <div style={{ flex:'0 0 12%' }}>Estado</div>
-                <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
+                {!isMobile && <div style={{ flex:'0 0 12%' }}>Estado</div>}
+                <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', textAlign:'right' }}>Acciones</div>
               </div>
               {patients.filter(p => {
                 const q = searchPac.toLowerCase()
@@ -1058,20 +1058,20 @@ export default function AdminDashboard() {
                 return nombre.includes(q)||email.includes(q)||diag.includes(q)
               }).map(p => (
                   <div key={p.id} onClick={() => openPatient(p)} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}>
-                  <div style={{ flex:'0 0 28%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  <div style={{ flex:1, display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
-                      <div style={{ fontSize:14, color:'#999' }}>{p.specialty_type || '--'}</div>
+                      <div style={{ fontSize:12, color:'#999' }}>{isMobile ? (p.status === 'active' ? 'activo' : 'pendiente') : (p.specialty_type || '--')}</div>
                     </div>
                   </div>
-                  <div style={{ flex:'0 0 8%', fontSize:14, color:'#666' }}>{age(p.birth_date)}</div>
-                  <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.doctor ? dName(p.doctor) : 'Sin asignar'}</div>
-                <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
-                  <div style={{ flex:'0 0 12%' }}>
+                  {!isMobile && <div style={{ flex:'0 0 8%', fontSize:14, color:'#666' }}>{age(p.birth_date)}</div>}
+                  {!isMobile && <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.doctor ? dName(p.doctor) : 'Sin asignar'}</div>}
+                  {!isMobile && <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>}
+                  {!isMobile && <div style={{ flex:'0 0 12%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
-                  </div>
-                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
+                  </div>}
+                  <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
