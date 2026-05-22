@@ -151,6 +151,7 @@ export default function AdminDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showDrawer, setShowDrawer] = useState(false)
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 640)
@@ -568,7 +569,7 @@ export default function AdminDashboard() {
   if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:14, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
 
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:'#f5f5f5' }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:'#f5f5f5', overflowX:'hidden', maxWidth:'100vw' }}>
 
       {modal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.42)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:40 }}
@@ -651,51 +652,64 @@ export default function AdminDashboard() {
       </div>}
 
       {/* Overlay para cerrar menú en móvil */}
-      {isMobile && mobileMenuOpen && (
-        <div onClick={() => setMobileMenuOpen(false)}
-          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
-      )}
-
-      {/* Bottom nav móvil admin */}
-      {isMobile && (
-        <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
-          {[
-            { label:'Dashboard', key:'dashboard', icon:'📊' },
-            { label:'Pacientes', key:'pacientes', icon:'👥' },
-            { label:'Calendario', key:'calendario', icon:'📅' },
-
-            { label:'Más', key:'__menu__', icon:'☰' },
-          ].map(item => (
-            <div key={item.key}
-              onClick={() => item.key === '__menu__' ? setMobileMenuOpen(o => !o) : (setView(item.key), setMobileMenuOpen(false))}
-              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? G : '#999', borderTop: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? ('2px solid ' + G) : '2px solid transparent', position:'relative' }}>
-              <span style={{ fontSize:18 }}>{item.icon}</span>
-              {item.badge > 0 && <span style={{ position:'absolute', top:4, right:'20%', width:8, height:8, borderRadius:'50%', background:'#D85A30' }} />}
-              <span style={{ fontSize:9, marginTop:2, fontWeight: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? 600 : 400 }}>{item.label}</span>
+      {/* Drawer móvil admin */}
+      {isMobile && showDrawer && (
+        <>
+          <div onClick={() => setShowDrawer(false)}
+            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
+          <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
+            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
+              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
             </div>
-          ))}
-        </div>
+            <div style={{ flex:1, padding:'8px 0' }}>
+              {[
+                { label:'Dashboard', key:'dashboard', icon:'📊' },
+                { label:'Médicos', key:'medicos', icon:'👨‍⚕️' },
+                { label:'Pacientes', key:'pacientes', icon:'👥' },
+                { label:'Calendario', key:'calendario', icon:'📅' },
+                { label:'Reportes', key:'reportes', icon:'📈' },
+                { label:'Biblioteca', key:'biblioteca', icon:'📚' },
+                { label:'Permisos', key:'permisos', icon:'🔑' },
+                { label:'Configuración', key:'config', icon:'⚙️' },
+              ].map(item => (
+                <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
+                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
+                  <span>{item.icon}</span>{item.label}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding:'14px', borderTop:'0.5px solid #eee' }}>
+              <UserMenu />
+            </div>
+          </div>
+        </>
       )}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-          {isMobile && (
-            <button onClick={() => setMobileMenuOpen(o => !o)}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 4px', color:'#444' }}>☰</button>
-          )}
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-              {{ dashboard:'Dashboard', medicos:'Medicos', pacientes:'Pacientes', calendario:'Calendario', chat:'Chat', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuracion' }[view]}
-            </div>
-            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
+        {isMobile ? (
+          <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'sticky', top:0, zIndex:50 }}>
+            <button onClick={() => setShowDrawer(true)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:'#555', padding:'2px 6px', lineHeight:1 }}>☰</button>
+            <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
+            <UserMenu />
           </div>
-          {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>{isMobile ? '+ Médico' : '+ Nuevo medico'}</button>}
-          {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>{isMobile ? '+ Paciente' : '+ Nuevo paciente'}</button>}
-          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>{isMobile ? '+ Cita' : '+ Nueva cita'}</button>}
-          {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>{isMobile ? '+ Item' : '+ Nuevo item'}</button>}
-        </div>
+        ) : (
+          <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
+                {{ dashboard:'Dashboard', medicos:'Medicos', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuracion' }[view]}
+              </div>
+              <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
+            </div>
+            {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>+ Nuevo medico</button>}
+            {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
+            {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
+            {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
+          </div>
+        )}
 
-        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
+        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
 
 
     
