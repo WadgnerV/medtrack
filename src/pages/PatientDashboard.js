@@ -110,13 +110,18 @@ export default function PatientDashboard() {
 
   async function loadAestheticProcedures(pid) {
     const { data } = await supabase.from('aesthetic_procedures')
-      .select('*').eq('patient_id', pid)
+      .select('*, doctor:created_by(first_name, last_name, sex)')
+      .eq('patient_id', pid)
       .order('procedure_date', { ascending: false }).limit(6)
     setAestheticProcedures(data || [])
   }
 
   async function loadTreatments(pid) {
-    const { data } = await supabase.from('treatments').select('*').eq('patient_id', pid).order('appointment_date', { ascending: false })
+    const { data } = await supabase.from('treatments')
+      .select('*, doctor:created_by(first_name, last_name, sex)')
+      .eq('patient_id', pid)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
     setTreatments(data || [])
   }
 
@@ -494,15 +499,19 @@ export default function PatientDashboard() {
                   <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Tratamientos activos</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                     {treatments.slice(0,6).map(t => (
-                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'7px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:1 }}>{t.name || t.product_name || 'Tratamiento'}</div>
-                        {t.dosage && <div style={{ fontSize:10, color:'#aaa' }}>{t.dosage}</div>}
+                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
+                        <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:3 }}>{t.name || 'Tratamiento'}</div>
+                        {t.created_at && <div style={{ fontSize:10, color:'#888' }}>{new Date(t.created_at).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
+                        <div style={{ fontSize:10, color:'#0F6E56', marginTop:1 }}>Médico</div>
+                        {t.doctor && <div style={{ fontSize:10, color:'#666' }}>{t.doctor.sex==='female'?'Dra.':'Dr.'} {t.doctor.first_name} {t.doctor.last_name}</div>}
                       </div>
                     ))}
                     {aestheticProcedures.slice(0,6).map(p => (
-                      <div key={p.id} style={{ background:'#f0e8f8', borderRadius:8, padding:'7px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:1 }}>{p.procedure_name}</div>
-                        <div style={{ fontSize:10, color:'#8e44ad' }}>{new Date(p.procedure_date+'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'})}</div>
+                      <div key={p.id} style={{ background:'#f0e8f8', borderRadius:8, padding:'8px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
+                        <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:3 }}>{p.procedure_name}</div>
+                        {p.procedure_date && <div style={{ fontSize:10, color:'#888' }}>{new Date(p.procedure_date+'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
+                        <div style={{ fontSize:10, color:'#8e44ad', marginTop:1 }}>Estética</div>
+                        {p.doctor && <div style={{ fontSize:10, color:'#666' }}>{p.doctor.sex==='female'?'Dra.':'Dr.'} {p.doctor.first_name} {p.doctor.last_name}</div>}
                       </div>
                     ))}
                   </div>
