@@ -666,9 +666,9 @@ export default function DoctorDashboard() {
                 const mod = patientCareModules.find(m => m.module_type === moduleType)
                 return (
                   <div>
-                    {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} />}
-                    {moduleType === 'metabolica' && <MetabolicModule patient={selPatient} careModule={mod} />}
-                    {moduleType === 'estetica' && <AestheticModuleDoctor patient={selPatient} careModule={mod} profile={profile} />}
+                    {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} canEdit={true} />}
+                    {moduleType === 'metabolica' && <MetabolicModule patient={selPatient} careModule={mod} canEdit={true} />}
+                    {moduleType === 'estetica' && <AestheticModule patient={selPatient} careModule={mod} canEdit={true} />}
                     {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
                       <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:30, textAlign:'center', color:'#bbb', fontSize:13 }}>
                         Módulo en construcción

@@ -247,7 +247,7 @@ function BodyDiagram({ view, zones, procedures, selectedZone, onSelect }) {
   )
 }
 
-export default function AestheticModule({ patient }) {
+export default function AestheticModule({ patient, canEdit }) {
   const [procedures, setProcedures] = useState([])
   const [program, setProgram] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
@@ -257,6 +257,15 @@ export default function AestheticModule({ patient }) {
   const [notes, setNotes] = useState([])
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)
+  const [showProcForm, setShowProcForm] = useState(false)
+  const [procForm, setProcForm] = useState({ procedure_name:'', notes:'', procedure_date: new Date().toISOString().split('T')[0] })
+  const [savingProc, setSavingProc] = useState(false)
+  const [showProgForm, setShowProgForm] = useState(false)
+  const [progForm, setProgForm] = useState({ procedure_name:'', notes:'' })
+  const [savingProg, setSavingProg] = useState(false)
+  const [showDiagForm, setShowDiagForm] = useState(false)
+  const [diagSearch, setDiagSearch] = useState('')
+  const [diagResults, setDiagResults] = useState([])
 
   useEffect(() => { localStorage.setItem('aestheticTab', tab) }, [tab])
   useEffect(() => { if (patient?.id) { loadProcedures(); loadProgram(); loadDiagnoses(); loadNotes() } }, [patient])
@@ -294,6 +303,71 @@ export default function AestheticModule({ patient }) {
   async function loadProgram() {
     const { data } = await supabase.from('aesthetic_program').select('*').eq('patient_id', patient.id).order('step_order', { ascending: true })
     setProgram(data || [])
+  }
+
+  async function searchCie10(q) {
+    if (!q || q.length < 2) { setDiagResults([]); return }
+    const { data } = await supabase.from('cie10').select('code, description')
+      .or(`description.ilike.%${q}%,code.ilike.%${q}%`).limit(8)
+    setDiagResults(data || [])
+  }
+
+  async function saveProc() {
+    if (!procForm.procedure_name.trim() || !selectedZone) return
+    setSavingProc(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('aesthetic_procedures').insert({
+      patient_id: patient.id, procedure_name: procForm.procedure_name,
+      body_zone: selectedZone.id, procedure_date: procForm.procedure_date,
+      notes: procForm.notes, created_by: user.id,
+    })
+    setProcForm({ procedure_name:'', notes:'', procedure_date: new Date().toISOString().split('T')[0] })
+    setShowProcForm(false); setSavingProc(false)
+    await loadProcedures()
+  }
+
+  async function deleteProc(id) {
+    await supabase.from('aesthetic_procedures').delete().eq('id', id)
+    await loadProcedures()
+  }
+
+  async function saveProg() {
+    if (!progForm.procedure_name.trim()) return
+    setSavingProg(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const nextOrder = program.length + 1
+    await supabase.from('aesthetic_program').insert({
+      patient_id: patient.id, procedure_name: progForm.procedure_name,
+      notes: progForm.notes, step_order: nextOrder, is_done: false, created_by: user.id,
+    })
+    setProgForm({ procedure_name:'', notes:'' }); setShowProgForm(false); setSavingProg(false)
+    await loadProgram()
+  }
+
+  async function markProgDone(id, isDone) {
+    await supabase.from('aesthetic_program').update({
+      is_done: !isDone, done_date: !isDone ? new Date().toISOString().split('T')[0] : null
+    }).eq('id', id)
+    await loadProgram()
+  }
+
+  async function deleteProg(id) {
+    await supabase.from('aesthetic_program').delete().eq('id', id)
+    await loadProgram()
+  }
+
+  async function addDiagnosis(item) {
+    await supabase.from('patient_diagnoses').insert({
+      patient_id: patient.id, cie10_code: item.code, cie10_description: item.description,
+      diagnosis_date: new Date().toISOString().split('T')[0], is_active: true,
+    })
+    setDiagSearch(''); setDiagResults([]); setShowDiagForm(false)
+    await loadDiagnoses()
+  }
+
+  async function deleteDiagnosis(id) {
+    await supabase.from('patient_diagnoses').update({ is_active: false }).eq('id', id)
+    await loadDiagnoses()
   }
 
   async function loadDiagnoses() {
@@ -371,6 +445,31 @@ export default function AestheticModule({ patient }) {
                   <div style={{ fontSize:15, fontWeight:700 }}>{selectedZone.label}</div>
                   <div style={{ fontSize:12, opacity:0.75 }}>{zoneProcedures.length} procedimiento{zoneProcedures.length !== 1 ? 's' : ''}</div>
                 </div>
+                {canEdit && (
+                  <button onClick={() => setShowProcForm(!showProcForm)}
+                    style={{ width:'100%', padding:'7px', background: COLOR+'18', color:COLOR, border:`1px solid ${COLOR}`, borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500, marginBottom:10 }}>
+                    + Agregar procedimiento en {selectedZone.label}
+                  </button>
+                )}
+                {canEdit && showProcForm && (
+                  <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:10 }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
+                      <input placeholder="Nombre del procedimiento *" value={procForm.procedure_name}
+                        onChange={e => setProcForm(p=>({...p,procedure_name:e.target.value}))}
+                        style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                      <input type="date" value={procForm.procedure_date}
+                        onChange={e => setProcForm(p=>({...p,procedure_date:e.target.value}))}
+                        style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                      <input placeholder="Notas adicionales" value={procForm.notes}
+                        onChange={e => setProcForm(p=>({...p,notes:e.target.value}))}
+                        style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                    </div>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <button onClick={() => setShowProcForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
+                      <button onClick={saveProc} disabled={savingProc} style={{ flex:1, padding:'6px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>{savingProc ? 'Guardando...' : 'Guardar'}</button>
+                    </div>
+                  </div>
+                )}
                 {zoneProcedures.length === 0 ? (
                   <div style={{ background:'#f8f8f8', borderRadius:10, padding:'20px', textAlign:'center', fontSize:13, color:'#bbb' }}>
                     Sin procedimientos en esta zona
@@ -378,10 +477,11 @@ export default function AestheticModule({ patient }) {
                 ) : (
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {zoneProcedures.map(p => (
-                      <div key={p.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:10, padding:'10px 12px' }}>
+                      <div key={p.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:10, padding:'10px 12px', position:'relative' }}>
                         <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{p.procedure_name}</div>
                         <div style={{ fontSize:11, color:'#aaa' }}>{formatDate(p.procedure_date)}</div>
                         {p.notes && <div style={{ fontSize:12, color:'#888', marginTop:4 }}>{p.notes}</div>}
+                        {canEdit && <button onClick={() => deleteProc(p.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
                       </div>
                     ))}
                   </div>
@@ -418,13 +518,38 @@ export default function AestheticModule({ patient }) {
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
           <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>Mi programa personalizado</div>
           <div style={{ fontSize:12, color:'#888', marginBottom:14 }}>Plan de procedimientos en orden de prioridad definido por tu médico.</div>
+          {canEdit && (
+            <button onClick={() => setShowProgForm(!showProgForm)}
+              style={{ marginBottom:12, padding:'7px 16px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+              + Agregar paso al programa
+            </button>
+          )}
+          {canEdit && showProgForm && (
+            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
+                <input placeholder="Nombre del procedimiento *" value={progForm.procedure_name}
+                  onChange={e => setProgForm(p=>({...p,procedure_name:e.target.value}))}
+                  style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <input placeholder="Notas adicionales" value={progForm.notes}
+                  onChange={e => setProgForm(p=>({...p,notes:e.target.value}))}
+                  style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={() => setShowProgForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
+                <button onClick={saveProg} disabled={savingProg} style={{ flex:1, padding:'6px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>{savingProg ? 'Guardando...' : 'Guardar'}</button>
+              </div>
+            </div>
+          )}
           {program.length === 0 ? (
-            <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Tu médico aún no ha definido tu programa.</div>
+            <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>
+              {canEdit ? 'Agregá pasos al programa del paciente.' : 'Tu médico aún no ha definido tu programa.'}
+            </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {program.map((step, i) => (
-                <div key={step.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:10, background: step.is_done ? '#f0f0f0' : '#f8f8f8', opacity: step.is_done ? 0.6 : 1 }}>
-                  <div style={{ width:28, height:28, borderRadius:'50%', background: step.is_done ? '#aaa' : COLOR, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, flexShrink:0 }}>
+                <div key={step.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', borderRadius:10, background: step.is_done ? '#f0f0f0' : '#f8f8f8', opacity: step.is_done ? 0.7 : 1, position:'relative' }}>
+                  <div onClick={() => canEdit && markProgDone(step.id, step.is_done)}
+                    style={{ width:28, height:28, borderRadius:'50%', background: step.is_done ? '#aaa' : COLOR, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, flexShrink:0, cursor: canEdit ? 'pointer' : 'default' }}>
                     {step.is_done ? '✓' : step.step_order}
                   </div>
                   <div style={{ flex:1 }}>
@@ -437,6 +562,7 @@ export default function AestheticModule({ patient }) {
                   {!step.is_done && i === program.findIndex(s => !s.is_done) && (
                     <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background: COLOR + '20', color:COLOR, fontWeight:600 }}>Próximo</span>
                   )}
+                  {canEdit && <button onClick={() => deleteProg(step.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
                 </div>
               ))}
             </div>
@@ -446,15 +572,35 @@ export default function AestheticModule({ patient }) {
 
       {tab === 'diagnosticos' && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-          <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Diagnósticos activos</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <div style={{ fontSize:14, fontWeight:600 }}>Diagnósticos activos</div>
+            {canEdit && <button onClick={() => setShowDiagForm(!showDiagForm)} style={{ padding:'5px 12px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12 }}>+ Agregar</button>}
+          </div>
+          {canEdit && showDiagForm && (
+            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
+              <input placeholder="Buscar código o nombre CIE-10..." value={diagSearch}
+                onChange={e => { setDiagSearch(e.target.value); searchCie10(e.target.value) }}
+                style={{ width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', boxSizing:'border-box', marginBottom:6 }} />
+              {diagResults.map(r => (
+                <div key={r.code} onClick={() => addDiagnosis(r)}
+                  style={{ padding:'7px 10px', cursor:'pointer', borderRadius:8, fontSize:12, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                  onMouseEnter={e => e.currentTarget.style.background='#f0e8f0'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                  <span>{r.description}</span>
+                  <span style={{ color:COLOR, fontWeight:500, marginLeft:8 }}>{r.code}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {diagnoses.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin diagnósticos registrados.</div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {diagnoses.map(d => (
-                <div key={d.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                <div key={d.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px', position:'relative' }}>
                   <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{d.cie10_description}</div>
                   <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0e8f0', color:COLOR, fontWeight:500 }}>{d.cie10_code}</span>
+                  {canEdit && <button onClick={() => deleteDiagnosis(d.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
                 </div>
               ))}
             </div>

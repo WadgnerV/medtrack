@@ -716,9 +716,9 @@ export default function PatientDashboard() {
                     Aún no ha sido asignado un profesional para esta categoría.
                   </div>
                 )}
-                {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} />}
-                {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} />}
-                {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} />}
+                {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} canEdit={false} />}
+                {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} canEdit={false} canEditMeasurements={true} />}
+                {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} canEdit={false} />}
                 {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'30px', textAlign:'center', color:'#bbb', fontSize:13 }}>
                     Módulo en construcción — próximamente disponible

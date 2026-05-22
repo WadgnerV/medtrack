@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const COLOR = '#0F6E56'
 
-export default function MetabolicModule({ patient, careModule }) {
+export default function MetabolicModule({ patient, careModule, canEdit, canEditMeasurements }) {
   const [measurements, setMeasurements] = useState([])
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
@@ -14,6 +14,15 @@ export default function MetabolicModule({ patient, careModule }) {
   const [notes, setNotes] = useState([])
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)
+  const [showTratForm, setShowTratForm] = useState(false)
+  const [tratForm, setTratForm] = useState({ name:'', description:'', dosage:'' })
+  const [savingTrat, setSavingTrat] = useState(false)
+  const [showDiagForm, setShowDiagForm] = useState(false)
+  const [diagSearch, setDiagSearch] = useState('')
+  const [diagResults, setDiagResults] = useState([])
+  const [showTareaForm, setShowTareaForm] = useState(false)
+  const [tareaForm, setTareaForm] = useState({ title:'', description:'', due_date:'' })
+  const [savingTarea, setSavingTarea] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -60,6 +69,53 @@ export default function MetabolicModule({ patient, careModule }) {
   async function loadTasks() {
     const { data } = await supabase.from('tasks').select('*').eq('patient_id', patient.id).eq('status', 'pending').order('due_date', { ascending: true })
     setTasks(data || [])
+  }
+
+  async function searchCie10(q) {
+    if (!q || q.length < 2) { setDiagResults([]); return }
+    const { data } = await supabase.from('cie10').select('code, description')
+      .or(`description.ilike.%${q}%,code.ilike.%${q}%`).limit(8)
+    setDiagResults(data || [])
+  }
+
+  async function saveTratamiento() {
+    if (!tratForm.name.trim()) return
+    setSavingTrat(true)
+    await supabase.from('treatments').insert({ patient_id: patient.id, name: tratForm.name, description: tratForm.description, dosage: tratForm.dosage, status:'active' })
+    setTratForm({ name:'', description:'', dosage:'' }); setShowTratForm(false); setSavingTrat(false)
+    await loadTreatments()
+  }
+
+  async function deleteTratamiento(id) {
+    await supabase.from('treatments').update({ status:'inactive' }).eq('id', id)
+    await loadTreatments()
+  }
+
+  async function addDiagnosis(item) {
+    await supabase.from('patient_diagnoses').insert({
+      patient_id: patient.id, cie10_code: item.code, cie10_description: item.description,
+      diagnosis_date: new Date().toISOString().split('T')[0], is_active: true,
+    })
+    setDiagSearch(''); setDiagResults([]); setShowDiagForm(false)
+    await loadDiagnoses()
+  }
+
+  async function deleteDiagnosis(id) {
+    await supabase.from('patient_diagnoses').update({ is_active: false }).eq('id', id)
+    await loadDiagnoses()
+  }
+
+  async function saveTarea() {
+    if (!tareaForm.title.trim()) return
+    setSavingTarea(true)
+    await supabase.from('tasks').insert({ patient_id: patient.id, title: tareaForm.title, description: tareaForm.description, due_date: tareaForm.due_date || null, status:'pending' })
+    setTareaForm({ title:'', description:'', due_date:'' }); setShowTareaForm(false); setSavingTarea(false)
+    await loadTasks()
+  }
+
+  async function deleteTarea(id) {
+    await supabase.from('tasks').update({ status:'done' }).eq('id', id)
+    await loadTasks()
   }
 
   async function loadDiagnoses() {
@@ -121,12 +177,14 @@ export default function MetabolicModule({ patient, careModule }) {
       {tab === 'composicion' && (
         <div>
           {/* Botón registrar medición */}
-          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
-            <button onClick={() => setShowForm(!showForm)}
-              style={{ padding:'7px 14px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
-              + Registrar medición
-            </button>
-          </div>
+          {(canEdit || canEditMeasurements) && (
+            <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
+              <button onClick={() => setShowForm(!showForm)}
+                style={{ padding:'7px 14px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+                + Registrar medición
+              </button>
+            </div>
+          )}
 
           {showForm && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
@@ -261,16 +319,33 @@ export default function MetabolicModule({ patient, careModule }) {
 
       {tab === 'tratamientos' && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-          <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Tratamientos activos</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <div style={{ fontSize:14, fontWeight:600 }}>Tratamientos activos</div>
+            {canEdit && <button onClick={() => setShowTratForm(!showTratForm)} style={{ padding:'5px 12px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12 }}>+ Agregar</button>}
+          </div>
+          {canEdit && showTratForm && (
+            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
+                <input placeholder="Nombre del tratamiento *" value={tratForm.name} onChange={e => setTratForm(p=>({...p,name:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <input placeholder="Descripción" value={tratForm.description} onChange={e => setTratForm(p=>({...p,description:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <input placeholder="Dosis" value={tratForm.dosage} onChange={e => setTratForm(p=>({...p,dosage:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={() => setShowTratForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
+                <button onClick={saveTratamiento} disabled={savingTrat} style={{ flex:1, padding:'6px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>{savingTrat ? 'Guardando...' : 'Guardar'}</button>
+              </div>
+            </div>
+          )}
           {treatments.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin tratamientos activos.</div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {treatments.map(t => (
-                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px', position:'relative' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name}</div>
                   {t.description && <div style={{ fontSize:12, color:'#888' }}>{t.description}</div>}
                   {t.dosage && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Dosis: {t.dosage}</div>}
+                  {canEdit && <button onClick={() => deleteTratamiento(t.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
                 </div>
               ))}
             </div>
@@ -280,16 +355,36 @@ export default function MetabolicModule({ patient, careModule }) {
 
       {tab === 'diagnosticos' && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-          <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Diagnósticos activos</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <div style={{ fontSize:14, fontWeight:600 }}>Diagnósticos activos</div>
+            {canEdit && <button onClick={() => setShowDiagForm(!showDiagForm)} style={{ padding:'5px 12px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12 }}>+ Agregar</button>}
+          </div>
+          {canEdit && showDiagForm && (
+            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
+              <input placeholder="Buscar código o nombre CIE-10..." value={diagSearch}
+                onChange={e => { setDiagSearch(e.target.value); searchCie10(e.target.value) }}
+                style={{ width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', boxSizing:'border-box', marginBottom:6 }} />
+              {diagResults.map(r => (
+                <div key={r.code} onClick={() => addDiagnosis(r)}
+                  style={{ padding:'7px 10px', cursor:'pointer', borderRadius:8, fontSize:12, display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                  onMouseEnter={e => e.currentTarget.style.background='#E1F5EE'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                  <span>{r.description}</span>
+                  <span style={{ color:COLOR, fontWeight:500, marginLeft:8 }}>{r.code}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {diagnoses.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin diagnósticos registrados.</div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {diagnoses.map(d => (
-                <div key={d.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                <div key={d.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px', position:'relative' }}>
                   <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{d.cie10_description}</div>
                   <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:COLOR, fontWeight:500 }}>{d.cie10_code}</span>
                   {d.diagnosis_date && <div style={{ fontSize:10, color:'#aaa', marginTop:4 }}>{new Date(d.diagnosis_date).toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}</div>}
+                  {canEdit && <button onClick={() => deleteDiagnosis(d.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
                 </div>
               ))}
             </div>
@@ -299,16 +394,33 @@ export default function MetabolicModule({ patient, careModule }) {
 
       {tab === 'tareas' && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-          <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Tareas pendientes</div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <div style={{ fontSize:14, fontWeight:600 }}>Tareas pendientes</div>
+            {canEdit && <button onClick={() => setShowTareaForm(!showTareaForm)} style={{ padding:'5px 12px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12 }}>+ Agregar</button>}
+          </div>
+          {canEdit && showTareaForm && (
+            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
+                <input placeholder="Título de la tarea *" value={tareaForm.title} onChange={e => setTareaForm(p=>({...p,title:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <input placeholder="Descripción" value={tareaForm.description} onChange={e => setTareaForm(p=>({...p,description:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+                <input type="date" value={tareaForm.due_date} onChange={e => setTareaForm(p=>({...p,due_date:e.target.value}))} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none' }} />
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={() => setShowTareaForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
+                <button onClick={saveTarea} disabled={savingTarea} style={{ flex:1, padding:'6px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>{savingTarea ? 'Guardando...' : 'Guardar'}</button>
+              </div>
+            </div>
+          )}
           {tasks.length === 0 ? (
             <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin tareas pendientes.</div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {tasks.map(t => (
-                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px', position:'relative' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.title}</div>
                   {t.description && <div style={{ fontSize:12, color:'#888' }}>{t.description}</div>}
                   {t.due_date && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Vence: {new Date(t.due_date).toLocaleDateString('es-CR', { day:'numeric', month:'long' })}</div>}
+                  {canEdit && <button onClick={() => deleteTarea(t.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
                 </div>
               ))}
             </div>
