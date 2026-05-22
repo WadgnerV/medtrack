@@ -151,7 +151,6 @@ export default function AdminDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [showDrawer, setShowDrawer] = useState(false)
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 640)
@@ -569,7 +568,7 @@ export default function AdminDashboard() {
   if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:14, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
 
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:'#f5f5f5', overflowX:'hidden', maxWidth:'100vw' }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:'#f5f5f5' }}>
 
       {modal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.42)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:40 }}
@@ -621,7 +620,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      {(!isMobile || mobileMenuOpen) && <div style={{ width: isMobile ? '100%' : 210, minWidth: isMobile ? '100%' : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto', zIndex: isMobile ? 50 : 'auto' }}>
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -648,71 +647,62 @@ export default function AdminDashboard() {
           </div>
         ))}
 
+        <UserMenu />
       </div>}
 
       {/* Overlay para cerrar menú en móvil */}
-      {/* Drawer móvil admin */}
-      {isMobile && showDrawer && (
-        <>
-          <div onClick={() => setShowDrawer(false)}
-            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
-          <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
-            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
-              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
-            </div>
-            <div style={{ flex:1, padding:'8px 0' }}>
-              {[
-                { label:'Dashboard', key:'dashboard', icon:'📊' },
-                { label:'Médicos', key:'medicos', icon:'👨‍⚕️' },
-                { label:'Pacientes', key:'pacientes', icon:'👥' },
-                { label:'Calendario', key:'calendario', icon:'📅' },
-                { label:'Reportes', key:'reportes', icon:'📈' },
-                { label:'Biblioteca', key:'biblioteca', icon:'📚' },
-                { label:'Permisos', key:'permisos', icon:'🔑' },
-                { label:'Configuración', key:'config', icon:'⚙️' },
-              ].map(item => (
-                <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
-                  <span>{item.icon}</span>{item.label}
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
+      {isMobile && mobileMenuOpen && (
+        <div onClick={() => setMobileMenuOpen(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
       )}
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0, maxWidth:'100%' }}>
-        {isMobile ? (
-          <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'sticky', top:0, zIndex:50 }}>
-            <button onClick={() => setShowDrawer(true)}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:'#555', padding:'2px 6px', lineHeight:1 }}>☰</button>
-            <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
-            <UserMenu />
-          </div>
-        ) : (
-          <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-                {{ dashboard:'Dashboard', medicos:'Medicos', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuracion' }[view]}
-              </div>
-              <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
-            </div>
-            {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>+ Nuevo medico</button>}
-            {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
-            {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
-            {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
-          </div>
-        )}
+      {/* Bottom nav móvil admin */}
+      {isMobile && (
+        <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
+          {[
+            { label:'Dashboard', key:'dashboard', icon:'📊' },
+            { label:'Pacientes', key:'pacientes', icon:'👥' },
+            { label:'Calendario', key:'calendario', icon:'📅' },
 
-        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
+            { label:'Más', key:'__menu__', icon:'☰' },
+          ].map(item => (
+            <div key={item.key}
+              onClick={() => item.key === '__menu__' ? setMobileMenuOpen(o => !o) : (setView(item.key), setMobileMenuOpen(false))}
+              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? G : '#999', borderTop: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? ('2px solid ' + G) : '2px solid transparent', position:'relative' }}>
+              <span style={{ fontSize:18 }}>{item.icon}</span>
+              {item.badge > 0 && <span style={{ position:'absolute', top:4, right:'20%', width:8, height:8, borderRadius:'50%', background:'#D85A30' }} />}
+              <span style={{ fontSize:9, marginTop:2, fontWeight: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? 600 : 400 }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
+        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          {isMobile && (
+            <button onClick={() => setMobileMenuOpen(o => !o)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 4px', color:'#444' }}>☰</button>
+          )}
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
+              {{ dashboard:'Dashboard', medicos:'Medicos', pacientes:'Pacientes', calendario:'Calendario', chat:'Chat', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuracion' }[view]}
+            </div>
+            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
+          </div>
+          {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>{isMobile ? '+ Médico' : '+ Nuevo medico'}</button>}
+          {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>{isMobile ? '+ Paciente' : '+ Nuevo paciente'}</button>}
+          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>{isMobile ? '+ Cita' : '+ Nueva cita'}</button>}
+          {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>{isMobile ? '+ Item' : '+ Nuevo item'}</button>}
+        </div>
+
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
 
 
     
       {view === 'dashboard' && (
         <div>
           {/* ── KPIs ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
             {[
               { label:'Pacientes activos', value: patients.length, icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
               { label:'Médicos activos', value: doctors.filter(d=>d.role==='doctor'||d.role==='admin').length, icon:'👨‍⚕️', color:'#1a6e4e', bg:'#d4ede5' },
@@ -730,7 +720,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 1: Citas por mes (línea) + Citas por médico este mes (barras) ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Citas por mes - LineChart */}
             {(() => {
@@ -783,7 +773,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 2: Pacientes por médico + Distribución por sexo ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Pacientes por médico - BarChart horizontal */}
             {(() => {
@@ -837,7 +827,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 3: Provincias + Grupos de edad ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Pacientes por provincia - todas las 7 provincias CR */}
             {(() => {
@@ -896,7 +886,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 4: Diagnósticos + Metas ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Diagnósticos */}
             {(() => {
@@ -963,29 +953,29 @@ export default function AdminDashboard() {
       {view === 'medicos' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex: isMobile ? '1' : '0 0 40%' }}>Medico</div>
-                {!isMobile && <div style={{ flex:'0 0 16%' }}>Rol</div>}
-                {!isMobile && <div style={{ flex:'0 0 14%' }}>Pac.</div>}
-                {!isMobile && <div style={{ flex:'0 0 14%' }}>Estado</div>}
-                <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', textAlign:'right' }}>Acciones</div>
+                <div style={{ flex:'0 0 40%' }}>Medico</div>
+                <div style={{ flex:'0 0 16%' }}>Rol</div>
+                <div style={{ flex:'0 0 14%' }}>Pac.</div>
+                <div style={{ flex:'0 0 14%' }}>Estado</div>
+                <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
               </div>
               {doctors.map(d => (
                 <div key={d.id} style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center' }}>
-                  <div style={{ flex: isMobile ? '1' : '0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  <div style={{ flex:'0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.first_name} {d.last_name}</div>
                       <div style={{ fontSize:14, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
                     </div>
                   </div>
-                  {!isMobile && <div style={{ flex:'0 0 16%' }}>
+                  <div style={{ flex:'0 0 16%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
                   </div>
-                  {!isMobile && <div style={{ flex:'0 0 14%', fontSize:14, color:'#666' }}>{patients.filter(p => p.doctor?.id === d.id).length}</div>}
-                  {!isMobile && <div style={{ flex:'0 0 14%' }}>
+                  <div style={{ flex:'0 0 14%', fontSize:14, color:'#666' }}>{patients.filter(p => p.doctor?.id === d.id).length}</div>
+                  <div style={{ flex:'0 0 14%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background:'#E1F5EE', color:'#0F6E56' }}>activo</span>
                   </div>
-                  <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
+                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     {d.role !== 'admin' && (
                       <>
                         <button style={s.iconBtn} onClick={() => setView('permisos')}>P</button>
@@ -1042,12 +1032,12 @@ export default function AdminDashboard() {
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
           <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex: isMobile ? '1' : '0 0 28%' }}>Paciente</div>
-                {!isMobile && <div style={{ flex:'0 0 8%' }}>Edad</div>}
-                {!isMobile && <div style={{ flex:'0 0 18%' }}>Médico</div>}
-                {!isMobile && <div style={{ flex:'0 0 18%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>}
-                {!isMobile && <div style={{ flex:'0 0 12%' }}>Estado</div>}
-                <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', textAlign:'right' }}>Acciones</div>
+                <div style={{ flex:'0 0 28%' }}>Paciente</div>
+                <div style={{ flex:'0 0 8%' }}>Edad</div>
+                <div style={{ flex:'0 0 18%' }}>Médico</div>
+                <div style={{ flex:'0 0 18%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 12%' }}>Estado</div>
+                <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
               </div>
               {patients.filter(p => {
                 const q = searchPac.toLowerCase()
@@ -1058,20 +1048,20 @@ export default function AdminDashboard() {
                 return nombre.includes(q)||email.includes(q)||diag.includes(q)
               }).map(p => (
                   <div key={p.id} onClick={() => openPatient(p)} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}>
-                  <div style={{ flex:1, display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  <div style={{ flex:'0 0 28%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
-                      <div style={{ fontSize:12, color:'#999' }}>{isMobile ? (p.status === 'active' ? 'activo' : 'pendiente') : (p.specialty_type || '--')}</div>
+                      <div style={{ fontSize:14, color:'#999' }}>{p.specialty_type || '--'}</div>
                     </div>
                   </div>
-                  {!isMobile && <div style={{ flex:'0 0 8%', fontSize:14, color:'#666' }}>{age(p.birth_date)}</div>}
-                  {!isMobile && <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.doctor ? dName(p.doctor) : 'Sin asignar'}</div>}
-                  {!isMobile && <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>}
-                  {!isMobile && <div style={{ flex:'0 0 12%' }}>
+                  <div style={{ flex:'0 0 8%', fontSize:14, color:'#666' }}>{age(p.birth_date)}</div>
+                  <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.doctor ? dName(p.doctor) : 'Sin asignar'}</div>
+                <div style={{ flex:'0 0 18%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                  <div style={{ flex:'0 0 12%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
-                  </div>}
-                  <div style={{ flex: isMobile ? '0 0 80px' : '0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
+                  </div>
+                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>

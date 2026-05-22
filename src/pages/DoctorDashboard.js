@@ -36,7 +36,6 @@ export default function DoctorDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
-  const [showDrawer, setShowDrawer] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -361,7 +360,7 @@ export default function DoctorDashboard() {
   if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:14, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
 
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:'#f5f5f5', overflowX:'hidden', maxWidth:'100vw' }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:'#f5f5f5' }}>
 
       {modal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.42)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:40 }}
@@ -405,7 +404,7 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      {(!isMobile || mobileMenuOpen) && <div style={{ width: isMobile ? '100%' : 210, minWidth: isMobile ? '100%' : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto', zIndex: isMobile ? 50 : 'auto' }}>
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -430,68 +429,64 @@ export default function DoctorDashboard() {
           </div>
         ))}
 
+        <UserMenu />
       </div>}
 
-      {/* Drawer móvil doctor */}
-      {isMobile && showDrawer && (
-        <>
-          <div onClick={() => setShowDrawer(false)}
-            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
-          <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
-            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
-              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
-            </div>
-            <div style={{ flex:1, padding:'8px 0' }}>
-              {[
-                { label:'Dashboard', key:'dashboard', icon:'📊' },
-                { label:'Mis pacientes', key:'pacientes', icon:'👥' },
-                { label:'Calendario', key:'calendario', icon:'📅' },
-              ].map(item => (
-                <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null); setShowDrawer(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
-                  <span>{item.icon}</span>{item.label}
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
+      {isMobile && mobileMenuOpen && (
+        <div onClick={() => setMobileMenuOpen(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
       )}
 
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0, maxWidth:'100%' }}>
-        {isMobile ? (
-          <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, position:'sticky', top:0, zIndex:50 }}>
-            <button onClick={() => setShowDrawer(true)}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:'#555', padding:'2px 6px', lineHeight:1 }}>☰</button>
-            <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
-            <UserMenu />
-          </div>
-        ) : (
-          <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-                {view === 'perfil' && selPatient ? (
-                  <span>
-                    <button style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:14, marginRight:6 }}
-                      onClick={() => { setView('pacientes'); setSelPatient(null) }}>{'<'} Mis pacientes</button>
-                    {pName(selPatient)}
-                  </span>
-                ) : { dashboard:'Dashboard', pacientes:'Mis pacientes', calendario:'Calendario', chat:'Chat' }[view]}
-              </div>
-              <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
+      {/* Bottom nav móvil doctor */}
+      {isMobile && (
+        <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
+          {[
+            { label:'Dashboard', key:'dashboard', icon:'📊' },
+            { label:'Pacientes', key:'pacientes', icon:'👥' },
+            { label:'Calendario', key:'calendario', icon:'📅' },
+            
+            { label:'Más', key:'__menu__', icon:'☰' },
+          ].map(item => (
+            <div key={item.key}
+              onClick={() => item.key === '__menu__' ? setMobileMenuOpen(o => !o) : (setView(item.key), setSelPatient(null), setMobileMenuOpen(false))}
+              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? G : '#999', borderTop: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? ('2px solid ' + G) : '2px solid transparent', position:'relative' }}>
+              <span style={{ fontSize:18 }}>{item.icon}</span>
+              {item.badge > 0 && <span style={{ position:'absolute', top:4, right:'20%', width:8, height:8, borderRadius:'50%', background:'#D85A30' }} />}
+              <span style={{ fontSize:9, marginTop:2, fontWeight: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? 600 : 400 }}>{item.label}</span>
             </div>
-            {view === 'pacientes' && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
-            {view === 'perfil' && <button style={s.btnPrimary} onClick={() => setModal('new-measurement')}>+ Registrar medicion</button>}
-            {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
-          </div>
-        )}
+          ))}
+        </div>
+      )}
 
-        <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
+        <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          {isMobile && (
+            <button onClick={() => setMobileMenuOpen(o => !o)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 4px', color:'#444' }}>☰</button>
+          )}
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
+              {view === 'perfil' && selPatient ? (
+                <span>
+                  <button style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:14, marginRight:6 }}
+                    onClick={() => { setView('pacientes'); setSelPatient(null) }}>{'<'} Mis pacientes</button>
+                  {pName(selPatient)}
+                </span>
+              ) : { dashboard:'Dashboard', pacientes:'Mis pacientes', calendario:'Calendario', chat:'Chat' }[view]}
+            </div>
+            {!isMobile && <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>}
+          </div>
+          {view === 'pacientes' && !isMobile && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
+          {view === 'perfil' && <button style={s.btnPrimary} onClick={() => setModal('new-measurement')}>{isMobile ? '+ Medición' : '+ Registrar medicion'}</button>}
+          {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>{isMobile ? '+ Cita' : '+ Nueva cita'}</button>}
+        </div>
+
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
 
           {view === 'dashboard' && (
         <div>
           {/* ── 4 KPIs ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
             {[
               { label:'Pacientes asignados', value: patients.length, sub: patients.filter(p=>p.status==='active').length+' activos', icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
               { label:'Citas esta semana', value: (() => {
@@ -517,7 +512,7 @@ export default function DoctorDashboard() {
           </div>
 
           {/* ── Gráfica + Lista pacientes ── */}
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
 
             {/* Citas por mes */}
             {(() => {
@@ -583,49 +578,13 @@ export default function DoctorDashboard() {
       )}
 
       {view === 'pacientes' && (
-        <div>
-          {/* Buscador */}
-          <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden', marginBottom:12 }}>
-            <div style={{ padding:'10px 12px', position:'relative', display:'flex', alignItems:'center' }}>
-              <span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span>
-              <input type="text" placeholder="Buscar por nombre o email..." value={searchPac} onChange={e=>setSearchPac(e.target.value)}
-                style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
-            </div>
-          </div>
-
-          {isMobile ? (
-            /* Vista móvil: cards */
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {patients.filter(p => {
-                const q = searchPac.toLowerCase()
-                if(!q) return true
-                const nombre = ((p.profile?.first_name||'')+' '+(p.profile?.last_name||'')).toLowerCase()
-                const email = (p.profile?.email||'').toLowerCase()
-                return nombre.includes(q)||email.includes(q)
-              }).map(p => (
-                <div key={p.id} onClick={() => openPatient(p)}
-                  style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:12 }}>
-                  <div style={{ width:40, height:40, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:600, flexShrink:0 }}>{initials(pName(p))}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{pName(p)}</div>
-                    <div style={{ fontSize:12, color:'#888', marginTop:1 }}>{p.profile?.email}</div>
-                    <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>{age(p.birth_date)} años · {p.specialty_type || '--'}</div>
-                  </div>
-                  <span style={{ fontSize:11, padding:'3px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>
-                    {p.status === 'active' ? 'activo' : 'pendiente'}
-                  </span>
-                </div>
-              ))}
-              {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
-            </div>
-          ) : (
-            /* Vista desktop: tabla */
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:12, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
+              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 35%' }}>Paciente</div>
                 <div style={{ flex:'0 0 10%' }}>Edad</div>
                 <div style={{ flex:'0 0 22%' }}>Tipo de consulta</div>
-                <div style={{ flex:'0 0 22%' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 22%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
                 <div style={{ flex:'0 0 11%' }}>Estado</div>
               </div>
               {patients.filter(p => {
@@ -637,29 +596,27 @@ export default function DoctorDashboard() {
                 return nombre.includes(q)||email.includes(q)||diag.includes(q)
               }).map(p => (
                 <div key={p.id} onClick={() => openPatient(p)}
-                  style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}
-                  onMouseEnter={e => e.currentTarget.style.background='#f8fffe'}
-                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                  style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer', transition:'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f8fffe'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={{ flex:'0 0 35%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
-                      <div style={{ fontSize:12, color:'#999' }}>{p.profile?.email}</div>
+                      <div style={{ fontSize:14, color:'#999' }}>{p.profile?.email}</div>
                     </div>
                   </div>
                   <div style={{ flex:'0 0 10%', fontSize:14, color:'#666' }}>{age(p.birth_date)} años</div>
                   <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
-                  <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
                   <div style={{ flex:'0 0 11%' }}>
-                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
+                    <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                 </div>
               ))}
               {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
             </div>
           )}
-        </div>
-      )}
 
           {view === 'perfil' && selPatient && (
             <div>
@@ -919,7 +876,7 @@ export default function DoctorDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 260px', gap:14, height: isMobile ? 'auto' : 'calc(100vh - 130px)' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', gap:14, height:'calc(100vh - 130px)' }}>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderBottom:'0.5px solid #eee' }}>
                   <button style={s.calNavBtn} onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}>{'<'}</button>
@@ -1050,7 +1007,7 @@ function MeasurementForm({ saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar medicion</div>
-      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}><Field label="Fecha" value={form.date} onChange={f('date')} type="date" /></div>
         <Field label="Peso (kg)" value={form.weight} onChange={f('weight')} type="number" placeholder="64.2" />
         <Field label="% Grasa" value={form.fat} onChange={f('fat')} type="number" placeholder="29.1" />
@@ -1071,7 +1028,7 @@ function GoalForm({ saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nuevo objetivo</div>
-      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}><Field label="Nombre del objetivo" value={form.name} onChange={f('name')} placeholder="% grasa corporal" /></div>
         <Field label="Valor actual" value={form.initial} onChange={f('initial')} type="number" placeholder="29.1" />
         <Field label="Meta" value={form.target} onChange={f('target')} type="number" placeholder="22.0" />
@@ -1153,7 +1110,7 @@ function TreatmentForm({ library, saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar tratamiento</div>
-      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={s.fieldLabel}>Procedimiento / producto</label>
           <select value={form.product} onChange={f('product')} style={s.fieldInput}>
@@ -1239,7 +1196,7 @@ function NoteForm({ saving, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nueva nota clinica</div>
-      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:12 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
         <Field label="Fecha" value={form.date} onChange={f('date')} type="date" />
         <div>
           <label style={s.fieldLabel}>Tipo de consulta</label>
@@ -1312,7 +1269,7 @@ function ApptForm({ appt, patients, saving, defaultDate, onSave, onClose }) {
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
-      <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:10, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={s.fieldLabel}>Paciente</label>
           <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
