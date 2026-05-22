@@ -500,9 +500,10 @@ export default function PatientDashboard() {
                   <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                     {treatments.slice(0,6).map(t => (
                       <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:3 }}>{t.name || 'Tratamiento'}</div>
+                        <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>{t.name || 'Tratamiento'}</div>
+                        {t.dosage && <div style={{ fontSize:10, color:'#555', marginBottom:2 }}>{t.dosage}</div>}
                         {t.created_at && <div style={{ fontSize:10, color:'#888' }}>{new Date(t.created_at).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
-                        <div style={{ fontSize:10, color:'#0F6E56', marginTop:1 }}>Médico</div>
+                        <div style={{ fontSize:10, color:'#0F6E56', marginTop:2 }}>Médico</div>
                         {t.doctor && <div style={{ fontSize:10, color:'#666' }}>{t.doctor.sex==='female'?'Dra.':'Dr.'} {t.doctor.first_name} {t.doctor.last_name}</div>}
                       </div>
                     ))}
