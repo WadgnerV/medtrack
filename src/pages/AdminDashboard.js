@@ -632,7 +632,7 @@ export default function AdminDashboard() {
         {[
           { section:'Principal', items:[{ icon:'D', label:'Dashboard', key:'dashboard' }] },
           { section:'Usuarios', items:[{ icon:'M', label:'Medicos', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
-          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, { icon:'H', label:'Chat', key:'chat', badge:pendingCount, badgeRed:true }, { icon:'R', label:'Reportes', key:'reportes' }] },
+          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, { icon:'R', label:'Reportes', key:'reportes' }] },
           { section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] },
         ].map(group => (
           <div key={group.section}>
@@ -663,7 +663,7 @@ export default function AdminDashboard() {
             { label:'Dashboard', key:'dashboard', icon:'📊' },
             { label:'Pacientes', key:'pacientes', icon:'👥' },
             { label:'Calendario', key:'calendario', icon:'📅' },
-            { label:'Chat', key:'chat', icon:'💬', badge: pendingCount },
+
             { label:'Más', key:'__menu__', icon:'☰' },
           ].map(item => (
             <div key={item.key}

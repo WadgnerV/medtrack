@@ -444,7 +444,7 @@ export default function DoctorDashboard() {
             { label:'Dashboard', key:'dashboard', icon:'📊' },
             { label:'Pacientes', key:'pacientes', icon:'👥' },
             { label:'Calendario', key:'calendario', icon:'📅' },
-            { label:'Chat', key:'chat', icon:'💬', badge: pendingCount },
+            
             { label:'Más', key:'__menu__', icon:'☰' },
           ].map(item => (
             <div key={item.key}
