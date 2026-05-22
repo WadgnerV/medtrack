@@ -180,7 +180,7 @@ export default function WellnessModule({ patient, profile }) {
     <div>
       {/* Header con fecha y tabs */}
       <div style={{ display:'flex', gap:8, marginBottom:14, alignItems:'center' }}>
-        <div style={{ display:'flex', gap:6, flex:1 }}>
+        <div style={{ display:'flex', gap:6, flex:1, flexWrap:'wrap' }}>
           {[
             { key:'sueno', label:'Sueño' },
             { key:'estres', label:'Estrés' },
@@ -189,7 +189,7 @@ export default function WellnessModule({ patient, profile }) {
             { key:'historial', label:'Historial' },
           ].map(t => (
             <button key={t.key} onClick={() => setSection(t.key)}
-              style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: section === t.key ? G : '#f0f0f0', color: section === t.key ? '#fff' : '#666' }}>
+              style={{ padding:'6px 12px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12, fontWeight:500, background: section === t.key ? G : '#f0f0f0', color: section === t.key ? '#fff' : '#666', whiteSpace:'nowrap' }}>
               {t.label}
             </button>
           ))}
@@ -216,18 +216,20 @@ export default function WellnessModule({ patient, profile }) {
             </div>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
-            <div>
-              <label style={lbl}>Me dormí</label>
-              <input type="time" value={form.sleep_start} onChange={e => { const h = calcSleepHours(e.target.value, form.sleep_end); setForm(p => ({ ...p, sleep_start: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={inp} />
+          <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:16 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div>
+                <label style={lbl}>Me dormí</label>
+                <input type="time" value={form.sleep_start} onChange={e => { const h = calcSleepHours(e.target.value, form.sleep_end); setForm(p => ({ ...p, sleep_start: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={{ ...inp, minHeight:40 }} />
+              </div>
+              <div>
+                <label style={lbl}>Me desperté</label>
+                <input type="time" value={form.sleep_end} onChange={e => { const h = calcSleepHours(form.sleep_start, e.target.value); setForm(p => ({ ...p, sleep_end: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={{ ...inp, minHeight:40 }} />
+              </div>
             </div>
-            <div>
-              <label style={lbl}>Me desperté</label>
-              <input type="time" value={form.sleep_end} onChange={e => { const h = calcSleepHours(form.sleep_start, e.target.value); setForm(p => ({ ...p, sleep_end: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={inp} />
-            </div>
-            <div>
+            <div style={{ maxWidth:160 }}>
               <label style={lbl}>Horas dormidas</label>
-              <input type="number" min="0" max="24" step="0.5" value={form.sleep_hours} onChange={e => setForm(p => ({ ...p, sleep_hours: e.target.value }))} placeholder="7.5" style={{ ...inp, background:'#f8f8f8' }} readOnly={!!(form.sleep_start && form.sleep_end)} />
+              <input type="number" min="0" max="24" step="0.5" value={form.sleep_hours} onChange={e => setForm(p => ({ ...p, sleep_hours: e.target.value }))} placeholder="7.5" style={{ ...inp, background:'#f8f8f8', minHeight:40 }} readOnly={!!(form.sleep_start && form.sleep_end)} />
             </div>
           </div>
 
