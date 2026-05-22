@@ -416,7 +416,7 @@ export default function FemaleHealthModule({ patient }) {
 
   return (
     <div>
-      <div style={{ display:'flex', gap:6, marginBottom:14 }}>
+      <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
         {[
           { key:'calendario', label:'Calendario' },
           { key:'sintomas', label:'Síntomas' },

@@ -405,7 +405,7 @@ export default function AestheticModule({ patient, canEdit }) {
       {tab === 'diagrama' && (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px' }}>
-            <div style={{ display:'flex', gap:4, marginBottom:12, background:'#f0f0f0', borderRadius:8, padding:3 }}>
+            <div style={{ display:'flex', gap:4, marginBottom:12, flexWrap:'wrap', background:'#f0f0f0', borderRadius:8, padding:3 }}>
               <button onClick={() => { setView('front'); setSelectedZone(null) }}
                 style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'none', cursor:'pointer', fontSize:11, fontWeight:500, background: view === 'front' ? COLOR : 'transparent', color: view === 'front' ? '#fff' : '#666' }}>
                 Frontal
