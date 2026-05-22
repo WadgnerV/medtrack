@@ -11,7 +11,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
-  const [tab, setTab] = useState(() => localStorage.getItem('metabolicTab') || 'notas')
+  const [tab, setTab] = useState(canEdit ? 'notas' : 'composicion')
   const [notes, setNotes] = useState([])
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)

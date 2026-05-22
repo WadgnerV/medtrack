@@ -11,7 +11,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
-  const [tab, setTab] = useState(() => localStorage.getItem('integralTab') || 'notas')
+  const [tab, setTab] = useState(canEdit ? 'notas' : 'signos')
   const [notes, setNotes] = useState([])
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)

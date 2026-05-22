@@ -252,7 +252,7 @@ export default function AestheticModule({ patient, canEdit }) {
   const [procedures, setProcedures] = useState([])
   const [program, setProgram] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
-  const [tab, setTab] = useState(() => localStorage.getItem('aestheticTab') || 'notas')
+  const [tab, setTab] = useState(canEdit ? 'notas' : 'diagrama')
   const [view, setView] = useState('front')
   const [selectedZone, setSelectedZone] = useState(null)
   const [notes, setNotes] = useState([])
