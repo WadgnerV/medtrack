@@ -453,40 +453,7 @@ export default function PatientDashboard() {
                   </div>
                 </div>
               )}
-              {(() => {
-                const lastNote = clinicalNotes[0] || null
-                const lastMeas = measurements[0] || null
-                const signos = [
-                  { label:'Presión arterial', value: lastNote?.pas && lastNote?.pad ? lastNote.pas+'/'+lastNote.pad+' mmHg' : null },
-                  { label:'Glicemia', value: lastNote?.glucose ? lastNote.glucose+' mg/dL' : null },
-                  { label:'Frec. cardíaca', value: lastNote?.heart_rate ? lastNote.heart_rate+' lpm' : null },
-                  { label:'SpO₂', value: lastNote?.spo2 ? lastNote.spo2+'%' : null },
-                  { label:'Peso', value: lastMeas?.weight_kg ? lastMeas.weight_kg+' kg' : null },
-                  { label:'% Grasa', value: lastMeas?.body_fat_pct ? lastMeas.body_fat_pct+'%' : null },
-                  { label:'Masa muscular', value: lastMeas?.muscle_mass_kg ? lastMeas.muscle_mass_kg+' kg' : null },
-                  { label:'Grasa visceral', value: lastMeas?.visceral_fat_pts ? lastMeas.visceral_fat_pts+' pts' : null },
-                ].filter(s => s.value !== null)
-                const fecha = lastNote?.note_date || lastMeas?.measured_at
-                return (
-                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                      <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>Últimos signos clínicos</div>
-                      {fecha && <div style={{ fontSize:14, color:'#999' }}>{new Date(fecha).toLocaleDateString('es-CR')}</div>}
-                    </div>
-                    {signos.length === 0
-                      ? <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:12 }}>Sin registros clínicos aún</div>
-                      : <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                          {signos.map((s,i) => (
-                            <div key={i} style={{ background:'#f9f9f9', borderRadius:8, padding:'10px 12px' }}>
-                              <div style={{ fontSize:14, color:'#999', marginBottom:3 }}>{s.label}</div>
-                              <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{s.value}</div>
-                            </div>
-                          ))}
-                        </div>
-                    }
-                  </div>
-                )
-              })()}
+
               {(() => {
                 const lastMsg = msgs.filter(m=>m.sender_id!==patient?.profile_id)[0]
                 return lastMsg ? (
@@ -497,40 +464,35 @@ export default function PatientDashboard() {
                   </div>
                 ) : null
               })()}
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>Mis tareas pendientes</div>
-                  <button onClick={()=>setView('tareas')} style={{ fontSize:14, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'3px 9px', cursor:'pointer', fontWeight:600 }}>Ver todas</button>
-                </div>
-                {tasks.filter(t=>!t.is_completed).length === 0
-                  ? <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:8 }}>Sin tareas pendientes</div>
-                  : tasks.filter(t=>!t.is_completed).slice(0,3).map(t => (
-                    <div key={t.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                      <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56', flexShrink:0 }} />
-                      <div style={{ fontSize:14, color:'#333', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.description||'Tarea'}</div>
-                    </div>
-                  ))
-                }
-              </div>
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>Tratamientos activos</div>
-                  <button onClick={()=>setView('tratamientos')} style={{ fontSize:14, color:'#1a5c8a', background:'#e5f0fb', border:'none', borderRadius:6, padding:'3px 9px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
-                </div>
-                {treatments.length === 0
-                  ? <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:8 }}>Sin tratamientos activos</div>
-                  : treatments.slice(0,3).map(t => (
-                    <div key={t.id} style={{ padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
-                        <div style={{ width:8, height:8, borderRadius:'50%', background:'#0F6E56', flexShrink:0 }} />
-                        <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.product_name||'Tratamiento'}</div>
+              {/* Tareas pendientes */}
+              {tasks.filter(t=>!t.is_completed && t.status === 'pending').length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Mis tareas pendientes</div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {tasks.filter(t=>t.status === 'pending').slice(0,4).map(t => (
+                      <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <div style={{ width:7, height:7, borderRadius:'50%', background:G, flexShrink:0 }} />
+                        <div style={{ fontSize:13, color:'#333' }}>{t.title || t.description || 'Tarea'}</div>
                       </div>
-                      {(t.dose||t.zone) && <div style={{ fontSize:12, color:'#888', paddingLeft:16, marginTop:2 }}>{[t.dose, t.zone].filter(Boolean).join(' · ')}</div>}
-                      {t.appointment_date && <div style={{ fontSize:12, color:'#aaa', paddingLeft:16, marginTop:1 }}>📅 {new Date(t.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'numeric', month:'long', year:'numeric' })}</div>}
-                    </div>
-                  ))
-                }
-              </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tratamientos activos por módulo */}
+              {treatments.length > 0 && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Tratamientos activos</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    {treatments.slice(0,6).map(t => (
+                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px' }}>
+                        <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name || t.product_name || 'Tratamiento'}</div>
+                        {t.dosage && <div style={{ fontSize:11, color:'#aaa' }}>Dosis: {t.dosage}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
