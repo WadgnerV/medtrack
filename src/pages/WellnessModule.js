@@ -217,14 +217,18 @@ export default function WellnessModule({ patient, profile }) {
           </div>
 
           <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:16 }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              <div style={{ minWidth:0 }}>
+            <div style={{ display:'flex', gap:10 }}>
+              <div style={{ minWidth:0, flex:1 }}>
                 <label style={lbl}>Me dormí</label>
-                <input type="time" value={form.sleep_start} onChange={e => { const h = calcSleepHours(e.target.value, form.sleep_end); setForm(p => ({ ...p, sleep_start: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={{ width:'100%', padding:'8px 6px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', minHeight:40 }} />
+                <input type="text" inputMode="numeric" placeholder="22:30" value={form.sleep_start}
+                  onChange={e => { const v = e.target.value; setForm(p => ({ ...p, sleep_start: v })); const h = calcSleepHours(v, form.sleep_end); if(h) setForm(p => ({ ...p, sleep_hours: h })) }}
+                  style={{ display:'block', width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
               </div>
-              <div style={{ minWidth:0 }}>
+              <div style={{ minWidth:0, flex:1 }}>
                 <label style={lbl}>Me desperté</label>
-                <input type="time" value={form.sleep_end} onChange={e => { const h = calcSleepHours(form.sleep_start, e.target.value); setForm(p => ({ ...p, sleep_end: e.target.value, sleep_hours: h || p.sleep_hours })) }} style={{ width:'100%', padding:'8px 6px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', minHeight:40 }} />
+                <input type="text" inputMode="numeric" placeholder="07:00" value={form.sleep_end}
+                  onChange={e => { const v = e.target.value; setForm(p => ({ ...p, sleep_end: v })); const h = calcSleepHours(form.sleep_start, v); if(h) setForm(p => ({ ...p, sleep_hours: h })) }}
+                  style={{ display:'block', width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
               </div>
             </div>
             <div style={{ maxWidth:160 }}>
@@ -385,7 +389,7 @@ export default function WellnessModule({ patient, profile }) {
           {log && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'16px' }}>
               <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Resumen del día</div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div style={{ display:'flex', gap:10 }}>
                 {log.sleep_hours && (
                   <div style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
                     <div style={{ fontSize:11, color:'#888' }}>Sueño</div>
