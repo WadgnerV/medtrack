@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase'
 import IntegralModule from './IntegralModule'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
+import FisioterapiaModule from './FisioterapiaModule'
+import EnfermeriaModule from './EnfermeriaModule'
 import UserMenu from '../components/UserMenu'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
@@ -1852,11 +1854,8 @@ function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, tre
             {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} canEdit={true} />}
             {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} canEdit={true} canEditMeasurements={true} />}
             {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} canEdit={true} />}
-            {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:30, textAlign:'center', color:'#bbb', fontSize:13 }}>
-                Módulo en construcción
-              </div>
-            )}
+            {moduleType === 'fisioterapia' && <FisioterapiaModule patient={patient} careModule={mod} canEdit={true} />}
+            {moduleType === 'enfermeria' && <EnfermeriaModule patient={patient} careModule={mod} canEdit={true} />}
           </div>
         )
       })()}

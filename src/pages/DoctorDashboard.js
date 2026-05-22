@@ -3,6 +3,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import IntegralModule from './IntegralModule'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
+import FisioterapiaModule from './FisioterapiaModule'
+import EnfermeriaModule from './EnfermeriaModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -669,11 +671,8 @@ export default function DoctorDashboard() {
                     {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} canEdit={true} />}
                     {moduleType === 'metabolica' && <MetabolicModule patient={selPatient} careModule={mod} canEdit={true} />}
                     {moduleType === 'estetica' && <AestheticModule patient={selPatient} careModule={mod} canEdit={true} />}
-                    {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
-                      <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:30, textAlign:'center', color:'#bbb', fontSize:13 }}>
-                        Módulo en construcción
-                      </div>
-                    )}
+                    {moduleType === 'fisioterapia' && <FisioterapiaModule patient={selPatient} careModule={mod} canEdit={true} />}
+                    {moduleType === 'enfermeria' && <EnfermeriaModule patient={selPatient} careModule={mod} canEdit={true} />}
                   </div>
                 )
               })()}
