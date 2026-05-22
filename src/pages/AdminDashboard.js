@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import IntegralModule from './IntegralModule'
+import MetabolicModule from './MetabolicModule'
+import AestheticModule from './AestheticModule'
 import UserMenu from '../components/UserMenu'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
@@ -1610,6 +1613,19 @@ const s = {
 }
 
 function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
+  const [careModules, setCareModules] = React.useState([])
+
+  React.useEffect(() => {
+    if (patient?.id) loadCareModules()
+  }, [patient?.id])
+
+  async function loadCareModules() {
+    const { data } = await supabase.from('patient_care_modules')
+      .select('*, professional:assigned_professional_id(id, first_name, last_name)')
+      .eq('patient_id', patient.id)
+      .eq('is_active', true)
+    setCareModules(data || [])
+  }
   const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
   const latest = measurements[0] || null
 
@@ -1652,12 +1668,34 @@ function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, tre
       </div>
 
       <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
-        {['progreso','objetivos','tareas','tratamientos','notas','diagnosticos','modulos'].map(t => (
-          <div key={t} onClick={() => setTab(t)}
-            style={{ padding:'9px 14px', fontSize:14, cursor:'pointer', borderBottom: tab === t ? '2px solid #1D9E75' : '2px solid transparent', color: tab === t ? '#1D9E75' : '#888', fontWeight: tab === t ? 500 : 400, textTransform:'capitalize' }}>
-            {t}
-          </div>
-        ))}
+        {(() => {
+          const MODULE_LABELS = {
+            integral:     'Atención integral',
+            metabolica:   'Atención metabólica',
+            estetica:     'Atención estética',
+            fisioterapia: 'Fisioterapia',
+            enfermeria:   'Enfermería',
+          }
+          const MODULE_COLORS = {
+            integral:     '#1a5c8a',
+            metabolica:   '#0F6E56',
+            estetica:     '#8e44ad',
+            fisioterapia: '#e67e22',
+            enfermeria:   '#c0392b',
+          }
+          const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+          const sorted = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
+          const tabs = [
+            ...sorted.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
+            { key:'modulos', label:'Módulos', color:'#888' },
+          ]
+          return tabs.map(t => (
+            <div key={t.key} onClick={() => setTab(t.key)}
+              style={{ padding:'9px 14px', fontSize:13, cursor:'pointer', borderBottom: tab === t.key ? `2px solid ${t.color}` : '2px solid transparent', color: tab === t.key ? t.color : '#888', fontWeight: tab === t.key ? 500 : 400, whiteSpace:'nowrap' }}>
+              {t.label}
+            </div>
+          ))
+        })()}
       </div>
 
       {tab === 'progreso' && (
@@ -1806,8 +1844,25 @@ function PatientProfileAdmin({ patient, doctors, measurements, goals, tasks, tre
         </div>
       )}
 
+      {tab.startsWith('modulo_') && (() => {
+        const moduleType = tab.replace('modulo_', '')
+        const mod = careModules.find(m => m.module_type === moduleType)
+        return (
+          <div>
+            {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} canEdit={true} />}
+            {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} canEdit={true} canEditMeasurements={true} />}
+            {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} canEdit={true} />}
+            {moduleType !== 'integral' && moduleType !== 'metabolica' && moduleType !== 'estetica' && (
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:30, textAlign:'center', color:'#bbb', fontSize:13 }}>
+                Módulo en construcción
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {tab === 'modulos' && (
-        <CareModulesAdmin patient={patient} doctors={doctors} />
+        <CareModulesAdmin patient={patient} doctors={doctors} onModulesUpdated={loadCareModules} />
       )}
 
       {tab === 'diagnosticos' && (
@@ -2109,7 +2164,7 @@ const sa = {
 }
 
 
-function CareModulesAdmin({ patient, doctors }) {
+function CareModulesAdmin({ patient, doctors, onModulesUpdated }) {
   const G = '#0F6E56'
   const [modules, setModules] = useState([])
   const [saving, setSaving] = useState(null)
@@ -2148,6 +2203,7 @@ function CareModulesAdmin({ patient, doctors }) {
       })
     }
     await loadModules()
+    if (onModulesUpdated) onModulesUpdated()
     setSaving(null); setSaved(type); setTimeout(() => setSaved(null), 2000)
   }
 
