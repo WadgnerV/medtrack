@@ -148,12 +148,26 @@ export default function PatientDashboard() {
       .gte('appointment_date', today)
       .order('appointment_date')
       .order('appointment_time')
+
+    // Cargar módulos del paciente para cruzar con doctor_id
+    const { data: mods } = await supabase.from('patient_care_modules')
+      .select('module_type, assigned_professional_id')
+      .eq('patient_id', pid)
+      .eq('is_active', true)
+
     // Una cita por module_type (la más próxima de cada módulo)
     const seen = new Set()
     const byModule = (allAppts || []).filter(a => {
-      const key = a.module_type || a.visit_type || 'general'
-      if (seen.has(key)) return false
-      seen.add(key); return true
+      // Si tiene module_type directo, usarlo
+      // Si no, deducirlo del doctor_id cruzando con patient_care_modules
+      const mod = a.module_type || 
+        mods?.find(m => m.assigned_professional_id === a.doctor_id)?.module_type ||
+        a.visit_type || 'general'
+      if (seen.has(mod)) return false
+      seen.add(mod)
+      // Guardar el módulo deducido en la cita para el render
+      a._resolvedModule = mod
+      return true
     })
     setNextAppts(byModule)
   }
@@ -425,7 +439,7 @@ export default function PatientDashboard() {
                     <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Próximas citas</div>
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                       {nextAppts.map((appt, i) => {
-                        const moduleType = appt.module_type || getModuleFromVisit(appt.visit_type)
+                        const moduleType = appt.module_type || appt._resolvedModule || getModuleFromVisit(appt.visit_type)
                         const color = MODULE_COLORS[moduleType] || G
                         const modLabel = MODULE_LABELS[moduleType] || appt.visit_type
                         const docTitle = appt.doctor?.sex === 'female' ? 'Dra.' : 'Dr.'
