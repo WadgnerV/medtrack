@@ -584,6 +584,40 @@ export default function DoctorDashboard() {
       )}
 
       {view === 'pacientes' && (
+        <div>
+          {/* Buscador */}
+          <div style={{ padding:'10px 12px', marginBottom:12, position:'relative', display:'flex', alignItems:'center', background:'#fff', border:'0.5px solid #eee', borderRadius:12 }}>
+            <span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span>
+            <input type="text" placeholder="Buscar por nombre o email..." value={searchPac} onChange={e=>setSearchPac(e.target.value)}
+              style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
+          </div>
+          {isMobile ? (
+            /* Móvil: cards */
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {patients.filter(p => {
+                const q = searchPac.toLowerCase()
+                if(!q) return true
+                const nombre = ((p.profile?.first_name||'')+' '+(p.profile?.last_name||'')).toLowerCase()
+                const email = (p.profile?.email||'').toLowerCase()
+                return nombre.includes(q)||email.includes(q)
+              }).map(p => (
+                <div key={p.id} onClick={() => openPatient(p)}
+                  style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ width:40, height:40, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:600, flexShrink:0 }}>{initials(pName(p))}</div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{pName(p)}</div>
+                    <div style={{ fontSize:12, color:'#888', marginTop:1 }}>{p.profile?.email}</div>
+                    <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>{age(p.birth_date)} años · {p.specialty_type || '--'}</div>
+                  </div>
+                  <span style={{ fontSize:11, padding:'3px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: p.status==='active' ? '#E1F5EE' : '#FAEEDA', color: p.status==='active' ? '#0F6E56' : '#854F0B' }}>
+                    {p.status==='active' ? 'activo' : 'pendiente'}
+                  </span>
+                </div>
+              ))}
+              {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
+            </div>
+          ) : (
+            /* Desktop: tabla */
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
           <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
@@ -623,6 +657,8 @@ export default function DoctorDashboard() {
               {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
             </div>
           )}
+        </div>
+      )}
 
           {view === 'perfil' && selPatient && (
             <div>
