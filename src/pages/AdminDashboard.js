@@ -337,10 +337,49 @@ export default function AdminDashboard() {
     if (type === 'doctor') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await loadDoctors() }
     setModal(null)
   }
+  async function updateApptStatus(id, status, appt = null) {
+    await supabase.from('appointments').update({ status }).eq('id', id)
+    await loadAppts()
+
+    // Si es no_show, disparar correo al paciente
+    if (status === 'no_show' && appt) {
+      const patient = patients.find(p => p.id === appt.patient_id)
+      const doctor = doctors.find(d => d.id === appt.doctor_id)
+      if (patient?.profile?.email) {
+        await supabase.functions.invoke('appointment-noshow', {
+          body: {
+            patient_email: patient.profile.email,
+            patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
+            doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
+            appointment_date: appt.appointment_date,
+            appointment_time: appt.appointment_time,
+          }
+        })
+      }
+    }
+  }
+
   async function saveAppt(form) {
-    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: 'scheduled', created_by: profile?.id }
-    if (form.id) await supabase.from('appointments').update(payload).eq('id', form.id)
-    else await supabase.from('appointments').insert(payload)
+    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: 'pending_confirmation', created_by: profile?.id }
+    if (form.id) {
+      await supabase.from('appointments').update(payload).eq('id', form.id)
+    } else {
+      await supabase.from('appointments').insert(payload)
+      // Enviar correo de confirmación al paciente
+      const patient = patients.find(p => p.id === form.patientId)
+      const doctor = doctors.find(d => d.id === form.doctorId)
+      if (patient?.profile?.email) {
+        await supabase.functions.invoke('appointment-confirmation', {
+          body: {
+            patient_email: patient.profile.email,
+            patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
+            doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
+            appointment_date: form.date,
+            appointment_time: form.time,
+          }
+        })
+      }
+    }
     await loadAppts(); setModal(null); setSaving(false)
   }
 
@@ -1165,8 +1204,11 @@ export default function AdminDashboard() {
                         style={{ minHeight:60, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isSelected ? '#E1F5EE' : cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? ('1px solid ' + G) : '1px solid transparent' }}>
                         <div style={{ fontSize:14, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
                         {dayAppts.slice(0,2).map(a => (
-                          <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background: doctorColor(a.doctor_id), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                            {a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}
+                          <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background: doctorColor(a.doctor_id), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', position:'relative', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <span>{a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}</span>
+                            {a.status === 'confirmed_patient' && <span style={{ fontSize:8, marginLeft:2 }}>✅</span>}
+                            {a.status === 'confirmed_doctor' && <span style={{ fontSize:8, marginLeft:2, color:'#7EC8E3' }}>✅</span>}
+                            {a.status === 'no_show' && <span style={{ fontSize:8, marginLeft:2, background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center' }}>-</span>}
                           </div>
                         ))}
                         {dayAppts.length > 2 && <div style={{ fontSize:9, color:'#999' }}>+{dayAppts.length-2}</div>}
@@ -1198,24 +1240,43 @@ export default function AdminDashboard() {
                       <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Agendar cita</button>
                     </div>
                   )}
-                  {selDate && apptsByDate(selDate).map(a => (
-                    <div key={a.id} style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, borderLeft:'3px solid ' + doctorColor(a.doctor_id) }}>
-                      <div style={{ fontSize:14, color:'#999', marginBottom:3 }}>{a.appointment_time?.substring(0,5)} hrs</div>
+                  {selDate && apptsByDate(selDate).map(a => {
+                    const statusConfig = {
+                      pending_confirmation: { label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' },
+                      confirmed_patient:    { label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' },
+                      confirmed_doctor:     { label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' },
+                      no_show:              { label:'No asistió', bg:'#FAEEDA', color:'#854F0B' },
+                      scheduled:            { label:'Agendada', bg:'#f0f0f0', color:'#888' },
+                    }
+                    const st = statusConfig[a.status] || statusConfig.scheduled
+                    return (
+                    <div key={a.id} style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, borderLeft:'3px solid ' + doctorColor(a.doctor_id), position:'relative' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+                        <div style={{ fontSize:14, color:'#999' }}>{a.appointment_time?.substring(0,5)} hrs</div>
+                        <span style={{ fontSize:11, padding:'1px 7px', borderRadius:20, background:st.bg, color:st.color, fontWeight:500 }}>{st.label}</span>
+                      </div>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                      <div style={{ fontSize:14, color:'#666' }}>{a.visit_type}</div>
                       <div style={{ display:'flex', gap:5, marginTop:6 }}>
                         <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.duration_min} min</span>
                         <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.doctor?.first_name}</span>
                       </div>
                       {a.notes && <div style={{ fontSize:14, color:'#888', marginTop:5, fontStyle:'italic' }}>{a.notes}</div>}
-                      <div style={{ display:'flex', gap:5, marginTop:7 }}>
-                        <button style={{ fontSize:14, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                      <div style={{ display:'flex', gap:5, marginTop:7, flexWrap:'wrap' }}>
+                        <button style={{ fontSize:12, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
                           onClick={() => { setModal('edit-appt'); setModalData({ appt:a }) }}>Editar</button>
-                        <button style={{ fontSize:14, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                        {a.status !== 'confirmed_doctor' && a.status !== 'no_show' && (
+                          <button style={{ fontSize:12, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                            onClick={() => updateApptStatus(a.id, 'confirmed_doctor')}>✅ Confirmar</button>
+                        )}
+                        {a.status !== 'no_show' && (
+                          <button style={{ fontSize:12, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAEEDA', color:'#854F0B' }}
+                            onClick={() => updateApptStatus(a.id, 'no_show', a)}>No asistió</button>
+                        )}
+                        <button style={{ fontSize:12, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
                           onClick={() => openDelete('appointment', a.id, 'cita')}>Cancelar</button>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
             </div>
