@@ -211,7 +211,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
             </div>
           )}
           {canEdit && showSignosForm && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, maxWidth:480 }}>
               <div style={{ fontSize:13, fontWeight:600, marginBottom:10 }}>{editingSigno ? 'Editar registro de signos' : 'Nuevo registro de signos'}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
                 {[['pas','PAS (mmHg)'],['pad','PAD (mmHg)'],['glucose','Glicemia (mg/dL)'],['heart_rate','Frec. cardíaca (lpm)'],['spo2','SpO₂ (%)'],['weight_kg','Peso (kg)']].map(([k,lbl]) => (

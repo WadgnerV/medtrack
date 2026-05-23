@@ -221,7 +221,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
           )}
 
           {showForm && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, maxWidth:480 }}>
               <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>{editingMeasurement ? 'Editar medición' : 'Nueva medición'}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
                 <div>
