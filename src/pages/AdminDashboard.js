@@ -712,7 +712,7 @@ export default function AdminDashboard() {
       {view === 'dashboard' && (
         <div>
           {/* ── KPIs ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap:12, marginBottom:16 }}>
             {[
               { label:'Pacientes activos', value: patients.length, icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
               { label:'Médicos activos', value: doctors.filter(d=>d.role==='doctor'||d.role==='admin').length, icon:'👨‍⚕️', color:'#1a6e4e', bg:'#d4ede5' },
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 1: Citas por mes (línea) + Citas por médico este mes (barras) ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Citas por mes - LineChart */}
             {(() => {
@@ -783,7 +783,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 2: Pacientes por médico + Distribución por sexo ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Pacientes por médico - BarChart horizontal */}
             {(() => {
@@ -837,7 +837,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 3: Provincias + Grupos de edad ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Pacientes por provincia - todas las 7 provincias CR */}
             {(() => {
@@ -896,7 +896,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* ── FILA 4: Diagnósticos + Metas ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
 
             {/* Diagnósticos */}
             {(() => {
@@ -962,14 +962,38 @@ export default function AdminDashboard() {
 
       {view === 'medicos' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-              <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+              {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 40%' }}>Medico</div>
                 <div style={{ flex:'0 0 16%' }}>Rol</div>
                 <div style={{ flex:'0 0 14%' }}>Pac.</div>
                 <div style={{ flex:'0 0 14%' }}>Estado</div>
                 <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
-              </div>
-              {doctors.map(d => (
+              </div>}
+              {doctors.map(d => isMobile ? (
+                <div key={d.id} style={{ padding:'12px 14px', borderTop:'0.5px solid #f0f0f0' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                    <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.first_name} {d.last_name}</div>
+                      <div style={{ fontSize:12, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
+                    </div>
+                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
+                  </div>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingLeft:44 }}>
+                    <div style={{ fontSize:12, color:'#888' }}>{patients.filter(p => p.doctor?.id === d.id).length} pacientes · <span style={{ color:'#0F6E56' }}>activo</span></div>
+                    <div style={{ display:'flex', gap:4 }}>
+                      {d.role !== 'admin' && (
+                        <>
+                          <button style={s.iconBtn} onClick={() => setView('permisos')}>P</button>
+                          <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
+                          <button style={s.iconBtnDel} onClick={() => openDelete('doctor', d.id, d.first_name + SP + d.last_name)}>X</button>
+                        </>
+                      )}
+                      {d.role === 'admin' && <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>}
+                    </div>
+                  </div>
+                </div>
+              ) : (
                 <div key={d.id} style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center' }}>
                   <div style={{ flex:'0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
@@ -1236,7 +1260,7 @@ export default function AdminDashboard() {
 
           {view === 'reportes' && (
             <div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:14 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap:10, marginBottom:14 }}>
                 {[{ l:'Total pacientes', v:patients.length }, { l:'Citas este mes', v:appts.filter(a => a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length }, { l:'Mensajes totales', v:msgs.length }, { l:'Medicos activos', v:doctors.length }].map((m,i) => (
                   <div key={i} style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px' }}>
                     <div style={{ fontSize:14, color:'#888', marginBottom:4 }}>{m.l}</div>
@@ -1244,7 +1268,7 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:14 }}>
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Pacientes por provincia</div>
                   {[...new Set(patients.map(p => p.province).filter(Boolean))].map(prov => {
@@ -1288,7 +1312,7 @@ export default function AdminDashboard() {
           )}
 
           {view === 'biblioteca' && (
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:14 }}>
               {['task','treatment'].map(type => (
                 <div key={type} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                   <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>{type === 'task' ? 'Tareas' : 'Tratamientos'} ({library.filter(l => l.type === type).length})</div>
