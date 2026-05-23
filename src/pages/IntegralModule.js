@@ -16,7 +16,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [showSignosForm, setShowSignosForm] = useState(false)
-  const [editingSigno, setEditingSigno] = React.useState(null)
+  const [editingSigno, setEditingSigno] = useState(null)
   const [signosForm, setSignosForm] = useState({ pas:'', pad:'', glucose:'', heart_rate:'', spo2:'', weight_kg:'', note_date: new Date().toISOString().split('T')[0] })
   const [savingSignos, setSavingSignos] = useState(false)
   const [showTratForm, setShowTratForm] = useState(false)
