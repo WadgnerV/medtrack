@@ -95,6 +95,11 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
     await loadTreatments()
   }
 
+  async function deleteMeasurement(id) {
+    await supabase.from('measurements').delete().eq('id', id)
+    setMeasurements(p => p.filter(m => m.id !== id))
+  }
+
   async function deleteTratamiento(id) {
     await supabase.from('treatments').update({ status:'inactive' }).eq('id', id)
     await loadTreatments()
@@ -314,8 +319,11 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                 <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Historial de mediciones</div>
                 {measurements.slice(0,10).map((m, i) => (
                   <div key={i} style={{ borderBottom:'0.5px solid #f5f5f5', paddingBottom:10, marginBottom:10 }}>
-                    <div style={{ fontSize:12, color:'#999', marginBottom:6 }}>
-                      {new Date(m.measured_at).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                      <div style={{ fontSize:12, color:'#999' }}>
+                        {new Date(m.measured_at).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
+                      </div>
+                      {(canEdit || canEditMeasurements) && <button onClick={() => deleteMeasurement(m.id)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#D85A30', padding:'2px 6px' }}>×</button>}
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                       {m.weight_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:11, color:'#999' }}>Peso</div><div style={{ fontSize:13, fontWeight:600 }}>{m.weight_kg} kg</div></div>}
