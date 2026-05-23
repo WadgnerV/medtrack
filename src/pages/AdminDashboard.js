@@ -1186,7 +1186,7 @@ export default function AdminDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 260px', gap:14, height: isMobile ? 'auto' : 'calc(100vh - 130px)' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderBottom:'0.5px solid #eee' }}>
                   <button style={s.calNavBtn} onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}>{'<'}</button>
@@ -1663,45 +1663,54 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, onSave,
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
   return (
     <>
-      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
-      {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:14, padding:'8px 11px', borderRadius:8, marginBottom:12 }}>{error}</div>}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={s.fieldLabel}>Paciente</label>
-          <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
-            <option value="">Selecciona un paciente...</option>
-            {patients.map(p => <option key={p.id} value={p.id}>{pn(p)}</option>)}
-          </select>
-        </div>
+      <div style={{ fontSize:16, fontWeight:600, color:'#1a1a1a', marginBottom:4 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
+      <div style={{ fontSize:13, color:'#999', marginBottom:18 }}>{appt ? 'Modificá los datos de la cita' : 'Completá los datos para agendar'}</div>
+      {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:13, padding:'8px 11px', borderRadius:8, marginBottom:12 }}>{error}</div>}
+
+      <div style={{ marginBottom:12 }}>
+        <label style={s.fieldLabel}>Paciente</label>
+        <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
+          <option value="">Selecciona un paciente...</option>
+          {patients.map(p => <option key={p.id} value={p.id}>{pn(p)}</option>)}
+        </select>
+      </div>
+
+      <div style={{ marginBottom:12 }}>
+        <label style={s.fieldLabel}>Médico asignado</label>
+        <select value={form.doctorId} onChange={f('doctorId')} style={s.fieldInput}>
+          <option value="">Selecciona...</option>
+          {doctors.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
+        </select>
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
         <Field label="Fecha" value={form.date} onChange={f('date')} type="date" />
         <Field label="Hora" value={form.time} onChange={f('time')} type="time" />
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
         <div>
           <label style={s.fieldLabel}>Tipo de consulta</label>
           <select value={form.visitType} onChange={f('visitType')} style={s.fieldInput}>
-            {['Consulta de seguimiento','Primera consulta','Procedimiento estetico','Control de composicion corporal','Aplicacion de tratamiento','Control GLP-1'].map(v => <option key={v}>{v}</option>)}
+            {['Consulta de seguimiento','Primera consulta','Procedimiento estético','Control de composición corporal','Aplicación de tratamiento','Control GLP-1'].map(v => <option key={v}>{v}</option>)}
           </select>
         </div>
         <div>
-          <label style={s.fieldLabel}>Duracion (min)</label>
+          <label style={s.fieldLabel}>Duración</label>
           <select value={form.duration} onChange={f('duration')} style={s.fieldInput}>
             {[30,45,60,90].map(v => <option key={v} value={v}>{v} min</option>)}
           </select>
         </div>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={s.fieldLabel}>Medico asignado</label>
-          <select value={form.doctorId} onChange={f('doctorId')} style={s.fieldInput}>
-            <option value="">Selecciona...</option>
-            {doctors.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
-          </select>
-        </div>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={s.fieldLabel}>Notas</label>
-          <textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Indicaciones..." />
-        </div>
       </div>
+
+      <div style={{ marginBottom:18 }}>
+        <label style={s.fieldLabel}>Notas</label>
+        <textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Indicaciones u observaciones..." />
+      </div>
+
       <div style={{ display:'flex', gap:8 }}>
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
-        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
+        <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
       </div>
     </>
   )

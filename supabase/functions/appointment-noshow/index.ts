@@ -3,10 +3,19 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const WA_NUMBER = '50660464569'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
   try {
     const { patient_email, patient_name, doctor_name, appointment_date, appointment_time } = await req.json()
 
+    const firstName = patient_name.split(' ')[0]
     const dateFormatted = new Date(appointment_date + 'T12:00:00').toLocaleDateString('es-CR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     })
@@ -16,23 +25,36 @@ serve(async (req) => {
 
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
-        <div style="text-align:center;margin-bottom:24px;">
+        <div style="text-align:center;margin-bottom:28px;">
           <div style="background:#0F6E56;color:#fff;display:inline-block;padding:10px 24px;border-radius:12px;font-size:18px;font-weight:700;letter-spacing:0.05em;">MEDTRACK</div>
           <div style="color:#888;font-size:13px;margin-top:6px;">by Glow Clinic</div>
         </div>
-        <h2 style="color:#1a1a1a;font-size:18px;margin-bottom:8px;">Cita no asistida</h2>
-        <p style="color:#555;font-size:14px;line-height:1.6;">Hola <strong>${patient_name}</strong>, registramos que no pudiste asistir a tu cita.</p>
-        <div style="background:#f5f5f5;border-radius:12px;padding:16px 20px;margin:20px 0;">
-          <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📅 Fecha:</strong> ${dateFormatted}</div>
-          <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>🕐 Hora:</strong> ${timeFormatted}</div>
-          <div style="font-size:14px;color:#555;"><strong>👨‍⚕️ Médico:</strong> ${doctor_name}</div>
+
+        <h2 style="color:#1a1a1a;font-size:20px;margin-bottom:12px;">Hola, ${firstName} 👋</h2>
+        
+        <p style="color:#444;font-size:15px;line-height:1.7;margin-bottom:16px;">
+          Notamos que no pudiste asistir a tu cita del <strong>${dateFormatted}</strong> a las <strong>${timeFormatted}</strong> con <strong>${doctor_name}</strong>.
+        </p>
+
+        <p style="color:#444;font-size:15px;line-height:1.7;margin-bottom:24px;">
+          Entendemos que a veces surgen imprevistos. Lo importante es que tu salud y bienestar no se queden en pausa — estamos aquí para ayudarte a retomar cuando estés listo.
+        </p>
+
+        <div style="background:#f0fdf9;border-left:4px solid #0F6E56;border-radius:8px;padding:16px 20px;margin-bottom:28px;">
+          <p style="color:#0F6E56;font-size:14px;font-weight:600;margin:0 0 6px;">¿Deseas reagendar tu cita?</p>
+          <p style="color:#555;font-size:14px;margin:0;line-height:1.6;">Contáctanos por WhatsApp y con gusto te ayudamos a encontrar el mejor horario.</p>
         </div>
-        <p style="color:#555;font-size:14px;line-height:1.6;">Si deseas reagendar tu cita, podemos ayudarte. Haz clic en el botón de abajo para contactarnos por WhatsApp.</p>
-        <div style="text-align:center;margin:28px 0;">
-          <a href="${waUrl}" style="background:#25D366;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;display:inline-block;">
+
+        <div style="text-align:center;margin-bottom:28px;">
+          <a href="${waUrl}" style="background:#25D366;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:600;display:inline-block;">
             📱 Reagendar por WhatsApp
           </a>
         </div>
+
+        <p style="color:#888;font-size:13px;line-height:1.6;text-align:center;">
+          Si ya resolviste tu situación y deseas continuar con tu plan de atención, también puedes escribirnos directamente.
+        </p>
+
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
         <p style="color:#bbb;font-size:12px;text-align:center;">Glow Clinic · MedTrack</p>
       </div>
@@ -44,14 +66,14 @@ serve(async (req) => {
       body: JSON.stringify({
         from: 'MedTrack <onboarding@resend.dev>',
         to: [patient_email],
-        subject: 'No registramos tu asistencia a la cita',
+        subject: `${firstName}, ¿todo bien? Queremos ayudarte a reagendar`,
         html
       })
     })
 
     const data = await res.json()
-    return new Response(JSON.stringify({ ok: true, data }), { headers: { 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ ok: true, data }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

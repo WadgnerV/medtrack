@@ -1,4 +1,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -6,6 +11,9 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const APP_URL = 'https://medtrack-gilt.vercel.app'
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
   try {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
@@ -64,6 +72,6 @@ serve(async (req) => {
         <p>Por favor contactá a Glow Clinic directamente.</p>
       </body>
       </html>
-    `, { status: 500, headers: { 'Content-Type': 'text/html' } })
+    `, { status: 500, headers: { ...corsHeaders, 'Content-Type': 'text/html' } })
   }
 })
