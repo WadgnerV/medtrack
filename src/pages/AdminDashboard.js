@@ -1725,7 +1725,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
         </button>
       </div>
 
-      <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflowX:'auto', overflowY:'hidden', WebkitOverflowScrolling:'touch', scrollbarWidth:'none' }}>
+      <div style={{ display:'flex', flexWrap:'wrap', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
         {(() => {
           const MODULE_LABELS = {
             integral:     'Atención integral',
