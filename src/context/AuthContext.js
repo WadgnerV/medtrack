@@ -40,6 +40,10 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) return { data, error }
     const profileData = await fetchProfile(data.user.id)
+    if (profileData?.is_active === false) {
+      await supabase.auth.signOut()
+      return { data: null, error: { message: 'Esta cuenta ha sido desactivada. Contactá al administrador.' } }
+    }
     return { data, error, role: profileData?.role }
   }
 

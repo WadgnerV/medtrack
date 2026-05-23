@@ -332,7 +332,7 @@ export default function AdminDashboard() {
   async function deleteRecord(type, id) {
     if (type === 'appointment') { await supabase.from('appointments').delete().eq('id', id); await loadAppts() }
     if (type === 'library') { await supabase.from('library_items').delete().eq('id', id); await loadLibrary() }
-    if (type === 'patient') { await supabase.from('patients').delete().eq('id', id); await loadPatients() }
+    if (type === 'patient') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await supabase.from('patients').update({ status: 'inactive' }).eq('id', id); await loadPatients() }
     if (type === 'note') { await supabase.from('clinical_notes').delete().eq('id', id); if (selPatient) { const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false }); setNotes(data || []) } }
     if (type === 'doctor') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await loadDoctors() }
     setModal(null)
