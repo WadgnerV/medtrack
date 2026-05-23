@@ -448,6 +448,24 @@ export default function AdminDashboard() {
     setModal(null); setSaving(false)
   }
 
+  async function adminDeleteMeasurement(id) {
+    await supabase.from('measurements').delete().eq('id', id)
+    const { data } = await supabase.from('measurements').select('*').eq('patient_id', selPatient.id).order('measured_at', { ascending: false })
+    setMeasurements(data || [])
+  }
+
+  async function adminEditMeasurement(id, form) {
+    setSaving(true)
+    await supabase.from('measurements').update({
+      measured_at: form.date, weight_kg: form.weight || null,
+      body_fat_pct: form.fat || null, muscle_mass_kg: form.muscle || null,
+      visceral_fat_pts: form.visceral || null
+    }).eq('id', id)
+    const { data } = await supabase.from('measurements').select('*').eq('patient_id', selPatient.id).order('measured_at', { ascending: false })
+    setMeasurements(data || [])
+    setModal(null); setSaving(false)
+  }
+
   async function adminSaveGoal(form) {
     setSaving(true)
     await supabase.from('goals').insert({
@@ -1043,6 +1061,8 @@ export default function AdminDashboard() {
               setModal={setModal}
               setModalData={setModalData}
               onSaveMeasurement={adminSaveMeasurement}
+              onEditMeasurement={adminEditMeasurement}
+              onDeleteMeasurement={adminDeleteMeasurement}
               onSaveGoal={adminSaveGoal}
               onDeleteGoal={adminDeleteGoal}
               onAssignTasks={adminAssignTasks}
@@ -1670,7 +1690,7 @@ const s = {
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
 
-function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
+function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onEditMeasurement, onDeleteMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
   const [careModules, setCareModules] = React.useState([])
 
   React.useEffect(() => {
@@ -1699,6 +1719,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
           onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
           <div style={{ width:420, background:'#fff', borderRadius:16, padding:24, boxShadow:'0 20px 60px rgba(0,0,0,0.2)', maxHeight:'90vh', overflowY:'auto' }}>
             {modal === 'new-measurement' && <MeasurementForm saving={saving} onSave={onSaveMeasurement} onClose={() => setModal(null)} />}
+            {modal === 'edit-measurement' && <MeasurementForm saving={saving} measurement={modalData.measurement} onSave={form => onEditMeasurement(modalData.measurement.id, form)} onClose={() => setModal(null)} />}
             {modal === 'new-goal' && <GoalForm saving={saving} onSave={onSaveGoal} onClose={() => setModal(null)} />}
             {modal === 'assign-tasks' && <TaskPickerForm library={library.filter(l => l.type === 'task')} saving={saving} onSave={onAssignTasks} onClose={() => setModal(null)} />}
             {modal === 'new-treatment' && <TreatmentForm library={library.filter(l => l.type === 'treatment')} saving={saving} onSave={onSaveTreatment} onClose={() => setModal(null)} />}
@@ -1772,16 +1793,22 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
           </div>
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
             <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Historial de mediciones</div>
-            <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 1fr 1fr', gap:8, padding:'6px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase' }}>
-              <span>Fecha</span><span>Peso</span><span>% Grasa</span><span>Muscular</span><span>Visceral</span>
+            <div style={{ display:'grid', gridTemplateColumns:'1.2fr 0.8fr 0.8fr 0.8fr 0.8fr auto', gap:8, padding:'6px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase' }}>
+              <span>Fecha</span><span>Peso</span><span>% Grasa</span><span>Muscular</span><span>Visceral</span><span></span>
             </div>
             {measurements.map(m => (
-              <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5', fontSize:14 }}>
+              <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1.2fr 0.8fr 0.8fr 0.8fr 0.8fr auto', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5', fontSize:14, alignItems:'center' }}>
                 <span style={{ color:'#888' }}>{m.measured_at}</span>
                 <span>{m.weight_kg ? m.weight_kg + ' kg' : '--'}</span>
                 <span>{m.body_fat_pct ? m.body_fat_pct + '%' : '--'}</span>
                 <span>{m.muscle_mass_kg ? m.muscle_mass_kg + ' kg' : '--'}</span>
                 <span>{m.visceral_fat_pts ? m.visceral_fat_pts + ' pts' : '--'}</span>
+                <div style={{ display:'flex', gap:4 }}>
+                  <button style={{ background:'none', border:'1px solid #eee', borderRadius:6, padding:'2px 7px', fontSize:12, cursor:'pointer', color:'#555' }}
+                    onClick={() => { setModal('edit-measurement'); setModalData({ measurement: m }) }}>E</button>
+                  <button style={{ background:'none', border:'1px solid #fdd', borderRadius:6, padding:'2px 7px', fontSize:12, cursor:'pointer', color:'#D85A30' }}
+                    onClick={() => onDeleteMeasurement(m.id)}>X</button>
+                </div>
               </div>
             ))}
             {measurements.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin mediciones registradas</div>}
@@ -1974,12 +2001,18 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
   )
 }
 
-function MeasurementForm({ saving, onSave, onClose }) {
-  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:'', visceral:'' })
+function MeasurementForm({ saving, onSave, onClose, measurement }) {
+  const [form, setForm] = useState({
+    date: measurement?.measured_at || new Date().toISOString().split('T')[0],
+    weight: measurement?.weight_kg || '',
+    fat: measurement?.body_fat_pct || '',
+    muscle: measurement?.muscle_mass_kg || '',
+    visceral: measurement?.visceral_fat_pts || ''
+  })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   return (
     <>
-      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar medicion</div>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{measurement ? 'Editar medicion' : 'Registrar medicion'}</div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         <div style={{ gridColumn:'1/-1' }}><label style={sa.lbl}>Fecha</label><input type="date" value={form.date} onChange={f('date')} style={sa.inp} /></div>
         <div><label style={sa.lbl}>Peso (kg)</label><input type="number" value={form.weight} onChange={f('weight')} placeholder="64.2" style={sa.inp} /></div>
