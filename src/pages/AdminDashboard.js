@@ -360,7 +360,7 @@ export default function AdminDashboard() {
   }
 
   async function saveAppt(form) {
-    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: 'pending_confirmation', created_by: profile?.id }
+    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id }
     if (form.id) {
       await supabase.from('appointments').update(payload).eq('id', form.id)
     } else {
@@ -1657,8 +1657,26 @@ function AssignForm({ patient, doctors, saving, onSave, onClose }) {
   )
 }
 
-function ApptForm({ appt, patients, doctors, saving, error, defaultDate, onSave, onClose }) {
-  const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'' })
+function ApptForm({ appt, patients, doctors, saving, error, defaultDate, onSave, onClose, isAdmin }) {
+  const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'' })
+  const [patientModules, setPatientModules] = useState([])
+  const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+
+  useEffect(() => {
+    if (form.patientId && form.doctorId) loadModules(form.patientId, form.doctorId)
+  }, [form.patientId, form.doctorId])
+
+  async function loadModules(patientId, doctorId) {
+    const { data } = await supabase.from('patient_care_modules')
+      .select('module_type')
+      .eq('patient_id', patientId)
+      .eq('assigned_professional_id', doctorId)
+      .eq('is_active', true)
+    const mods = data || []
+    setPatientModules(mods)
+    if (mods.length === 1) setForm(p => ({ ...p, moduleType: mods[0].module_type }))
+    else if (mods.length === 0) setForm(p => ({ ...p, moduleType: '' }))
+  }
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
   return (
@@ -1703,6 +1721,20 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, onSave,
         </div>
       </div>
 
+      {patientModules.length > 1 && (
+        <div style={{ marginBottom:12, background:'#FFF8E1', border:'1px solid #F59E0B', borderRadius:8, padding:'10px 12px' }}>
+          <label style={{ ...s.fieldLabel, color:'#854F0B' }}>⚠️ ¿A qué módulo pertenece esta cita?</label>
+          <select value={form.moduleType} onChange={f('moduleType')} style={s.fieldInput}>
+            <option value="">Selecciona un módulo...</option>
+            {patientModules.map(m => <option key={m.module_type} value={m.module_type}>{MODULE_LABELS_A[m.module_type]}</option>)}
+          </select>
+        </div>
+      )}
+      {patientModules.length === 1 && (
+        <div style={{ marginBottom:12, background:'#E1F5EE', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#0F6E56' }}>
+          📋 Módulo: <strong>{MODULE_LABELS_A[patientModules[0].module_type]}</strong>
+        </div>
+      )}
       <div style={{ marginBottom:18 }}>
         <label style={s.fieldLabel}>Notas</label>
         <textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Indicaciones u observaciones..." />

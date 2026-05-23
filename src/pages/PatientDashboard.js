@@ -140,7 +140,7 @@ export default function PatientDashboard() {
       .single()
     setNextAppt(data || null)
 
-    // Cargar próxima cita por módulo (una por tipo)
+    // Cargar próxima cita por módulo (una por módulo)
     const { data: allAppts } = await supabase.from('appointments')
       .select('*, doctor:doctor_id(first_name, last_name, sex, specialty)')
       .eq('patient_id', pid)
@@ -148,10 +148,10 @@ export default function PatientDashboard() {
       .gte('appointment_date', today)
       .order('appointment_date')
       .order('appointment_time')
-    // Una cita por visit_type (módulo)
+    // Una cita por module_type (la más próxima de cada módulo)
     const seen = new Set()
     const byModule = (allAppts || []).filter(a => {
-      const key = a.visit_type || 'general'
+      const key = a.module_type || a.visit_type || 'general'
       if (seen.has(key)) return false
       seen.add(key); return true
     })
@@ -425,7 +425,7 @@ export default function PatientDashboard() {
                     <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Próximas citas</div>
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                       {nextAppts.map((appt, i) => {
-                        const moduleType = getModuleFromVisit(appt.visit_type)
+                        const moduleType = appt.module_type || getModuleFromVisit(appt.visit_type)
                         const color = MODULE_COLORS[moduleType] || G
                         const modLabel = MODULE_LABELS[moduleType] || appt.visit_type
                         const docTitle = appt.doctor?.sex === 'female' ? 'Dra.' : 'Dr.'

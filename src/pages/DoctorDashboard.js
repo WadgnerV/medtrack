@@ -294,7 +294,7 @@ export default function DoctorDashboard() {
       patient_id: form.patientId, doctor_id: profile.id,
       appointment_date: form.date, appointment_time: form.time,
       visit_type: form.visitType, duration_min: parseInt(form.duration),
-      notes: form.notes, status: 'scheduled', created_by: profile.id
+      notes: form.notes, status: 'pending_confirmation', module_type: form.moduleType || null, created_by: profile.id
     }
     if (form.id) await supabase.from('appointments').update(payload).eq('id', form.id)
     else await supabase.from('appointments').insert(payload)
@@ -388,7 +388,7 @@ export default function DoctorDashboard() {
             )}
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} saving={saving} defaultDate={selDate}
-                onSave={saveAppt} onClose={() => setModal(null)} />
+                doctorId={profile?.id} onSave={saveAppt} onClose={() => setModal(null)} />
             )}
             {modal === 'confirm-cancel' && (
               <>
@@ -1304,43 +1304,87 @@ function NoteForm({ saving, onSave, onClose }) {
   )
 }
 
-function ApptForm({ appt, patients, saving, defaultDate, onSave, onClose }) {
-  const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'' })
+const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+
+function ApptForm({ appt, patients, saving, defaultDate, doctorId, onSave, onClose }) {
+  const [form, setForm] = React.useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'' })
+  const [patientModules, setPatientModules] = React.useState([])
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
+
+  React.useEffect(() => {
+    if (form.patientId && doctorId) loadPatientModules(form.patientId)
+  }, [form.patientId, doctorId])
+
+  async function loadPatientModules(patientId) {
+    const { data } = await supabase.from('patient_care_modules')
+      .select('module_type')
+      .eq('patient_id', patientId)
+      .eq('assigned_professional_id', doctorId)
+      .eq('is_active', true)
+    const mods = data || []
+    setPatientModules(mods)
+    if (mods.length === 1) setForm(p => ({ ...p, moduleType: mods[0].module_type }))
+    else setForm(p => ({ ...p, moduleType: '' }))
+  }
+
   return (
     <>
-      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={s.fieldLabel}>Paciente</label>
-          <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
-            <option value="">Selecciona...</option>
-            {patients.map(p => <option key={p.id} value={p.id}>{pn(p)}</option>)}
+      <div style={{ fontSize:16, fontWeight:600, color:'#1a1a1a', marginBottom:4 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
+      <div style={{ fontSize:13, color:'#999', marginBottom:18 }}>{appt ? 'Modificá los datos de la cita' : 'Completá los datos para agendar'}</div>
+
+      <div style={{ marginBottom:12 }}>
+        <label style={s.fieldLabel}>Paciente</label>
+        <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
+          <option value="">Selecciona...</option>
+          {patients.map(p => <option key={p.id} value={p.id}>{pn(p)}</option>)}
+        </select>
+      </div>
+
+      {patientModules.length > 1 && (
+        <div style={{ marginBottom:12, background:'#FFF8E1', border:'1px solid #F59E0B', borderRadius:8, padding:'10px 12px' }}>
+          <label style={{ ...s.fieldLabel, color:'#854F0B' }}>⚠️ ¿A qué módulo pertenece esta cita?</label>
+          <select value={form.moduleType} onChange={f('moduleType')} style={s.fieldInput}>
+            <option value="">Selecciona un módulo...</option>
+            {patientModules.map(m => <option key={m.module_type} value={m.module_type}>{MODULE_LABELS[m.module_type]}</option>)}
           </select>
         </div>
+      )}
+
+      {patientModules.length === 1 && (
+        <div style={{ marginBottom:12, background:'#E1F5EE', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#0F6E56' }}>
+          📋 Módulo: <strong>{MODULE_LABELS[patientModules[0].module_type]}</strong>
+        </div>
+      )}
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
         <Field label="Fecha" value={form.date} onChange={f('date')} type="date" />
         <Field label="Hora" value={form.time} onChange={f('time')} type="time" />
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
         <div>
-          <label style={s.fieldLabel}>Tipo</label>
+          <label style={s.fieldLabel}>Tipo de consulta</label>
           <select value={form.visitType} onChange={f('visitType')} style={s.fieldInput}>
-            {['Consulta de seguimiento','Primera consulta','Procedimiento estetico','Control de composicion corporal','Aplicacion de tratamiento','Control GLP-1'].map(v => <option key={v}>{v}</option>)}
+            {['Consulta de seguimiento','Primera consulta','Procedimiento estético','Control de composición corporal','Aplicación de tratamiento','Control GLP-1'].map(v => <option key={v}>{v}</option>)}
           </select>
         </div>
         <div>
-          <label style={s.fieldLabel}>Duracion</label>
+          <label style={s.fieldLabel}>Duración</label>
           <select value={form.duration} onChange={f('duration')} style={s.fieldInput}>
             {[30,45,60,90].map(v => <option key={v} value={v}>{v} min</option>)}
           </select>
         </div>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={s.fieldLabel}>Notas</label>
-          <textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Indicaciones..." />
-        </div>
       </div>
+
+      <div style={{ marginBottom:18 }}>
+        <label style={s.fieldLabel}>Notas</label>
+        <textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Indicaciones u observaciones..." />
+      </div>
+
       <div style={{ display:'flex', gap:8 }}>
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
-        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
+        <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
       </div>
     </>
   )
