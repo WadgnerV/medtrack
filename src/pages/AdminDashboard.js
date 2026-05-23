@@ -382,7 +382,7 @@ export default function AdminDashboard() {
   }
 
   function doctorColor(doctorId) {
-    const colors = ['#0F6E56','#1a7a62','#2a8a70','#3a9a80','#4aaa90']
+    const colors = ['#0F6E56','#1a5c8a','#8e44ad','#e67e22','#c0392b','#2980b9','#16a085','#d35400']
     const idx = doctors.findIndex(d => d.id === doctorId)
     return colors[idx % colors.length] || '#1D9E75'
   }
@@ -650,7 +650,7 @@ export default function AdminDashboard() {
         {[
           { section:'Principal', items:[{ icon:'D', label:'Dashboard', key:'dashboard' }] },
           { section:'Usuarios', items:[{ icon:'M', label:'Medicos', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
-          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, { icon:'R', label:'Reportes', key:'reportes' }] },
+          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, { icon:'R', label:'Reportes', key:'reportes' }] },
           { section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] },
         ].map(group => (
           <div key={group.section}>
