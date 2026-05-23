@@ -30,6 +30,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   const [tareaOtraChecked, setTareaOtraChecked] = useState(false)
   const [savingTarea, setSavingTarea] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [editingMeasurement, setEditingMeasurement] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'' })
@@ -98,6 +99,20 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   async function deleteMeasurement(id) {
     await supabase.from('measurements').delete().eq('id', id)
     setMeasurements(p => p.filter(m => m.id !== id))
+  }
+
+  async function saveEditMeasurement() {
+    setSaving(true)
+    await supabase.from('measurements').update({
+      weight_kg: form.weight_kg || null, body_fat_pct: form.body_fat_pct || null,
+      muscle_mass_kg: form.muscle_mass_kg || null, visceral_fat_pts: form.visceral_fat_pts || null,
+      measured_at: form.measured_at
+    }).eq('id', editingMeasurement)
+    const { data } = await supabase.from('measurements').select('*').eq('patient_id', patient?.id).order('measured_at', { ascending: false })
+    setMeasurements(data || [])
+    setEditingMeasurement(null); setShowForm(false)
+    setForm({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'', measured_at: new Date().toISOString().split('T')[0] })
+    setSaving(false)
   }
 
   async function deleteTratamiento(id) {
@@ -207,7 +222,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
 
           {showForm && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-              <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Nueva medición</div>
+              <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>{editingMeasurement ? 'Editar medición' : 'Nueva medición'}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
                 <div>
                   <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Peso (kg)</label>
@@ -232,7 +247,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   style={{ padding:'7px 14px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
                   Cancelar
                 </button>
-                <button onClick={saveMeasurement} disabled={saving}
+                <button onClick={editingMeasurement ? saveEditMeasurement : saveMeasurement} disabled={saving}
                   style={{ flex:1, padding:'7px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving ? 0.7 : 1 }}>
                   {saving ? 'Guardando...' : 'Guardar'}
                 </button>
@@ -323,7 +338,11 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                       <div style={{ fontSize:12, color:'#999' }}>
                         {new Date(m.measured_at).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
                       </div>
-                      {(canEdit || canEditMeasurements) && <button onClick={() => deleteMeasurement(m.id)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#D85A30', padding:'2px 6px' }}>×</button>}
+                      {(canEdit || canEditMeasurements) && <div style={{ display:'flex', gap:4 }}>
+                        <button onClick={() => { setEditingMeasurement(m.id); setForm({ weight_kg: m.weight_kg||'', body_fat_pct: m.body_fat_pct||'', muscle_mass_kg: m.muscle_mass_kg||'', visceral_fat_pts: m.visceral_fat_pts||'', measured_at: m.measured_at }); setShowForm(true) }}
+                          style={{ background:'none', border:'1px solid #ddd', borderRadius:6, padding:'2px 7px', fontSize:12, cursor:'pointer', color:'#555' }}>✎</button>
+                        <button onClick={() => deleteMeasurement(m.id)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#D85A30', padding:'2px 6px' }}>×</button>
+                      </div>}
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                       {m.weight_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:11, color:'#999' }}>Peso</div><div style={{ fontSize:13, fontWeight:600 }}>{m.weight_kg} kg</div></div>}

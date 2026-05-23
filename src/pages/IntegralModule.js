@@ -16,6 +16,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [showSignosForm, setShowSignosForm] = useState(false)
+  const [editingSigno, setEditingSigno] = React.useState(null)
   const [signosForm, setSignosForm] = useState({ pas:'', pad:'', glucose:'', heart_rate:'', spo2:'', weight_kg:'', note_date: new Date().toISOString().split('T')[0] })
   const [savingSignos, setSavingSignos] = useState(false)
   const [showTratForm, setShowTratForm] = useState(false)
@@ -116,6 +117,21 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
     setClinicalNotes(p => p.filter(n => n.id !== id))
   }
 
+  async function saveEditSigno() {
+    setSavingSignos(true)
+    await supabase.from('clinical_notes').update({
+      pas: signosForm.pas || null, pad: signosForm.pad || null,
+      glucose: signosForm.glucose || null, heart_rate: signosForm.heart_rate || null,
+      spo2: signosForm.spo2 || null, weight_kg: signosForm.weight_kg || null,
+      note_date: signosForm.note_date
+    }).eq('id', editingSigno)
+    const { data } = await supabase.from('clinical_notes').select('*').eq('module_id', careModule?.id).order('note_date', { ascending: false })
+    setClinicalNotes(data || [])
+    setEditingSigno(null); setShowSignosForm(false)
+    setSignosForm({ pas:'', pad:'', glucose:'', heart_rate:'', spo2:'', weight_kg:'', note_date: new Date().toISOString().split('T')[0] })
+    setSavingSignos(false)
+  }
+
   async function deleteTratamiento(id) {
     await supabase.from('treatments').update({ status:'inactive' }).eq('id', id)
     await loadTreatments()
@@ -196,7 +212,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
           )}
           {canEdit && showSignosForm && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-              <div style={{ fontSize:13, fontWeight:600, marginBottom:10 }}>Nuevo registro de signos</div>
+              <div style={{ fontSize:13, fontWeight:600, marginBottom:10 }}>{editingSigno ? 'Editar registro de signos' : 'Nuevo registro de signos'}</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
                 {[['pas','PAS (mmHg)'],['pad','PAD (mmHg)'],['glucose','Glicemia (mg/dL)'],['heart_rate','Frec. cardíaca (lpm)'],['spo2','SpO₂ (%)'],['weight_kg','Peso (kg)']].map(([k,lbl]) => (
                   <div key={k}>
@@ -215,7 +231,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
               </div>
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => setShowSignosForm(false)} style={{ padding:'7px 14px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
-                <button onClick={saveSignos} disabled={savingSignos} style={{ flex:1, padding:'7px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+                <button onClick={editingSigno ? saveEditSigno : saveSignos} disabled={savingSignos} style={{ flex:1, padding:'7px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
                   {savingSignos ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
@@ -295,7 +311,11 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
                       <div style={{ fontSize:12, color:'#999' }}>
                         {new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
                       </div>
-                      {canEdit && <button onClick={() => deleteSigno(n.id)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#D85A30', padding:'2px 6px' }}>×</button>}
+                      {canEdit && <div style={{ display:'flex', gap:4 }}>
+                        <button onClick={() => { setEditingSigno(n.id); setSignosForm({ pas: n.pas||'', pad: n.pad||'', glucose: n.glucose||'', heart_rate: n.heart_rate||'', spo2: n.spo2||'', weight_kg: n.weight_kg||'', note_date: n.note_date }); setShowSignosForm(true) }}
+                          style={{ background:'none', border:'1px solid #ddd', borderRadius:6, padding:'2px 7px', fontSize:12, cursor:'pointer', color:'#555' }}>✎</button>
+                        <button onClick={() => deleteSigno(n.id)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#D85A30', padding:'2px 6px' }}>×</button>
+                      </div>}
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                       {n.pas && n.pad && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:11, color:'#999' }}>Presión arterial</div><div style={{ fontSize:13, fontWeight:600 }}>{n.pas}/{n.pad} mmHg</div></div>}
