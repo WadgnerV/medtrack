@@ -437,7 +437,7 @@ export default function PatientDashboard() {
                 return (
                   <div style={{ marginBottom:12 }}>
                     <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Próximas citas</div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                       {nextAppts.map((appt, i) => {
                         const moduleType = appt.module_type || appt._resolvedModule || getModuleFromVisit(appt.visit_type)
                         const color = MODULE_COLORS[moduleType] || G
