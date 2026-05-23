@@ -1250,17 +1250,17 @@ export default function AdminDashboard() {
                     }
                     const st = statusConfig[a.status] || statusConfig.scheduled
                     return (
-                    <div key={a.id} style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, borderLeft:'3px solid ' + doctorColor(a.doctor_id), position:'relative' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
-                        <div style={{ fontSize:14, color:'#999' }}>{a.appointment_time?.substring(0,5)} hrs</div>
-                        <span style={{ fontSize:11, padding:'1px 7px', borderRadius:20, background:st.bg, color:st.color, fontWeight:500 }}>{st.label}</span>
+                    <div key={a.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px', marginBottom:8, borderLeft:'3px solid ' + doctorColor(a.doctor_id), position:'relative' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
+                        <div style={{ fontSize:12, color:'#999' }}>{a.appointment_time?.substring(0,5)} hrs</div>
+                        <span style={{ fontSize:10, padding:'1px 6px', borderRadius:20, background:st.bg, color:st.color, fontWeight:500 }}>{st.label}</span>
                       </div>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                      <div style={{ display:'flex', gap:5, marginTop:6 }}>
-                        <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.duration_min} min</span>
-                        <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.doctor?.first_name}</span>
+                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
+                      <div style={{ display:'flex', gap:4, marginTop:4 }}>
+                        <span style={{ fontSize:11, padding:'1px 6px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.duration_min} min</span>
+                        <span style={{ fontSize:11, padding:'1px 6px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.doctor?.first_name}</span>
                       </div>
-                      {a.notes && <div style={{ fontSize:14, color:'#888', marginTop:5, fontStyle:'italic' }}>{a.notes}</div>}
+                      {a.notes && <div style={{ fontSize:11, color:'#888', marginTop:4, fontStyle:'italic' }}>{a.notes}</div>}
                       <div style={{ display:'flex', gap:5, marginTop:7, flexWrap:'wrap' }}>
                         <button style={{ fontSize:12, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
                           onClick={() => { setModal('edit-appt'); setModalData({ appt:a }) }}>Editar</button>
