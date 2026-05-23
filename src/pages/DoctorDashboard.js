@@ -492,7 +492,7 @@ export default function DoctorDashboard() {
           {view === 'dashboard' && (
         <div>
           {/* ── 4 KPIs ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap:12, marginBottom:16 }}>
             {[
               { label:'Pacientes asignados', value: patients.length, sub: patients.filter(p=>p.status==='active').length+' activos', icon:'👥', color:'#0F6E56', bg:'#E1F5EE' },
               { label:'Citas esta semana', value: (() => {
@@ -675,7 +675,7 @@ export default function DoctorDashboard() {
                 <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:4, fontSize:14, color:'#bbb' }}>Info de solo lectura</div>
               </div>
 
-              <div style={{ display:'flex', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
+              <div style={{ display:'flex', flexWrap:'wrap', borderBottom:'0.5px solid #eee', marginBottom:14, background:'#fff', borderRadius:'12px 12px 0 0', overflow:'hidden' }}>
                 {(() => {
                   const MODULE_LABELS = {
                     integral:     'Atención integral',
@@ -918,7 +918,7 @@ export default function DoctorDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 260px', gap:14, height:'calc(100vh - 130px)' }}>
+            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 260px', gap:14, height: isMobile ? 'auto' : 'calc(100vh - 130px)' }}>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderBottom:'0.5px solid #eee' }}>
                   <button style={s.calNavBtn} onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}>{'<'}</button>
