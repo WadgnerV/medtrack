@@ -150,7 +150,7 @@ export default function AdminDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showDrawer, setShowDrawer] = useState(false)
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 640)
@@ -620,7 +620,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {(!isMobile || mobileMenuOpen) && <div style={{ width: isMobile ? '100%' : 210, minWidth: isMobile ? '100%' : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', position: isMobile ? 'fixed' : 'relative', inset: isMobile ? 0 : 'auto', zIndex: isMobile ? 50 : 'auto' }}>
+      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
@@ -638,7 +638,7 @@ export default function AdminDashboard() {
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
             {group.items.map(item => (
-              <div key={item.key} onClick={() => { setView(item.key); if(isMobile) setMobileMenuOpen(false) }}
+              <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
                 style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
                 {item.label}
                 {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:14, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
@@ -651,37 +651,42 @@ export default function AdminDashboard() {
       </div>}
 
       {/* Overlay para cerrar menú en móvil */}
-      {isMobile && mobileMenuOpen && (
-        <div onClick={() => setMobileMenuOpen(false)}
-          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:49 }} />
-      )}
-
-      {/* Bottom nav móvil admin */}
-      {isMobile && (
-        <div style={{ display:'flex', position:'fixed', bottom:0, left:0, right:0, zIndex:100, borderTop:'0.5px solid #eee', background:'#fff' }}>
-          {[
-            { label:'Dashboard', key:'dashboard', icon:'📊' },
-            { label:'Pacientes', key:'pacientes', icon:'👥' },
-            { label:'Calendario', key:'calendario', icon:'📅' },
-
-            { label:'Más', key:'__menu__', icon:'☰' },
-          ].map(item => (
-            <div key={item.key}
-              onClick={() => item.key === '__menu__' ? setMobileMenuOpen(o => !o) : (setView(item.key), setMobileMenuOpen(false))}
-              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 0', cursor:'pointer', color: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? G : '#999', borderTop: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? ('2px solid ' + G) : '2px solid transparent', position:'relative' }}>
-              <span style={{ fontSize:18 }}>{item.icon}</span>
-              {item.badge > 0 && <span style={{ position:'absolute', top:4, right:'20%', width:8, height:8, borderRadius:'50%', background:'#D85A30' }} />}
-              <span style={{ fontSize:9, marginTop:2, fontWeight: (item.key === '__menu__' ? mobileMenuOpen : view === item.key) ? 600 : 400 }}>{item.label}</span>
+      {/* Drawer móvil admin */}
+      {isMobile && showDrawer && (
+        <>
+          <div onClick={() => setShowDrawer(false)}
+            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
+          <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
+            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
+              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
             </div>
-          ))}
-        </div>
+            <div style={{ flex:1, padding:'8px 0' }}>
+              {[
+                { label:'Dashboard', key:'dashboard', icon:'📊' },
+                { label:'Médicos', key:'medicos', icon:'👨‍⚕️' },
+                { label:'Pacientes', key:'pacientes', icon:'👥' },
+                { label:'Calendario', key:'calendario', icon:'📅' },
+                { label:'Reportes', key:'reportes', icon:'📈' },
+                { label:'Biblioteca', key:'biblioteca', icon:'📚' },
+                { label:'Permisos', key:'permisos', icon:'🔑' },
+                { label:'Configuración', key:'config', icon:'⚙️' },
+              ].map(item => (
+                <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
+                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
+                  <span>{item.icon}</span>{item.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
         <div style={{ padding: isMobile ? '10px 14px' : '12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
           {isMobile && (
-            <button onClick={() => setMobileMenuOpen(o => !o)}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 4px', color:'#444' }}>☰</button>
+            <button onClick={() => setShowDrawer(true)}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:'#555', padding:'2px 6px', lineHeight:1 }}>☰</button>
           )}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
@@ -695,7 +700,7 @@ export default function AdminDashboard() {
           {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>{isMobile ? '+ Item' : '+ Nuevo item'}</button>}
         </div>
 
-        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 80px' : '16px 18px' }}>
+        <div style={{ flex:1, overflowY:'auto', padding: isMobile ? '12px 12px 20px' : '16px 18px' }}>
 
 
     
