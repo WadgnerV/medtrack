@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../supabaseClient'
 
 const G = '#0F6E56'
 
@@ -27,6 +28,8 @@ export default function Login() {
   const [tab, setTab]         = useState('login')
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSent, setResetSent]   = useState(false)
 
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
@@ -43,6 +46,16 @@ export default function Login() {
 
   const age = calcAge(reg.birthDate)
   const cantones = reg.province ? PROVINCIAS[reg.province] || [] : []
+
+  async function handleForgotPassword(e) {
+    e.preventDefault()
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: 'https://medtrack-gilt.vercel.app/reset-password'
+    })
+    if (error) { setError(error.message); setLoading(false); return }
+    setResetSent(true); setLoading(false)
+  }
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -156,7 +169,45 @@ export default function Login() {
               <input style={s.input} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
             </div>
             <button style={s.btn} type="submit" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</button>
+            <div style={{ textAlign:'center', marginTop:12 }}>
+              <button type="button" onClick={() => { setTab('forgot'); setError('') }}
+                style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:G, textDecoration:'underline' }}>
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
           </form>
+        )}
+
+        {tab === 'forgot' && (
+          <div>
+            {resetSent ? (
+              <div>
+                <div style={{ textAlign:'center', fontSize:32, marginBottom:12 }}>📧</div>
+                <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', textAlign:'center', marginBottom:8 }}>Revisá tu correo</div>
+                <div style={{ fontSize:13, color:'#666', textAlign:'center', marginBottom:20, lineHeight:1.6 }}>
+                  Te enviamos un link para restablecer tu contraseña a <strong>{resetEmail}</strong>
+                </div>
+                <button style={s.btn} onClick={() => { setTab('login'); setResetSent(false); setResetEmail('') }}>Volver al inicio de sesión</button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword}>
+                <div style={{ fontSize:14, color:'#666', marginBottom:16, lineHeight:1.6 }}>
+                  Ingresá tu correo y te enviaremos un link para restablecer tu contraseña.
+                </div>
+                <div style={s.field}>
+                  <label style={s.label}>Correo electrónico</label>
+                  <input style={s.input} type="email" value={resetEmail} onChange={e=>setResetEmail(e.target.value)} placeholder="correo@ejemplo.com" required />
+                </div>
+                <button style={s.btn} type="submit" disabled={loading}>{loading ? 'Enviando...' : 'Enviar link'}</button>
+                <div style={{ textAlign:'center', marginTop:12 }}>
+                  <button type="button" onClick={() => { setTab('login'); setError('') }}
+                    style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#888', textDecoration:'underline' }}>
+                    Volver al inicio de sesión
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         )}
 
         {tab === 'register' && (
