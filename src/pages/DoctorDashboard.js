@@ -416,7 +416,7 @@ export default function DoctorDashboard() {
 
         {[
           { section:'Principal', items:[{ label:'Dashboard', key:'dashboard' }, { label:'Mis pacientes', key:'pacientes', badge:patients.length }] },
-          { section:'Clinica', items:[{ label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, { label:'Chat', key:'chat', badge:pendingCount, badgeRed:true }] },
+          { section:'Clinica', items:[{ label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, ] },
         ].map(group => (
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
@@ -619,7 +619,7 @@ export default function DoctorDashboard() {
           ) : (
             /* Desktop: tabla */
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
+          
               <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 35%' }}>Paciente</div>
                 <div style={{ flex:'0 0 10%' }}>Edad</div>
