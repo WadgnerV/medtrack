@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../supabaseClient'
+import { supabase } from '../lib/supabase'
 
 const G = '#0F6E56'
 
@@ -169,12 +169,10 @@ export default function Login() {
               <input style={s.input} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
             </div>
             <button style={s.btn} type="submit" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</button>
-            <div style={{ textAlign:'center', marginTop:12 }}>
-              <button type="button" onClick={() => { setTab('forgot'); setError('') }}
-                style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:G, textDecoration:'underline' }}>
-                ¿Olvidaste tu contraseña?
-              </button>
-            </div>
+            <button type="button" onClick={() => { setTab('forgot'); setError('') }}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:G, textDecoration:'underline', width:'100%', marginTop:10 }}>
+              ¿Olvidaste tu contraseña?
+            </button>
           </form>
         )}
 
