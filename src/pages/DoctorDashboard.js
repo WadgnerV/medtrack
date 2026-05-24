@@ -17,7 +17,7 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState('calendario')
+  const [view, setView] = useState(() => localStorage.getItem('doctorView') || 'calendario')
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
   const [msgs, setMsgs] = useState([])
@@ -32,6 +32,7 @@ export default function DoctorDashboard() {
   const [saving, setSaving] = useState(false)
   const [activeChat, setActiveChat] = useState(null)
   const [chatMsg, setChatMsg] = useState('')
+  function setViewPersist(v) { localStorage.setItem('doctorView', v); setView(v) }
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
@@ -157,7 +158,7 @@ export default function DoctorDashboard() {
   function openPatient(p) {
     setSelPatient(p)
     setPatientTab('progreso')
-    setView('perfil')
+    setViewPersist('perfil')
     loadPatientData(p.id)
     loadPatientCareModules(p.id)
   }
@@ -459,7 +460,7 @@ export default function DoctorDashboard() {
                 { label:'Mis pacientes', key:'pacientes', icon:'👥' },
                 { label:'Dashboard', key:'dashboard', icon:'📊' },
               ].map(item => (
-                <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null); setShowDrawer(false) }}
+                <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null); setShowDrawer(false) }}
                   style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
                   <span>{item.icon}</span>{item.label}
                 </div>
@@ -484,7 +485,7 @@ export default function DoctorDashboard() {
                 {view === 'perfil' && selPatient ? (
                   <span>
                     <button style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:14, marginRight:6 }}
-                      onClick={() => { setView('pacientes'); setSelPatient(null) }}>{'<'} Mis pacientes</button>
+                      onClick={() => { setViewPersist('pacientes'); setSelPatient(null) }}>{'<'} Mis pacientes</button>
                     {pName(selPatient)}
                   </span>
                 ) : { dashboard:'Dashboard', pacientes:'Mis pacientes', calendario:'Calendario' }[view]}
@@ -559,7 +560,7 @@ export default function DoctorDashboard() {
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
                 <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>👥 Mis pacientes</div>
-                <button onClick={()=>setView('pacientes')} style={{ fontSize:14, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'4px 10px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
+                <button onClick={()=>setViewPersist('pacientes')} style={{ fontSize:14, color:'#0F6E56', background:'#E1F5EE', border:'none', borderRadius:6, padding:'4px 10px', cursor:'pointer', fontWeight:600 }}>Ver todos</button>
               </div>
               {patients.length===0 && <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:20 }}>Sin pacientes asignados</div>}
               {patients.slice(0,6).map(p => {

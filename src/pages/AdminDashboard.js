@@ -132,7 +132,8 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState('dashboard')
+  const [view, setView] = useState(() => localStorage.getItem('adminView') || 'calendario')
+  function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   const [searchPac, setSearchPac] = useState('')
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
@@ -467,7 +468,7 @@ export default function AdminDashboard() {
   async function openPatient(p) {
     setSelPatient(p)
     setPatientTab('progreso')
-    setView('perfil-paciente')
+    setViewPersist('perfil-paciente')
     const pid = p.id
     const [m, g, t, tr, n] = await Promise.all([
       supabase.from('measurements').select('*').eq('patient_id', pid).order('measured_at', { ascending: false }),
@@ -705,7 +706,7 @@ export default function AdminDashboard() {
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
             {group.items.map(item => (
-              <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
+              <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
                 style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
                 {item.label}
                 {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:14, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
@@ -739,7 +740,7 @@ export default function AdminDashboard() {
                 { label:'Permisos', key:'permisos', icon:'🔑' },
                 { label:'Configuración', key:'config', icon:'⚙️' },
               ].map(item => (
-                <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
+                <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
                   style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
                   <span>{item.icon}</span>{item.label}
                 </div>
@@ -1051,7 +1052,7 @@ export default function AdminDashboard() {
                     <div style={{ display:'flex', gap:4 }}>
                       {d.role !== 'admin' && (
                         <>
-                          <button style={s.iconBtn} onClick={() => setView('permisos')}>P</button>
+                          <button style={s.iconBtn} onClick={() => setViewPersist('permisos')}>P</button>
                           <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
                           <button style={s.iconBtnDel} onClick={() => openDelete('doctor', d.id, d.first_name + SP + d.last_name)}>X</button>
                         </>
@@ -1079,7 +1080,7 @@ export default function AdminDashboard() {
                   <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     {d.role !== 'admin' && (
                       <>
-                        <button style={s.iconBtn} onClick={() => setView('permisos')}>P</button>
+                        <button style={s.iconBtn} onClick={() => setViewPersist('permisos')}>P</button>
                         <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
                         <button style={s.iconBtnDel} onClick={() => openDelete('doctor', d.id, d.first_name + SP + d.last_name)}>X</button>
                       </>
@@ -1127,7 +1128,7 @@ export default function AdminDashboard() {
               setCie10Search={setCie10Search}
               cie10Results={cie10Results}
               onSearchCie10={searchCie10}
-              onBack={() => { setView('pacientes'); setSelPatient(null) }}
+              onBack={() => { setViewPersist('pacientes'); setSelPatient(null) }}
               isMobile={isMobile}
             />
           )}
