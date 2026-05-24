@@ -17,7 +17,7 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState('dashboard')
+  const [view, setView] = useState('calendario')
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
   const [msgs, setMsgs] = useState([])
@@ -415,8 +415,8 @@ export default function DoctorDashboard() {
         </div>
 
         {[
-          { section:'Principal', items:[{ label:'Dashboard', key:'dashboard' }, { label:'Mis pacientes', key:'pacientes', badge:patients.length }] },
-          { section:'Clinica', items:[{ label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length }, ] },
+          { section:'Clinica', items:[{ label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled').length } ] },
+          { section:'Principal', items:[{ label:'Mis pacientes', key:'pacientes', badge:patients.length }, { label:'Dashboard', key:'dashboard' }] },
         ].map(group => (
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
@@ -445,9 +445,9 @@ export default function DoctorDashboard() {
             </div>
             <div style={{ flex:1, padding:'8px 0' }}>
               {[
-                { label:'Dashboard', key:'dashboard', icon:'📊' },
-                { label:'Mis pacientes', key:'pacientes', icon:'👥' },
                 { label:'Calendario', key:'calendario', icon:'📅' },
+                { label:'Mis pacientes', key:'pacientes', icon:'👥' },
+                { label:'Dashboard', key:'dashboard', icon:'📊' },
               ].map(item => (
                 <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null); setShowDrawer(false) }}
                   style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
