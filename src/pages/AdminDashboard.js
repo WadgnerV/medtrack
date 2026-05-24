@@ -1343,7 +1343,12 @@ export default function AdminDashboard() {
                                 return (
                                   <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'2px 4px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
                                     onClick={() => { setSelDate(dateStr); setModal('edit-appt'); setModalData({appt:a}) }}>
-                                    <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.2 }}>{a.appointment_time?.substring(0,5)}</div>
+                                    <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.2, display:'flex', justifyContent:'space-between' }}>
+                                      <span>{a.appointment_time?.substring(0,5)}</span>
+                                      {a.status === 'confirmed_patient' && <span style={{ color:'#0F6E56' }}>✅</span>}
+                                      {a.status === 'confirmed_doctor' && <span style={{ color:'#7EC8E3' }}>✅</span>}
+                                      {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
+                                    </div>
                                     <div style={{ fontSize:10, color:'#333', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
                                   </div>
                                 )
