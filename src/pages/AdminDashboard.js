@@ -1767,13 +1767,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
                 <option value="other">Otro</option>
               </select>
             </div>
-            <div>
-              <label style={s.fieldLabel}>Medico asignado</label>
-              <select value={form.doctorId} onChange={f('doctorId')} style={s.fieldInput}>
-                <option value="">Sin asignar</option>
-                {doctors.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
-              </select>
-            </div>
+
               <div>
                 <label style={s.fieldLabel}>Cedula / ID</label>
                 <input value={form.idNumber} onChange={f('idNumber')} placeholder="1-1234-5678" style={s.fieldInput} />
