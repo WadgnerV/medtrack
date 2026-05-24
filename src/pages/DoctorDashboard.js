@@ -1464,12 +1464,12 @@ function NoteForm({ saving, onSave, onClose }) {
 const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
 
 function ApptForm({ appt, patients, saving, defaultDate, doctorId, onSave, onClose }) {
-  const [form, setForm] = React.useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'' })
-  const [patientModules, setPatientModules] = React.useState([])
+  const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'' })
+  const [patientModules, setPatientModules] = useState([])
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (form.patientId && doctorId) loadPatientModules(form.patientId)
   }, [form.patientId, doctorId])
 
