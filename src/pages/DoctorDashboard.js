@@ -35,6 +35,16 @@ export default function DoctorDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
+  const [calView, setCalView] = useState('semana')
+  const [weekStart, setWeekStart] = useState(() => {
+    const today = new Date()
+    const day = today.getDay()
+    const diff = day === 0 ? -6 : 1 - day
+    const mon = new Date(today)
+    mon.setDate(today.getDate() + diff)
+    mon.setHours(0,0,0,0)
+    return mon
+  })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
@@ -918,68 +928,214 @@ export default function DoctorDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 260px', gap:14, height: isMobile ? 'auto' : 'calc(100vh - 130px)' }}>
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', borderBottom:'0.5px solid #eee' }}>
-                  <button style={s.calNavBtn} onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}>{'<'}</button>
-                  <div style={{ fontSize:14, fontWeight:500 }}>{MONTHS[calMonth]} {calYear}</div>
-                  <button style={s.calNavBtn} onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}>{'>'}</button>
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'8px 10px 4px' }}>
-                  {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase' }}>{d}</div>)}
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 10px 10px', gap:2, flex:1 }}>
-                  {renderCalendar().map((cell, i) => {
-                    const dayAppts = cell.dateStr ? apptsByDate(cell.dateStr) : []
-                    return (
-                      <div key={i} onClick={() => cell.dateStr && setSelDate(cell.dateStr)}
-                        style={{ minHeight:60, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isSelected ? '#E1F5EE' : cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? ('1px solid ' + G) : '1px solid transparent' }}>
-                        <div style={{ fontSize:14, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
-                        {dayAppts.slice(0,2).map(a => (
-                          <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background:G, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                            {a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}
-                          </div>
-                        ))}
-                        {dayAppts.length > 2 && <div style={{ fontSize:9, color:'#999' }}>+{dayAppts.length-2}</div>}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-                <div style={{ padding:'12px 14px', borderBottom:'0.5px solid #eee' }}>
-                  <div style={{ fontSize:14, fontWeight:500 }}>
-                    {selDate ? (DAYS_FULL[new Date(selDate + 'T12:00:00').getDay()] + ' ' + new Date(selDate + 'T12:00:00').getDate() + ' de ' + MONTHS[new Date(selDate + 'T12:00:00').getMonth()]) : 'Selecciona un dia'}
-                  </div>
-                  <div style={{ fontSize:14, color:'#999', marginTop:1 }}>{selDate ? (apptsByDate(selDate).length + ' citas') : ''}</div>
-                </div>
-                <div style={{ flex:1, overflowY:'auto', padding:10 }}>
-                  {!selDate && <div style={{ textAlign:'center', padding:30, fontSize:14, color:'#999' }}>Haz clic en un dia</div>}
-                  {selDate && apptsByDate(selDate).length === 0 && (
-                    <div style={{ textAlign:'center', padding:20, fontSize:14, color:'#999' }}>
-                      <div style={{ marginBottom:10 }}>Sin citas para este dia</div>
-                      <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Agendar cita</button>
+            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              {/* Controles de vista */}
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+                <div style={{ display:'flex', gap:6 }}>
+                  {/* Navegación */}
+                  {calView === 'mes' && <>
+                    <button style={s.calNavBtn} onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}>{'<'}</button>
+                    <div style={{ fontSize:14, fontWeight:500, padding:'0 8px', display:'flex', alignItems:'center' }}>{MONTHS[calMonth]} {calYear}</div>
+                    <button style={s.calNavBtn} onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}>{'>'}</button>
+                  </>}
+                  {calView === 'semana' && <>
+                    <button style={s.calNavBtn} onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate()-7); setWeekStart(new Date(d)) }}>{'<'}</button>
+                    <div style={{ fontSize:14, fontWeight:500, padding:'0 8px', display:'flex', alignItems:'center' }}>
+                      {weekStart.toLocaleDateString('es-CR',{day:'numeric',month:'short'})} — {new Date(weekStart.getTime()+6*86400000).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}
                     </div>
-                  )}
-                  {selDate && apptsByDate(selDate).map(a => (
-                    <div key={a.id} style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, borderLeft:'3px solid ' + G }}>
-                      <div style={{ fontSize:14, color:'#999', marginBottom:3 }}>{a.appointment_time?.substring(0,5)} hrs</div>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                      <div style={{ fontSize:14, color:'#666' }}>{a.visit_type}</div>
-                      <div style={{ display:'flex', gap:5, marginTop:6 }}>
-                        <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#fff', color:'#888', border:'0.5px solid #eee' }}>{a.duration_min} min</span>
-                      </div>
-                      {a.notes && <div style={{ fontSize:14, color:'#888', marginTop:5, fontStyle:'italic' }}>{a.notes}</div>}
-                      <div style={{ display:'flex', gap:5, marginTop:7 }}>
-                        <button style={{ fontSize:14, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
-                          onClick={() => { setModal('edit-appt'); setModalData({ appt:a }) }}>Editar</button>
-                        <button style={{ fontSize:14, padding:'3px 9px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
-                          onClick={() => { setModal('confirm-cancel'); setModalData({ apptId:a.id }) }}>Cancelar</button>
-                      </div>
+                    <button style={s.calNavBtn} onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate()+7); setWeekStart(new Date(d)) }}>{'>'}</button>
+                  </>}
+                  {calView === 'dia' && <>
+                    <button style={s.calNavBtn} onClick={() => { const d = new Date(selDate||new Date()); d.setDate(d.getDate()-1); setSelDate(d.toISOString().split('T')[0]) }}>{'<'}</button>
+                    <div style={{ fontSize:14, fontWeight:500, padding:'0 8px', display:'flex', alignItems:'center' }}>
+                      {selDate ? new Date(selDate+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'}) : 'Hoy'}
                     </div>
+                    <button style={s.calNavBtn} onClick={() => { const d = new Date(selDate||new Date()); d.setDate(d.getDate()+1); setSelDate(d.toISOString().split('T')[0]) }}>{'>'}</button>
+                  </>}
+                </div>
+                <div style={{ display:'flex', background:'#f5f5f5', borderRadius:8, padding:3, gap:2 }}>
+                  {[['mes','Mes'],['semana','Semana'],['dia','Día']].map(([key,label]) => (
+                    <button key={key} onClick={() => setCalView(key)}
+                      style={{ padding:'5px 12px', borderRadius:6, border:'none', cursor:'pointer', fontSize:13, fontWeight: calView===key ? 600 : 400, background: calView===key ? '#fff' : 'transparent', color: calView===key ? G : '#888', boxShadow: calView===key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
+                      {label}
+                    </button>
                   ))}
                 </div>
               </div>
+
+              {/* Vista MES */}
+              {calView === 'mes' && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'8px 10px 4px' }}>
+                    {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d => <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:500, color:'#999', textTransform:'uppercase' }}>{d}</div>)}
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 10px 10px', gap:2, flex:1 }}>
+                    {renderCalendar().map((cell, i) => {
+                      const dayAppts = cell.dateStr ? apptsByDate(cell.dateStr) : []
+                      return (
+                        <div key={i} onClick={() => { if(cell.dateStr) { setSelDate(cell.dateStr); setCalView('dia') } }}
+                          style={{ minHeight:70, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? ('1px solid '+G) : '1px solid transparent' }}>
+                          <div style={{ fontSize:13, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
+                          {dayAppts.slice(0,2).map(a => (
+                            <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background:G, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                              {a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}
+                            </div>
+                          ))}
+                          {dayAppts.length > 2 && <div style={{ fontSize:9, color:'#999' }}>+{dayAppts.length-2}</div>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Vista SEMANA */}
+              {calView === 'semana' && (() => {
+                const HORA_INI = 12
+                const HORA_FIN = 24
+                const SLOT_H = 48 // px por hora
+                const totalH = (HORA_FIN - HORA_INI) * SLOT_H
+                const now = new Date()
+                const todayStr = now.toISOString().split('T')[0]
+                const nowMinutes = now.getHours() * 60 + now.getMinutes()
+                const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
+                  ? ((now.getHours() - HORA_INI) * 60 + now.getMinutes()) / 60 * SLOT_H : -1
+
+                const weekDays = Array.from({length:7}, (_,i) => {
+                  const d = new Date(weekStart)
+                  d.setDate(weekStart.getDate() + i)
+                  return { date: d, dateStr: d.toISOString().split('T')[0], isToday: d.toISOString().split('T')[0] === todayStr }
+                })
+                const hours = Array.from({length: HORA_FIN - HORA_INI}, (_,i) => HORA_INI + i)
+
+                return (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
+                    {/* Header días */}
+                    <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, borderBottom:'0.5px solid #eee' }}>
+                      <div />
+                      {weekDays.map(({date, isToday}) => (
+                        <div key={date.toISOString()} style={{ textAlign:'center', padding:'8px 4px', borderLeft:'0.5px solid #f0f0f0', background: isToday ? '#f0fdf9' : '#fff' }}>
+                          <div style={{ fontSize:11, color:'#999', textTransform:'uppercase' }}>
+                            {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][date.getDay()===0?6:date.getDay()-1]}
+                          </div>
+                          <div style={{ fontSize:16, fontWeight: isToday ? 700 : 400, color: isToday ? G : '#1a1a1a',
+                            background: isToday ? G : 'transparent', color: isToday ? '#fff' : '#1a1a1a',
+                            borderRadius:'50%', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', margin:'2px auto 0' }}>
+                            {date.getDate()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Grid horario */}
+                    <div style={{ overflowY:'auto', maxHeight: isMobile ? '60vh' : 'calc(100vh - 260px)', position:'relative' }}>
+                      <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, position:'relative' }}>
+                        {/* Columna horas */}
+                        <div>
+                          {hours.map(h => (
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 12 ? '12 PM' : h < 12 ? h+' AM' : h === 24 ? '12 AM' : (h-12)+' PM'}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Columnas días */}
+                        {weekDays.map(({dateStr, isToday}) => {
+                          const dayAppts = apptsByDate(dateStr)
+                          return (
+                            <div key={dateStr} style={{ borderLeft:'0.5px solid #f0f0f0', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
+                              {hours.map(h => (
+                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5' }} />
+                              ))}
+                              {/* Indicador hora actual */}
+                              {isToday && nowOffsetPx >= 0 && (
+                                <div style={{ position:'absolute', left:0, right:0, top:nowOffsetPx, zIndex:10, display:'flex', alignItems:'center' }}>
+                                  <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', flexShrink:0 }} />
+                                  <div style={{ flex:1, height:1.5, background:'#D85A30' }} />
+                                </div>
+                              )}
+                              {/* Citas */}
+                              {dayAppts.map(a => {
+                                const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
+                                if (ah < HORA_INI || ah >= HORA_FIN) return null
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                                const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
+                                return (
+                                  <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:4, padding:'2px 4px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                                    onClick={() => { setSelDate(dateStr); setModal('edit-appt'); setModalData({appt:a}) }}>
+                                    <div style={{ fontSize:10, fontWeight:600, color:G, lineHeight:1.2 }}>{a.appointment_time?.substring(0,5)}</div>
+                                    <div style={{ fontSize:10, color:'#333', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Vista DÍA */}
+              {calView === 'dia' && (() => {
+                const HORA_INI = 12
+                const HORA_FIN = 24
+                const SLOT_H = 56
+                const now = new Date()
+                const todayStr = now.toISOString().split('T')[0]
+                const currentDate = selDate || todayStr
+                const dayAppts = apptsByDate(currentDate)
+                const isToday = currentDate === todayStr
+                const nowOffsetPx = isToday && HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
+                  ? ((now.getHours() - HORA_INI) * 60 + now.getMinutes()) / 60 * SLOT_H : -1
+                const hours = Array.from({length: HORA_FIN - HORA_INI}, (_,i) => HORA_INI + i)
+
+                return (
+                  <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
+                    <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ fontSize:14, fontWeight:500 }}>
+                        {new Date(currentDate+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+                      </div>
+                      <span style={{ fontSize:12, color:'#888' }}>{dayAppts.length} citas</span>
+                    </div>
+                    <div style={{ overflowY:'auto', maxHeight: isMobile ? '65vh' : 'calc(100vh - 240px)', position:'relative' }}>
+                      <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
+                        <div>
+                          {hours.map(h => (
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 12 ? '12 PM' : h < 12 ? h+' AM' : h === 24 ? '12 AM' : (h-12)+' PM'}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
+                          {hours.map(h => <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0' }} />)}
+                          {isToday && nowOffsetPx >= 0 && (
+                            <div style={{ position:'absolute', left:0, right:0, top:nowOffsetPx, zIndex:10, display:'flex', alignItems:'center' }}>
+                              <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', flexShrink:0 }} />
+                              <div style={{ flex:1, height:1.5, background:'#D85A30' }} />
+                            </div>
+                          )}
+                          {dayAppts.map(a => {
+                            const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
+                            if (ah < HORA_INI || ah >= HORA_FIN) return null
+                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                            const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
+                            return (
+                              <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:6, padding:'4px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                                onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
+                                <div style={{ fontSize:11, fontWeight:600, color:G }}>{a.appointment_time?.substring(0,5)} — {a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
+                                <div style={{ fontSize:11, color:'#666' }}>{a.visit_type} · {a.duration_min} min</div>
+                              </div>
+                            )
+                          })}
+                          {dayAppts.length === 0 && (
+                            <div style={{ position:'absolute', top:'40%', left:0, right:0, textAlign:'center', fontSize:13, color:'#bbb' }}>Sin citas para este día</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           )}
 
