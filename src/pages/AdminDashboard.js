@@ -723,9 +723,9 @@ export default function AdminDashboard() {
         </div>
 
         {[
-          { section:'Principal', items:[{ icon:'D', label:'Dashboard', key:'dashboard' }] },
-          { section:'Usuarios', items:[{ icon:'M', label:'Medicos', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
           { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, { icon:'R', label:'Reportes', key:'reportes' }] },
+          { section:'Usuarios', items:[{ icon:'M', label:'Medicos', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
+          { section:'Principal', items:[{ icon:'D', label:'Dashboard', key:'dashboard' }] },
           { section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] },
         ].map(group => (
           <div key={group.section}>
