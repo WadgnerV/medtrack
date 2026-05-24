@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
 
     await supabase.from('patients').upsert({
       profile_id: userId,
-      status:     'pending',
+      status:     'active',
       id_number:  idNumber  || null,
       phone:      phone     || null,
       birth_date: birthDate || null,
