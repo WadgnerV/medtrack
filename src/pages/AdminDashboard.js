@@ -696,7 +696,15 @@ export default function AdminDashboard() {
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} doctors={doctors}
                 saving={saving} error={formError} defaultDate={selDate} defaultTime={modalData.defaultTime}
-                onSave={saveAppt} onClose={() => setModal(null)} />
+                onSave={saveAppt} onClose={() => setModal(null)}
+                onGoToExpediente={(appt) => {
+                  const p = patients.find(p => p.id === appt.patient_id)
+                  if (p) {
+                    setModal(null)
+                    openPatient(p)
+                    setPatientTab(appt.module_type ? 'modulo_' + appt.module_type : 'modulos')
+                  }
+                }} />
             )}
             {modal === 'new-library' && (
               <LibraryForm saving={saving} onSave={addLibraryItem} onClose={() => setModal(null)} />
@@ -1829,7 +1837,7 @@ function AssignForm({ patient, doctors, saving, onSave, onClose }) {
   )
 }
 
-function ApptForm({ appt, patients, doctors, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin }) {
+function ApptForm({ appt, patients, doctors, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin, onGoToExpediente }) {
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
   const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
@@ -1853,7 +1861,19 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
   return (
     <>
-      <div style={{ fontSize:16, fontWeight:600, color:'#1a1a1a', marginBottom:4 }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
+        <div style={{ fontSize:16, fontWeight:600, color:'#1a1a1a' }}>{appt ? 'Editar cita' : 'Nueva cita'}</div>
+        {appt && (appt.status === 'confirmed_patient' || appt.status === 'confirmed_doctor') && onGoToExpediente && (
+          <button onClick={() => onGoToExpediente(appt)} style={{ background:'#0F6E56', color:'#fff', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, fontWeight:500, cursor:'pointer' }}>
+            📋 Ir al expediente
+          </button>
+        )}
+        {appt && appt.status !== 'confirmed_patient' && appt.status !== 'confirmed_doctor' && (
+          <button disabled style={{ background:'#f0f0f0', color:'#bbb', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, fontWeight:500, cursor:'not-allowed' }}>
+            📋 Ir al expediente
+          </button>
+        )}
+      </div>
       <div style={{ fontSize:13, color:'#999', marginBottom:18 }}>{appt ? 'Modificá los datos de la cita' : 'Completá los datos para agendar'}</div>
       {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:13, padding:'8px 11px', borderRadius:8, marginBottom:12 }}>{error}</div>}
 
