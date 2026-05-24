@@ -1869,9 +1869,12 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
           </button>
         )}
         {appt && appt.status !== 'confirmed_patient' && appt.status !== 'confirmed_doctor' && (
-          <button disabled style={{ background:'#f0f0f0', color:'#bbb', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, fontWeight:500, cursor:'not-allowed' }}>
-            📋 Ir al expediente
-          </button>
+          <div style={{ position:'relative', display:'inline-block' }}>
+            <button disabled style={{ background:'#f0f0f0', color:'#bbb', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, fontWeight:500, cursor:'not-allowed' }}
+              title="Para habilitar el ingreso al expediente, confirmá la asistencia del paciente en el campo de estado">
+              📋 Ir al expediente
+            </button>
+          </div>
         )}
       </div>
       <div style={{ fontSize:13, color:'#999', marginBottom:18 }}>{appt ? 'Modificá los datos de la cita' : 'Completá los datos para agendar'}</div>
