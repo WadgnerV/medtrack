@@ -1869,11 +1869,14 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
           </button>
         )}
         {appt && appt.status !== 'confirmed_patient' && appt.status !== 'confirmed_doctor' && (
-          <div style={{ position:'relative', display:'inline-block' }}>
-            <button disabled style={{ background:'#f0f0f0', color:'#bbb', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, fontWeight:500, cursor:'not-allowed' }}
-              title="Para habilitar el ingreso al expediente, confirmá la asistencia del paciente en el campo de estado">
+          <div style={{ position:'relative', display:'inline-block' }} className="tooltip-wrap">
+            <button disabled style={{ background:'#f0f0f0', color:'#bbb', border:'none', borderRadius:8, padding:'5px 12px', fontSize:12, fontWeight:500, cursor:'not-allowed' }}>
               📋 Ir al expediente
             </button>
+            <div style={{ position:'absolute', right:0, top:'110%', background:'#1a1a1a', color:'#fff', fontSize:11, padding:'6px 10px', borderRadius:7, width:220, lineHeight:1.5, zIndex:999, pointerEvents:'none', display:'none' }} className="tooltip-box">
+              Confirmá la asistencia del paciente en el campo de estado para habilitar el acceso al expediente.
+            </div>
+            <style>{`.tooltip-wrap:hover .tooltip-box { display: block !important; }`}</style>
           </div>
         )}
       </div>
