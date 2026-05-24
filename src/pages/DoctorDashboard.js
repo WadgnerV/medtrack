@@ -305,10 +305,28 @@ export default function DoctorDashboard() {
       patient_id: form.patientId, doctor_id: profile.id,
       appointment_date: form.date, appointment_time: form.time,
       visit_type: form.visitType, duration_min: parseInt(form.duration),
-      notes: form.notes, status: 'pending_confirmation', module_type: form.moduleType || null, created_by: profile.id
+      notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile.id
     }
-    if (form.id) await supabase.from('appointments').update(payload).eq('id', form.id)
-    else await supabase.from('appointments').insert(payload)
+    const prevStatus = form.id ? appts.find(a => a.id === form.id)?.status : null
+    if (form.id) {
+      await supabase.from('appointments').update(payload).eq('id', form.id)
+      if (form.status === 'no_show' && prevStatus !== 'no_show') {
+        const pat = patients.find(p => p.id === form.patientId)
+        if (pat?.profile?.email) {
+          await supabase.functions.invoke('appointment-noshow', {
+            body: {
+              patient_email: pat.profile.email,
+              patient_name: `${pat.profile.first_name} ${pat.profile.last_name}`,
+              doctor_name: `Dr. ${profile.first_name} ${profile.last_name}`,
+              appointment_date: form.date,
+              appointment_time: form.time,
+            }
+          })
+        }
+      }
+    } else {
+      await supabase.from('appointments').insert(payload)
+    }
     await loadAppts(); setModal(null); setSaving(false)
   }
 
@@ -398,7 +416,7 @@ export default function DoctorDashboard() {
               <NoteForm saving={saving} note={modalData.note} onSave={form => editNote(modalData.note.id, form)} onClose={() => setModal(null)} />
             )}
             {(modal === 'new-appt' || modal === 'edit-appt') && (
-              <ApptForm appt={modalData.appt} patients={patients} saving={saving} defaultDate={selDate}
+              <ApptForm appt={modalData.appt} patients={patients} saving={saving} defaultDate={selDate} defaultTime={modalData.defaultTime}
                 doctorId={profile?.id} onSave={saveAppt} onClose={() => setModal(null)} />
             )}
             {modal === 'confirm-cancel' && (
@@ -1044,7 +1062,8 @@ export default function DoctorDashboard() {
                           return (
                             <div key={dateStr} style={{ borderLeft:'0.5px solid #f0f0f0', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5' }} />
+                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', cursor:'pointer' }}
+                                  onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }} />
                               ))}
                               {/* Indicador hora actual */}
                               {isToday && nowOffsetPx >= 0 && (
@@ -1108,7 +1127,10 @@ export default function DoctorDashboard() {
                           ))}
                         </div>
                         <div style={{ position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
-                          {hours.map(h => <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0' }} />)}
+                          {hours.map(h => (
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0', cursor:'pointer' }}
+                              onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }} />
+                          ))}
                           {isToday && nowOffsetPx >= 0 && (
                             <div style={{ position:'absolute', left:0, right:0, top:nowOffsetPx, zIndex:10, display:'flex', alignItems:'center' }}>
                               <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', flexShrink:0 }} />
@@ -1463,8 +1485,8 @@ function NoteForm({ saving, onSave, onClose }) {
 
 const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
 
-function ApptForm({ appt, patients, saving, defaultDate, doctorId, onSave, onClose }) {
-  const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'' })
+function ApptForm({ appt, patients, saving, defaultDate, defaultTime, doctorId, onSave, onClose }) {
+  const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
@@ -1529,9 +1551,19 @@ function ApptForm({ appt, patients, saving, defaultDate, doctorId, onSave, onClo
         <div>
           <label style={s.fieldLabel}>Duración</label>
           <select value={form.duration} onChange={f('duration')} style={s.fieldInput}>
-            {[30,45,60,90].map(v => <option key={v} value={v}>{v} min</option>)}
+            {[15,30,45,60,75,90,105,120].map(v => <option key={v} value={v}>{v} min</option>)}
           </select>
         </div>
+      </div>
+
+      <div style={{ marginBottom:12 }}>
+        <label style={s.fieldLabel}>Estado de la cita</label>
+        <select value={form.status} onChange={f('status')} style={s.fieldInput}>
+          <option value="pending_confirmation">⏳ Pendiente confirmación</option>
+          <option value="confirmed_patient">✅ Confirmada por paciente</option>
+          <option value="confirmed_doctor">✅ Confirmada por médico</option>
+          <option value="no_show">🟡 No asistió</option>
+        </select>
       </div>
 
       <div style={{ marginBottom:18 }}>
