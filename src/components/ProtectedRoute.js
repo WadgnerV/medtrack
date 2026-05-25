@@ -17,6 +17,7 @@ export function ProtectedRoute({ children, allowedRoles }) {
 
   if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
     if (profile.role === 'superadmin') return <Navigate to="/superadmin" replace />
+    if (profile.role === 'receptionist') return <Navigate to="/recepcion" replace />
     if (profile.role === 'admin')      return <Navigate to="/admin" replace />
     if (profile.role === 'doctor')     return <Navigate to="/doctor" replace />
     if (profile.role === 'patient')    return <Navigate to="/paciente" replace />

@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import DoctorDashboard from './pages/DoctorDashboard'
 import PatientDashboard from './pages/PatientDashboard'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
+import ReceptionistDashboard from './pages/ReceptionistDashboard'
 
 function App() {
   return (
@@ -17,6 +18,11 @@ function App() {
           <Route path="/superadmin/*" element={
             <ProtectedRoute allowedRoles={['superadmin']}>
               <SuperAdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/recepcion/*" element={
+            <ProtectedRoute allowedRoles={['receptionist']}>
+              <ReceptionistDashboard />
             </ProtectedRoute>
           } />
           <Route path="/admin/*" element={
