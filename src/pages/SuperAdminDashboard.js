@@ -29,7 +29,8 @@ const s = {
 
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
-  const [view, setView] = useState('clinicas')
+  const [view, setView] = useState(() => localStorage.getItem('superadminView') || 'clinicas')
+  function setViewPersist(v) { localStorage.setItem('superadminView', v); setView(v) }
   const [clinics, setClinics] = useState([])
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
@@ -111,7 +112,7 @@ export default function SuperAdminDashboard() {
           { key:'clinicas', label:'🏥 Clínicas' },
           { key:'admins', label:'👤 Administradores' },
         ].map(item => (
-          <div key={item.key} onClick={() => setView(item.key)}
+          <div key={item.key} onClick={() => setViewPersist(item.key)}
             style={{ ...s.menuItem, background: view===item.key ? '#f0fdf9' : 'transparent', color: view===item.key ? G : '#555', fontWeight: view===item.key ? 600 : 400 }}>
             {item.label}
           </div>
