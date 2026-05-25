@@ -1021,9 +1021,9 @@ export default function DoctorDashboard() {
 
               {/* Vista SEMANA */}
               {calView === 'semana' && (() => {
-                const HORA_INI = 12
+                const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 48 // px por hora
+                const SLOT_H = 64 // px por hora
                 const totalH = (HORA_FIN - HORA_INI) * SLOT_H
                 const now = new Date()
                 const todayStr = now.toISOString().split('T')[0]
@@ -1124,9 +1124,9 @@ export default function DoctorDashboard() {
 
               {/* Vista DÍA */}
               {calView === 'dia' && (() => {
-                const HORA_INI = 12
+                const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 56
+                const SLOT_H = 72
                 const now = new Date()
                 const todayStr = now.toISOString().split('T')[0]
                 const currentDate = selDate || todayStr

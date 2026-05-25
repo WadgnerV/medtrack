@@ -1328,9 +1328,9 @@ export default function AdminDashboard() {
 
               {/* Vista SEMANA */}
               {calView === 'semana' && (() => {
-                const HORA_INI = 12
+                const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 48
+                const SLOT_H = 64
                 const now = new Date()
                 const todayStr = now.toISOString().split('T')[0]
                 const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
@@ -1420,9 +1420,9 @@ export default function AdminDashboard() {
 
               {/* Vista DÍA */}
               {calView === 'dia' && (() => {
-                const HORA_INI = 12
+                const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 56
+                const SLOT_H = 72
                 const now = new Date()
                 const todayStr = now.toISOString().split('T')[0]
                 const currentDate = selDate || todayStr
