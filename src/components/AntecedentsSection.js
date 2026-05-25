@@ -28,6 +28,42 @@ const APP_CONDITIONS = [
 const STATUS_LABELS = { active: 'Activo', remission: 'En remisión', resolved: 'Resuelto' }
 const STATUS_COLORS = { active: { bg:'#FAEEDA', color:'#854F0B' }, remission: { bg:'#E6F1FB', color:'#185FA5' }, resolved: { bg:'#E1F5EE', color:'#0F6E56' } }
 
+const RELIGIONS = ['Agnóstico','Ateísmo','Catolicismo','Cristianismo no practicante','Evangelismo','Judaísmo','Musulmán','Testigo de Jehová','Otra']
+const CIVIL_STATUS = ['Soltero/a','Casado/a','Unión libre','Divorciado/a','Viudo/a']
+const EDUCATION = ['Sin estudios formales','Primaria','Secundaria','Técnico','Universitario','Posgrado']
+const EXERCISE_TYPES = ['Caminata','Gimnasio','Calistenia','Funcional','Natación','Ciclismo','Otro']
+const ALLERGY_TYPES = ['Medicamento','Alimento','Ambiental','Otra']
+const DIET_TYPES = ['Omnívora','Vegetariana','Vegana','Sin gluten','Otra']
+
+const EMPTY_APNP = {
+  // Tabaquismo
+  smoking_status: 'no', // no, ex, active
+  smoking_cigs_per_day: '',
+  smoking_years: '',
+  // Alcohol
+  alcohol_status: 'no', // no, occasional, habitual
+  alcohol_detail: '',
+  // Drogas
+  drugs_status: 'no',
+  drugs_detail: '',
+  // Ejercicio
+  exercise_status: 'no', // no, active
+  exercise_types: [],
+  exercise_days_per_week: '',
+  exercise_minutes: '',
+  // Alergias
+  allergies: [], // [{type, medication_name, reaction}]
+  // Alimentación
+  diet_type: '',
+  diet_observations: '',
+  // Personal
+  occupation: '',
+  civil_status: '',
+  education: '',
+  religion: '',
+  observations: '',
+}
+
 const G = '#1D9E75'
 const s = {
   label: { fontSize:12, color:'#666', marginBottom:4, display:'block' },
@@ -90,14 +126,242 @@ function AppForm({ initial, onSave, onCancel }) {
   )
 }
 
+function ApnpForm({ initial, onSave, onCancel }) {
+  const [form, setForm] = useState(initial || EMPTY_APNP)
+  const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
+
+  const packYears = form.smoking_status !== 'no' && form.smoking_cigs_per_day && form.smoking_years
+    ? ((parseFloat(form.smoking_cigs_per_day) / 20) * parseFloat(form.smoking_years)).toFixed(1)
+    : null
+
+  function toggleExerciseType(t) {
+    setForm(p => ({ ...p, exercise_types: p.exercise_types.includes(t) ? p.exercise_types.filter(x=>x!==t) : [...p.exercise_types, t] }))
+  }
+
+  function addAllergy() {
+    setForm(p => ({ ...p, allergies: [...p.allergies, { type:'Medicamento', medication_name:'', reaction:'' }] }))
+  }
+
+  function updateAllergy(i, k, v) {
+    setForm(p => { const a = [...p.allergies]; a[i] = {...a[i], [k]:v}; return {...p, allergies:a} })
+  }
+
+  function removeAllergy(i) {
+    setForm(p => ({ ...p, allergies: p.allergies.filter((_,idx)=>idx!==i) }))
+  }
+
+  return (
+    <div style={{ background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:16, marginBottom:10 }}>
+      
+      {/* Tabaquismo */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🚬 Tabaquismo</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Estado</label>
+            <select value={form.smoking_status} onChange={f('smoking_status')} style={s.input}>
+              <option value="no">No fumador</option>
+              <option value="ex">Ex-fumador</option>
+              <option value="active">Fumador activo</option>
+            </select>
+          </div>
+          {form.smoking_status !== 'no' && <>
+            <div>
+              <label style={s.label}>Cigarros/día</label>
+              <input type="number" value={form.smoking_cigs_per_day} onChange={f('smoking_cigs_per_day')} placeholder="Ej: 10" style={s.input} min="0" />
+            </div>
+            <div>
+              <label style={s.label}>Años fumando</label>
+              <input type="number" value={form.smoking_years} onChange={f('smoking_years')} placeholder="Ej: 5" style={s.input} min="0" />
+            </div>
+          </>}
+        </div>
+        {packYears && <div style={{ fontSize:11, color:'#185FA5', marginTop:6, background:'#E6F1FB', padding:'4px 10px', borderRadius:6, display:'inline-block' }}>📊 Índice paquetes/año: <strong>{packYears}</strong></div>}
+      </div>
+
+      {/* Alcohol */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🍷 Alcohol</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Consumo</label>
+            <select value={form.alcohol_status} onChange={f('alcohol_status')} style={s.input}>
+              <option value="no">No consume</option>
+              <option value="occasional">Ocasional</option>
+              <option value="habitual">Habitual</option>
+            </select>
+          </div>
+          {form.alcohol_status !== 'no' && (
+            <div>
+              <label style={s.label}>Detalle (tipo y cantidad)</label>
+              <input value={form.alcohol_detail} onChange={f('alcohol_detail')} placeholder="Ej: 2 cervezas los fines de semana" style={s.input} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Drogas */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>💊 Drogas</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Consumo</label>
+            <select value={form.drugs_status} onChange={f('drugs_status')} style={s.input}>
+              <option value="no">No consume</option>
+              <option value="yes">Sí</option>
+            </select>
+          </div>
+          {form.drugs_status === 'yes' && (
+            <div>
+              <label style={s.label}>Especificar</label>
+              <input value={form.drugs_detail} onChange={f('drugs_detail')} placeholder="Tipo y frecuencia" style={s.input} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Ejercicio */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🏃 Ejercicio</div>
+        <div style={{ marginBottom:8 }}>
+          <label style={s.label}>Actividad física</label>
+          <select value={form.exercise_status} onChange={f('exercise_status')} style={{ ...s.input, width:'50%' }}>
+            <option value="no">Sedentario</option>
+            <option value="active">Activo</option>
+          </select>
+        </div>
+        {form.exercise_status === 'active' && <>
+          <div style={{ marginBottom:8 }}>
+            <label style={s.label}>Tipo de ejercicio</label>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {EXERCISE_TYPES.map(t => (
+                <div key={t} onClick={() => toggleExerciseType(t)}
+                  style={{ padding:'4px 12px', borderRadius:20, border:`1px solid ${form.exercise_types.includes(t)?G:'#e2e8f0'}`, background:form.exercise_types.includes(t)?G:'#f7fafc', color:form.exercise_types.includes(t)?'#fff':'#555', fontSize:12, cursor:'pointer', userSelect:'none' }}>
+                  {t}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            <div>
+              <label style={s.label}>Días por semana</label>
+              <input type="number" value={form.exercise_days_per_week} onChange={f('exercise_days_per_week')} placeholder="Ej: 3" min="1" max="7" style={s.input} />
+            </div>
+            <div>
+              <label style={s.label}>Minutos por sesión</label>
+              <input type="number" value={form.exercise_minutes} onChange={f('exercise_minutes')} placeholder="Ej: 45" min="1" style={s.input} />
+            </div>
+          </div>
+        </>}
+      </div>
+
+      {/* Alergias */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.05em' }}>⚠️ Alergias</div>
+          <button style={{ ...s.btnOutline, fontSize:11, padding:'3px 10px' }} onClick={addAllergy}>+ Agregar</button>
+        </div>
+        {form.allergies.length === 0 && <div style={{ fontSize:12, color:'#999' }}>No reporta alergias</div>}
+        {form.allergies.map((al, i) => (
+          <div key={i} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:8, padding:'10px 12px', marginBottom:8 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+              <div>
+                <label style={s.label}>Tipo</label>
+                <select value={al.type} onChange={e => updateAllergy(i,'type',e.target.value)} style={s.input}>
+                  {ALLERGY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              {al.type === 'Medicamento' && (
+                <div>
+                  <label style={s.label}>Medicamento</label>
+                  <input value={al.medication_name} onChange={e => updateAllergy(i,'medication_name',e.target.value)} placeholder="Nombre del medicamento" style={s.input} />
+                </div>
+              )}
+            </div>
+            <div style={{ display:'flex', gap:8, alignItems:'flex-end' }}>
+              <div style={{ flex:1 }}>
+                <label style={s.label}>Reacción</label>
+                <input value={al.reaction} onChange={e => updateAllergy(i,'reaction',e.target.value)} placeholder="Describí la reacción alérgica" style={s.input} />
+              </div>
+              <button style={s.btnDanger} onClick={() => removeAllergy(i)}>✕</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Alimentación */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🥗 Alimentación</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Tipo de dieta</label>
+            <select value={form.diet_type} onChange={f('diet_type')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              {DIET_TYPES.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={s.label}>Observaciones</label>
+            <input value={form.diet_observations} onChange={f('diet_observations')} placeholder="Intolerancias, preferencias..." style={s.input} />
+          </div>
+        </div>
+      </div>
+
+      {/* Datos personales */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>👤 Datos personales</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Ocupación</label>
+            <input value={form.occupation} onChange={f('occupation')} placeholder="Ej: Ingeniero, Docente..." style={s.input} />
+          </div>
+          <div>
+            <label style={s.label}>Estado civil</label>
+            <select value={form.civil_status} onChange={f('civil_status')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              {CIVIL_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={s.label}>Nivel educativo</label>
+            <select value={form.education} onChange={f('education')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              {EDUCATION.map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={s.label}>Religión</label>
+            <select value={form.religion} onChange={f('religion')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              {RELIGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div style={{ gridColumn:'1/-1' }}>
+            <label style={s.label}>Observaciones generales</label>
+            <textarea value={form.observations} onChange={f('observations')} rows={2} placeholder="Información adicional relevante..." style={{ ...s.input, resize:'vertical' }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+        {onCancel && <button style={s.btnOutline} onClick={onCancel}>Cancelar</button>}
+        <button style={s.btn} onClick={() => onSave(form)}>Guardar APNP</button>
+      </div>
+    </div>
+  )
+}
+
 export default function AntecedentsSection({ patient, profile, canEdit = true, compact = false }) {
   const [antecedents, setAntecedents] = useState([])
+  const [apnpData, setApnpData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showAppForm, setShowAppForm] = useState(false)
+  const [showApnpForm, setShowApnpForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
   const [editModal, setEditModal] = useState(false)
+  const [apnpModal, setApnpModal] = useState(false)
 
   useEffect(() => { if (patient?.id) loadAntecedents() }, [patient?.id])
 
@@ -105,7 +369,25 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
     setLoading(true)
     const { data } = await supabase.from('patient_antecedents').select('*').eq('patient_id', patient.id).order('created_at')
     setAntecedents(data || [])
+    // Cargar APNP
+    const apnpRecord = (data||[]).find(a => a.type === 'apnp')
+    setApnpData(apnpRecord?.apnp_data || null)
     setLoading(false)
+  }
+
+  async function saveApnp(form) {
+    setSaving(true)
+    const existing = antecedents.find(a => a.type === 'apnp')
+    const payload = { patient_id: patient.id, clinic_id: profile?.clinic_id, type: 'apnp', apnp_data: form, updated_by: profile?.id }
+    if (existing) {
+      await supabase.from('patient_antecedents').update(payload).eq('id', existing.id)
+    } else {
+      await supabase.from('patient_antecedents').insert({ ...payload, created_by: profile?.id })
+    }
+    await loadAntecedents()
+    setApnpModal(false)
+    setShowApnpForm(false)
+    setSaving(false)
   }
 
   async function saveApp(form, id = null) {
@@ -152,6 +434,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <span style={{ fontSize:13, fontWeight:600, color:'#1a3a5c' }}>📋 Antecedentes del paciente</span>
             {appItems.length > 0 && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>{appItems.length} APP</span>}
+            {apnpData && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>APNP</span>}
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {canEdit && <button style={{ fontSize:11, padding:'3px 10px', borderRadius:6, border:'1px solid #e2e8f0', background:'#fff', color:'#555', cursor:'pointer' }} onClick={e => { e.stopPropagation(); setEditModal(true); setCollapsed(false) }}>Editar</button>}
@@ -162,6 +445,15 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
           <div style={{ padding:'0 14px 14px', borderTop:'1px solid #e2e8f0' }}>
             {editModal ? (
               <div style={{ paddingTop:12 }}>
+                {/* APNP en modo edición compact */}
+                <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Antecedentes No Patológicos (APNP)</div>
+                {showApnpForm ? (
+                  <ApnpForm initial={apnpData || EMPTY_APNP} onSave={form => saveApnp(form)} onCancel={() => setShowApnpForm(false)} />
+                ) : (
+                  <button style={{ ...s.btnOutline, fontSize:11, padding:'4px 10px', marginBottom:12 }} onClick={() => setShowApnpForm(true)}>
+                    {apnpData ? 'Editar APNP' : '+ Agregar APNP'}
+                  </button>
+                )}
                 <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>Antecedentes Patológicos Personales (APP)</div>
                 {showAppForm && <AppForm onSave={form => saveApp(form)} onCancel={() => setShowAppForm(false)} />}
                 {!showAppForm && <button style={{ ...s.btnOutline, fontSize:11, padding:'4px 10px', marginBottom:8 }} onClick={() => setShowAppForm(true)}>+ Agregar condición</button>}
@@ -189,9 +481,28 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
               </div>
             ) : (
               <div style={{ paddingTop:10 }}>
-                {appItems.length === 0 ? (
-                  <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:'8px 0' }}>Sin antecedentes patológicos registrados</div>
-                ) : (
+                {/* Resumen APNP */}
+                {apnpData && (
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>APNP</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                      {apnpData.smoking_status && apnpData.smoking_status !== 'no' && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>🚬 {apnpData.smoking_status === 'active' ? 'Fumador activo' : 'Ex-fumador'}{apnpData.smoking_cigs_per_day ? ` · ${apnpData.smoking_cigs_per_day} cig/día` : ''}</div>}
+                      {apnpData.alcohol_status && apnpData.alcohol_status !== 'no' && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>🍷 Alcohol: {apnpData.alcohol_status}</div>}
+                      {apnpData.exercise_status === 'active' && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>🏃 Ejercicio activo {apnpData.exercise_days_per_week ? `· ${apnpData.exercise_days_per_week}x/sem` : ''}</div>}
+                      {apnpData.allergies?.length > 0 && <div style={{ fontSize:11, background:'#FAEEDA', border:'1px solid #F59E0B', borderRadius:6, padding:'4px 8px', color:'#854F0B' }}>⚠️ {apnpData.allergies.length} alergia{apnpData.allergies.length>1?'s':''}</div>}
+                      {apnpData.occupation && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>👤 {apnpData.occupation}</div>}
+                      {apnpData.civil_status && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>💍 {apnpData.civil_status}</div>}
+                    </div>
+                  </div>
+                )}
+                {appItems.length === 0 && !apnpData ? (
+                  <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:'8px 0' }}>Sin antecedentes registrados</div>
+                ) : appItems.length === 0 ? null : (
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>APP</div>
+                  </div>
+                )}
+                {appItems.length > 0 && (
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     {appItems.map(item => (
                       <div key={item.id} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:8, padding:'8px 10px' }}>
@@ -282,9 +593,101 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
         ))}
       </div>
 
-      {/* Placeholder para APNP, AGO, AQx - próximamente */}
+      {/* APNP - Antecedentes Personales No Patológicos */}
+      <div style={{ marginBottom:24 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+          <div>
+            <div style={s.sectionTitle}>🏃 Antecedentes Personales No Patológicos (APNP)</div>
+            <div style={s.sectionSub}>Hábitos, estilo de vida, alergias y datos personales</div>
+          </div>
+          {canEdit && !showApnpForm && (
+            <button style={s.btnOutline} onClick={() => setShowApnpForm(true)}>{apnpData ? 'Editar' : '+ Agregar'}</button>
+          )}
+        </div>
+
+        {showApnpForm ? (
+          <ApnpForm initial={apnpData || EMPTY_APNP} onSave={form => saveApnp(form)} onCancel={() => setShowApnpForm(false)} />
+        ) : apnpData ? (
+          <div style={s.card}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              {/* Tabaquismo */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🚬 Tabaquismo</div>
+                <div style={{ fontSize:13, color:'#1a1a1a' }}>
+                  {apnpData.smoking_status === 'no' ? 'No fumador' : apnpData.smoking_status === 'ex' ? 'Ex-fumador' : 'Fumador activo'}
+                  {apnpData.smoking_cigs_per_day && ` · ${apnpData.smoking_cigs_per_day} cig/día`}
+                  {apnpData.smoking_years && `, ${apnpData.smoking_years} años`}
+                </div>
+                {apnpData.smoking_status !== 'no' && apnpData.smoking_cigs_per_day && apnpData.smoking_years && (
+                  <div style={{ fontSize:11, color:'#185FA5', marginTop:2 }}>
+                    Paquetes/año: {((parseFloat(apnpData.smoking_cigs_per_day)/20)*parseFloat(apnpData.smoking_years)).toFixed(1)}
+                  </div>
+                )}
+              </div>
+              {/* Alcohol */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🍷 Alcohol</div>
+                <div style={{ fontSize:13, color:'#1a1a1a' }}>
+                  {apnpData.alcohol_status === 'no' ? 'No consume' : apnpData.alcohol_status === 'occasional' ? 'Ocasional' : 'Habitual'}
+                  {apnpData.alcohol_detail && ` · ${apnpData.alcohol_detail}`}
+                </div>
+              </div>
+              {/* Drogas */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>💊 Drogas</div>
+                <div style={{ fontSize:13, color:'#1a1a1a' }}>
+                  {apnpData.drugs_status === 'no' ? 'No consume' : `Sí${apnpData.drugs_detail ? ` · ${apnpData.drugs_detail}` : ''}`}
+                </div>
+              </div>
+              {/* Ejercicio */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🏃 Ejercicio</div>
+                <div style={{ fontSize:13, color:'#1a1a1a' }}>
+                  {apnpData.exercise_status === 'no' ? 'Sedentario' : `Activo${apnpData.exercise_days_per_week ? ` · ${apnpData.exercise_days_per_week}x/sem` : ''}${apnpData.exercise_minutes ? `, ${apnpData.exercise_minutes} min` : ''}`}
+                </div>
+                {apnpData.exercise_types?.length > 0 && <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{apnpData.exercise_types.join(', ')}</div>}
+              </div>
+              {/* Alergias */}
+              {apnpData.allergies?.length > 0 && (
+                <div style={{ gridColumn:'1/-1' }}>
+                  <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>⚠️ Alergias</div>
+                  {apnpData.allergies.map((al, i) => (
+                    <div key={i} style={{ fontSize:12, color:'#1a1a1a', marginBottom:2 }}>
+                      <strong>{al.type}{al.medication_name ? ` — ${al.medication_name}` : ''}</strong>: {al.reaction}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Alimentación */}
+              {apnpData.diet_type && (
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🥗 Alimentación</div>
+                  <div style={{ fontSize:13, color:'#1a1a1a' }}>{apnpData.diet_type}{apnpData.diet_observations ? ` · ${apnpData.diet_observations}` : ''}</div>
+                </div>
+              )}
+              {/* Datos personales */}
+              <div style={{ gridColumn:'1/-1' }}>
+                <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>👤 Datos personales</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:6 }}>
+                  {apnpData.occupation && <div style={{ fontSize:12, color:'#555' }}><strong>Ocupación:</strong> {apnpData.occupation}</div>}
+                  {apnpData.civil_status && <div style={{ fontSize:12, color:'#555' }}><strong>Estado civil:</strong> {apnpData.civil_status}</div>}
+                  {apnpData.education && <div style={{ fontSize:12, color:'#555' }}><strong>Educación:</strong> {apnpData.education}</div>}
+                  {apnpData.religion && <div style={{ fontSize:12, color:'#555' }}><strong>Religión:</strong> {apnpData.religion}</div>}
+                </div>
+                {apnpData.observations && <div style={{ fontSize:12, color:'#777', marginTop:6 }}><strong>Obs:</strong> {apnpData.observations}</div>}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{ background:'#f7fafc', border:'1px dashed #e2e8f0', borderRadius:10, padding:20, textAlign:'center', fontSize:13, color:'#999' }}>
+            Sin antecedentes no patológicos registrados
+          </div>
+        )}
+      </div>
+
+      {/* Placeholder AGO y AQx */}
       <div style={{ background:'#f7fafc', border:'1px dashed #e2e8f0', borderRadius:10, padding:16, textAlign:'center', fontSize:12, color:'#bbb' }}>
-        Antecedentes personales no patológicos, gineco-obstétricos y quirúrgicos — próximamente
+        Antecedentes gineco-obstétricos y quirúrgicos — próximamente
       </div>
     </div>
   )
