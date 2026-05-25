@@ -5,13 +5,18 @@ import { useAuth } from '../context/AuthContext'
 const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 
+const HEALTH_PROFESSIONS = ['Médico general','Médico especialista','Enfermero/a','Fisioterapeuta','Nutricionista','Psicólogo/a','Odontólogo/a','Otro profesional de la salud']
+const ADMIN_PROFESSIONS = ['Administrador/a de clínica','Recepcionista','Contador/a','Asistente administrativo/a','Otro profesional administrativo']
+const ALL_PROFESSIONS = [...HEALTH_PROFESSIONS, ...ADMIN_PROFESSIONS]
+const isHealthPro = (prof) => HEALTH_PROFESSIONS.includes(prof)
+
 const s = {
   wrap: { display:'flex', height:'100vh', fontFamily:'"Inter", system-ui, sans-serif', background:'#f5f5f5' },
   sidebar: { width:220, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', padding:'20px 0' },
   logo: { padding:'0 20px 20px', borderBottom:'0.5px solid #f0f0f0', marginBottom:16 },
   logoTitle: { fontSize:16, fontWeight:700, color:BLUE },
   logoSub: { fontSize:11, color:'#999' },
-  menuItem: { padding:'9px 20px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:10, borderRadius:0 },
+  menuItem: { padding:'9px 20px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:10 },
   main: { flex:1, overflowY:'auto', padding:28 },
   header: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 },
   title: { fontSize:18, fontWeight:700, color:BLUE },
@@ -24,20 +29,23 @@ const s = {
   input: { width:'100%', padding:'8px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', fontFamily:'inherit', boxSizing:'border-box' },
   fieldLabel: { fontSize:12, color:'#666', marginBottom:4, display:'block' },
   modal: { position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 },
-  modalBox: { background:'#fff', borderRadius:14, padding:28, width:440, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)' },
+  modalBox: { background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' },
+  th: { padding:'8px 12px', textAlign:'left', fontSize:11, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' },
+  td: { padding:'10px 12px' },
 }
 
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
   const [view, setView] = useState(() => localStorage.getItem('superadminView') || 'clinicas')
-  function setViewPersist(v) { localStorage.setItem('superadminView', v); setView(v) }
   const [clinics, setClinics] = useState([])
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
-  const [modalData, setModalData] = useState({})
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({})
+  const [error, setError] = useState('')
+
+  function setViewPersist(v) { localStorage.setItem('superadminView', v); setView(v) }
 
   useEffect(() => { loadAll() }, [])
 
@@ -73,36 +81,77 @@ export default function SuperAdminDashboard() {
     await loadClinics()
   }
 
-  async function saveAdmin() {
+  async function createAdmin() {
+    setError('')
+    if (!form.first_name || !form.last_name || !form.email || !form.password || !form.clinic_id || !form.profession) {
+      setError('Todos los campos son obligatorios'); return
+    }
+    if (form.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres'); return
+    }
     setSaving(true)
-    if (form.id) {
-      await supabase.from('profiles').update({ first_name: form.first_name, last_name: form.last_name, clinic_id: form.clinic_id, is_active: form.is_active }).eq('id', form.id)
-    } else {
-      // Crear usuario en Auth
-      const { data: authData, error } = await supabase.auth.admin.createUser({
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        email_confirm: true,
+        options: { data: { first_name: form.first_name, last_name: form.last_name, role: 'admin' } }
       })
-      if (error) { alert('Error: ' + error.message); setSaving(false); return }
-      await supabase.from('profiles').update({ first_name: form.first_name, last_name: form.last_name, role: 'admin', clinic_id: form.clinic_id }).eq('id', authData.user.id)
-    }
+      if (authError) { setError('Error: ' + authError.message); setSaving(false); return }
+      for (let i = 0; i < 10; i++) {
+        await new Promise(r => setTimeout(r, 600))
+        const { data } = await supabase.from('profiles').select('id').eq('id', authData.user.id).single()
+        if (data?.id) break
+      }
+      await supabase.from('profiles').update({
+        first_name: form.first_name,
+        last_name: form.last_name,
+        role: 'admin',
+        clinic_id: form.clinic_id,
+        profession: form.profession,
+        is_active: true,
+        is_health_professional: isHealthPro(form.profession),
+      }).eq('id', authData.user.id)
+      await loadAdmins(); setModal(null)
+    } catch(e) { setError('Error: ' + e.message) }
+    setSaving(false)
+  }
+
+  async function saveAdmin() {
+    setSaving(true)
+    await supabase.from('profiles').update({
+      first_name: form.first_name,
+      last_name: form.last_name,
+      clinic_id: form.clinic_id,
+      profession: form.profession,
+      is_active: form.is_active,
+      is_health_professional: isHealthPro(form.profession),
+    }).eq('id', form.id)
     await loadAdmins(); setModal(null); setSaving(false)
   }
 
   async function deleteAdmin(id) {
-    if (!window.confirm('¿Estás seguro que querés eliminar este admin?')) return
+    if (!window.confirm('¿Estás seguro que querés desactivar este admin?')) return
     await supabase.from('profiles').update({ is_active: false }).eq('id', id)
     await loadAdmins()
   }
 
-  function f(key) { return e => setForm(p => ({ ...p, [key]: e.target.value })) }
-
+  const f = key => e => setForm(p => ({ ...p, [key]: e.target.value }))
   const clinicAdminCount = (clinicId) => admins.filter(a => a.clinic_id === clinicId).length
+
+  const ProfessionSelect = ({ value, onChange }) => (
+    <select value={value||''} onChange={onChange} style={s.input}>
+      <option value="">Seleccioná una profesión...</option>
+      <optgroup label="Profesionales de salud">
+        {HEALTH_PROFESSIONS.map(p => <option key={p} value={p}>{p}</option>)}
+      </optgroup>
+      <optgroup label="Profesionales administrativos">
+        {ADMIN_PROFESSIONS.map(p => <option key={p} value={p}>{p}</option>)}
+      </optgroup>
+    </select>
+  )
 
   return (
     <div style={s.wrap}>
-      {/* Sidebar */}
       <div style={s.sidebar}>
         <div style={s.logo}>
           <div style={s.logoTitle}>MEDTRACK</div>
@@ -113,7 +162,7 @@ export default function SuperAdminDashboard() {
           { key:'admins', label:'👤 Administradores' },
         ].map(item => (
           <div key={item.key} onClick={() => setViewPersist(item.key)}
-            style={{ ...s.menuItem, background: view===item.key ? '#f0fdf9' : 'transparent', color: view===item.key ? G : '#555', fontWeight: view===item.key ? 600 : 400 }}>
+            style={{ ...s.menuItem, background: view===item.key?'#f0fdf9':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?600:400 }}>
             {item.label}
           </div>
         ))}
@@ -124,7 +173,6 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* Main */}
       <div style={s.main}>
         {/* Vista Clínicas */}
         {view === 'clinicas' && (
@@ -136,42 +184,32 @@ export default function SuperAdminDashboard() {
               </div>
               <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true }); setModal('clinic') }}>+ Nueva clínica</button>
             </div>
-            {loading ? <div style={{ color:'#999', fontSize:13 }}>Cargando...</div> : (
-              <div style={s.card}>
-                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
-                  <thead>
-                    <tr style={{ borderBottom:'1px solid #f0f0f0' }}>
-                      {['Clínica','Plan','Admins','Estado','Acciones'].map(h => (
-                        <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontSize:11, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
-                      ))}
+            <div style={s.card}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+                <thead>
+                  <tr style={{ borderBottom:'1px solid #f0f0f0' }}>
+                    {['Clínica','Plan','Admins','Estado','Acciones'].map(h => <th key={h} style={s.th}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {clinics.map(clinic => (
+                    <tr key={clinic.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
+                      <td style={{ ...s.td, fontWeight:500, color:'#1a1a1a' }}>{clinic.name}</td>
+                      <td style={s.td}><span style={{ ...s.badge, background:'#E6F1FB', color:'#185FA5' }}>{clinic.plan}</span></td>
+                      <td style={{ ...s.td, color:'#666' }}>{clinicAdminCount(clinic.id)}</td>
+                      <td style={s.td}><span style={{ ...s.badge, background: clinic.is_active?'#E1F5EE':'#f5f5f5', color: clinic.is_active?'#0F6E56':'#999' }}>{clinic.is_active?'Activa':'Inactiva'}</span></td>
+                      <td style={s.td}>
+                        <div style={{ display:'flex', gap:6 }}>
+                          <button style={s.btnEdit} onClick={() => { setForm({ ...clinic }); setModal('clinic') }}>Editar</button>
+                          <button style={s.btnDanger} onClick={() => deleteClinic(clinic.id)}>Eliminar</button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {clinics.map(clinic => (
-                      <tr key={clinic.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
-                        <td style={{ padding:'10px 12px', fontWeight:500, color:'#1a1a1a' }}>{clinic.name}</td>
-                        <td style={{ padding:'10px 12px' }}>
-                          <span style={{ ...s.badge, background:'#E6F1FB', color:'#185FA5' }}>{clinic.plan}</span>
-                        </td>
-                        <td style={{ padding:'10px 12px', color:'#666' }}>{clinicAdminCount(clinic.id)}</td>
-                        <td style={{ padding:'10px 12px' }}>
-                          <span style={{ ...s.badge, background: clinic.is_active?'#E1F5EE':'#f5f5f5', color: clinic.is_active?'#0F6E56':'#999' }}>
-                            {clinic.is_active ? 'Activa' : 'Inactiva'}
-                          </span>
-                        </td>
-                        <td style={{ padding:'10px 12px' }}>
-                          <div style={{ display:'flex', gap:6 }}>
-                            <button style={s.btnEdit} onClick={() => { setForm({ ...clinic }); setModal('clinic') }}>Editar</button>
-                            <button style={s.btnDanger} onClick={() => deleteClinic(clinic.id)}>Eliminar</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {clinics.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay clínicas registradas</div>}
-              </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+              {clinics.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay clínicas registradas</div>}
+            </div>
           </div>
         )}
 
@@ -183,46 +221,43 @@ export default function SuperAdminDashboard() {
                 <div style={s.title}>Administradores</div>
                 <div style={s.sub}>Gestión de admins por clínica</div>
               </div>
+              <button style={s.btnPrimary} onClick={() => { setForm({ profession:'', clinic_id:'' }); setError(''); setModal('new-admin') }}>+ Nuevo admin</button>
             </div>
-            {loading ? <div style={{ color:'#999', fontSize:13 }}>Cargando...</div> : (
-              <div style={s.card}>
-                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
-                  <thead>
-                    <tr style={{ borderBottom:'1px solid #f0f0f0' }}>
-                      {['Administrador','Email','Clínica','Estado','Acciones'].map(h => (
-                        <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontSize:11, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {admins.map(admin => {
-                      const clinic = clinics.find(c => c.id === admin.clinic_id)
-                      return (
-                        <tr key={admin.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
-                          <td style={{ padding:'10px 12px', fontWeight:500, color:'#1a1a1a' }}>{admin.last_name} {admin.first_name}</td>
-                          <td style={{ padding:'10px 12px', color:'#666' }}>{admin.email}</td>
-                          <td style={{ padding:'10px 12px' }}>
-                            {clinic ? <span style={{ ...s.badge, background:'#E1F5EE', color:'#0F6E56' }}>{clinic.name}</span> : <span style={{ color:'#999' }}>Sin asignar</span>}
-                          </td>
-                          <td style={{ padding:'10px 12px' }}>
-                            <span style={{ ...s.badge, background: admin.is_active?'#E1F5EE':'#f5f5f5', color: admin.is_active?'#0F6E56':'#999' }}>
-                              {admin.is_active ? 'Activo' : 'Inactivo'}
-                            </span>
-                          </td>
-                          <td style={{ padding:'10px 12px' }}>
-                            <div style={{ display:'flex', gap:6 }}>
-                              <button style={s.btnEdit} onClick={() => { setForm({ ...admin }); setModal('admin') }}>Editar</button>
-                              <button style={s.btnDanger} onClick={() => deleteAdmin(admin.id)}>Desactivar</button>
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-                {admins.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay administradores registrados</div>}
-              </div>
-            )}
+            <div style={s.card}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+                <thead>
+                  <tr style={{ borderBottom:'1px solid #f0f0f0' }}>
+                    {['Administrador','Email','Profesión','Clínica','Perfil','Estado','Acciones'].map(h => <th key={h} style={s.th}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {admins.map(admin => {
+                    const clinic = clinics.find(c => c.id === admin.clinic_id)
+                    return (
+                      <tr key={admin.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
+                        <td style={{ ...s.td, fontWeight:500, color:'#1a1a1a' }}>{admin.last_name} {admin.first_name}</td>
+                        <td style={{ ...s.td, color:'#666', fontSize:12 }}>{admin.email}</td>
+                        <td style={{ ...s.td, color:'#666', fontSize:12 }}>{admin.profession || '—'}</td>
+                        <td style={s.td}>{clinic ? <span style={{ ...s.badge, background:'#E1F5EE', color:'#0F6E56' }}>{clinic.name}</span> : <span style={{ color:'#999' }}>Sin asignar</span>}</td>
+                        <td style={s.td}>
+                          <span style={{ ...s.badge, background: admin.is_health_professional?'#E6F1FB':'#f5f5f5', color: admin.is_health_professional?'#185FA5':'#666' }}>
+                            {admin.is_health_professional ? '🩺 Salud' : '📋 Admin'}
+                          </span>
+                        </td>
+                        <td style={s.td}><span style={{ ...s.badge, background: admin.is_active?'#E1F5EE':'#f5f5f5', color: admin.is_active?'#0F6E56':'#999' }}>{admin.is_active?'Activo':'Inactivo'}</span></td>
+                        <td style={s.td}>
+                          <div style={{ display:'flex', gap:6 }}>
+                            <button style={s.btnEdit} onClick={() => { setForm({ ...admin }); setModal('edit-admin') }}>Editar</button>
+                            <button style={s.btnDanger} onClick={() => deleteAdmin(admin.id)}>Desactivar</button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              {admins.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay administradores registrados</div>}
+            </div>
           </div>
         )}
       </div>
@@ -231,7 +266,7 @@ export default function SuperAdminDashboard() {
       {modal === 'clinic' && (
         <div style={s.modal} onClick={() => setModal(null)}>
           <div style={s.modalBox} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>{form.id ? 'Editar clínica' : 'Nueva clínica'}</div>
+            <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>{form.id?'Editar clínica':'Nueva clínica'}</div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Nombre de la clínica</label>
               <input value={form.name||''} onChange={f('name')} placeholder="Ej: Glow Clinic" style={s.input} />
@@ -261,8 +296,56 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      {/* Modal Admin */}
-      {modal === 'admin' && (
+      {/* Modal Nuevo Admin */}
+      {modal === 'new-admin' && (
+        <div style={s.modal} onClick={() => setModal(null)}>
+          <div style={s.modalBox} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>Nuevo administrador</div>
+            {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:13, padding:'8px 12px', borderRadius:8, marginBottom:14 }}>{error}</div>}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+              <div>
+                <label style={s.fieldLabel}>Nombre <span style={{ color:'#D85A30' }}>*</span></label>
+                <input value={form.first_name||''} onChange={f('first_name')} placeholder="María" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Apellido <span style={{ color:'#D85A30' }}>*</span></label>
+                <input value={form.last_name||''} onChange={f('last_name')} placeholder="Rodríguez" style={s.input} />
+              </div>
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Correo electrónico <span style={{ color:'#D85A30' }}>*</span></label>
+              <input value={form.email||''} onChange={f('email')} type="email" placeholder="admin@clinica.com" style={s.input} />
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Contraseña temporal <span style={{ color:'#D85A30' }}>*</span></label>
+              <input value={form.password||''} onChange={f('password')} type="password" placeholder="Mínimo 6 caracteres" style={s.input} />
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Profesión <span style={{ color:'#D85A30' }}>*</span></label>
+              <ProfessionSelect value={form.profession} onChange={f('profession')} />
+              {form.profession && (
+                <div style={{ fontSize:11, marginTop:4, color: isHealthPro(form.profession)?'#0F6E56':'#718096' }}>
+                  {isHealthPro(form.profession) ? '✅ Aparecerá en lista de médicos y podrá ser asignado a módulos' : 'ℹ️ Solo acceso administrativo, no aparecerá en lista de médicos'}
+                </div>
+              )}
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Clínica asignada <span style={{ color:'#D85A30' }}>*</span></label>
+              <select value={form.clinic_id||''} onChange={f('clinic_id')} style={s.input}>
+                <option value="">Seleccioná una clínica...</option>
+                {clinics.filter(c => c.is_active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:20 }}>
+              <button onClick={() => setModal(null)} style={{ ...s.btnEdit, flex:1, textAlign:'center' }}>Cancelar</button>
+              <button onClick={createAdmin} disabled={saving} style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }}>{saving?'Creando...':'Crear admin'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Editar Admin */}
+      {modal === 'edit-admin' && (
         <div style={s.modal} onClick={() => setModal(null)}>
           <div style={s.modalBox} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>Editar administrador</div>
@@ -275,6 +358,15 @@ export default function SuperAdminDashboard() {
                 <label style={s.fieldLabel}>Apellido</label>
                 <input value={form.last_name||''} onChange={f('last_name')} style={s.input} />
               </div>
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Profesión</label>
+              <ProfessionSelect value={form.profession} onChange={f('profession')} />
+              {form.profession && (
+                <div style={{ fontSize:11, marginTop:4, color: isHealthPro(form.profession)?'#0F6E56':'#718096' }}>
+                  {isHealthPro(form.profession) ? '✅ Aparecerá en lista de médicos' : 'ℹ️ Solo acceso administrativo'}
+                </div>
+              )}
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Clínica asignada</label>
