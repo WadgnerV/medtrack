@@ -1348,13 +1348,14 @@ export default function AdminDashboard() {
                 const HORA_FIN = 24
                 const SLOT_H = 80
                 const now = new Date()
-                const todayStr = now.toISOString().split('T')[0]
+                const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
                 const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
                   ? ((now.getHours() - HORA_INI) * 60 + now.getMinutes()) / 60 * SLOT_H : -1
                 const weekDays = Array.from({length:7}, (_,i) => {
                   const d = new Date(weekStart)
                   d.setDate(weekStart.getDate() + i)
-                  return { date: d, dateStr: d.toISOString().split('T')[0], isToday: d.toISOString().split('T')[0] === todayStr }
+                  const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+                  return { date: d, dateStr: ds, isToday: ds === todayStr }
                 })
                 const hours = Array.from({length: HORA_FIN - HORA_INI}, (_,i) => HORA_INI + i)
                 return (
