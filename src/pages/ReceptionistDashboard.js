@@ -80,9 +80,43 @@ export default function ReceptionistDashboard() {
   async function saveAppt(form) {
     setSaving(true)
     const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType || 'Consulta', duration_min: parseInt(form.duration)||30, notes: form.notes||'', status: form.status||'pending_confirmation', module_type: form.moduleType||null, clinic_id: profile.clinic_id, created_by: profile.id }
-    if (form.id) await supabase.from('appointments').update(payload).eq('id', form.id)
-    else await supabase.from('appointments').insert(payload)
-    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, profile:profile_id(first_name, last_name)), doctor:doctor_id(id, first_name, last_name)').eq('clinic_id', profile.clinic_id).order('appointment_date').order('appointment_time')
+    
+    const prevAppt = form.id ? appts.find(a => a.id === form.id) : null
+    const prevStatus = prevAppt?.status || null
+
+    if (form.id) {
+      await supabase.from('appointments').update(payload).eq('id', form.id)
+      const pat = patients.find(p => p.id === form.patientId)
+      const doc = doctors.find(d => d.id === form.doctorId)
+      // Correo reagendamiento
+      const wasRescheduled = prevAppt && (
+        prevAppt.appointment_date !== form.date ||
+        prevAppt.appointment_time?.substring(0,5) !== form.time?.substring(0,5)
+      )
+      if (wasRescheduled && pat?.profile?.email) {
+        await supabase.functions.invoke('appointment-rescheduled', {
+          body: { patient_email: pat.profile.email, patient_name: `${pat.profile.first_name} ${pat.profile.last_name}`, doctor_name: `${doc?.prefix||'Dr.'} ${doc?.last_name} ${doc?.first_name}`, appointment_date: form.date, appointment_time: form.time }
+        })
+      }
+      // Correo no-show
+      if (form.status === 'no_show' && prevStatus !== 'no_show' && pat?.profile?.email) {
+        await supabase.functions.invoke('appointment-noshow', {
+          body: { patient_email: pat.profile.email, patient_name: `${pat.profile.first_name} ${pat.profile.last_name}`, doctor_name: `${doc?.prefix||'Dr.'} ${doc?.last_name} ${doc?.first_name}`, appointment_date: form.date, appointment_time: form.time }
+        })
+      }
+    } else {
+      await supabase.from('appointments').insert(payload)
+      // Correo confirmación nueva cita
+      const pat = patients.find(p => p.id === form.patientId)
+      const doc = doctors.find(d => d.id === form.doctorId)
+      if (pat?.profile?.email) {
+        await supabase.functions.invoke('appointment-confirmation', {
+          body: { patient_email: pat.profile.email, patient_name: `${pat.profile.first_name} ${pat.profile.last_name}`, doctor_name: `${doc?.prefix||'Dr.'} ${doc?.last_name} ${doc?.first_name}`, appointment_date: form.date, appointment_time: form.time }
+        })
+      }
+    }
+
+    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name, prefix)').eq('clinic_id', profile.clinic_id).order('appointment_date').order('appointment_time')
     setAppts(data||[]); setModal(null); setSaving(false)
   }
 
