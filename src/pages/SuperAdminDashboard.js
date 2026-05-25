@@ -93,16 +93,20 @@ export default function SuperAdminDashboard() {
     } else {
       await supabase.from('clinics').insert({ ...payload, is_active: true })
     }
-    // Enviar correo de bienvenida si es clínica nueva y send_welcome_email es true
+    // Correo bienvenida si es clínica nueva
     if (!form.id && form.send_welcome_email !== false && form.email) {
       await supabase.functions.invoke('clinic-welcome', {
-        body: {
-          clinic_name: form.name,
-          clinic_email: form.email,
-          plan: form.plan || 'basic',
-          legal_name: form.legal_name || null,
-        }
+        body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null }
       })
+    }
+    // Correo cambio de plan si es edición y el plan cambió
+    if (form.id && form.email) {
+      const prevClinic = clinics.find(c => c.id === form.id)
+      if (prevClinic && prevClinic.plan !== form.plan) {
+        await supabase.functions.invoke('clinic-plan-change', {
+          body: { clinic_name: form.name, clinic_email: form.email, old_plan: prevClinic.plan, new_plan: form.plan, legal_name: form.legal_name || null }
+        })
+      }
     }
     await loadClinics(); setModal(null); setSaving(false)
   }
