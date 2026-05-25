@@ -451,7 +451,7 @@ export default function AdminDashboard() {
       )
       console.log('wasRescheduled:', wasRescheduled)
       if (wasRescheduled && patient?.profile?.email) {
-        await supabase.functions.invoke('appointment-rescheduled', {
+        const reschedResult = await supabase.functions.invoke('appointment-rescheduled', {
           body: {
             patient_email: patient.profile.email,
             patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
@@ -460,6 +460,9 @@ export default function AdminDashboard() {
             appointment_time: form.time,
           }
         })
+        console.log('reschedResult:', JSON.stringify(reschedResult))
+      } else {
+        console.log('No se envía correo. wasRescheduled:', wasRescheduled, 'email:', patient?.profile?.email)
       }
       // Si cambió a no_show, disparar correo
       if (form.status === 'no_show' && prevStatus !== 'no_show') {
