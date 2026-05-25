@@ -734,50 +734,59 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
                     </div>
                   </div>
                 )}
-                {appItems.length === 0 && !apnpData ? (
+                {(!apnpData && !agoData && appItems.length === 0 && antecedents.filter(a=>a.type==='aqx').length === 0) && (
                   <div style={{ fontSize:12, color:'#bbb', textAlign:'center', padding:'8px 0' }}>Sin antecedentes registrados</div>
-                ) : appItems.length === 0 ? null : (
+                )}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginTop:10 }}>
                   <div>
-                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>APP</div>
-                  </div>
-                )}
-                {/* Resumen AGO en compact vista */}
-                {agoData && patient?.sex === 'female' && (
-                  <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>AGO</div>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                      {agoData.fum && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>🗓️ FUM: {new Date(agoData.fum+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'})}</div>}
-                      {agoData.cycle_type && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>Ciclo: {agoData.cycle_type === 'regular'?'Regular':'Irregular'}</div>}
-                      {(agoData.gestas||agoData.partos||agoData.cesareas) && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>G{agoData.gestas||0}P{agoData.partos||0}A{agoData.abortos||0}C{agoData.cesareas||0}</div>}
-                      {agoData.menopause === 'yes' && <div style={{ fontSize:11, background:'#fce8f3', border:'1px solid #fbcfe8', borderRadius:6, padding:'4px 8px', color:'#9d174d' }}>🌙 Menopausia {agoData.menopause_year||''}</div>}
-                    </div>
-                  </div>
-                )}
-                {/* Resumen AQx en compact vista */}
-                {antecedents.filter(a=>a.type==='aqx').length > 0 && (
-                  <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>AQx</div>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                      {antecedents.filter(a=>a.type==='aqx').map(item => (
-                        <div key={item.id} style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>
-                          🔪 {item.condition}{item.diagnosis_year ? ` (${item.diagnosis_year})` : ''}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {appItems.length > 0 && (
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {appItems.map(item => (
-                      <div key={item.id} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:8, padding:'8px 10px' }}>
-                        <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a' }}>{item.condition === 'Otra (especificar)' || item.condition === 'Cáncer (especificar)' ? `${item.condition.split(' (')[0]}: ${item.condition_other||'—'}` : item.condition}</div>
+                    <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>APP</div>
+                    {appItems.length === 0 ? <div style={{ fontSize:11, color:'#bbb' }}>Sin registros</div> : appItems.map(item => (
+                      <div key={item.id} style={{ background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:'7px 10px', marginBottom:6 }}>
+                        <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a' }}>{item.condition === 'Otra (especificar)' || item.condition === 'Cáncer (especificar)' ? item.condition.split(' (')[0]+': '+(item.condition_other||'—') : item.condition}</div>
                         {item.diagnosis_year && <div style={{ fontSize:10, color:'#999' }}>Desde {item.diagnosis_year}</div>}
                         <span style={{ fontSize:10, padding:'1px 6px', borderRadius:20, background:STATUS_COLORS[item.current_status]?.bg, color:STATUS_COLORS[item.current_status]?.color }}>{STATUS_LABELS[item.current_status]}</span>
                         {item.current_treatment && <div style={{ fontSize:10, color:'#666', marginTop:3 }}>Tto: {item.current_treatment}</div>}
                       </div>
                     ))}
                   </div>
-                )}
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>APNP</div>
+                    {!apnpData ? <div style={{ fontSize:11, color:'#bbb' }}>Sin registros</div> : (
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+                        {apnpData.smoking_status !== 'no' && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>🚬 {apnpData.smoking_status === 'active' ? 'Fumador' : 'Ex-fumador'}{apnpData.smoking_cigs_per_day ? ' '+apnpData.smoking_cigs_per_day+'/día' : ''}</span>}
+                        {apnpData.alcohol_status !== 'no' && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>🍷 Alcohol {apnpData.alcohol_status === 'occasional' ? 'ocasional' : 'habitual'}</span>}
+                        {apnpData.exercise_status === 'active' && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>🏃 {apnpData.exercise_days_per_week ? apnpData.exercise_days_per_week+'x/sem' : 'Ejercicio activo'}</span>}
+                        {apnpData.allergies?.length > 0 && <span style={{ fontSize:11, background:'#FAEEDA', border:'1px solid #F59E0B', borderRadius:6, padding:'3px 8px', color:'#854F0B' }}>⚠️ {apnpData.allergies.length} alergia{apnpData.allergies.length>1?'s':''}</span>}
+                        {apnpData.occupation && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>👤 {apnpData.occupation}</span>}
+                        {apnpData.civil_status && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>💍 {apnpData.civil_status}</span>}
+                      </div>
+                    )}
+                  </div>
+                  {patient?.sex === 'female' && (
+                    <div>
+                      <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>AGO</div>
+                      {!agoData ? <div style={{ fontSize:11, color:'#bbb' }}>Sin registros</div> : (
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+                          {agoData.fum && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>🗓️ FUM: {new Date(agoData.fum+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'})}</span>}
+                          {agoData.cycle_type && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>{agoData.cycle_type === 'regular'?'Ciclo regular':'Ciclo irregular'}</span>}
+                          <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>G{agoData.gestas||0}P{agoData.partos||0}A{agoData.abortos||0}C{agoData.cesareas||0}</span>
+                          {agoData.menopause === 'yes' && <span style={{ fontSize:11, background:'#fce8f3', border:'1px solid #fbcfe8', borderRadius:6, padding:'3px 8px', color:'#9d174d' }}>🌙 Menopausia {agoData.menopause_year||''}</span>}
+                          {agoData.pap_result && <span style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>🔬 PAP: {({normal:'Normal',abnormal:'Anormal',pending:'Pendiente',never:'Nunca'})[agoData.pap_result]||'—'}</span>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>AQx</div>
+                    {antecedents.filter(a=>a.type==='aqx').length === 0 ? <div style={{ fontSize:11, color:'#bbb' }}>Sin registros</div> : (
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+                        {antecedents.filter(a=>a.type==='aqx').map(item => (
+                          <span key={item.id} style={{ fontSize:11, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, padding:'3px 8px' }}>🔪 {item.condition}{item.diagnosis_year ? ' ('+item.diagnosis_year+')' : ''}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
