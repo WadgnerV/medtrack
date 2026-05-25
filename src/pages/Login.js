@@ -67,7 +67,8 @@ export default function Login() {
         : error.message
       setError(msg); setLoading(false); return
     }
-    if (role === 'admin')       navigate('/admin')
+    if (role === 'superadmin')  navigate('/superadmin')
+    else if (role === 'admin')  navigate('/admin')
     else if (role === 'doctor') navigate('/doctor')
     else                        navigate('/paciente')
     setLoading(false)
