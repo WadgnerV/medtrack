@@ -1090,16 +1090,27 @@ export default function DoctorDashboard() {
                                 const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
                                 return (
-                                  <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:4, padding:'2px 4px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
-                                    onClick={() => { setSelDate(dateStr); setModal('edit-appt'); setModalData({appt:a}) }}>
-                                    <div style={{ fontSize:10, fontWeight:600, color:G, lineHeight:1.2, display:'flex', justifyContent:'space-between' }}>
-                                      <span>{a.appointment_time?.substring(0,5)}</span>
-                                      {a.status === 'confirmed_patient' && <span style={{ color:'#0F6E56' }}>✅</span>}
-                                      {a.status === 'confirmed_doctor' && <span style={{ color:'#7EC8E3' }}>✅</span>}
-                                      {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
-                                    </div>
-                                    <div style={{ fontSize:10, color:'#333', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</div>
-                                  </div>
+                                  {(() => {
+                                    const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                                    const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
+                                    const endMin = ah2*60 + am2 + (a.duration_min||30)
+                                    const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
+                                    const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
+                                    return (
+                                      <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                                        onClick={() => { setSelDate(dateStr); setModal('edit-appt'); setModalData({appt:a}) }}>
+                                        <div style={{ fontSize:10, fontWeight:600, color:G, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
+                                          <span>{timeStr}</span>
+                                          {a.status === 'confirmed_patient' && <span>✅</span>}
+                                          {a.status === 'confirmed_doctor' && <span style={{ color:'#7EC8E3' }}>✅</span>}
+                                          {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
+                                        </div>
+                                        <div style={{ fontSize:10, fontWeight:500, color:'#1a1a1a', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
+                                        {a.module_type && <div style={{ fontSize:9, color:'#555', lineHeight:1.3 }}>{ML[a.module_type]}</div>}
+                                        {a.visit_type && <div style={{ fontSize:9, color:'#777', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.visit_type}</div>}
+                                      </div>
+                                    )
+                                  })()}
                                 )
                               })}
                             </div>
@@ -1158,18 +1169,27 @@ export default function DoctorDashboard() {
                             if (ah < HORA_INI || ah >= HORA_FIN) return null
                             const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
-                            return (
-                              <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:6, padding:'4px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
-                                onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
-                                <div style={{ fontSize:11, fontWeight:600, color:G, display:'flex', justifyContent:'space-between' }}>
-                                  <span>{a.appointment_time?.substring(0,5)} — {a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</span>
-                                  {a.status === 'confirmed_patient' && <span style={{ color:'#0F6E56' }}>✅</span>}
-                                  {a.status === 'confirmed_doctor' && <span style={{ color:'#7EC8E3' }}>✅</span>}
-                                  {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
-                                </div>
-                                <div style={{ fontSize:11, color:'#666' }}>{a.visit_type} · {a.duration_min} min</div>
-                              </div>
-                            )
+                            {(() => {
+                                const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                                const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
+                                const endMin = ah2*60 + am2 + (a.duration_min||30)
+                                const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
+                                const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
+                                return (
+                                  <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                                    onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
+                                    <div style={{ fontSize:11, fontWeight:700, color:G, marginBottom:2, display:'flex', justifyContent:'space-between' }}>
+                                      <span>{timeStr}</span>
+                                      {a.status === 'confirmed_patient' && <span>✅</span>}
+                                      {a.status === 'confirmed_doctor' && <span style={{ color:'#7EC8E3' }}>✅</span>}
+                                      {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
+                                    </div>
+                                    <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a', marginBottom:1 }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
+                                    {a.module_type && <div style={{ fontSize:10, color:'#555', marginBottom:1 }}>{ML[a.module_type]}</div>}
+                                    {a.visit_type && <div style={{ fontSize:10, color:'#777', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.visit_type}</div>}
+                                  </div>
+                                )
+                              })()}
                           })}
                           {dayAppts.length === 0 && (
                             <div style={{ position:'absolute', top:'40%', left:0, right:0, textAlign:'center', fontSize:13, color:'#bbb' }}>Sin citas para este día</div>
