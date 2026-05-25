@@ -269,7 +269,7 @@ export default function AdminDashboard() {
   }
 
   async function loadDoctors() {
-    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor']).eq('is_active', true).order('first_name')
+    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor']).eq('is_active', true).eq('clinic_id', profile?.clinic_id).order('first_name')
     setDoctors(data || [])
   }
 
@@ -356,7 +356,11 @@ export default function AdminDashboard() {
       }
       await supabase.from('patients').update({
         assigned_doctor_id: form.doctorId || null,
+        clinic_id: profile?.clinic_id || null,
       }).eq('profile_id', userId)
+      await supabase.from('profiles').update({
+        clinic_id: profile?.clinic_id || null,
+      }).eq('id', userId)
     }
     // Para doctor, guardar campos extra en profiles
     if (role === 'doctor' && userId) {
@@ -373,6 +377,7 @@ export default function AdminDashboard() {
         phone:        form.phone        || null,
         province:     form.province     || null,
         canton:       form.canton       || null,
+        clinic_id:    profile?.clinic_id || null,
       }).eq('id', userId)
     }
 
@@ -434,7 +439,7 @@ export default function AdminDashboard() {
   }
 
   async function saveAppt(form) {
-    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id }
+    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id, clinic_id: profile?.clinic_id }
     const prevAppt = form.id ? appts.find(a => a.id === form.id) : null
     const prevStatus = prevAppt?.status || null
     if (form.id) {
@@ -494,7 +499,7 @@ export default function AdminDashboard() {
 
   async function addLibraryItem(form) {
     setSaving(true)
-    await supabase.from('library_items').insert({ type: form.type, name: form.name, category: form.category || null, is_global: true, created_by: profile?.id })
+    await supabase.from('library_items').insert({ type: form.type, name: form.name, category: form.category || null, is_global: true, created_by: profile?.id, clinic_id: profile?.clinic_id })
     await loadLibrary(); setModal(null); setSaving(false)
   }
 
@@ -2322,7 +2327,7 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated }) {
     if (existing) {
       await supabase.from('patient_care_modules').update({ is_active: !existing.is_active }).eq('id', existing.id)
     } else {
-      await supabase.from('patient_care_modules').insert({
+      await supabase.from('patient_care_modules').insert({ clinic_id: profile?.clinic_id,
         patient_id: patient.id,
         module_type: type,
         is_active: true,
