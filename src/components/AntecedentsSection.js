@@ -351,6 +351,51 @@ function ApnpForm({ initial, onSave, onCancel }) {
   )
 }
 
+function AqxForm({ initial, onSave, onCancel }) {
+  const [form, setForm] = useState(initial || { procedure:'', year:'', hospital:'', complications:'no', complications_detail:'', observations:'' })
+  const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
+
+  return (
+    <div style={{ background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:16, marginBottom:10 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={s.label}>Tipo de cirugía / procedimiento <span style={{ color:'#D85A30' }}>*</span></label>
+          <input value={form.procedure} onChange={f('procedure')} placeholder="Ej: Apendicectomía, Cesárea, Colecistectomía..." style={s.input} />
+        </div>
+        <div>
+          <label style={s.label}>Año</label>
+          <input type="number" value={form.year} onChange={f('year')} placeholder="Ej: 2015" min="1900" max={new Date().getFullYear()} style={s.input} />
+        </div>
+        <div>
+          <label style={s.label}>Hospital / Centro médico</label>
+          <input value={form.hospital} onChange={f('hospital')} placeholder="Opcional" style={s.input} />
+        </div>
+        <div>
+          <label style={s.label}>¿Complicaciones?</label>
+          <select value={form.complications} onChange={f('complications')} style={s.input}>
+            <option value="no">No</option>
+            <option value="yes">Sí</option>
+          </select>
+        </div>
+        {form.complications === 'yes' && (
+          <div>
+            <label style={s.label}>Especificar complicación</label>
+            <input value={form.complications_detail} onChange={f('complications_detail')} placeholder="Describí la complicación" style={s.input} />
+          </div>
+        )}
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={s.label}>Observaciones</label>
+          <textarea value={form.observations} onChange={f('observations')} rows={2} placeholder="Notas adicionales..." style={{ ...s.input, resize:'vertical' }} />
+        </div>
+      </div>
+      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+        {onCancel && <button style={s.btnOutline} onClick={onCancel}>Cancelar</button>}
+        <button style={s.btn} onClick={() => { if (!form.procedure) return alert('Ingresá el tipo de cirugía'); onSave(form) }}>Guardar</button>
+      </div>
+    </div>
+  )
+}
+
 function AgoForm({ initial, onSave, onCancel }) {
   const EMPTY_AGO = {
     fum: '', planning_method: '', cycle_type: '', bleeding_amount: '',
@@ -480,6 +525,8 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
   const [showAppForm, setShowAppForm] = useState(false)
   const [showApnpForm, setShowApnpForm] = useState(false)
   const [showAgoForm, setShowAgoForm] = useState(false)
+  const [showAqxForm, setShowAqxForm] = useState(false)
+  const [editingAqxId, setEditingAqxId] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
@@ -498,6 +545,20 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
     const agoRecord = (data||[]).find(a => a.type === 'ago')
     setAgoData(agoRecord?.ago_data || null)
     setLoading(false)
+  }
+
+  async function saveAqx(form, id = null) {
+    setSaving(true)
+    const payload = { patient_id: patient.id, clinic_id: profile?.clinic_id, type: 'aqx', condition: form.procedure, diagnosis_year: form.year ? parseInt(form.year) : null, observations: [form.hospital, form.complications === 'yes' ? `Complicaciones: ${form.complications_detail}` : null, form.observations].filter(Boolean).join(' | ') || null, updated_by: profile?.id }
+    if (id) {
+      await supabase.from('patient_antecedents').update(payload).eq('id', id)
+    } else {
+      await supabase.from('patient_antecedents').insert({ ...payload, created_by: profile?.id })
+    }
+    await loadAntecedents()
+    setShowAqxForm(false)
+    setEditingAqxId(null)
+    setSaving(false)
   }
 
   async function saveAgo(form) {
@@ -881,9 +942,55 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
         </div>
       )}
 
-      {/* Placeholder AQx */}
-      <div style={{ background:'#f7fafc', border:'1px dashed #e2e8f0', borderRadius:10, padding:16, textAlign:'center', fontSize:12, color:'#bbb' }}>
-        Antecedentes quirúrgicos — próximamente
+      {/* AQx - Antecedentes Quirúrgicos */}
+      <div style={{ marginBottom:24 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+          <div>
+            <div style={s.sectionTitle}>🔪 Antecedentes Quirúrgicos (AQx)</div>
+            <div style={s.sectionSub}>Cirugías y procedimientos quirúrgicos previos</div>
+          </div>
+          {canEdit && !showAqxForm && (
+            <button style={s.btnOutline} onClick={() => { setShowAqxForm(true); setEditingAqxId(null) }}>+ Agregar</button>
+          )}
+        </div>
+
+        {showAqxForm && !editingAqxId && (
+          <AqxForm onSave={form => saveAqx(form)} onCancel={() => setShowAqxForm(false)} />
+        )}
+
+        {antecedents.filter(a => a.type === 'aqx').length === 0 && !showAqxForm && (
+          <div style={{ background:'#f7fafc', border:'1px dashed #e2e8f0', borderRadius:10, padding:20, textAlign:'center', fontSize:13, color:'#999' }}>
+            Sin antecedentes quirúrgicos registrados
+          </div>
+        )}
+
+        {antecedents.filter(a => a.type === 'aqx').map(item => (
+          <div key={item.id}>
+            {editingAqxId === item.id ? (
+              <AqxForm
+                initial={{ procedure: item.condition||'', year: item.diagnosis_year||'', hospital:'', complications:'no', complications_detail:'', observations: item.observations||'' }}
+                onSave={form => saveAqx(form, item.id)}
+                onCancel={() => setEditingAqxId(null)}
+              />
+            ) : (
+              <div style={s.card}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{item.condition}</div>
+                    {item.diagnosis_year && <div style={{ fontSize:12, color:'#999', marginTop:2 }}>Año: {item.diagnosis_year}</div>}
+                    {item.observations && <div style={{ fontSize:12, color:'#555', marginTop:4 }}>{item.observations}</div>}
+                  </div>
+                  {canEdit && (
+                    <div style={{ display:'flex', gap:6 }}>
+                      <button style={s.btnEdit} onClick={() => { setEditingAqxId(item.id); setShowAqxForm(false) }}>Editar</button>
+                      <button style={s.btnDanger} onClick={() => deleteAntecedent(item.id)}>Eliminar</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
