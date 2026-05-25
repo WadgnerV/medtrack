@@ -1383,9 +1383,9 @@ export default function AdminDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
-                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
+                            <div key={h} style={{ height:SLOT_H, borderTop: h > 0 ? '0.5px solid #f0f0f0' : 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                              <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
                             </div>
                           ))}
                         </div>
@@ -1396,7 +1396,7 @@ export default function AdminDashboard() {
                               {hours.map(h => (
                                 <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', cursor:'pointer', position:'relative' }}
                                   onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                                  <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                                  <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
                                 </div>
                               ))}
                               {isToday && nowOffsetPx >= 0 && (
@@ -1469,9 +1469,9 @@ export default function AdminDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
-                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
+                            <div key={h} style={{ height:SLOT_H, borderTop: h > 0 ? '0.5px solid #f0f0f0' : 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                              <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
                             </div>
                           ))}
                         </div>
@@ -1479,7 +1479,7 @@ export default function AdminDashboard() {
                           {hours.map(h => (
                             <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0', cursor:'pointer', position:'relative' }}
                               onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                              <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
                             </div>
                           ))}
                           {isToday && nowOffsetPx >= 0 && (
