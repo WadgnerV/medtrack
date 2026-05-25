@@ -106,10 +106,17 @@ export default function SuperAdminDashboard() {
         body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null, clinic_id: newClinic?.id || '' }
       })
     }
-    // Correo cambio de plan si es edición y el plan cambió
+    // Cambio de plan si es edición y el plan cambió
     if (form.id && form.email) {
       const prevClinic = clinics.find(c => c.id === form.id)
       if (prevClinic && prevClinic.plan !== form.plan) {
+        // Si tiene suscripción activa, actualizar via API de Lemon
+        if (prevClinic.lemon_subscription_id) {
+          await supabase.functions.invoke('lemon-update-plan', {
+            body: { clinic_id: form.id, new_plan: form.plan }
+          })
+        }
+        // Siempre enviar correo informando el cambio
         await supabase.functions.invoke('clinic-plan-change', {
           body: { clinic_name: form.name, clinic_email: form.email, old_plan: prevClinic.plan, new_plan: form.plan, legal_name: form.legal_name || null }
         })

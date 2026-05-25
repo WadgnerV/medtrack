@@ -7,21 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const VARIANT_IDS: Record<string, string> = {
-  basic: '1704249',
-  gold: '1704251',
-  enterprise: '1704255',
+const CHECKOUT_UUIDS: Record<string, string> = {
+  basic: '8f133a2a-6301-488e-9de7-3deee1a46f0a',
+  gold: '39d1c093-2444-4198-bf85-3e6e0dda8735',
+  enterprise: '3fd628d0-7bd4-4742-a893-7ebd3f496594',
 }
 
 const CHECKOUT_BASE = 'https://medtrack.lemonsqueezy.com/checkout/buy'
 
 function getCheckoutUrl(plan: string, clinicId: string, clinicEmail: string): string {
-  const variantId = VARIANT_IDS[plan] || VARIANT_IDS.basic
+  const uuid = CHECKOUT_UUIDS[plan] || CHECKOUT_UUIDS.basic
   const params = new URLSearchParams({
     'checkout[email]': clinicEmail,
     'checkout[custom][clinic_id]': clinicId,
   })
-  return `${CHECKOUT_BASE}/${variantId}?${params.toString()}`
+  return `${CHECKOUT_BASE}/${uuid}?${params.toString()}`
 }
 
 const PLAN_INFO: Record<string, { label: string; price: string; features: string[] }> = {
