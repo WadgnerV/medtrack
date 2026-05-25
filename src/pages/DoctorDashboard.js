@@ -1090,7 +1090,7 @@ export default function DoctorDashboard() {
                                 const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
                                 return (
-                                  {(() => {
+                                  <>{(() => {
                                     const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
                                     const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
                                     const endMin = ah2*60 + am2 + (a.duration_min||30)
@@ -1110,7 +1110,7 @@ export default function DoctorDashboard() {
                                         {a.visit_type && <div style={{ fontSize:9, color:'#777', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.visit_type}</div>}
                                       </div>
                                     )
-                                  })()}
+                                  })()}</>
                                 )
                               })}
                             </div>
