@@ -24,7 +24,9 @@ export default function DoctorDashboard() {
   const [library, setLibrary] = useState([])
   const [perms, setPerms] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [selPatient, setSelPatient] = useState(null)
+  const [selPatient, setSelPatient] = useState(() => {
+    try { const s = localStorage.getItem('doctorSelPatient'); return s ? JSON.parse(s) : null } catch { return null }
+  })
   const [patientCareModules, setPatientCareModules] = useState([])
   const [patientTab, setPatientTab] = useState('progreso')
   const [modal, setModal] = useState(null)
@@ -33,6 +35,11 @@ export default function DoctorDashboard() {
   const [activeChat, setActiveChat] = useState(null)
   const [chatMsg, setChatMsg] = useState('')
   function setViewPersist(v) { localStorage.setItem('doctorView', v); setView(v) }
+  function setSelPatientPersist(p) { 
+    if (p) localStorage.setItem('doctorSelPatient', JSON.stringify(p))
+    else localStorage.removeItem('doctorSelPatient')
+    setSelPatient(p) 
+  }
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
@@ -88,7 +95,20 @@ export default function DoctorDashboard() {
   const [cie10Search, setCie10Search] = useState('')
   const [cie10Results, setCie10Results] = useState([])
 
-  useEffect(() => { if (profile?.id) loadAll() }, [profile])
+  useEffect(() => { 
+    if (profile?.id) {
+      loadAll()
+      // Si hay paciente guardado, cargar sus datos
+      const saved = localStorage.getItem('doctorSelPatient')
+      if (saved) {
+        try {
+          const p = JSON.parse(saved)
+          loadPatientData(p.id)
+          loadPatientCareModules(p.id)
+        } catch {}
+      }
+    }
+  }, [profile?.id])
 
   async function loadAll() {
     setLoading(true)
@@ -178,7 +198,7 @@ export default function DoctorDashboard() {
   }
 
   function openPatient(p) {
-    setSelPatient(p)
+    setSelPatientPersist(p)
     setPatientTab('progreso')
     setViewPersist('perfil')
     loadPatientData(p.id)
@@ -559,7 +579,7 @@ export default function DoctorDashboard() {
                 {view === 'perfil' && selPatient ? (
                   <span>
                     <button style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:14, marginRight:6 }}
-                      onClick={() => { setViewPersist('pacientes'); setSelPatient(null) }}>{'<'} Mis pacientes</button>
+                      onClick={() => { setViewPersist('pacientes'); setSelPatientPersist(null) }}>{'<'} Mis pacientes</button>
                     {pName(selPatient)}
                   </span>
                 ) : { dashboard:'Dashboard', pacientes:'Mis pacientes', calendario:'Calendario' }[view]}

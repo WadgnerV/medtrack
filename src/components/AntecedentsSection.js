@@ -635,6 +635,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
             <span style={{ fontSize:13, fontWeight:600, color:'#1a3a5c' }}>📋 Antecedentes del paciente</span>
             {appItems.length > 0 && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>{appItems.length} APP</span>}
             {apnpData && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>APNP</span>}
+            {agoData && patient?.sex === 'female' && <span style={{ fontSize:11, background:'#fce8f3', color:'#9d174d', padding:'1px 7px', borderRadius:20 }}>AGO</span>}
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {canEdit && <button style={{ fontSize:11, padding:'3px 10px', borderRadius:6, border:'1px solid #e2e8f0', background:'#fff', color:'#555', cursor:'pointer' }} onClick={e => { e.stopPropagation(); setEditModal(true); setCollapsed(false) }}>Editar</button>}
@@ -653,6 +654,19 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
                   <button style={{ ...s.btnOutline, fontSize:11, padding:'4px 10px', marginBottom:12 }} onClick={() => setShowApnpForm(true)}>
                     {apnpData ? 'Editar APNP' : '+ Agregar APNP'}
                   </button>
+                )}
+                {/* AGO en compact edición - solo femenino */}
+                {patient?.sex === 'female' && (
+                  <div style={{ marginBottom:12 }}>
+                    <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Antecedentes Gineco-Obstétricos (AGO)</div>
+                    {showAgoForm ? (
+                      <AgoForm initial={agoData || {}} onSave={form => saveAgo(form)} onCancel={() => setShowAgoForm(false)} />
+                    ) : (
+                      <button style={{ ...s.btnOutline, fontSize:11, padding:'4px 10px', marginBottom:8 }} onClick={() => setShowAgoForm(true)}>
+                        {agoData ? 'Editar AGO' : '+ Agregar AGO'}
+                      </button>
+                    )}
+                  </div>
                 )}
                 <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>Antecedentes Patológicos Personales (APP)</div>
                 {showAppForm && <AppForm onSave={form => saveApp(form)} onCancel={() => setShowAppForm(false)} />}
@@ -700,6 +714,18 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
                 ) : appItems.length === 0 ? null : (
                   <div>
                     <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>APP</div>
+                  </div>
+                )}
+                {/* Resumen AGO en compact vista */}
+                {agoData && patient?.sex === 'female' && (
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>AGO</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                      {agoData.fum && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>🗓️ FUM: {new Date(agoData.fum+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'})}</div>}
+                      {agoData.cycle_type && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>Ciclo: {agoData.cycle_type === 'regular'?'Regular':'Irregular'}</div>}
+                      {(agoData.gestas||agoData.partos||agoData.cesareas) && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>G{agoData.gestas||0}P{agoData.partos||0}A{agoData.abortos||0}C{agoData.cesareas||0}</div>}
+                      {agoData.menopause === 'yes' && <div style={{ fontSize:11, background:'#fce8f3', border:'1px solid #fbcfe8', borderRadius:6, padding:'4px 8px', color:'#9d174d' }}>🌙 Menopausia {agoData.menopause_year||''}</div>}
+                    </div>
                   </div>
                 )}
                 {appItems.length > 0 && (
