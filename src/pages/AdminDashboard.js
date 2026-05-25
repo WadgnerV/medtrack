@@ -435,13 +435,31 @@ export default function AdminDashboard() {
 
   async function saveAppt(form) {
     const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id }
-    const prevStatus = form.id ? appts.find(a => a.id === form.id)?.status : null
+    const prevAppt = form.id ? appts.find(a => a.id === form.id) : null
+    const prevStatus = prevAppt?.status || null
     if (form.id) {
       await supabase.from('appointments').update(payload).eq('id', form.id)
+      const patient = patients.find(p => p.id === form.patientId)
+      const doctor = doctors.find(d => d.id === form.doctorId)
+      // Si cambió fecha, hora o doctor → correo de reagendamiento
+      const wasRescheduled = prevAppt && (
+        prevAppt.appointment_date !== form.date ||
+        prevAppt.appointment_time?.substring(0,5) !== form.time?.substring(0,5) ||
+        prevAppt.doctor_id !== form.doctorId
+      )
+      if (wasRescheduled && patient?.profile?.email) {
+        await supabase.functions.invoke('appointment-rescheduled', {
+          body: {
+            patient_email: patient.profile.email,
+            patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
+            doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
+            appointment_date: form.date,
+            appointment_time: form.time,
+          }
+        })
+      }
       // Si cambió a no_show, disparar correo
       if (form.status === 'no_show' && prevStatus !== 'no_show') {
-        const patient = patients.find(p => p.id === form.patientId)
-        const doctor = doctors.find(d => d.id === form.doctorId)
         if (patient?.profile?.email) {
           await supabase.functions.invoke('appointment-noshow', {
             body: {
