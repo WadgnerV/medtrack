@@ -37,6 +37,22 @@ export default function DoctorDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
   const [calView, setCalView] = useState('semana')
+
+  useEffect(() => {
+    if (calView === 'semana' || calView === 'dia') {
+      const id = calView === 'semana' ? 'cal-semana-scroll' : 'cal-dia-scroll'
+      setTimeout(() => {
+        const el = document.getElementById(id)
+        if (el) {
+          const now = new Date()
+          const SLOT_H = calView === 'semana' ? 80 : 88
+          const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * SLOT_H - 150
+          el.scrollTop = Math.max(0, offset)
+        }
+      }, 200)
+    }
+  }, [calView])
+
   const [weekStart, setWeekStart] = useState(() => {
     const today = new Date()
     const day = today.getDay()
@@ -1123,17 +1139,6 @@ export default function DoctorDashboard() {
                     </div>
                   </div>
                 )
-              })()}
-
-              {calView === 'semana' && (() => {
-                const el = document.getElementById('cal-semana-scroll')
-                if (el) {
-                  const now = new Date()
-                  const SLOT_H = 80
-                  const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * SLOT_H - 100
-                  setTimeout(() => { el.scrollTop = Math.max(0, offset) }, 100)
-                }
-                return null
               })()}
 
               {/* Vista DÍA */}
