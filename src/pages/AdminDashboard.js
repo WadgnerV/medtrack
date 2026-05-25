@@ -2069,7 +2069,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
         const mod = careModules.find(m => m.module_type === moduleType)
         return (
           <div>
-            {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} canEdit={true} />}
+            {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} canEdit={true} profile={profile} />}
             {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} canEdit={true} canEditMeasurements={true} />}
             {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} canEdit={true} />}
             {moduleType === 'fisioterapia' && <FisioterapiaModule patient={patient} careModule={mod} canEdit={true} />}

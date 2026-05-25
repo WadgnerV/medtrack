@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const COLOR = '#1a5c8a'
 
-export default function IntegralModule({ patient, careModule, canEdit }) {
+export default function IntegralModule({ patient, careModule, canEdit, profile }) {
   const [clinicalNotes, setClinicalNotes] = useState([])
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
@@ -196,7 +196,7 @@ export default function IntegralModule({ patient, careModule, canEdit }) {
 
       {/* Notas clínicas */}
       {tab === 'notas' && (
-        <ClinicalNoteForm patientId={patient?.id} moduleType='integral' color='#1a5c8a' />
+        <ClinicalNoteForm patientId={patient?.id} moduleType='integral' color='#1a5c8a' patient={patient} profile={profile} />
       )}
 
       {/* Signos clínicos */}

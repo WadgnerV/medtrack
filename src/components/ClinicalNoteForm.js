@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import AntecedentsSection from './AntecedentsSection'
 
 const PLAN_OPTIONS = [
   'Cita control asignada',
@@ -53,7 +54,7 @@ function parseNoteText(text) {
   return form
 }
 
-export default function ClinicalNoteForm({ patientId, moduleType, color }) {
+export default function ClinicalNoteForm({ patientId, moduleType, color, patient, profile }) {
   const [notes, setNotes] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -110,6 +111,9 @@ export default function ClinicalNoteForm({ patientId, moduleType, color }) {
 
   return (
     <div>
+      {/* Sección antecedentes */}
+      {patient && <AntecedentsSection patient={patient} profile={profile} canEdit={!!profile} compact={true} />}
+
       {/* Botón nueva nota */}
       {!showForm && (
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>

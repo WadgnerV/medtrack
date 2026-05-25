@@ -806,7 +806,7 @@ export default function DoctorDashboard() {
                 const mod = patientCareModules.find(m => m.module_type === moduleType)
                 return (
                   <div>
-                    {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} canEdit={true} />}
+                    {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} canEdit={true} profile={profile} />}
                     {moduleType === 'metabolica' && <MetabolicModule patient={selPatient} careModule={mod} canEdit={true} />}
                     {moduleType === 'estetica' && <AestheticModule patient={selPatient} careModule={mod} canEdit={true} />}
                     {moduleType === 'fisioterapia' && <FisioterapiaModule patient={selPatient} careModule={mod} canEdit={true} />}
