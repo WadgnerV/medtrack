@@ -66,11 +66,22 @@ export default function SuperAdminDashboard() {
   }
 
   async function saveClinic() {
+    if (!form.name || !form.legal_id || !form.plan) { alert('Nombre, cédula y plan son obligatorios'); return }
     setSaving(true)
+    const payload = {
+      name: form.name, legal_name: form.legal_name||null, legal_id: form.legal_id||null,
+      country: form.country||'Costa Rica', province: form.province||null, canton: form.canton||null,
+      district: form.district||null, address: form.address||null,
+      phone: form.phone||null, phone_country_code: form.phone_country_code||'+506',
+      whatsapp: form.whatsapp||null, email: form.email||null, website: form.website||null,
+      plan: form.plan||'basic', contract_ref: form.contract_ref||null,
+      municipal_permit: form.municipal_permit||'no', health_permit: form.health_permit||'no',
+      operational: form.operational||false, send_welcome_email: form.send_welcome_email!==false,
+    }
     if (form.id) {
-      await supabase.from('clinics').update({ name: form.name, plan: form.plan, is_active: form.is_active }).eq('id', form.id)
+      await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
     } else {
-      await supabase.from('clinics').insert({ name: form.name, plan: form.plan || 'basic', is_active: true })
+      await supabase.from('clinics').insert({ ...payload, is_active: true })
     }
     await loadClinics(); setModal(null); setSaving(false)
   }
@@ -267,20 +278,127 @@ export default function SuperAdminDashboard() {
         <div style={s.modal} onClick={() => setModal(null)}>
           <div style={s.modalBox} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>{form.id?'Editar clínica':'Nueva clínica'}</div>
-            <div style={{ marginBottom:14 }}>
-              <label style={s.fieldLabel}>Nombre de la clínica</label>
+
+            <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:10 }}>Información general</div>
+            <div style={{ marginBottom:12 }}>
+              <label style={s.fieldLabel}>Nombre comercial <span style={{ color:'#D85A30' }}>*</span></label>
               <input value={form.name||''} onChange={f('name')} placeholder="Ej: Glow Clinic" style={s.input} />
             </div>
-            <div style={{ marginBottom:14 }}>
-              <label style={s.fieldLabel}>Plan</label>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+              <div>
+                <label style={s.fieldLabel}>Cédula jurídica o física <span style={{ color:'#D85A30' }}>*</span></label>
+                <input value={form.legal_id||''} onChange={f('legal_id')} placeholder="3-101-123456" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Razón social</label>
+                <input value={form.legal_name||''} onChange={f('legal_name')} placeholder="Clínica XYZ S.A." style={s.input} />
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+              <div>
+                <label style={s.fieldLabel}>Correo de contacto</label>
+                <input value={form.email||''} onChange={f('email')} type="email" placeholder="info@clinica.com" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Sitio web</label>
+                <input value={form.website||''} onChange={f('website')} placeholder="www.clinica.com" style={s.input} />
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+              <div>
+                <label style={s.fieldLabel}>Teléfono</label>
+                <div style={{ display:'flex', gap:6 }}>
+                  <input value={form.phone_country_code||'+506'} onChange={f('phone_country_code')} style={{ ...s.input, width:70 }} placeholder="+506" />
+                  <input value={form.phone||''} onChange={f('phone')} placeholder="2222-2222" style={s.input} />
+                </div>
+              </div>
+              <div>
+                <label style={s.fieldLabel}>WhatsApp</label>
+                <input value={form.whatsapp||''} onChange={f('whatsapp')} placeholder="+506 8888-8888" style={s.input} />
+              </div>
+            </div>
+
+            <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:10, marginTop:16 }}>Ubicación</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+              <div>
+                <label style={s.fieldLabel}>País</label>
+                <input value={form.country||'Costa Rica'} onChange={f('country')} placeholder="Costa Rica" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Provincia</label>
+                <input value={form.province||''} onChange={f('province')} placeholder="San José" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Cantón</label>
+                <input value={form.canton||''} onChange={f('canton')} placeholder="Escazú" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Distrito</label>
+                <input value={form.district||''} onChange={f('district')} placeholder="San Rafael" style={s.input} />
+              </div>
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <label style={s.fieldLabel}>Dirección detallada</label>
+              <input value={form.address||''} onChange={f('address')} placeholder="200m norte del parque..." style={s.input} />
+            </div>
+
+            <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:10, marginTop:16 }}>Plan y permisos</div>
+            <div style={{ marginBottom:12 }}>
+              <label style={s.fieldLabel}>Plan adquirido <span style={{ color:'#D85A30' }}>*</span></label>
               <select value={form.plan||'basic'} onChange={f('plan')} style={s.input}>
-                <option value="basic">Basic</option>
-                <option value="pro">Pro</option>
+                <option value="basic">Básico</option>
+                <option value="gold">Gold</option>
                 <option value="enterprise">Enterprise</option>
               </select>
+              {form.plan && (
+                <div style={{ marginTop:8, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:'10px 12px' }}>
+                  <div style={{ fontSize:11, fontWeight:600, color:BLUE, marginBottom:6 }}>Incluye:</div>
+                  {{'basic':['Hasta 2 médicos','Hasta 100 pacientes','2 módulos activos','Soporte por email'],'gold':['Hasta 10 médicos','Hasta 500 pacientes','Hasta 5 módulos personalizables','Reportes avanzados','Soporte prioritario'],'enterprise':['Médicos ilimitados','Pacientes ilimitados','Módulos personalizados ilimitados','Reportes + exportación','Soporte dedicado','Personalización de marca']}[form.plan]?.map((item,i) => (
+                    <div key={i} style={{ fontSize:12, color:'#555', marginBottom:3 }}>✓ {item}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+              <div>
+                <label style={s.fieldLabel}>Permiso municipal</label>
+                <select value={form.municipal_permit||'no'} onChange={f('municipal_permit')} style={s.input}>
+                  <option value="yes">Sí</option>
+                  <option value="in_progress">En trámite</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Permiso sanitario</label>
+                <select value={form.health_permit||'no'} onChange={f('health_permit')} style={s.input}>
+                  <option value="yes">Sí</option>
+                  <option value="in_progress">En trámite</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Lista para operar</label>
+                <select value={form.operational===true?'true':form.operational===false?'false':'false'} onChange={e => setForm(p=>({...p,operational:e.target.value==='true'}))} style={s.input}>
+                  <option value="true">Sí</option>
+                  <option value="false">No / En trámite</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+              <div>
+                <label style={s.fieldLabel}>Referencia de contrato</label>
+                <input value={form.contract_ref||''} onChange={f('contract_ref')} placeholder="MT-2026-001" style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Enviar correo de bienvenida</label>
+                <select value={form.send_welcome_email===false?'false':'true'} onChange={e => setForm(p=>({...p,send_welcome_email:e.target.value==='true'}))} style={s.input}>
+                  <option value="true">Sí</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
             </div>
             {form.id && (
-              <div style={{ marginBottom:14 }}>
+              <div style={{ marginBottom:12 }}>
                 <label style={s.fieldLabel}>Estado</label>
                 <select value={form.is_active?'true':'false'} onChange={e => setForm(p=>({...p,is_active:e.target.value==='true'}))} style={s.input}>
                   <option value="true">Activa</option>
