@@ -151,6 +151,12 @@ export default function AdminDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [calView, setCalView] = useState('semana')
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (calView === 'semana' || calView === 'dia') {
@@ -1347,7 +1353,7 @@ export default function AdminDashboard() {
                 const HORA_INI = 0
                 const HORA_FIN = 24
                 const SLOT_H = 80
-                const now = new Date()
+                const now = currentTime
                 const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
                 const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
                   ? ((now.getHours() - HORA_INI) * 60 + now.getMinutes()) / 60 * SLOT_H : -1

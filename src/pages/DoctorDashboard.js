@@ -37,6 +37,12 @@ export default function DoctorDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
   const [calView, setCalView] = useState('semana')
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (calView === 'semana' || calView === 'dia') {
