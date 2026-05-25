@@ -206,7 +206,7 @@ export default function AdminDashboard() {
   const [clinicSettings, setClinicSettings] = useState(null)
   const [savingSettings, setSavingSettings] = useState(false)
 
-  useEffect(() => { loadAll() }, [])
+  useEffect(() => { if (profile?.id) loadAll() }, [profile?.id])
 
   const [allGoals, setAllGoals] = useState([])
   const [allDiagnoses, setAllDiagnoses] = useState([])
