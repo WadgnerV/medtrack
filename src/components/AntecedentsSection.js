@@ -351,12 +351,135 @@ function ApnpForm({ initial, onSave, onCancel }) {
   )
 }
 
+function AgoForm({ initial, onSave, onCancel }) {
+  const EMPTY_AGO = {
+    fum: '', planning_method: '', cycle_type: '', bleeding_amount: '',
+    menopause: 'no', menopause_year: '', hrt: 'no', hrt_detail: '',
+    gestas: '', partos: '', abortos: '', cesareas: '',
+    last_pap: '', pap_result: '',
+  }
+  const [form, setForm] = useState(initial || EMPTY_AGO)
+  const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
+
+  return (
+    <div style={{ background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:16, marginBottom:10 }}>
+
+      {/* Menstruación */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🗓️ Menstruación</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Fecha última menstruación (FUM)</label>
+            <input type="date" value={form.fum} onChange={f('fum')} style={s.input} />
+          </div>
+          <div>
+            <label style={s.label}>Método de planificación familiar</label>
+            <input value={form.planning_method} onChange={f('planning_method')} placeholder="Ej: Anticonceptivos orales, DIU..." style={s.input} />
+          </div>
+          <div>
+            <label style={s.label}>Tipo de ciclo</label>
+            <select value={form.cycle_type} onChange={f('cycle_type')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              <option value="regular">Regular</option>
+              <option value="irregular">Irregular</option>
+            </select>
+          </div>
+          <div>
+            <label style={s.label}>Cantidad de sangrado</label>
+            <select value={form.bleeding_amount} onChange={f('bleeding_amount')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              <option value="light">Ligero</option>
+              <option value="moderate">Moderado</option>
+              <option value="heavy">Abundante</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Menopausia */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🌙 Menopausia</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>¿Menopausia?</label>
+            <select value={form.menopause} onChange={f('menopause')} style={s.input}>
+              <option value="no">No</option>
+              <option value="yes">Sí</option>
+            </select>
+          </div>
+          {form.menopause === 'yes' && <>
+            <div>
+              <label style={s.label}>Año de inicio</label>
+              <input type="number" value={form.menopause_year} onChange={f('menopause_year')} placeholder="Ej: 2020" min="1960" max={new Date().getFullYear()} style={s.input} />
+            </div>
+            <div>
+              <label style={s.label}>¿Terapia de reemplazo hormonal?</label>
+              <select value={form.hrt} onChange={f('hrt')} style={s.input}>
+                <option value="no">No</option>
+                <option value="yes">Sí</option>
+                <option value="past">La tomó anteriormente</option>
+              </select>
+            </div>
+            {(form.hrt === 'yes' || form.hrt === 'past') && (
+              <div>
+                <label style={s.label}>¿Cuál terapia?</label>
+                <input value={form.hrt_detail} onChange={f('hrt_detail')} placeholder="Nombre del medicamento o terapia" style={s.input} />
+              </div>
+            )}
+          </>}
+        </div>
+      </div>
+
+      {/* GPAC */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🤰 Obstétrico (GPAC)</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:8 }}>
+          {[['gestas','G — Gestas'],['partos','P — Partos'],['abortos','A — Abortos'],['cesareas','C — Cesáreas']].map(([key, label]) => (
+            <div key={key}>
+              <label style={s.label}>{label}</label>
+              <input type="number" value={form[key]} onChange={f(key)} placeholder="0" min="0" style={s.input} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* PAP */}
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>🔬 Papanicolau</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          <div>
+            <label style={s.label}>Fecha del último PAP</label>
+            <input type="date" value={form.last_pap} onChange={f('last_pap')} style={s.input} />
+          </div>
+          <div>
+            <label style={s.label}>Resultado</label>
+            <select value={form.pap_result} onChange={f('pap_result')} style={s.input}>
+              <option value="">Seleccionar...</option>
+              <option value="normal">Normal</option>
+              <option value="abnormal">Anormal</option>
+              <option value="pending">Pendiente</option>
+              <option value="never">Nunca realizado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+        {onCancel && <button style={s.btnOutline} onClick={onCancel}>Cancelar</button>}
+        <button style={s.btn} onClick={() => onSave(form)}>Guardar AGO</button>
+      </div>
+    </div>
+  )
+}
+
 export default function AntecedentsSection({ patient, profile, canEdit = true, compact = false }) {
   const [antecedents, setAntecedents] = useState([])
   const [apnpData, setApnpData] = useState(null)
+  const [agoData, setAgoData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showAppForm, setShowAppForm] = useState(false)
   const [showApnpForm, setShowApnpForm] = useState(false)
+  const [showAgoForm, setShowAgoForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [collapsed, setCollapsed] = useState(true)
@@ -372,7 +495,23 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
     // Cargar APNP
     const apnpRecord = (data||[]).find(a => a.type === 'apnp')
     setApnpData(apnpRecord?.apnp_data || null)
+    const agoRecord = (data||[]).find(a => a.type === 'ago')
+    setAgoData(agoRecord?.ago_data || null)
     setLoading(false)
+  }
+
+  async function saveAgo(form) {
+    setSaving(true)
+    const existing = antecedents.find(a => a.type === 'ago')
+    const payload = { patient_id: patient.id, clinic_id: profile?.clinic_id, type: 'ago', ago_data: form, updated_by: profile?.id }
+    if (existing) {
+      await supabase.from('patient_antecedents').update(payload).eq('id', existing.id)
+    } else {
+      await supabase.from('patient_antecedents').insert({ ...payload, created_by: profile?.id })
+    }
+    await loadAntecedents()
+    setShowAgoForm(false)
+    setSaving(false)
   }
 
   async function saveApnp(form) {
@@ -685,9 +824,66 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
         )}
       </div>
 
-      {/* Placeholder AGO y AQx */}
+      {/* AGO - solo si el paciente es femenino */}
+      {patient?.sex === 'female' && (
+        <div style={{ marginBottom:24 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+            <div>
+              <div style={s.sectionTitle}>🌸 Antecedentes Gineco-Obstétricos (AGO)</div>
+              <div style={s.sectionSub}>Historial menstrual, obstétrico y ginecológico</div>
+            </div>
+            {canEdit && !showAgoForm && (
+              <button style={s.btnOutline} onClick={() => setShowAgoForm(true)}>{agoData ? 'Editar' : '+ Agregar'}</button>
+            )}
+          </div>
+
+          {showAgoForm ? (
+            <AgoForm initial={agoData || {}} onSave={form => saveAgo(form)} onCancel={() => setShowAgoForm(false)} />
+          ) : agoData ? (
+            <div style={s.card}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🗓️ Menstruación</div>
+                  {agoData.fum && <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>FUM: {new Date(agoData.fum+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>}
+                  {agoData.cycle_type && <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>Ciclo: {agoData.cycle_type === 'regular' ? 'Regular' : 'Irregular'}</div>}
+                  {agoData.bleeding_amount && <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>Sangrado: {agoData.bleeding_amount === 'light'?'Ligero':agoData.bleeding_amount === 'moderate'?'Moderado':'Abundante'}</div>}
+                  {agoData.planning_method && <div style={{ fontSize:12, color:'#555' }}>Planificación: {agoData.planning_method}</div>}
+                </div>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🤰 GPAC</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:4 }}>
+                    {[['G','gestas'],['P','partos'],['A','abortos'],['C','cesareas']].map(([label,key]) => (
+                      <div key={key} style={{ fontSize:12, color:'#555' }}><strong>{label}:</strong> {agoData[key]||'0'}</div>
+                    ))}
+                  </div>
+                </div>
+                {agoData.menopause === 'yes' && (
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🌙 Menopausia</div>
+                    <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>Desde {agoData.menopause_year||'—'}</div>
+                    <div style={{ fontSize:12, color:'#555' }}>TRH: {agoData.hrt==='yes'?'Sí actualmente':agoData.hrt==='past'?'La tomó anteriormente':'No'}{agoData.hrt_detail ? ` · ${agoData.hrt_detail}` : ''}</div>
+                  </div>
+                )}
+                {(agoData.last_pap || agoData.pap_result) && (
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4 }}>🔬 PAP</div>
+                    {agoData.last_pap && <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>Fecha: {new Date(agoData.last_pap+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>}
+                    {agoData.pap_result && <div style={{ fontSize:12, color:'#555' }}>Resultado: {{normal:'Normal',abnormal:'Anormal',pending:'Pendiente',never:'Nunca realizado'}[agoData.pap_result]||agoData.pap_result}</div>}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div style={{ background:'#f7fafc', border:'1px dashed #e2e8f0', borderRadius:10, padding:20, textAlign:'center', fontSize:13, color:'#999' }}>
+              Sin antecedentes gineco-obstétricos registrados
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Placeholder AQx */}
       <div style={{ background:'#f7fafc', border:'1px dashed #e2e8f0', borderRadius:10, padding:16, textAlign:'center', fontSize:12, color:'#bbb' }}>
-        Antecedentes gineco-obstétricos y quirúrgicos — próximamente
+        Antecedentes quirúrgicos — próximamente
       </div>
     </div>
   )
