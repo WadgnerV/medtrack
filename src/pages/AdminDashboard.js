@@ -361,7 +361,9 @@ export default function AdminDashboard() {
 
   async function handleSignOut() { await signOut(); navigate('/login') }
 
-  async function createUser(form, role) {
+  async function createUser(form, roleInput) {
+    // Si la profesión es Recepcionista, asignar rol receptionist
+    const role = roleInput === 'doctor' && form.profession === 'Recepcionista' ? 'receptionist' : roleInput
     setSaving(true); setFormError('')
 
     // Guardar sesión actual para restaurarla después
@@ -427,17 +429,18 @@ export default function AdminDashboard() {
         canton:       form.canton       || null,
         clinic_id:    profile?.clinic_id || null,
         prefix:       form.prefix       || null,
+        profession:   form.profession   || null,
       }).eq('id', userId)
     }
 
-    // Enviar correo de bienvenida al nuevo doctor/staff
-    if (role === 'doctor' && form.email) {
+    // Enviar correo de bienvenida al nuevo doctor/staff/recepcionista
+    if ((role === 'doctor' || role === 'receptionist') && form.email) {
       const { data: cs } = await supabase.from('clinic_settings').select('clinic_name').limit(1).single()
       await supabase.functions.invoke('staff-welcome', {
         body: {
           staff_email: form.email,
           staff_name: `${form.firstName} ${form.lastName}`,
-          staff_role: 'doctor',
+          staff_role: role,
           clinic_name: cs?.clinic_name || 'la clínica',
           app_url: 'https://medtrack-gilt.vercel.app',
         }
@@ -1626,7 +1629,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
     'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Rio Nuevo','Monteverde','Puerto Jimenez'],
     'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
   }
-  const [form, setForm] = useState({ prefix:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
+  const [form, setForm] = useState({ prefix:'', profession:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   return (
     <>
@@ -1634,6 +1637,23 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
       {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:14, padding:'8px 11px', borderRadius:8, marginBottom:12 }}>{error}</div>}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         {type === 'doctor' && (
+          <div style={{ gridColumn:'1/-1' }}>
+            <label style={s.fieldLabel}>Profesión <span style={{ color:'#D85A30' }}>*</span></label>
+            <select value={form.profession} onChange={f('profession')} style={s.fieldInput}>
+              <option value="">Seleccioná una profesión...</option>
+              <optgroup label="Profesionales de salud">
+                {['Médico general','Médico especialista','Enfermero/a','Fisioterapeuta','Nutricionista','Psicólogo/a','Odontólogo/a','Otro profesional de la salud'].map(p => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
+              <optgroup label="Profesionales administrativos">
+                {['Administrador/a de clínica','Recepcionista','Contador/a','Asistente administrativo/a','Otro profesional administrativo'].map(p => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
+            </select>
+            {form.profession === 'Recepcionista' && (
+              <div style={{ fontSize:11, color:'#185FA5', marginTop:4 }}>ℹ️ Este perfil tendrá acceso al calendario y gestión de pacientes únicamente.</div>
+            )}
+          </div>
+        )}
+        {type === 'doctor' && form.profession && form.profession !== 'Recepcionista' && (
           <div style={{ gridColumn:'1/-1' }}>
             <label style={s.fieldLabel}>Prefijo <span style={{ color:'#D85A30' }}>*</span></label>
             <select value={form.prefix} onChange={f('prefix')} style={s.fieldInput}>
