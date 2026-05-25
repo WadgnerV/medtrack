@@ -54,6 +54,11 @@ export default function SuperAdminDashboard() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({})
   const [error, setError] = useState('')
+  const [searchClinic, setSearchClinic] = useState('')
+  const [filterPlan, setFilterPlan] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [searchAdmin, setSearchAdmin] = useState('')
+  const [filterClinic, setFilterClinic] = useState('')
 
   function setViewPersist(v) { localStorage.setItem('superadminView', v); setView(v) }
 
@@ -220,8 +225,33 @@ export default function SuperAdminDashboard() {
               </div>
               <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true }); setModal('clinic') }}>+ Nueva clínica</button>
             </div>
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:16, display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
+              <div style={{ position:'relative', flex:1, minWidth:180 }}>
+                <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:13, color:'#bbb' }}>🔍</span>
+                <input value={searchClinic} onChange={e=>setSearchClinic(e.target.value)} placeholder="Buscar clínica..." style={{ width:'100%', padding:'7px 10px 7px 30px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+              </div>
+              <select value={filterPlan} onChange={e=>setFilterPlan(e.target.value)} style={{ padding:'7px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', color: filterPlan?'#1a3a5c':'#999' }}>
+                <option value="">Todos los planes</option>
+                <option value="basic">Básico</option>
+                <option value="gold">Gold</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{ padding:'7px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', color: filterStatus?'#1a3a5c':'#999' }}>
+                <option value="">Todos los estados</option>
+                <option value="active">Activas</option>
+                <option value="inactive">Inactivas</option>
+              </select>
+              {(searchClinic||filterPlan||filterStatus) && <button onClick={()=>{setSearchClinic('');setFilterPlan('');setFilterStatus('')}} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:'4px 8px' }}>✕ Limpiar</button>}
+            </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
-              {clinics.map(clinic => {
+              {clinics.filter(clinic => {
+                const q = searchClinic.toLowerCase()
+                if (q && !clinic.name?.toLowerCase().includes(q) && !clinic.legal_name?.toLowerCase().includes(q) && !clinic.email?.toLowerCase().includes(q)) return false
+                if (filterPlan && clinic.plan !== filterPlan) return false
+                if (filterStatus === 'active' && !clinic.is_active) return false
+                if (filterStatus === 'inactive' && clinic.is_active) return false
+                return true
+              }).map(clinic => {
                 const permitLabel = { yes:'✅ Sí', in_progress:'🟡 En trámite', no:'❌ No' }
                 const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }
                 const planColor = { basic:'#185FA5', gold:'#854F0B', enterprise:'#553c9a' }
@@ -287,6 +317,17 @@ export default function SuperAdminDashboard() {
               </div>
               <button style={s.btnPrimary} onClick={() => { setForm({ profession:'', clinic_id:'' }); setError(''); setModal('new-admin') }}>+ Nuevo admin</button>
             </div>
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:16, display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
+              <div style={{ position:'relative', flex:1, minWidth:180 }}>
+                <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:13, color:'#bbb' }}>🔍</span>
+                <input value={searchAdmin} onChange={e=>setSearchAdmin(e.target.value)} placeholder="Buscar por nombre o email..." style={{ width:'100%', padding:'7px 10px 7px 30px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+              </div>
+              <select value={filterClinic} onChange={e=>setFilterClinic(e.target.value)} style={{ padding:'7px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', color: filterClinic?'#1a3a5c':'#999' }}>
+                <option value="">Todas las clínicas</option>
+                {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              {(searchAdmin||filterClinic) && <button onClick={()=>{setSearchAdmin('');setFilterClinic('')}} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:'4px 8px' }}>✕ Limpiar</button>}
+            </div>
             <div style={s.card}>
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
                 <thead>
@@ -295,7 +336,12 @@ export default function SuperAdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {admins.map(admin => {
+                  {admins.filter(admin => {
+                    const q = searchAdmin.toLowerCase()
+                    if (q && !`${admin.first_name} ${admin.last_name}`.toLowerCase().includes(q) && !admin.email?.toLowerCase().includes(q)) return false
+                    if (filterClinic && admin.clinic_id !== filterClinic) return false
+                    return true
+                  }).map(admin => {
                     const clinic = clinics.find(c => c.id === admin.clinic_id)
                     return (
                       <tr key={admin.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
