@@ -1,6 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const WA_NUMBER = '50660464569'
 
 const corsHeaders = {
@@ -14,6 +16,14 @@ serve(async (req) => {
   }
   try {
     const { patient_email, patient_name, doctor_name, appointment_date, appointment_time } = await req.json()
+
+    let clinicAddress = ''
+    try {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+      const { data: cs } = await sb.from('clinic_settings').select('*').limit(1).single()
+      if (cs) clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
+    } catch(e) {}
 
     const firstName = patient_name.split(' ')[0]
     const dateFormatted = new Date(appointment_date + 'T12:00:00').toLocaleDateString('es-CR', {

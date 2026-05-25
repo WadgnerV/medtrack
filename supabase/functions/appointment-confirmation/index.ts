@@ -1,7 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const WA_NUMBER = '50660464569'
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,6 +30,7 @@ serve(async (req) => {
         <h2 style="color:#1a1a1a;font-size:18px;margin-bottom:8px;">Cita agendada ✅</h2>
         <p style="color:#555;font-size:14px;line-height:1.6;">Hola <strong>${patient_name}</strong>, tu cita ha sido agendada exitosamente.</p>
         <div style="background:#f5f5f5;border-radius:12px;padding:16px 20px;margin:20px 0;">
+          ${clinicAddress ? `<div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📍 Dirección:</strong> ${clinicAddress}</div>` : ''}
           <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📅 Fecha:</strong> ${dateFormatted}</div>
           <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>🕐 Hora:</strong> ${timeFormatted}</div>
           <div style="font-size:14px;color:#555;"><strong>👨‍⚕️ Médico:</strong> ${doctor_name}</div>

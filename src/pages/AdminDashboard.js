@@ -203,6 +203,8 @@ export default function AdminDashboard() {
   const [diagnoses, setDiagnoses] = useState([])
   const [cie10Search, setCie10Search] = useState('')
   const [cie10Results, setCie10Results] = useState([])
+  const [clinicSettings, setClinicSettings] = useState(null)
+  const [savingSettings, setSavingSettings] = useState(false)
 
   useEffect(() => { loadAll() }, [])
 
@@ -211,8 +213,30 @@ export default function AdminDashboard() {
 
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses()])
+    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings()])
     setLoading(false)
+  }
+
+  async function loadClinicSettings() {
+    const { data } = await supabase.from('clinic_settings').select('*').limit(1).single()
+    if (data) setClinicSettings(data)
+  }
+
+  async function saveClinicSettings() {
+    if (!clinicSettings) return
+    setSavingSettings(true)
+    await supabase.from('clinic_settings').update({
+      clinic_name: clinicSettings.clinic_name,
+      whatsapp: clinicSettings.whatsapp,
+      email: clinicSettings.email,
+      province: clinicSettings.province,
+      canton: clinicSettings.canton,
+      district: clinicSettings.district,
+      address: clinicSettings.address,
+      office_number: clinicSettings.office_number,
+    }).eq('id', clinicSettings.id)
+    setSavingSettings(false)
+    alert('Configuración guardada correctamente')
   }
 
   async function loadAllGoals() {
@@ -1678,23 +1702,56 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {view === 'config' && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-              <div style={{ fontSize:14, fontWeight:500, marginBottom:16 }}>Configuracion de la clinica</div>
-              {[{ l:'Nombre de la clinica', v:'Glow Clinic' }, { l:'WhatsApp de agenda', v:'+506 6046-4569' }, { l:'Correo de contacto', v:'info@glowclinic.com' }, { l:'Nombre en app', v:'Glow Clinic', d:'Aparece como MEDTRACK by [nombre]' }].map((row,i) => (
+          {view === 'config' && clinicSettings && (
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'20px 24px' }}>
+              <div style={{ fontSize:15, fontWeight:600, marginBottom:20, color:'#1a1a1a' }}>Configuración de la clínica</div>
+
+              <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:12 }}>Información general</div>
+              {[
+                { l:'Nombre de la clínica', k:'clinic_name', ph:'Glow Clinic' },
+                { l:'WhatsApp de agenda', k:'whatsapp', ph:'+506 0000-0000' },
+                { l:'Correo de contacto', k:'email', ph:'info@clinica.com' },
+              ].map((row,i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
-                  <div>
-                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{row.l}</div>
-                    {row.d && <div style={{ fontSize:14, color:'#999' }}>{row.d}</div>}
-                  </div>
-                  <input defaultValue={row.v} style={{ padding:'7px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', width:200 }} />
+                  <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{row.l}</div>
+                  <input value={clinicSettings[row.k]||''} onChange={e => setClinicSettings(p=>({...p,[row.k]:e.target.value}))}
+                    placeholder={row.ph} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', width:220 }} />
                 </div>
               ))}
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0' }}>
-                <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Color principal</div>
-                <input type="color" defaultValue="#1D9E75" style={{ width:40, height:32, padding:2, border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer' }} />
+
+              <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:12, marginTop:20 }}>Ubicación de la clínica</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                {[
+                  { l:'Provincia', k:'province', ph:'San José' },
+                  { l:'Cantón', k:'canton', ph:'Escazú' },
+                  { l:'Distrito', k:'district', ph:'San Rafael' },
+                  { l:'Número de consultorio/oficina', k:'office_number', ph:'Consultorio 3B' },
+                ].map((row,i) => (
+                  <div key={i}>
+                    <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>{row.l}</label>
+                    <input value={clinicSettings[row.k]||''} onChange={e => setClinicSettings(p=>({...p,[row.k]:e.target.value}))}
+                      placeholder={row.ph} style={{ width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
+                  </div>
+                ))}
+                <div style={{ gridColumn:'1/-1' }}>
+                  <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Dirección exacta</label>
+                  <input value={clinicSettings.address||''} onChange={e => setClinicSettings(p=>({...p,address:e.target.value}))}
+                    placeholder='200m norte del parque central...' style={{ width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
+                </div>
               </div>
-              <button style={{ ...s.btnPrimary, marginTop:16, width:'auto' }}>Guardar configuracion</button>
+
+              {(clinicSettings.province || clinicSettings.canton || clinicSettings.district || clinicSettings.address) && (
+                <div style={{ marginTop:16, background:'#f0fdf9', border:'1px solid #E1F5EE', borderRadius:8, padding:'10px 14px' }}>
+                  <div style={{ fontSize:11, color:'#0F6E56', fontWeight:600, marginBottom:4 }}>Vista previa en correos</div>
+                  <div style={{ fontSize:13, color:'#444' }}>
+                    📍 {[clinicSettings.address, clinicSettings.district, clinicSettings.canton, clinicSettings.province, clinicSettings.office_number].filter(Boolean).join(', ')}
+                  </div>
+                </div>
+              )}
+
+              <button style={{ ...s.btnPrimary, marginTop:20, opacity:savingSettings?0.7:1 }} disabled={savingSettings} onClick={saveClinicSettings}>
+                {savingSettings ? 'Guardando...' : 'Guardar configuración'}
+              </button>
             </div>
           )}
 

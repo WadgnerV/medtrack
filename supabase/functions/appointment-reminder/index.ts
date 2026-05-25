@@ -55,7 +55,8 @@ serve(async (req) => {
           <h2 style="color:#1a1a1a;font-size:18px;margin-bottom:8px;">Recordatorio de cita 🗓️</h2>
           <p style="color:#555;font-size:14px;line-height:1.6;">Hola <strong>${patient_name}</strong>, te recordamos que tienes una cita mañana.</p>
           <div style="background:#f5f5f5;border-radius:12px;padding:16px 20px;margin:20px 0;">
-            <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📅 Fecha:</strong> ${dateFormatted}</div>
+            ${clinicAddress ? `<div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📍 Dirección:</strong> ${clinicAddress}</div>` : ''}
+          <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📅 Fecha:</strong> ${dateFormatted}</div>
             <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>🕐 Hora:</strong> ${timeFormatted}</div>
             <div style="font-size:14px;color:#555;"><strong>👨‍⚕️ Médico:</strong> ${doctor_name}</div>
           </div>
