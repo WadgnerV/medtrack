@@ -669,7 +669,7 @@ export default function AdminDashboard() {
   if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:14, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
 
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:''Inter', system-ui, sans-serif', background:'#f5f5f5' }}>
+    <div style={{ display:'flex', height:'100vh', fontFamily:"Inter, system-ui, sans-serif", background:'#f5f5f5' }}>
 
       {modal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.42)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:40 }}

@@ -34,7 +34,7 @@ export default function ResetPassword() {
   }
 
   const s = {
-    bg: { minHeight:'100vh', background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px 16px', fontFamily:''Inter', system-ui, sans-serif' },
+    bg: { minHeight:'100vh', background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px 16px', fontFamily:"Inter, system-ui, sans-serif" },
     card: { width:'100%', maxWidth:400, background:'#fff', borderRadius:20, padding:'32px 28px', boxShadow:'0 4px 24px rgba(0,0,0,0.08)' },
     label: { fontSize:12, fontWeight:500, color:'#555', marginBottom:4, display:'block' },
     input: { width:'100%', padding:'9px 12px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'inherit' },
