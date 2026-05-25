@@ -26,6 +26,7 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
     'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
   }
   const [form, setForm] = useState({
+    prefix:      doctor.prefix       || '',
     firstName:   doctor.first_name   || '',
     lastName:    doctor.last_name    || '',
     medicalCode: doctor.medical_code || '',
@@ -60,8 +61,15 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 
   return (
     <>
-      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Editar médico colaborador</div>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Editar personal</div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={lbl}>Prefijo</label>
+          <select value={form.prefix} onChange={f('prefix')} style={inp}>
+            <option value="">Seleccioná un prefijo...</option>
+            {['Dr.','Dra.','Lic.','Licda.','MSc.','PhD.','Ing.','Inga.','Enf.','Enfra.','Sr.','Sra.','Sin prefijo'].map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
         <div>
           <label style={lbl}>Nombre</label>
           <input value={form.firstName} onChange={f('firstName')} style={inp} />
@@ -292,6 +300,7 @@ export default function AdminDashboard() {
     setSaving(true)
     const d = modalData.doctor
     await supabase.from('profiles').update({
+      prefix:       form.prefix      || null,
       first_name:   form.firstName   || null,
       last_name:    form.lastName    || null,
       medical_code: form.medicalCode || null,
@@ -417,6 +426,7 @@ export default function AdminDashboard() {
         province:     form.province     || null,
         canton:       form.canton       || null,
         clinic_id:    profile?.clinic_id || null,
+        prefix:       form.prefix       || null,
       }).eq('id', userId)
     }
 
@@ -881,7 +891,7 @@ export default function AdminDashboard() {
 
         {[
           { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, { icon:'R', label:'Reportes', key:'reportes' }] },
-          { section:'Usuarios', items:[{ icon:'M', label:'Medicos', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
+          { section:'Usuarios', items:[{ icon:'P', label:'Personal', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
           { section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] },
         ].map(group => (
           <div key={group.section}>
@@ -913,7 +923,7 @@ export default function AdminDashboard() {
             <div style={{ flex:1, padding:'8px 0' }}>
               {[
                 { label:'Dashboard', key:'dashboard', icon:'📊' },
-                { label:'Médicos', key:'medicos', icon:'👨‍⚕️' },
+                { label:'Personal', key:'medicos', icon:'👥' },
                 { label:'Pacientes', key:'pacientes', icon:'👥' },
                 { label:'Calendario', key:'calendario', icon:'📅' },
                 { label:'Reportes', key:'reportes', icon:'📈' },
@@ -943,11 +953,11 @@ export default function AdminDashboard() {
           <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
-                {{ dashboard:'Dashboard', medicos:'Médicos', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuración' }[view]}
+                {{ dashboard:'Dashboard', medicos:'Personal', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuración' }[view]}
               </div>
               <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
-            {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('doctor')) return; setFormError(''); setModal('new-doctor') }}>+ Nuevo médico</button>}
+            {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('doctor')) return; setFormError(''); setModal('new-doctor') }}>+ Nuevo personal</button>}
             {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
@@ -977,7 +987,7 @@ export default function AdminDashboard() {
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                     <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.last_name} {d.first_name}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
                       <div style={{ fontSize:12, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
                     </div>
                     <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
@@ -1001,7 +1011,7 @@ export default function AdminDashboard() {
                   <div style={{ flex:'0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
                     <div style={{ minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.last_name} {d.first_name}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
                       <div style={{ fontSize:14, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
                     </div>
                   </div>
@@ -1395,7 +1405,7 @@ export default function AdminDashboard() {
                 {doctors.map(d => (
                   <div key={d.id} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#555' }}>
                     <div style={{ width:10, height:10, borderRadius:3, background: doctorColor(d.id) }} />
-                    {d.first_name} {d.last_name}
+                    {d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}
                   </div>
                 ))}
               </div>
@@ -1493,7 +1503,7 @@ export default function AdminDashboard() {
                 {doctors.filter(d => d.role === 'doctor').map(d => (
                   <div key={d.id} onClick={() => setSelDoctor(d.id)}
                     style={{ flex:1, padding:'10px 14px', borderRadius:10, border: '1px solid ' + (selDoctor === d.id ? G : '#eee'), background: selDoctor === d.id ? '#E1F5EE' : '#fff', cursor:'pointer' }}>
-                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{d.first_name} {d.last_name}</div>
+                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
                     <div style={{ fontSize:14, color:'#999' }}>Colaborador</div>
                   </div>
                 ))}
@@ -1616,13 +1626,22 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
     'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Rio Nuevo','Monteverde','Puerto Jimenez'],
     'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
   }
-  const [form, setForm] = useState({ firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
+  const [form, setForm] = useState({ prefix:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   return (
     <>
-      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{type === 'doctor' ? 'Nuevo medico colaborador' : 'Nuevo paciente'}</div>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{type === 'doctor' ? 'Nuevo personal' : 'Nuevo paciente'}</div>
       {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:14, padding:'8px 11px', borderRadius:8, marginBottom:12 }}>{error}</div>}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+        {type === 'doctor' && (
+          <div style={{ gridColumn:'1/-1' }}>
+            <label style={s.fieldLabel}>Prefijo <span style={{ color:'#D85A30' }}>*</span></label>
+            <select value={form.prefix} onChange={f('prefix')} style={s.fieldInput}>
+              <option value="">Seleccioná un prefijo...</option>
+              {['Dr.','Dra.','Lic.','Licda.','MSc.','PhD.','Ing.','Inga.','Enf.','Enfra.','Sr.','Sra.','Sin prefijo'].map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+        )}
         <Field label="Nombre" value={form.firstName} onChange={f('firstName')} placeholder="Maria" />
         <Field label="Apellido" value={form.lastName} onChange={f('lastName')} placeholder="Rodriguez" />
         <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>
@@ -2451,7 +2470,7 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules =
                       <option value="">Sin asignar</option>
                       {doctors.map(d => (
                         <option key={d.id} value={d.id}>
-                          {d.sex === 'female' ? 'Dra.' : 'Dr.'} {d.first_name} {d.last_name} · {d.specialty || ''}
+                          {d.prefix || (d.sex === 'female' ? 'Dra.' : 'Dr.')} {d.last_name} {d.first_name} · {d.specialty || ''}
                         </option>
                       ))}
                     </select>
