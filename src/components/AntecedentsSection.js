@@ -636,6 +636,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
             {appItems.length > 0 && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>{appItems.length} APP</span>}
             {apnpData && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>APNP</span>}
             {agoData && patient?.sex === 'female' && <span style={{ fontSize:11, background:'#fce8f3', color:'#9d174d', padding:'1px 7px', borderRadius:20 }}>AGO</span>}
+            {antecedents.filter(a=>a.type==='aqx').length > 0 && <span style={{ fontSize:11, background:'#e2e8f0', color:'#555', padding:'1px 7px', borderRadius:20 }}>{antecedents.filter(a=>a.type==='aqx').length} AQx</span>}
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {canEdit && <button style={{ fontSize:11, padding:'3px 10px', borderRadius:6, border:'1px solid #e2e8f0', background:'#fff', color:'#555', cursor:'pointer' }} onClick={e => { e.stopPropagation(); setEditModal(true); setCollapsed(false) }}>Editar</button>}
@@ -691,7 +692,31 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
                     )}
                   </div>
                 ))}
-                <button style={{ fontSize:11, color:'#555', background:'none', border:'none', cursor:'pointer', marginTop:4 }} onClick={() => { setEditModal(false); setShowAppForm(false); setEditingId(null) }}>✓ Cerrar edición</button>
+                {/* AQx en compact edición */}
+                <div style={{ marginTop:12 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Antecedentes Quirúrgicos (AQx)</div>
+                  {showAqxForm && !editingAqxId && <AqxForm onSave={form => saveAqx(form)} onCancel={() => setShowAqxForm(false)} />}
+                  {!showAqxForm && <button style={{ ...s.btnOutline, fontSize:11, padding:'4px 10px', marginBottom:6 }} onClick={() => { setShowAqxForm(true); setEditingAqxId(null) }}>+ Agregar cirugía</button>}
+                  {antecedents.filter(a=>a.type==='aqx').map(item => (
+                    <div key={item.id} style={{ ...s.card, marginBottom:6 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <div>
+                          <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a' }}>{item.condition}</div>
+                          {item.diagnosis_year && <div style={{ fontSize:11, color:'#999' }}>{item.diagnosis_year}</div>}
+                        </div>
+                        <div style={{ display:'flex', gap:6 }}>
+                          <button style={s.btnEdit} onClick={() => { setEditingAqxId(item.id); setShowAqxForm(false) }}>Editar</button>
+                          <button style={s.btnDanger} onClick={() => deleteAntecedent(item.id)}>✕</button>
+                        </div>
+                      </div>
+                      {editingAqxId === item.id && (
+                        <AqxForm initial={{ procedure:item.condition||'', year:item.diagnosis_year||'', observations:item.observations||'', complications:'no', complications_detail:'', hospital:'' }}
+                          onSave={form => saveAqx(form, item.id)} onCancel={() => setEditingAqxId(null)} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button style={{ fontSize:11, color:'#555', background:'none', border:'none', cursor:'pointer', marginTop:4 }} onClick={() => { setEditModal(false); setShowAppForm(false); setShowApnpForm(false); setShowAgoForm(false); setShowAqxForm(false); setEditingId(null); setEditingAqxId(null) }}>✓ Cerrar edición</button>
               </div>
             ) : (
               <div style={{ paddingTop:10 }}>
@@ -725,6 +750,19 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
                       {agoData.cycle_type && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>Ciclo: {agoData.cycle_type === 'regular'?'Regular':'Irregular'}</div>}
                       {(agoData.gestas||agoData.partos||agoData.cesareas) && <div style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>G{agoData.gestas||0}P{agoData.partos||0}A{agoData.abortos||0}C{agoData.cesareas||0}</div>}
                       {agoData.menopause === 'yes' && <div style={{ fontSize:11, background:'#fce8f3', border:'1px solid #fbcfe8', borderRadius:6, padding:'4px 8px', color:'#9d174d' }}>🌙 Menopausia {agoData.menopause_year||''}</div>}
+                    </div>
+                  </div>
+                )}
+                {/* Resumen AQx en compact vista */}
+                {antecedents.filter(a=>a.type==='aqx').length > 0 && (
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#718096', marginBottom:4, textTransform:'uppercase' }}>AQx</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                      {antecedents.filter(a=>a.type==='aqx').map(item => (
+                        <div key={item.id} style={{ fontSize:11, background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'4px 8px' }}>
+                          🔪 {item.condition}{item.diagnosis_year ? ` (${item.diagnosis_year})` : ''}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

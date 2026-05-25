@@ -98,14 +98,18 @@ export default function DoctorDashboard() {
   useEffect(() => { 
     if (profile?.id) {
       loadAll()
-      // Si hay paciente guardado, cargar sus datos
+      // Solo restaurar paciente si la vista guardada es 'perfil'
+      const savedView = localStorage.getItem('doctorView')
       const saved = localStorage.getItem('doctorSelPatient')
-      if (saved) {
+      if (savedView === 'perfil' && saved) {
         try {
           const p = JSON.parse(saved)
           loadPatientData(p.id)
           loadPatientCareModules(p.id)
         } catch {}
+      } else if (savedView !== 'perfil') {
+        localStorage.removeItem('doctorSelPatient')
+        setSelPatient(null)
       }
     }
   }, [profile?.id])
