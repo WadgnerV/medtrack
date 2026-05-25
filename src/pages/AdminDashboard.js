@@ -1197,11 +1197,11 @@ export default function AdminDashboard() {
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
           <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex:'0 0 32%' }}>Paciente</div>
+                <div style={{ flex:'0 0 36%' }}>Paciente</div>
                 <div style={{ flex:'0 0 8%' }}>Edad</div>
-                <div style={{ flex:'0 0 24%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
-                <div style={{ flex:'0 0 12%' }}>Estado</div>
-                <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
+                <div style={{ flex:'0 0 22%', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
+                <div style={{ flex:'0 0 14%' }}>Estado</div>
+                <div style={{ flex:'0 0 12%', textAlign:'right' }}>Acciones</div>
               </div>}
               {patients.filter(p => {
                 const q = searchPac.toLowerCase()
@@ -1237,18 +1237,18 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                   <div key={p.id} onClick={() => openPatient(p)} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}>
-                  <div style={{ flex:'0 0 28%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                  <div style={{ flex:'0 0 36%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
                     </div>
                   </div>
                   <div style={{ flex:'0 0 8%', fontSize:14, color:'#666' }}>{age(p.birth_date)}</div>
-                <div style={{ flex:'0 0 24%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
-                  <div style={{ flex:'0 0 12%' }}>
+                <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
+                  <div style={{ flex:'0 0 14%' }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
-                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
+                  <div style={{ flex:'0 0 12%', display:'flex', justifyContent:'flex-end', gap:4 }}>
                     <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
