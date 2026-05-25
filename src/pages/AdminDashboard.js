@@ -442,16 +442,13 @@ export default function AdminDashboard() {
       const patient = patients.find(p => p.id === form.patientId)
       const doctor = doctors.find(d => d.id === form.doctorId)
       // Si cambió fecha, hora o doctor → correo de reagendamiento
-      console.log('prevAppt:', prevAppt?.appointment_date, prevAppt?.appointment_time, prevAppt?.doctor_id)
-      console.log('form:', form.date, form.time, form.doctorId)
       const wasRescheduled = prevAppt && (
         prevAppt.appointment_date !== form.date ||
         prevAppt.appointment_time?.substring(0,5) !== form.time?.substring(0,5) ||
         prevAppt.doctor_id !== form.doctorId
       )
-      console.log('wasRescheduled:', wasRescheduled)
       if (wasRescheduled && patient?.profile?.email) {
-        const reschedResult = await supabase.functions.invoke('appointment-rescheduled', {
+        await supabase.functions.invoke('appointment-rescheduled', {
           body: {
             patient_email: patient.profile.email,
             patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
@@ -460,9 +457,6 @@ export default function AdminDashboard() {
             appointment_time: form.time,
           }
         })
-        console.log('reschedResult:', JSON.stringify(reschedResult))
-      } else {
-        console.log('No se envía correo. wasRescheduled:', wasRescheduled, 'email:', patient?.profile?.email)
       }
       // Si cambió a no_show, disparar correo
       if (form.status === 'no_show' && prevStatus !== 'no_show') {

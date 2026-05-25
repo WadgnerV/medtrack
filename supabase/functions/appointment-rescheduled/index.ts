@@ -68,7 +68,7 @@ serve(async (req) => {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'Glow Clinic <no-reply@glowclinic.com>',
+        from: 'MedTrack <onboarding@resend.dev>',
         to: [patient_email],
         subject: '📅 Tu cita fue reprogramada · Glow Clinic',
         html,
