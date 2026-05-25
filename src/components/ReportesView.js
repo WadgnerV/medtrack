@@ -43,7 +43,7 @@ const tdR = { ...td, textAlign:'right' }
 
 const CHART_COLORS = [BLUE, BLUE3, BLUE4, GRAY, BLUE2, '#553c9a', '#2d3748', GRAY2]
 
-const cardStyle = { background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:'14px 16px' }
+const cardStyle = { background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:'14px 16px', pageBreakInside:'avoid', breakInside:'avoid' }
 const secTitle = { fontSize:12, fontWeight:700, color:BLUE, marginBottom:10, borderLeft:'3px solid '+BLUE, paddingLeft:8, letterSpacing:'0.02em', textTransform:'uppercase' }
 
 export default function ReportesView({ appts, patients, doctors, profile, isMobile }) {
@@ -132,13 +132,14 @@ export default function ReportesView({ appts, patients, doctors, profile, isMobi
       const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' })
       const margin = 25
       const pdfW = pdf.internal.pageSize.getWidth()-margin*2
-      const pdfH = pdf.internal.pageSize.getHeight()-margin*2
+      const pageH = pdf.internal.pageSize.getHeight()
+      const contentH = pageH - margin*2
       const imgH = (canvas.height*pdfW)/canvas.width
       let y=0
       while(y<imgH) {
         if(y>0) pdf.addPage()
         pdf.addImage(imgData,'PNG',margin,margin-y,pdfW,imgH)
-        y+=pdfH
+        y+=contentH
       }
       pdf.save(`Reporte_MedTrack_${dateFrom}_${dateTo}.pdf`)
     } catch(e){console.error(e)}
