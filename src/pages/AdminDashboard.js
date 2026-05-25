@@ -1330,7 +1330,7 @@ export default function AdminDashboard() {
               {calView === 'semana' && (() => {
                 const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 64
+                const SLOT_H = 80
                 const now = new Date()
                 const todayStr = now.toISOString().split('T')[0]
                 const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
@@ -1360,8 +1360,9 @@ export default function AdminDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
-                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 12 ? '12 PM' : h < 12 ? h+' AM' : h === 24 ? '12 AM' : (h-12)+' PM'}</span>
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                              <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
                             </div>
                           ))}
                         </div>
@@ -1370,8 +1371,10 @@ export default function AdminDashboard() {
                           return (
                             <div key={dateStr} style={{ borderLeft:'0.5px solid #f0f0f0', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', cursor:'pointer' }}
-                                  onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }} />
+                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', cursor:'pointer', position:'relative' }}
+                                  onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
+                                  <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                                </div>
                               ))}
                               {isToday && nowOffsetPx >= 0 && (
                                 <div style={{ position:'absolute', left:0, right:0, top:nowOffsetPx, zIndex:10, display:'flex', alignItems:'center' }}>
@@ -1422,7 +1425,7 @@ export default function AdminDashboard() {
                 const el = document.getElementById('cal-semana-scroll')
                 if (el) {
                   const now = new Date()
-                  const SLOT_H = 64
+                  const SLOT_H = 80
                   const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * SLOT_H - 100
                   setTimeout(() => { el.scrollTop = Math.max(0, offset) }, 100)
                 }
@@ -1433,7 +1436,7 @@ export default function AdminDashboard() {
               {calView === 'dia' && (() => {
                 const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 72
+                const SLOT_H = 88
                 const now = new Date()
                 const todayStr = now.toISOString().split('T')[0]
                 const currentDate = selDate || todayStr
@@ -1454,15 +1457,18 @@ export default function AdminDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
-                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 12 ? '12 PM' : h < 12 ? h+' AM' : h === 24 ? '12 AM' : (h-12)+' PM'}</span>
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                              <span style={{ fontSize:10, color:'#bbb' }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                              <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
                             </div>
                           ))}
                         </div>
                         <div style={{ position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0', cursor:'pointer' }}
-                              onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }} />
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0', cursor:'pointer', position:'relative' }}
+                              onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
+                              <div style={{ position:'absolute', bottom:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                            </div>
                           ))}
                           {isToday && nowOffsetPx >= 0 && (
                             <div style={{ position:'absolute', left:0, right:0, top:nowOffsetPx, zIndex:10, display:'flex', alignItems:'center' }}>
