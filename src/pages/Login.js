@@ -118,7 +118,7 @@ export default function Login() {
   }
 
   const s = {
-    bg: { minHeight:'100vh', background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px 16px', fontFamily:'system-ui,-apple-system,sans-serif' },
+    bg: { minHeight:'100vh', background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px 16px', fontFamily:''Inter', system-ui, sans-serif' },
     card: { width:'100%', maxWidth:440, background:'#fff', borderRadius:20, padding:'32px 28px', boxShadow:'0 4px 24px rgba(0,0,0,0.08)' },
     logoWrap: { display:'flex', alignItems:'center', gap:10, marginBottom:24 },
     logoMark: { width:40, height:40, borderRadius:12, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 },
