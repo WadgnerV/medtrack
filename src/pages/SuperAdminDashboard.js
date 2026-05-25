@@ -216,31 +216,59 @@ export default function SuperAdminDashboard() {
               </div>
               <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true }); setModal('clinic') }}>+ Nueva clínica</button>
             </div>
-            <div style={s.card}>
-              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
-                <thead>
-                  <tr style={{ borderBottom:'1px solid #f0f0f0' }}>
-                    {['Clínica','Plan','Admins','Estado','Acciones'].map(h => <th key={h} style={s.th}>{h}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {clinics.map(clinic => (
-                    <tr key={clinic.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
-                      <td style={{ ...s.td, fontWeight:500, color:'#1a1a1a' }}>{clinic.name}</td>
-                      <td style={s.td}><span style={{ ...s.badge, background:'#E6F1FB', color:'#185FA5' }}>{clinic.plan}</span></td>
-                      <td style={{ ...s.td, color:'#666' }}>{clinicAdminCount(clinic.id)}</td>
-                      <td style={s.td}><span style={{ ...s.badge, background: clinic.is_active?'#E1F5EE':'#f5f5f5', color: clinic.is_active?'#0F6E56':'#999' }}>{clinic.is_active?'Activa':'Inactiva'}</span></td>
-                      <td style={s.td}>
-                        <div style={{ display:'flex', gap:6 }}>
-                          <button style={s.btnEdit} onClick={() => { setForm({ ...clinic }); setModal('clinic') }}>Editar</button>
-                          <button style={s.btnDanger} onClick={() => deleteClinic(clinic.id)}>Eliminar</button>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
+              {clinics.map(clinic => {
+                const permitLabel = { yes:'✅ Sí', in_progress:'🟡 En trámite', no:'❌ No' }
+                const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }
+                const planColor = { basic:'#185FA5', gold:'#854F0B', enterprise:'#553c9a' }
+                const planBg = { basic:'#E6F1FB', gold:'#FAEEDA', enterprise:'#f0ebff' }
+                return (
+                  <div key={clinic.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+                    {/* Header card */}
+                    <div style={{ background: clinic.is_active ? BLUE : '#718096', padding:'16px 18px' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                        <div style={{ fontSize:16, fontWeight:700, color:'#fff', lineHeight:1.3 }}>{clinic.name}</div>
+                        <span style={{ ...s.badge, background:'rgba(255,255,255,0.2)', color:'#fff', fontSize:10, flexShrink:0, marginLeft:8 }}>{clinic.is_active?'Activa':'Inactiva'}</span>
+                      </div>
+                      <div style={{ display:'flex', gap:6, marginTop:8, flexWrap:'wrap' }}>
+                        <span style={{ ...s.badge, background: planBg[clinic.plan]||'#E6F1FB', color: planColor[clinic.plan]||'#185FA5', fontSize:10 }}>{planLabel[clinic.plan]||clinic.plan}</span>
+                        <span style={{ ...s.badge, background:'rgba(255,255,255,0.15)', color:'#fff', fontSize:10 }}>{clinicAdminCount(clinic.id)} admin{clinicAdminCount(clinic.id)!==1?'s':''}</span>
+                      </div>
+                    </div>
+                    {/* Body card */}
+                    <div style={{ padding:'14px 18px' }}>
+                      {[
+                        ['Razón social', clinic.legal_name],
+                        ['Cédula jurídica/física', clinic.legal_id],
+                        ['País', clinic.country],
+                        ['Provincia', clinic.province],
+                        ['Cantón', clinic.canton],
+                        ['Distrito', clinic.district],
+                        ['Dirección', clinic.address],
+                        ['Teléfono', clinic.phone ? `${clinic.phone_country_code||''} ${clinic.phone}` : null],
+                        ['WhatsApp', clinic.whatsapp],
+                        ['Correo', clinic.email],
+                        ['Sitio web', clinic.website],
+                        ['Contrato', clinic.contract_ref],
+                        ['Permiso municipal', clinic.municipal_permit ? permitLabel[clinic.municipal_permit] : null],
+                        ['Permiso sanitario', clinic.health_permit ? permitLabel[clinic.health_permit] : null],
+                        ['Lista para operar', clinic.operational ? permitLabel[clinic.operational] : null],
+                      ].map(([label, value]) => value ? (
+                        <div key={label} style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', borderBottom:'0.5px solid #f5f5f5', gap:8 }}>
+                          <span style={{ fontSize:11, color:'#999', flexShrink:0 }}>{label}</span>
+                          <span style={{ fontSize:11, color:'#444', textAlign:'right', wordBreak:'break-word', maxWidth:'60%' }}>{value}</span>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {clinics.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay clínicas registradas</div>}
+                      ) : null)}
+                    </div>
+                    {/* Footer card */}
+                    <div style={{ padding:'10px 18px', borderTop:'0.5px solid #f0f0f0', display:'flex', gap:8 }}>
+                      <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...clinic }); setModal('clinic') }}>Editar</button>
+                      <button style={{ ...s.btnDanger, flex:1, textAlign:'center' }} onClick={() => deleteClinic(clinic.id)}>Eliminar</button>
+                    </div>
+                  </div>
+                )
+              })}
+              {clinics.length === 0 && <div style={{ gridColumn:'1/-1', textAlign:'center', padding:40, color:'#999', fontSize:13 }}>No hay clínicas registradas</div>}
             </div>
           </div>
         )}
