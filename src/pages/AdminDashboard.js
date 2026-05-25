@@ -204,6 +204,8 @@ export default function AdminDashboard() {
   const [cie10Search, setCie10Search] = useState('')
   const [cie10Results, setCie10Results] = useState([])
   const [clinicSettings, setClinicSettings] = useState(null)
+  const [clinicPlan, setClinicPlan] = useState('basic')
+  const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria'])
   const [savingSettings, setSavingSettings] = useState(false)
 
   useEffect(() => { if (profile?.id) loadAll() }, [profile?.id])
@@ -220,6 +222,43 @@ export default function AdminDashboard() {
   async function loadClinicSettings() {
     const { data } = await supabase.from('clinic_settings').select('*').limit(1).single()
     if (data) setClinicSettings(data)
+    // Cargar plan de la clínica
+    if (profile?.clinic_id) {
+      const { data: clinic } = await supabase.from('clinics').select('plan, enabled_modules').eq('id', profile.clinic_id).single()
+      if (clinic?.plan) setClinicPlan(clinic.plan)
+      if (clinic?.enabled_modules) setEnabledModules(clinic.enabled_modules)
+    }
+  }
+
+  const PLAN_LIMITS = {
+    basic:      { doctors: 2, patients: 100, modules: 2 },
+    gold:       { doctors: 10, patients: 500, modules: 5 },
+    enterprise: { doctors: Infinity, patients: Infinity, modules: Infinity },
+  }
+
+  function checkLimit(type) {
+    const limits = PLAN_LIMITS[clinicPlan] || PLAN_LIMITS.basic
+    const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }[clinicPlan]
+    if (type === 'doctor') {
+      const activeDoctors = doctors.filter(d => d.role === 'doctor').length
+      if (activeDoctors >= limits.doctors) {
+        alert(`Tu plan ${planLabel} permite un máximo de ${limits.doctors} médico${limits.doctors!==1?'s':''}. Para agregar más, actualizá tu plan.`)
+        return false
+      }
+    }
+    if (type === 'patient') {
+      if (patients.length >= limits.patients) {
+        alert(`Tu plan ${planLabel} permite un máximo de ${limits.patients} pacientes. Para agregar más, actualizá tu plan.`)
+        return false
+      }
+    }
+    if (type === 'module') {
+      if (limits.modules !== Infinity) {
+        alert(`Tu plan ${planLabel} permite un máximo de ${limits.modules} módulo${limits.modules!==1?'s':''}. Para agregar más, actualizá tu plan.`)
+        return false
+      }
+    }
+    return true
   }
 
   async function saveClinicSettings() {
@@ -895,8 +934,8 @@ export default function AdminDashboard() {
               </div>
               <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
-            {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-doctor') }}>+ Nuevo médico</button>}
-            {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
+            {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('doctor')) return; setFormError(''); setModal('new-doctor') }}>+ Nuevo médico</button>}
+            {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
           </div>
@@ -1988,7 +2027,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
       })()}
 
       {tab === 'modulos' && (
-        <CareModulesAdmin patient={patient} doctors={doctors} onModulesUpdated={loadCareModules} />
+        <CareModulesAdmin patient={patient} doctors={doctors} onModulesUpdated={loadCareModules} enabledModules={enabledModules} clinicPlan={clinicPlan} />
       )}
 
       {tab === 'diagnosticos' && (
@@ -2296,7 +2335,7 @@ const sa = {
 }
 
 
-function CareModulesAdmin({ patient, doctors, onModulesUpdated }) {
+function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules = ['integral','metabolica','estetica','fisioterapia','enfermeria'], clinicPlan = 'basic' }) {
   const G = '#0F6E56'
   const [modules, setModules] = useState([])
   const [saving, setSaving] = useState(null)
@@ -2308,7 +2347,7 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated }) {
     { key:'estetica', label:'Atención médica estética' },
     { key:'fisioterapia', label:'Atención de fisioterapia' },
     { key:'enfermeria', label:'Atención de enfermería' },
-  ]
+  ].filter(m => enabledModules.includes(m.key))
 
   useEffect(() => { if (patient?.id) loadModules() }, [patient])
 
@@ -2324,6 +2363,17 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated }) {
 
   async function toggleModule(type) {
     const existing = getModule(type)
+    // Verificar límite de módulos si se va a activar uno nuevo
+    if (!existing || !existing.is_active) {
+      const activeModules = modules.filter(m => m.is_active).length
+      const limits = { basic: 2, gold: 5, enterprise: Infinity }
+      const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }
+      const limit = limits[clinicPlan] ?? 2
+      if (activeModules >= limit && limit !== Infinity) {
+        alert(`Tu plan ${planLabel[clinicPlan]} permite un máximo de ${limit} módulo${limit!==1?'s':''} activo${limit!==1?'s':''}. Para activar más, actualizá tu plan.`)
+        return
+      }
+    }
     setSaving(type)
     if (existing) {
       await supabase.from('patient_care_modules').update({ is_active: !existing.is_active }).eq('id', existing.id)

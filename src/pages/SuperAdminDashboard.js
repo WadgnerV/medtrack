@@ -92,6 +92,7 @@ export default function SuperAdminDashboard() {
       plan: form.plan||'basic', contract_ref: form.contract_ref||null,
       municipal_permit: form.municipal_permit||'no', health_permit: form.health_permit||'no',
       operational: form.operational||'no', send_welcome_email: form.send_welcome_email!==false,
+      enabled_modules: form.plan === 'enterprise' ? ['integral','metabolica','estetica','fisioterapia','enfermeria'] : (form.enabled_modules||[]),
     }
     if (form.id) {
       await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
@@ -461,7 +462,16 @@ export default function SuperAdminDashboard() {
             <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:10, marginTop:16 }}>Plan y permisos</div>
             <div style={{ marginBottom:12 }}>
               <label style={s.fieldLabel}>Plan adquirido <span style={{ color:'#D85A30' }}>*</span></label>
-              <select value={form.plan||'basic'} onChange={f('plan')} style={s.input}>
+              <select value={form.plan||'basic'} onChange={e => {
+                const newPlan = e.target.value
+                setForm(p => ({
+                  ...p,
+                  plan: newPlan,
+                  enabled_modules: newPlan === 'enterprise' 
+                    ? ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                    : (p.enabled_modules||[]).slice(0, newPlan === 'basic' ? 2 : 5)
+                }))
+              }} style={s.input}>
                 <option value="basic">Básico</option>
                 <option value="gold">Gold</option>
                 <option value="enterprise">Enterprise</option>
@@ -480,6 +490,42 @@ export default function SuperAdminDashboard() {
                 </div>
               )}
             </div>
+            <div style={{ marginBottom:12 }}>
+              <label style={s.fieldLabel}>Módulos habilitados <span style={{ color:'#D85A30' }}>*</span></label>
+              <div style={{ fontSize:11, color:'#718096', marginBottom:8 }}>
+                {{'basic':'Seleccioná hasta 2 módulos','gold':'Seleccioná hasta 5 módulos','enterprise':'Todos los módulos disponibles'}[form.plan||'basic']}
+              </div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                {[['integral','Atención Integral'],['metabolica','Atención Metabólica'],['estetica','Atención Estética'],['fisioterapia','Fisioterapia'],['enfermeria','Enfermería']].map(([key, label]) => {
+                  const selected = (form.enabled_modules||[]).includes(key)
+                  const maxModules = {'basic':2,'gold':5,'enterprise':5}[form.plan||'basic']
+                  const atMax = (form.enabled_modules||[]).length >= maxModules && !selected
+                  return (
+                    <div key={key} onClick={() => {
+                      if (form.plan === 'enterprise') {
+                        const all = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                        setForm(p => ({...p, enabled_modules: all}))
+                        return
+                      }
+                      if (atMax) return
+                      setForm(p => ({
+                        ...p,
+                        enabled_modules: selected
+                          ? (p.enabled_modules||[]).filter(m => m !== key)
+                          : [...(p.enabled_modules||[]), key]
+                      }))
+                    }}
+                    style={{ padding:'6px 14px', borderRadius:20, border:`1px solid ${selected?'#1a3a5c':'#e2e8f0'}`, background: selected?'#1a3a5c': atMax?'#f5f5f5':'#f7fafc', color: selected?'#fff': atMax?'#ccc':'#555', fontSize:12, fontWeight: selected?600:400, cursor: atMax?'not-allowed':'pointer', userSelect:'none' }}>
+                      {label}
+                    </div>
+                  )
+                })}
+              </div>
+              {form.plan === 'enterprise' && (
+                <div style={{ fontSize:11, color:'#0F6E56', marginTop:6 }}>✅ Plan Enterprise — todos los módulos habilitados automáticamente</div>
+              )}
+            </div>
+
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
               <div>
                 <label style={s.fieldLabel}>Permiso municipal</label>
