@@ -458,6 +458,11 @@ export default function DoctorDashboard() {
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} saving={saving} defaultDate={selDate} defaultTime={modalData.defaultTime}
                 doctorId={profile?.id} onSave={saveAppt} onClose={() => setModal(null)}
+                onCancelAppt={async (id) => {
+                  if (!window.confirm('¿Estás seguro que querés cancelar esta cita?')) return
+                  await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', id)
+                  await loadAppts(); setModal(null)
+                }}
                 onGoToExpediente={(appt) => {
                   const p = patients.find(p => p.id === appt.patient_id)
                   if (p) {
@@ -1573,7 +1578,7 @@ function NoteForm({ saving, onSave, onClose }) {
 
 const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
 
-function ApptForm({ appt, patients, saving, defaultDate, defaultTime, doctorId, onSave, onClose, onGoToExpediente }) {
+function ApptForm({ appt, patients, saving, defaultDate, defaultTime, doctorId, onSave, onClose, onGoToExpediente, onCancelAppt }) {
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
@@ -1679,6 +1684,10 @@ function ApptForm({ appt, patients, saving, defaultDate, defaultTime, doctorId, 
 
       <div style={{ display:'flex', gap:8 }}>
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
+        {appt && onCancelAppt && (
+          <button style={{ background:'#fff', border:'1px solid #D85A30', color:'#D85A30', fontSize:14, padding:'7px 12px', borderRadius:8, cursor:'pointer' }}
+            onClick={() => onCancelAppt(appt.id)}>🗑 Cancelar cita</button>
+        )}
         <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
       </div>
     </>
