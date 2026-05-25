@@ -420,6 +420,19 @@ export default function AdminDashboard() {
       }).eq('id', userId)
     }
 
+    // Enviar correo de bienvenida al nuevo doctor/staff
+    if (role === 'doctor' && form.email) {
+      const { data: cs } = await supabase.from('clinic_settings').select('clinic_name').limit(1).single()
+      await supabase.functions.invoke('staff-welcome', {
+        body: {
+          staff_email: form.email,
+          staff_name: `${form.firstName} ${form.lastName}`,
+          staff_role: 'doctor',
+          clinic_name: cs?.clinic_name || 'la clínica',
+          app_url: 'https://medtrack-gilt.vercel.app',
+        }
+      })
+    }
     if (role === 'doctor') await loadDoctors()
     else await loadPatients()
     setModal(null); setSaving(false)
