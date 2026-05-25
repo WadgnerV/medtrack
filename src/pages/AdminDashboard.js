@@ -8,6 +8,7 @@ import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
 import FisioterapiaModule from './FisioterapiaModule'
 import EnfermeriaModule from './EnfermeriaModule'
+import ReportesView from '../components/ReportesView'
 import UserMenu from '../components/UserMenu'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
@@ -1606,56 +1607,13 @@ export default function AdminDashboard() {
           )}
 
           {view === 'reportes' && (
-            <div>
-              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap:10, marginBottom:14 }}>
-                {[{ l:'Total pacientes', v:patients.length }, { l:'Citas este mes', v:appts.filter(a => a.appointment_date?.startsWith(new Date().toISOString().substring(0,7))).length }, { l:'Mensajes totales', v:msgs.length }, { l:'Medicos activos', v:doctors.length }].map((m,i) => (
-                  <div key={i} style={{ background:'#f8f8f8', borderRadius:10, padding:'12px 14px' }}>
-                    <div style={{ fontSize:14, color:'#888', marginBottom:4 }}>{m.l}</div>
-                    <div style={{ fontSize:22, fontWeight:500, color:'#1a1a1a' }}>{m.v}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:14 }}>
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Pacientes por provincia</div>
-                  {[...new Set(patients.map(p => p.province).filter(Boolean))].map(prov => {
-                    const count = patients.filter(p => p.province === prov).length
-                    const pct = patients.length ? (count / patients.length * 100) : 0
-                    return (
-                      <div key={prov} style={{ marginBottom:9 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:14, marginBottom:3 }}>
-                          <span style={{ color:'#444' }}>{prov}</span><span style={{ fontWeight:500 }}>{count}</span>
-                        </div>
-                        <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
-                          <div style={{ height:'100%', background:G, borderRadius:3, width: pct + '%' }} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {patients.filter(p => p.province).length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Sin datos de provincia aun</div>}
-                </div>
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Distribucion por sexo</div>
-                  {['female','male','other'].map(sx => {
-                    const count = patients.filter(p => p.sex === sx).length
-                    const pct = patients.length ? (count / patients.length * 100) : 0
-                    const labels = { female:'Femenino', male:'Masculino', other:'Otro' }
-                    const colors = { female:G, male:'#185FA5', other:'#BA7517' }
-                    return (
-                      <div key={sx} style={{ marginBottom:9 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:14, marginBottom:3 }}>
-                          <span style={{ color:'#444' }}>{labels[sx]}</span>
-                          <span style={{ fontWeight:500 }}>{count} ({Math.round(pct)}%)</span>
-                        </div>
-                        <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
-                          <div style={{ height:'100%', borderRadius:3, width: pct + '%', background: colors[sx] }} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
+            <ReportesView
+              appts={appts}
+              patients={patients}
+              doctors={doctors}
+              profile={profile}
+              isMobile={isMobile}
+            />
           )}
 
           {view === 'biblioteca' && (
