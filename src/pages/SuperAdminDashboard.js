@@ -93,6 +93,17 @@ export default function SuperAdminDashboard() {
     } else {
       await supabase.from('clinics').insert({ ...payload, is_active: true })
     }
+    // Enviar correo de bienvenida si es clínica nueva y send_welcome_email es true
+    if (!form.id && form.send_welcome_email !== false && form.email) {
+      await supabase.functions.invoke('clinic-welcome', {
+        body: {
+          clinic_name: form.name,
+          clinic_email: form.email,
+          plan: form.plan || 'basic',
+          legal_name: form.legal_name || null,
+        }
+      })
+    }
     await loadClinics(); setModal(null); setSaving(false)
   }
 
