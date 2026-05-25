@@ -1092,7 +1092,12 @@ export default function AdminDashboard() {
                 <div style={{ flex:'0 0 14%' }}>Estado</div>
                 <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
               </div>}
-              {doctors.map(d => isMobile ? (
+              {[...doctors].sort((a,b) => {
+                const la = (a.last_name||'').toLowerCase()
+                const lb = (b.last_name||'').toLowerCase()
+                if (la !== lb) return la.localeCompare(lb)
+                return (a.first_name||'').toLowerCase().localeCompare((b.first_name||'').toLowerCase())
+              }).map(d => isMobile ? (
                 <div key={d.id} style={{ padding:'12px 14px', borderTop:'0.5px solid #f0f0f0' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                     <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
@@ -1206,6 +1211,11 @@ export default function AdminDashboard() {
                 const email = (p.email||'').toLowerCase()
                 const diag = (allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description||'').toLowerCase()
                 return nombre.includes(q)||email.includes(q)||diag.includes(q)
+              }).sort((a,b) => {
+                const la = (a.profile?.last_name||'').toLowerCase()
+                const lb = (b.profile?.last_name||'').toLowerCase()
+                if (la !== lb) return la.localeCompare(lb)
+                return (a.profile?.first_name||'').toLowerCase().localeCompare((b.profile?.first_name||'').toLowerCase())
               }).map(p => isMobile ? (
                 <div key={p.id} onClick={() => openPatient(p)} style={{ padding:'12px 14px', borderTop:'0.5px solid #f0f0f0', cursor:'pointer' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
