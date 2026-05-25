@@ -8,6 +8,16 @@ const BLUE = '#1a3a5c'
 const HEALTH_PROFESSIONS = ['Médico general','Médico especialista','Enfermero/a','Fisioterapeuta','Nutricionista','Psicólogo/a','Odontólogo/a','Otro profesional de la salud']
 const ADMIN_PROFESSIONS = ['Administrador/a de clínica','Recepcionista','Contador/a','Asistente administrativo/a','Otro profesional administrativo']
 const ALL_PROFESSIONS = [...HEALTH_PROFESSIONS, ...ADMIN_PROFESSIONS]
+
+const CR_DATA = {
+  'San José': ['San José','Escazú','Desamparados','Puriscal','Tarrazú','Aserrí','Mora','Goicoechea','Santa Ana','Alajuelita','Vázquez de Coronado','Acosta','Tibás','Moravia','Montes de Oca','Turrubares','Dota','Curridabat','Pérez Zeledón','León Cortés'],
+  'Alajuela': ['Alajuela','San Ramón','Grecia','San Mateo','Atenas','Naranjo','Palmares','Poás','Orotina','San Carlos','Zarcero','Valverde Vega','Upala','Los Chiles','Guatuso','Río Cuarto'],
+  'Cartago': ['Cartago','Paraíso','La Unión','Jiménez','Turrialba','Alvarado','Oreamuno','El Guarco'],
+  'Heredia': ['Heredia','Barva','Santo Domingo','Santa Bárbara','San Rafael','San Isidro','Belén','Flores','San Pablo','Sarapiquí'],
+  'Guanacaste': ['Liberia','Nicoya','Santa Cruz','Bagaces','Carrillo','Cañas','Abangares','Tilarán','Nandayure','La Cruz','Hojancha'],
+  'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Río Nuevo','Monteverde','Puerto Jiménez'],
+  'Limón': ['Limón','Pococí','Siquirres','Talamanca','Matina','Guácimo'],
+}
 const isHealthPro = (prof) => HEALTH_PROFESSIONS.includes(prof)
 
 const s = {
@@ -76,7 +86,7 @@ export default function SuperAdminDashboard() {
       whatsapp: form.whatsapp||null, email: form.email||null, website: form.website||null,
       plan: form.plan||'basic', contract_ref: form.contract_ref||null,
       municipal_permit: form.municipal_permit||'no', health_permit: form.health_permit||'no',
-      operational: form.operational||false, send_welcome_email: form.send_welcome_email!==false,
+      operational: form.operational||'no', send_welcome_email: form.send_welcome_email!==false,
     }
     if (form.id) {
       await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
@@ -322,19 +332,27 @@ export default function SuperAdminDashboard() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
               <div>
                 <label style={s.fieldLabel}>País</label>
-                <input value={form.country||'Costa Rica'} onChange={f('country')} placeholder="Costa Rica" style={s.input} />
+                <select value={form.country||'Costa Rica'} onChange={f('country')} style={s.input}>
+                  <option value="Costa Rica">Costa Rica</option>
+                </select>
               </div>
               <div>
                 <label style={s.fieldLabel}>Provincia</label>
-                <input value={form.province||''} onChange={f('province')} placeholder="San José" style={s.input} />
+                <select value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value, canton:'', district:''}))} style={s.input}>
+                  <option value="">Seleccioná...</option>
+                  {Object.keys(CR_DATA).map(prov => <option key={prov} value={prov}>{prov}</option>)}
+                </select>
               </div>
               <div>
                 <label style={s.fieldLabel}>Cantón</label>
-                <input value={form.canton||''} onChange={f('canton')} placeholder="Escazú" style={s.input} />
+                <select value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value, district:''}))} style={s.input} disabled={!form.province}>
+                  <option value="">Seleccioná...</option>
+                  {(CR_DATA[form.province]||[]).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
               <div>
                 <label style={s.fieldLabel}>Distrito</label>
-                <input value={form.district||''} onChange={f('district')} placeholder="San Rafael" style={s.input} />
+                <input value={form.district||''} onChange={f('district')} placeholder="Distrito" style={s.input} />
               </div>
             </div>
             <div style={{ marginBottom:12 }}>
@@ -352,7 +370,12 @@ export default function SuperAdminDashboard() {
               </select>
               {form.plan && (
                 <div style={{ marginTop:8, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:'10px 12px' }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:BLUE, marginBottom:6 }}>Incluye:</div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:BLUE }}>Incluye:</div>
+                    <div style={{ fontSize:12, fontWeight:700, color:BLUE, background:'#e8f0f8', padding:'2px 10px', borderRadius:20 }}>
+                      {{'basic':'$49/mes','gold':'$199/mes','enterprise':'$449/mes'}[form.plan]}
+                    </div>
+                  </div>
                   {{'basic':['Hasta 2 médicos','Hasta 100 pacientes','2 módulos activos','Soporte por email'],'gold':['Hasta 10 médicos','Hasta 500 pacientes','Hasta 5 módulos personalizables','Reportes avanzados','Soporte prioritario'],'enterprise':['Médicos ilimitados','Pacientes ilimitados','Módulos personalizados ilimitados','Reportes + exportación','Soporte dedicado','Personalización de marca']}[form.plan]?.map((item,i) => (
                     <div key={i} style={{ fontSize:12, color:'#555', marginBottom:3 }}>✓ {item}</div>
                   ))}
@@ -378,12 +401,18 @@ export default function SuperAdminDashboard() {
               </div>
               <div>
                 <label style={s.fieldLabel}>Lista para operar</label>
-                <select value={form.operational===true?'true':form.operational===false?'false':'false'} onChange={e => setForm(p=>({...p,operational:e.target.value==='true'}))} style={s.input}>
-                  <option value="true">Sí</option>
-                  <option value="false">No / En trámite</option>
+                <select value={form.operational||'no'} onChange={f('operational')} style={s.input}>
+                  <option value="yes">Sí</option>
+                  <option value="in_progress">En trámite</option>
+                  <option value="no">No</option>
                 </select>
               </div>
             </div>
+            {(form.municipal_permit === 'no' || form.health_permit === 'no') && (
+              <div style={{ background:'#FAEEDA', border:'1px solid #F59E0B', borderRadius:8, padding:'10px 14px', marginBottom:12, fontSize:12, color:'#854F0B' }}>
+                ⚠️ <strong>Atención:</strong> Esta clínica tiene permisos pendientes. Verifique esta información nuevamente en un lapso de tiempo oportuno antes de autorizar operaciones.
+              </div>
+            )}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
               <div>
                 <label style={s.fieldLabel}>Referencia de contrato</label>
