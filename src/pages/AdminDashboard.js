@@ -276,7 +276,7 @@ export default function AdminDashboard() {
   }
 
   async function loadPatients() {
-    const { data } = await supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, profile:profile_id(id, first_name, last_name, email), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
+    const { data } = await supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
     setPatients(data || [])
   }
 
@@ -1029,10 +1029,11 @@ export default function AdminDashboard() {
                 <div style={{ flex:'0 0 12%', textAlign:'right' }}>Acciones</div>
               </div>}
               {patients.filter(p => {
+                if (p.profile?.role === 'admin' || p.profile?.role === 'superadmin' || p.profile?.role === 'doctor') return false
                 const q = searchPac.toLowerCase()
                 if(!q) return true
-                const nombre = ((p.first_name||'')+' '+(p.last_name||'')).toLowerCase()
-                const email = (p.email||'').toLowerCase()
+                const nombre = ((p.profile?.first_name||'')+' '+(p.profile?.last_name||'')).toLowerCase()
+                const email = (p.profile?.email||'').toLowerCase()
                 const diag = (allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description||'').toLowerCase()
                 return nombre.includes(q)||email.includes(q)||diag.includes(q)
               }).sort((a,b) => {
