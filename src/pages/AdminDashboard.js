@@ -1102,7 +1102,7 @@ export default function AdminDashboard() {
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                     <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.first_name} {d.last_name}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.last_name} {d.first_name}</div>
                       <div style={{ fontSize:12, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
                     </div>
                     <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
@@ -1126,7 +1126,7 @@ export default function AdminDashboard() {
                   <div style={{ flex:'0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
                     <div style={{ minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.first_name} {d.last_name}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.last_name} {d.first_name}</div>
                       <div style={{ fontSize:14, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
                     </div>
                   </div>
@@ -1221,7 +1221,7 @@ export default function AdminDashboard() {
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
                     <div style={{ width:34, height:34, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
                       <div style={{ fontSize:12, color:'#999' }}>{p.specialty_type || '--'} · {age(p.birth_date)} años</div>
                     </div>
                     <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
@@ -1241,7 +1241,7 @@ export default function AdminDashboard() {
                   <div style={{ flex:'0 0 28%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                     <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                     <div style={{ minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pName(p)}</div>
+                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
                       <div style={{ fontSize:14, color:'#999' }}>{p.specialty_type || '--'}</div>
                     </div>
                   </div>
