@@ -345,8 +345,24 @@ export default function AdminDashboard() {
     if (type === 'library') { await supabase.from('library_items').delete().eq('id', id); await loadLibrary() }
     if (type === 'patient') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await supabase.from('patients').update({ status: 'inactive' }).eq('id', id); await loadPatients() }
     if (type === 'note') { await supabase.from('clinical_notes').delete().eq('id', id); if (selPatient) { const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false }); setNotes(data || []) } }
-    if (type === 'doctor') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await loadDoctors() }
+    if (type === 'doctor') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await supabase.from('profiles').delete().eq('id', id); await loadDoctors() }
     setModal(null)
+  }
+
+  async function openDeleteDoctor(doctor) {
+    // Verificar si tiene pacientes asignados en módulos
+    const { data: mods } = await supabase.from('patient_care_modules')
+      .select('patient_id, module_type')
+      .eq('assigned_professional_id', doctor.id)
+      .eq('is_active', true)
+    
+    if (mods && mods.length > 0) {
+      setModal('confirm-delete-doctor-blocked')
+      setModalData({ doctor, modCount: mods.length })
+    } else {
+      setModal('confirm-delete')
+      setModalData({ type:'doctor', id: doctor.id, name: doctor.first_name + SP + doctor.last_name })
+    }
   }
   async function updateApptStatus(id, status, appt = null) {
     await supabase.from('appointments').update({ status }).eq('id', id)
@@ -669,6 +685,20 @@ export default function AdminDashboard() {
                     disabled={saving} onClick={() => deleteRecord(modalData.type, modalData.id)}>
                     {saving ? 'Eliminando...' : 'Si, eliminar'}
                   </button>
+                </div>
+              </>
+            )}
+            {modal === 'confirm-delete-doctor-blocked' && (
+              <>
+                <div style={{ fontSize:15, fontWeight:600, color:'#D85A30', marginBottom:12 }}>⚠️ No se puede eliminar este médico</div>
+                <p style={{ fontSize:14, color:'#666', marginBottom:8, lineHeight:1.6 }}>
+                  <strong>{modalData.doctor?.first_name} {modalData.doctor?.last_name}</strong> tiene <strong>{modalData.modCount} paciente{modalData.modCount !== 1 ? 's' : ''}</strong> asignado{modalData.modCount !== 1 ? 's' : ''} en módulos activos.
+                </p>
+                <p style={{ fontSize:14, color:'#666', marginBottom:18, lineHeight:1.6 }}>
+                  Antes de eliminar este perfil, asegurate de reasignar o desactivar los módulos médicos en los que está asignado.
+                </p>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center' }} onClick={() => setModal(null)}>Entendido</button>
                 </div>
               </>
             )}
@@ -1079,7 +1109,7 @@ export default function AdminDashboard() {
                         <>
                           <button style={s.iconBtn} onClick={() => setViewPersist('permisos')}>P</button>
                           <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
-                          <button style={s.iconBtnDel} onClick={() => openDelete('doctor', d.id, d.first_name + SP + d.last_name)}>X</button>
+                          <button style={s.iconBtnDel} onClick={() => openDeleteDoctor(d)}>X</button>
                         </>
                       )}
                       {d.role === 'admin' && <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>}
@@ -1107,7 +1137,7 @@ export default function AdminDashboard() {
                       <>
                         <button style={s.iconBtn} onClick={() => setViewPersist('permisos')}>P</button>
                         <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
-                        <button style={s.iconBtnDel} onClick={() => openDelete('doctor', d.id, d.first_name + SP + d.last_name)}>X</button>
+                        <button style={s.iconBtnDel} onClick={() => openDeleteDoctor(d)}>X</button>
                       </>
                     )}
                     {d.role === 'admin' && <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>}
