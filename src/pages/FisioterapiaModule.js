@@ -11,7 +11,7 @@ function getYouTubeId(url) {
   return match ? match[1] : null
 }
 
-export default function FisioterapiaModule({ patient, careModule, canEdit }) {
+export default function FisioterapiaModule({ patient, careModule, canEdit, profile }) {
   const [tab, setTab] = useState(canEdit ? 'notas' : 'ejercicios')
   const [exercises, setExercises] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
@@ -118,7 +118,7 @@ export default function FisioterapiaModule({ patient, careModule, canEdit }) {
       </div>
 
       {tab === 'notas' && (
-        <ClinicalNoteForm patientId={patient?.id} moduleType="fisioterapia" color={COLOR} />
+        <ClinicalNoteForm patientId={patient?.id} moduleType="fisioterapia" color={COLOR} patient={patient} profile={profile} />
       )}
 
       {tab === 'ejercicios' && (

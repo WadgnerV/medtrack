@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const COLOR = '#0F6E56'
 
-export default function MetabolicModule({ patient, careModule, canEdit, canEditMeasurements }) {
+export default function MetabolicModule({ patient, careModule, canEdit, canEditMeasurements, profile }) {
   const [measurements, setMeasurements] = useState([])
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
@@ -205,7 +205,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
       </div>
 
       {tab === 'notas' && (
-        <ClinicalNoteForm patientId={patient?.id} moduleType='metabolica' color='#0F6E56' />
+        <ClinicalNoteForm patientId={patient?.id} moduleType='metabolica' color='#0F6E56' patient={patient} profile={profile} />
       )}
 
       {tab === 'composicion' && (

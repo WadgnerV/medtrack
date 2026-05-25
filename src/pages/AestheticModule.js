@@ -248,7 +248,7 @@ function BodyDiagram({ view, zones, procedures, selectedZone, onSelect }) {
   )
 }
 
-export default function AestheticModule({ patient, canEdit }) {
+export default function AestheticModule({ patient, canEdit, profile }) {
   const [procedures, setProcedures] = useState([])
   const [program, setProgram] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
@@ -399,7 +399,7 @@ export default function AestheticModule({ patient, canEdit }) {
       </div>
 
       {tab === 'notas' && (
-        <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' />
+        <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' patient={patient} profile={profile} />
       )}
 
       {tab === 'diagrama' && (
@@ -420,7 +420,7 @@ export default function AestheticModule({ patient, canEdit }) {
               </button>
             </div>
             {tab === 'notas' && (
-        <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' />
+        <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' patient={patient} profile={profile} />
       )}
 
       {tab === 'diagrama' && (

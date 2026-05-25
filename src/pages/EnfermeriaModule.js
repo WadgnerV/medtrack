@@ -5,7 +5,7 @@ import { TRATAMIENTOS_PREDEFINIDOS } from '../components/ListasPredefinidas'
 
 const COLOR = '#c0392b'
 
-export default function EnfermeriaModule({ patient, careModule, canEdit }) {
+export default function EnfermeriaModule({ patient, careModule, canEdit, profile }) {
   const [tab, setTab] = useState(canEdit ? 'notas' : 'tratamientos')
   const [treatments, setTreatments] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
@@ -93,7 +93,7 @@ export default function EnfermeriaModule({ patient, careModule, canEdit }) {
       </div>
 
       {tab === 'notas' && (
-        <ClinicalNoteForm patientId={patient?.id} moduleType="enfermeria" color={COLOR} />
+        <ClinicalNoteForm patientId={patient?.id} moduleType="enfermeria" color={COLOR} patient={patient} profile={profile} />
       )}
 
       {tab === 'tratamientos' && (

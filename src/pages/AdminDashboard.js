@@ -2070,10 +2070,10 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
         return (
           <div>
             {moduleType === 'integral' && <IntegralModule patient={patient} careModule={mod} canEdit={true} profile={profile} />}
-            {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} canEdit={true} canEditMeasurements={true} />}
+            {moduleType === 'metabolica' && <MetabolicModule patient={patient} careModule={mod} canEdit={true} canEditMeasurements={true} profile={profile} />}
             {moduleType === 'estetica' && <AestheticModule patient={patient} careModule={mod} canEdit={true} />}
-            {moduleType === 'fisioterapia' && <FisioterapiaModule patient={patient} careModule={mod} canEdit={true} />}
-            {moduleType === 'enfermeria' && <EnfermeriaModule patient={patient} careModule={mod} canEdit={true} />}
+            {moduleType === 'fisioterapia' && <FisioterapiaModule patient={patient} careModule={mod} canEdit={true} profile={profile} />}
+            {moduleType === 'enfermeria' && <EnfermeriaModule patient={patient} careModule={mod} canEdit={true} profile={profile} />}
           </div>
         )
       })()}

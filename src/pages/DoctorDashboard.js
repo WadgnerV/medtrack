@@ -809,8 +809,8 @@ export default function DoctorDashboard() {
                     {moduleType === 'integral' && <IntegralModule patient={selPatient} careModule={mod} canEdit={true} profile={profile} />}
                     {moduleType === 'metabolica' && <MetabolicModule patient={selPatient} careModule={mod} canEdit={true} />}
                     {moduleType === 'estetica' && <AestheticModule patient={selPatient} careModule={mod} canEdit={true} />}
-                    {moduleType === 'fisioterapia' && <FisioterapiaModule patient={selPatient} careModule={mod} canEdit={true} />}
-                    {moduleType === 'enfermeria' && <EnfermeriaModule patient={selPatient} careModule={mod} canEdit={true} />}
+                    {moduleType === 'fisioterapia' && <FisioterapiaModule patient={selPatient} careModule={mod} canEdit={true} profile={profile} />}
+                    {moduleType === 'enfermeria' && <EnfermeriaModule patient={selPatient} careModule={mod} canEdit={true} profile={profile} />}
                   </div>
                 )
               })()}
