@@ -222,7 +222,7 @@ export default function AdminDashboard() {
   }
 
   async function loadDoctors() {
-    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor']).order('first_name')
+    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor']).eq('is_active', true).order('first_name')
     setDoctors(data || [])
   }
 
