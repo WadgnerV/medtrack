@@ -7,6 +7,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const VARIANT_IDS: Record<string, string> = {
+  basic: '1704249',
+  gold: '1704251',
+  enterprise: '1704255',
+}
+
+const CHECKOUT_BASE = 'https://medtrack.lemonsqueezy.com/checkout/buy'
+
+function getCheckoutUrl(plan: string, clinicId: string, clinicEmail: string): string {
+  const variantId = VARIANT_IDS[plan] || VARIANT_IDS.basic
+  const params = new URLSearchParams({
+    'checkout[email]': clinicEmail,
+    'checkout[custom][clinic_id]': clinicId,
+  })
+  return `${CHECKOUT_BASE}/${variantId}?${params.toString()}`
+}
+
 const PLAN_INFO: Record<string, { label: string; price: string; features: string[] }> = {
   basic: { label: 'Básico', price: '$49/mes', features: ['Hasta 2 médicos', 'Hasta 100 pacientes', '2 módulos activos', 'Soporte por email'] },
   gold: { label: 'Gold', price: '$199/mes', features: ['Hasta 10 médicos', 'Hasta 500 pacientes', 'Hasta 5 módulos personalizables', 'Reportes avanzados', 'Soporte prioritario'] },
@@ -16,8 +33,9 @@ const PLAN_INFO: Record<string, { label: string; price: string; features: string
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
-    const { clinic_name, clinic_email, plan, legal_name } = await req.json()
+    const { clinic_name, clinic_email, plan, legal_name, clinic_id } = await req.json()
     const planInfo = PLAN_INFO[plan] || PLAN_INFO.basic
+    const checkoutUrl = getCheckoutUrl(plan, clinic_id, clinic_email)
 
     const featuresHtml = planInfo.features.map(f => `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
@@ -69,7 +87,8 @@ serve(async (req) => {
       </div>
       <p style="font-size:14px;color:#4a5568;line-height:1.8;margin:0 0 28px;">Estamos genuinamente emocionados de tenerlos a bordo. Si tienen alguna pregunta antes de comenzar, no duden en escribirnos. Estamos aquí para ustedes.</p>
       <div style="text-align:center;">
-        <a href="https://medtrack-gilt.vercel.app" style="background:#1a3a5c;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:14px;font-weight:600;display:inline-block;">Acceder a MedTrack →</a>
+        <a href="${checkoutUrl}" style="background:#1a3a5c;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:700;display:inline-block;letter-spacing:0.04em;">🔐 Activar suscripción →</a>
+        <div style="font-size:12px;color:#a0aec0;margin-top:10px;">Al completar el pago, su clínica quedará activa automáticamente.</div>
       </div>
     </div>
     <div style="background:#f7fafc;border-top:1px solid #e2e8f0;padding:20px 32px;">

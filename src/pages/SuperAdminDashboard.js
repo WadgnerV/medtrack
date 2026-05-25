@@ -100,8 +100,10 @@ export default function SuperAdminDashboard() {
     }
     // Correo bienvenida si es clínica nueva
     if (!form.id && form.send_welcome_email !== false && form.email) {
+      // Obtener el id de la clínica recién creada
+      const { data: newClinic } = await supabase.from('clinics').select('id').eq('name', form.name).order('created_at', { ascending: false }).limit(1).single()
       await supabase.functions.invoke('clinic-welcome', {
-        body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null }
+        body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null, clinic_id: newClinic?.id || '' }
       })
     }
     // Correo cambio de plan si es edición y el plan cambió

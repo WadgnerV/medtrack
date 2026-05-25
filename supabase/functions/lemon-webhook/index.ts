@@ -1,37 +1,98 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const LEMON_WEBHOOK_SECRET = Deno.env.get('LEMON_WEBHOOK_SECRET')!
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-signature',
+}
+
+const VARIANT_TO_PLAN: Record<string, string> = {
+  '1704249': 'basic',
+  '1704251': 'gold',
+  '1704255': 'enterprise',
+}
+
 serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+
   try {
-    const body = await req.json()
-    const eventName = body?.meta?.event_name
-    const userId = body?.meta?.custom_data?.user_id
-    const status = body?.data?.attributes?.status
+    const body = await req.text()
+    const signature = req.headers.get('x-signature') || ''
 
-    if (!userId) {
-      return new Response('No user_id', { status: 400 })
-    }
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    // Verificar firma del webhook
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
+      'raw', encoder.encode(LEMON_WEBHOOK_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
     )
+    const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(body))
+    const expectedSig = Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2,'0')).join('')
 
-    if (eventName === 'subscription_created' || eventName === 'subscription_updated') {
-      const isPro = status === 'active'
-      await supabase.from('profiles').update({
-        plan: isPro ? 'pro' : 'free'
-      }).eq('id', userId)
+    if (signature !== expectedSig) {
+      return new Response('Invalid signature', { status: 401 })
     }
 
-    if (eventName === 'subscription_cancelled' || eventName === 'subscription_expired') {
-      await supabase.from('profiles').update({
-        plan: 'free'
-      }).eq('id', userId)
+    const event = JSON.parse(body)
+    const eventName = event.meta?.event_name
+    const data = event.data?.attributes
+    const variantId = String(data?.first_subscription_item?.variant_id || data?.variant_id || '')
+    const customData = event.meta?.custom_data
+    const clinicId = customData?.clinic_id
+
+    const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+    if (eventName === 'subscription_created' || eventName === 'subscription_resumed') {
+      const plan = VARIANT_TO_PLAN[variantId] || 'basic'
+      await sb.from('clinics').update({
+        is_active: true,
+        subscription_status: 'active',
+        plan,
+        lemon_subscription_id: String(event.data?.id),
+        lemon_customer_id: String(data?.customer_id),
+        subscription_ends_at: null,
+      }).eq('id', clinicId)
     }
 
-    return new Response('ok', { status: 200 })
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+    if (eventName === 'subscription_updated') {
+      const plan = VARIANT_TO_PLAN[variantId] || 'basic'
+      await sb.from('clinics').update({
+        plan,
+        subscription_status: data?.status || 'active',
+        lemon_subscription_id: String(event.data?.id),
+      }).eq('id', clinicId)
+    }
+
+    if (eventName === 'subscription_cancelled') {
+      await sb.from('clinics').update({
+        subscription_status: 'cancelled',
+        subscription_ends_at: data?.ends_at,
+      }).eq('id', clinicId)
+    }
+
+    if (eventName === 'subscription_expired') {
+      await sb.from('clinics').update({
+        is_active: false,
+        subscription_status: 'expired',
+      }).eq('id', clinicId)
+    }
+
+    if (eventName === 'subscription_paused') {
+      await sb.from('clinics').update({
+        subscription_status: 'paused',
+        is_active: false,
+      }).eq('id', clinicId)
+    }
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  } catch (e: any) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
   }
 })
