@@ -442,11 +442,14 @@ export default function AdminDashboard() {
       const patient = patients.find(p => p.id === form.patientId)
       const doctor = doctors.find(d => d.id === form.doctorId)
       // Si cambió fecha, hora o doctor → correo de reagendamiento
+      console.log('prevAppt:', prevAppt?.appointment_date, prevAppt?.appointment_time, prevAppt?.doctor_id)
+      console.log('form:', form.date, form.time, form.doctorId)
       const wasRescheduled = prevAppt && (
         prevAppt.appointment_date !== form.date ||
         prevAppt.appointment_time?.substring(0,5) !== form.time?.substring(0,5) ||
         prevAppt.doctor_id !== form.doctorId
       )
+      console.log('wasRescheduled:', wasRescheduled)
       if (wasRescheduled && patient?.profile?.email) {
         await supabase.functions.invoke('appointment-rescheduled', {
           body: {

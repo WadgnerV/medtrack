@@ -22,8 +22,13 @@ serve(async (req) => {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
       const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
       const { data: cs } = await sb.from('clinic_settings').select('*').limit(1).single()
-      if (cs) clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
-    } catch(e) {}
+      if (cs) {
+        const parts = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter((x: unknown) => !!x)
+        clinicAddress = parts.join(', ')
+      }
+    } catch(_e) {
+      clinicAddress = ''
+    }
 
     const firstName = patient_name.split(' ')[0]
     const dateFormatted = new Date(appointment_date + 'T12:00:00').toLocaleDateString('es-CR', {

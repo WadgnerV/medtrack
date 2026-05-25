@@ -21,6 +21,19 @@ serve(async (req) => {
     })
     const timeFormatted = appointment_time?.substring(0, 5)
 
+    let clinicAddress = ''
+    try {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
+      const { data: cs } = await sb.from('clinic_settings').select('*').limit(1).single()
+      if (cs) {
+        const parts = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter((x: unknown) => !!x)
+        clinicAddress = parts.join(', ')
+      }
+    } catch(_e) {
+      clinicAddress = ''
+    }
+
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
         <div style="text-align:center;margin-bottom:24px;">
