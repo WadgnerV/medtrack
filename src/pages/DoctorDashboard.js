@@ -191,11 +191,11 @@ export default function DoctorDashboard() {
       .select('*, professional:assigned_professional_id(id, first_name, last_name)')
       .eq('patient_id', patientId)
       .eq('is_active', true)
-    const myModules = (data || []).filter(m => m.assigned_professional_id === profile.id)
-    setPatientCareModules(myModules)
-    // Establecer primera pestaña según módulos asignados
-    if (myModules.length > 0) {
-      setPatientTab('modulo_' + myModules[0].module_type)
+    const allModules = data || []
+    setPatientCareModules(allModules)
+    // Establecer primera pestaña según módulos activos
+    if (allModules.length > 0) {
+      setPatientTab('modulo_' + allModules[0].module_type)
     } else {
       setPatientTab('progreso')
     }
