@@ -105,6 +105,12 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     await load(); setSaving(false)
   }
 
+  async function deleteNote(id) {
+    if (!window.confirm('¿Estás seguro que querés eliminar esta nota? Esta acción no se puede deshacer.')) return
+    await supabase.from('clinical_notes').delete().eq('id', id)
+    await load()
+  }
+
   function startEdit(note) {
     setForm(parseNoteText(note.note_text))
     setEditingId(note.id); setShowForm(true)
@@ -250,10 +256,16 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                 {new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
               </div>
             </div>
-            <button onClick={() => startEdit(n)}
-              style={{ padding:'4px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>
-              Editar
-            </button>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={() => startEdit(n)}
+                style={{ padding:'4px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>
+                Editar
+              </button>
+              <button onClick={() => deleteNote(n.id)}
+                style={{ padding:'4px 12px', border:'1px solid #D85A30', borderRadius:8, cursor:'pointer', fontSize:12, color:'#D85A30', background:'#fff' }}>
+                Eliminar
+              </button>
+            </div>
           </div>
           <div style={{ fontSize:11, color:'#444', lineHeight:1.7, whiteSpace:'pre-wrap', background:'#f8f8f8', borderRadius:8, padding:'10px 12px' }}>
             {n.note_text}
