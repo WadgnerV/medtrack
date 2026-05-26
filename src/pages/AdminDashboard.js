@@ -390,14 +390,6 @@ export default function AdminDashboard() {
     }
     const userId = signUpData?.user?.id
 
-    // Restaurar sesión del admin
-    if (currentSession) {
-      await supabase.auth.setSession({
-        access_token: currentSession.access_token,
-        refresh_token: currentSession.refresh_token,
-      })
-    }
-
     if (role === 'patient' && userId) {
       for (let i = 0; i < 10; i++) {
         await new Promise(r => setTimeout(r, 500))
@@ -411,6 +403,14 @@ export default function AdminDashboard() {
       await supabase.from('profiles').update({
         clinic_id: profile?.clinic_id || null,
       }).eq('id', userId)
+    }
+
+    // Restaurar sesión del admin
+    if (currentSession) {
+      await supabase.auth.setSession({
+        access_token: currentSession.access_token,
+        refresh_token: currentSession.refresh_token,
+      })
     }
     // Para doctor, guardar campos extra en profiles
     if (role === 'doctor' && userId) {
