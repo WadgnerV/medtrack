@@ -2432,7 +2432,7 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules =
     if (existing) {
       await supabase.from('patient_care_modules').update({ is_active: !existing.is_active }).eq('id', existing.id)
     } else {
-      await supabase.from('patient_care_modules').insert({ clinic_id: profile?.clinic_id,
+      await supabase.from('patient_care_modules').insert({ clinic_id: patient.clinic_id,
         patient_id: patient.id,
         module_type: type,
         is_active: true,
