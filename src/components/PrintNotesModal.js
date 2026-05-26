@@ -102,7 +102,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
 
         {/* Área de previsualización */}
         <div style={{ flex:1, overflowY:'auto', padding:24, background:'#f0f4f8' }}>
-          <div ref={printRef} style={{ background:'#fff', padding:32, maxWidth:760, margin:'0 auto', fontFamily:'Calibri, "Calibri Light", Arial, sans-serif', fontSize:11, color:'#222', lineHeight:1.6 }}>
+          <div ref={printRef} style={{ background:'#fff', padding:32, maxWidth:760, margin:'0 auto', fontFamily:'Calibri, "Calibri Light", Arial, sans-serif', fontSize:13, color:'#222', lineHeight:1.7 }}>
 
             {/* ENCABEZADO */}
             <div style={{ borderBottom:'2px solid #1a3a5c', paddingBottom:14, marginBottom:20 }}>
@@ -227,11 +227,11 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
               {notesToPrint.length === 0 && <div style={{ fontSize:11, color:'#999', textAlign:'center', padding:16 }}>No hay notas seleccionadas</div>}
               {notesToPrint.map((note, idx) => (
                 <div key={note.id} style={{ marginBottom:20, paddingBottom:16, borderBottom: idx < notesToPrint.length-1 ? '2px dashed #e2e8f0' : 'none' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                    <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c' }}>
-                      {note.author?.prefix ? note.author.prefix + ' ' : ''}{note.author?.last_name} {note.author?.first_name}
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>{fmtDate(note.note_date)}</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c' }}>
+                      {note.author?.prefix ? note.author.prefix + ' ' : ''}{note.author?.first_name} {note.author?.last_name}
                     </div>
-                    <div style={{ fontSize:11, color:'#666' }}>{fmtDate(note.note_date)}</div>
                   </div>
                   {note.note_text && note.note_text.split('\n\n').map((section, si) => {
                     const lines = section.split('\n')
@@ -248,6 +248,12 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   })}
                 </div>
               ))}
+            </div>
+
+            {/* FIRMA */}
+            <div style={{ marginTop:32, marginBottom:24, textAlign:'center' }}>
+              <div style={{ borderTop:'1px solid #1a3a5c', width:220, margin:'0 auto', marginBottom:8 }}></div>
+              <div style={{ fontSize:12, color:'#333', fontWeight:700 }}>Firma y sello de médico que autoriza</div>
             </div>
 
             {/* 4. PIE DE PÁGINA */}
