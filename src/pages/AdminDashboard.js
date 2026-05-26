@@ -1045,6 +1045,7 @@ export default function AdminDashboard() {
               patient={selPatient}
               patients={patients}
               doctors={doctors}
+              profile={profile}
               measurements={measurements}
               goals={goals}
               tasks={patientTasks}
