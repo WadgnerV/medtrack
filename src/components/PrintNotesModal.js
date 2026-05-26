@@ -47,8 +47,9 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
       const margin = 15
       const pdfW = pdf.internal.pageSize.getWidth() - margin * 2
       const pdfH = pdf.internal.pageSize.getHeight() - margin * 2
-      const scale = pdfW / (canvas.width / 2)
-      const pageCanvasH = Math.floor(pdfH / scale)
+      const canvasScale = 2
+      const mmPerPx = pdfW / (canvas.width / canvasScale)
+      const pageCanvasH = Math.floor(pdfH / mmPerPx) * canvasScale
       let srcY = 0
       while (srcY < canvas.height) {
         const sliceH = Math.min(pageCanvasH, canvas.height - srcY)
@@ -59,7 +60,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
         ctx.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH)
         const imgData = pageCanvas.toDataURL('image/png')
         if (srcY > 0) pdf.addPage()
-        const renderedH = sliceH * scale
+        const renderedH = (sliceH / canvasScale) * mmPerPx
         pdf.addImage(imgData, 'PNG', margin, margin, pdfW, renderedH)
         srcY += pageCanvasH
       }
