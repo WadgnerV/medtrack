@@ -140,7 +140,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
     if (toSave.length === 0) return
     setSavingTarea(true)
     await Promise.all(toSave.map(title =>
-      supabase.from('tasks').insert({ patient_id: patient.id, title,  })
+      supabase.from('tasks').insert({ patient_id: patient.id, title, is_completed: false })
     ))
     setTareasSeleccionadas([]); setTareaOtra(''); setTareaOtraChecked(false)
     setShowTareaForm(false); setSavingTarea(false)
