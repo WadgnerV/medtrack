@@ -447,7 +447,7 @@ export default function AdminDashboard() {
       })
     }
     if (role === 'doctor') await loadDoctors()
-    else await loadPatients()
+    else { await loadPatients(); if (role === 'patient') { setViewPersist('pacientes'); setSelPatient(null) } }
     setModal(null); setSaving(false)
   }
 
