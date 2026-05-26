@@ -73,7 +73,7 @@ export default function IntegralModule({ patient, careModule, canEdit, profile }
   }
 
   async function loadTasks() {
-    const { data } = await supabase.from('tasks').select('*').eq('patient_id', patient.id).eq('status', 'pending').order('due_date', { ascending: true })
+    const { data } = await supabase.from('tasks').select('*').eq('patient_id', patient.id).order('created_at', { ascending: false })
     setTasks(data || [])
   }
 
@@ -157,7 +157,7 @@ export default function IntegralModule({ patient, careModule, canEdit, profile }
     if (toSave.length === 0) return
     setSavingTarea(true)
     await Promise.all(toSave.map(title =>
-      supabase.from('tasks').insert({ patient_id: patient.id, title, status:'pending' })
+      supabase.from('tasks').insert({ patient_id: patient.id, title,  })
     ))
     setTareasSeleccionadas([]); setTareaOtra(''); setTareaOtraChecked(false)
     setShowTareaForm(false); setSavingTarea(false)
@@ -165,7 +165,7 @@ export default function IntegralModule({ patient, careModule, canEdit, profile }
   }
 
   async function deleteTarea(id) {
-    await supabase.from('tasks').update({ status:'done' }).eq('id', id)
+    await supabase.from('tasks').update({ is_completed: true }).eq('id', id)
     await loadTasks()
   }
 
