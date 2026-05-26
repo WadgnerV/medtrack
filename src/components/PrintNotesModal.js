@@ -16,7 +16,7 @@ const BLEEDING_LABELS = { light:'Ligero', moderate:'Moderado', heavy:'Abundante'
 const PAP_LABELS = { normal:'Normal', abnormal:'Anormal', pending:'Pendiente', never:'Nunca realizado' }
 
 export default function PrintNotesModal({ notes, patient, profile, moduleType, antecedents, apnpData, agoData, clinicSettings, onClose }) {
-  const [mode, setMode] = useState('all') // 'all', 'last', 'select'
+  const [mode, setMode] = useState('all')
   const [selected, setSelected] = useState([])
   const [exporting, setExporting] = useState(false)
   const printRef = useRef(null)
@@ -44,8 +44,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
       const el = printRef.current
       const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#fff' })
       const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const margin = 25
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' })
+      const margin = 15
       const pdfW = pdf.internal.pageSize.getWidth() - margin * 2
       const pageH = pdf.internal.pageSize.getHeight() - margin * 2
       const imgH = (canvas.height * pdfW) / canvas.width
@@ -61,9 +61,9 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
     setExporting(false)
   }
 
-  const fieldStyle = { marginBottom: 6 }
-  const labelStyle = { fontSize: 10, fontWeight: 700, color: '#1a3a5c', display: 'block', marginBottom: 1 }
-  const valueStyle = { fontSize: 11, color: '#333', borderBottom: '1px solid #e2e8f0', paddingBottom: 3, minHeight: 18, display: 'block' }
+  const fieldStyle = { marginBottom: 8 }
+  const labelStyle = { fontSize: 12, fontWeight: 700, color: '#1a3a5c', display: 'block', marginBottom: 2 }
+  const valueStyle = { fontSize: 14, color: '#333', borderBottom: '1px solid #e2e8f0', paddingBottom: 4, minHeight: 20, display: 'block' }
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 }}>
@@ -102,28 +102,28 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
 
         {/* Área de previsualización */}
         <div style={{ flex:1, overflowY:'auto', padding:24, background:'#f0f4f8' }}>
-          <div ref={printRef} style={{ background:'#fff', padding:32, maxWidth:760, margin:'0 auto', fontFamily:'Calibri, "Calibri Light", Arial, sans-serif', fontSize:13, color:'#222', lineHeight:1.7 }}>
+          <div ref={printRef} style={{ background:'#fff', padding:40, maxWidth:760, margin:'0 auto', fontFamily:'Calibri, "Calibri Light", Arial, sans-serif', fontSize:15, color:'#222', lineHeight:1.8 }}>
 
             {/* ENCABEZADO */}
             <div style={{ borderBottom:'2px solid #1a3a5c', paddingBottom:14, marginBottom:20 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                 <div>
                   <div style={{ fontSize:22, fontWeight:700, color:'#1a3a5c', letterSpacing:'0.08em', marginBottom:4 }}>MEDTRACK</div>
-                  {clinicSettings?.clinic_name && <div style={{ fontSize:13, fontWeight:700, color:'#333' }}>{clinicSettings.clinic_name}</div>}
-                  {clinicAddress && <div style={{ fontSize:11, color:'#666' }}>📍 {clinicAddress}</div>}
+                  {clinicSettings?.clinic_name && <div style={{ fontSize:20, fontWeight:700, color:'#1a3a5c', letterSpacing:'0.04em' }}>{clinicSettings.clinic_name}</div>}
+                  {clinicAddress && <div style={{ fontSize:12, color:'#666' }}>📍 {clinicAddress}</div>}
                 </div>
                 <div style={{ textAlign:'right' }}>
-                  <div style={{ fontSize:11, color:'#666' }}>Fecha de exportación</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#333' }}>{new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
-                  <div style={{ fontSize:11, color:'#666', marginTop:4 }}>Módulo</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c' }}>{MODULE_LABELS[moduleType]}</div>
+                  <div style={{ fontSize:12, color:'#666' }}>Fecha de exportación</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#333' }}>{new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+                  <div style={{ fontSize:12, color:'#666', marginTop:4 }}>Módulo</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c' }}>{MODULE_LABELS[moduleType]}</div>
                 </div>
               </div>
             </div>
 
             {/* 1. FICHA DE IDENTIFICACIÓN */}
             <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
                 Ficha de identificación del paciente
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 24px' }}>
@@ -148,7 +148,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
             {/* 2. ANTECEDENTES */}
             {(appItems.length > 0 || apnpData || (agoData && patient?.sex === 'female') || aqxItems.length > 0) && (
               <div style={{ marginBottom:20 }}>
-                <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
                   Antecedentes
                 </div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
@@ -156,14 +156,14 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   {/* APP */}
                   {appItems.length > 0 && (
                     <div>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Patológicos Personales (APP)</div>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Patológicos Personales (APP)</div>
                       {appItems.map((item, i) => (
                         <div key={i} style={{ marginBottom:6, paddingBottom:6, borderBottom:'1px dashed #f0f0f0' }}>
-                          <div style={{ fontSize:11, fontWeight:700 }}>{item.condition === 'Otra (especificar)' || item.condition === 'Cáncer (especificar)' ? item.condition.split(' (')[0]+': '+(item.condition_other||'—') : item.condition}</div>
-                          {item.diagnosis_year && <div style={{ fontSize:10, color:'#666' }}>Diagnóstico: {item.diagnosis_year}</div>}
-                          <div style={{ fontSize:10, color:'#555' }}>Estado: {STATUS_LABELS[item.current_status]||item.current_status}</div>
-                          {item.current_treatment && <div style={{ fontSize:10, color:'#555' }}>Tratamiento: {item.current_treatment}</div>}
-                          {item.observations && <div style={{ fontSize:10, color:'#777' }}>Obs: {item.observations}</div>}
+                          <div style={{ fontSize:13, fontWeight:700 }}>{item.condition === 'Otra (especificar)' || item.condition === 'Cáncer (especificar)' ? item.condition.split(' (')[0]+': '+(item.condition_other||'—') : item.condition}</div>
+                          {item.diagnosis_year && <div style={{ fontSize:12, color:'#666' }}>Diagnóstico: {item.diagnosis_year}</div>}
+                          <div style={{ fontSize:12, color:'#555' }}>Estado: {STATUS_LABELS[item.current_status]||item.current_status}</div>
+                          {item.current_treatment && <div style={{ fontSize:12, color:'#555' }}>Tratamiento: {item.current_treatment}</div>}
+                          {item.observations && <div style={{ fontSize:12, color:'#777' }}>Obs: {item.observations}</div>}
                         </div>
                       ))}
                     </div>
@@ -172,8 +172,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   {/* APNP */}
                   {apnpData && (
                     <div>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes No Patológicos (APNP)</div>
-                      <div style={{ fontSize:10, color:'#333' }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes No Patológicos (APNP)</div>
+                      <div style={{ fontSize:12, color:'#333' }}>
                         <div style={{ marginBottom:3 }}><strong>Tabaquismo:</strong> {apnpData.smoking_status === 'no' ? 'No fumador' : apnpData.smoking_status === 'ex' ? 'Ex-fumador' : 'Fumador activo'}{apnpData.smoking_cigs_per_day ? `, ${apnpData.smoking_cigs_per_day} cig/día` : ''}{apnpData.smoking_years ? `, ${apnpData.smoking_years} años` : ''}{apnpData.smoking_cigs_per_day && apnpData.smoking_years ? ` (PA: ${((parseFloat(apnpData.smoking_cigs_per_day)/20)*parseFloat(apnpData.smoking_years)).toFixed(1)})` : ''}</div>
                         <div style={{ marginBottom:3 }}><strong>Alcohol:</strong> {apnpData.alcohol_status === 'no' ? 'No consume' : apnpData.alcohol_status === 'occasional' ? 'Ocasional' : 'Habitual'}{apnpData.alcohol_detail ? ` — ${apnpData.alcohol_detail}` : ''}</div>
                         <div style={{ marginBottom:3 }}><strong>Drogas:</strong> {apnpData.drugs_status === 'no' ? 'No consume' : `Sí${apnpData.drugs_detail ? ` — ${apnpData.drugs_detail}` : ''}`}</div>
@@ -189,8 +189,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   {/* AGO */}
                   {agoData && patient?.sex === 'female' && (
                     <div>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Gineco-Obstétricos (AGO)</div>
-                      <div style={{ fontSize:10, color:'#333' }}>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Gineco-Obstétricos (AGO)</div>
+                      <div style={{ fontSize:12, color:'#333' }}>
                         {agoData.fum && <div style={{ marginBottom:3 }}><strong>FUM:</strong> {fmtDate(agoData.fum)}</div>}
                         {agoData.planning_method && <div style={{ marginBottom:3 }}><strong>Planificación:</strong> {agoData.planning_method}</div>}
                         {agoData.cycle_type && <div style={{ marginBottom:3 }}><strong>Ciclo:</strong> {agoData.cycle_type === 'regular' ? 'Regular' : 'Irregular'}</div>}
@@ -205,12 +205,12 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   {/* AQx */}
                   {aqxItems.length > 0 && (
                     <div>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Quirúrgicos (AQx)</div>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Quirúrgicos (AQx)</div>
                       {aqxItems.map((item, i) => (
                         <div key={i} style={{ marginBottom:6, paddingBottom:6, borderBottom:'1px dashed #f0f0f0' }}>
-                          <div style={{ fontSize:11, fontWeight:700 }}>{item.condition}</div>
-                          {item.diagnosis_year && <div style={{ fontSize:10, color:'#666' }}>Año: {item.diagnosis_year}</div>}
-                          {item.observations && <div style={{ fontSize:10, color:'#555' }}>{item.observations}</div>}
+                          <div style={{ fontSize:13, fontWeight:700 }}>{item.condition}</div>
+                          {item.diagnosis_year && <div style={{ fontSize:12, color:'#666' }}>Año: {item.diagnosis_year}</div>}
+                          {item.observations && <div style={{ fontSize:12, color:'#555' }}>{item.observations}</div>}
                         </div>
                       ))}
                     </div>
@@ -221,15 +221,15 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
 
             {/* 3. NOTAS CLÍNICAS */}
             <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
                 Notas clínicas — {MODULE_LABELS[moduleType]}
               </div>
-              {notesToPrint.length === 0 && <div style={{ fontSize:11, color:'#999', textAlign:'center', padding:16 }}>No hay notas seleccionadas</div>}
+              {notesToPrint.length === 0 && <div style={{ fontSize:13, color:'#999', textAlign:'center', padding:16 }}>No hay notas seleccionadas</div>}
               {notesToPrint.map((note, idx) => (
                 <div key={note.id} style={{ marginBottom:20, paddingBottom:16, borderBottom: idx < notesToPrint.length-1 ? '2px dashed #e2e8f0' : 'none' }}>
                   <div style={{ marginBottom:10 }}>
-                    <div style={{ fontSize:12, color:'#555', marginBottom:2 }}>{fmtDate(note.note_date)}</div>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c' }}>
+                    <div style={{ fontSize:13, color:'#555', marginBottom:2 }}>{fmtDate(note.note_date)}</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#1a3a5c' }}>
                       {note.author?.prefix ? note.author.prefix + ' ' : ''}{note.author?.first_name} {note.author?.last_name}
                     </div>
                   </div>
@@ -239,7 +239,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                     return (
                       <div key={si} style={{ marginBottom:8 }}>
                         {lines.map((line, li) => (
-                          <div key={li} style={{ fontSize:11, color: li===0 && isLabel ? '#1a3a5c' : '#333', fontWeight: li===0 && isLabel ? 700 : 400 }}>
+                          <div key={li} style={{ fontSize:13, color: li===0 && isLabel ? '#1a3a5c' : '#333', fontWeight: li===0 && isLabel ? 700 : 400 }}>
                             {line}
                           </div>
                         ))}
@@ -253,17 +253,17 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
             {/* FIRMA */}
             <div style={{ marginTop:32, marginBottom:24, textAlign:'center' }}>
               <div style={{ borderTop:'1px solid #1a3a5c', width:220, margin:'0 auto', marginBottom:8 }}></div>
-              <div style={{ fontSize:12, color:'#333', fontWeight:700 }}>Firma y sello de médico que autoriza</div>
+              <div style={{ fontSize:13, color:'#333', fontWeight:700 }}>Firma y sello de médico que autoriza</div>
             </div>
 
-            {/* 4. PIE DE PÁGINA */}
+            {/* PIE DE PÁGINA */}
             <div style={{ borderTop:'1px solid #e2e8f0', paddingTop:10, display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
               <div style={{ flex:1, maxWidth:'80%' }}>
-                <p style={{ fontSize:9, color:'#aaa', margin:0, lineHeight:1.6, fontStyle:'italic' }}>
+                <p style={{ fontSize:10, color:'#aaa', margin:0, lineHeight:1.6, fontStyle:'italic' }}>
                   La información contenida en este documento es de carácter estrictamente confidencial y de uso exclusivo del equipo médico y administrativo autorizado. Queda prohibida su reproducción, distribución o divulgación a personas no autorizadas. Generado por MedTrack.
                 </p>
               </div>
-              <div style={{ fontSize:10, color:'#666', textAlign:'right', flexShrink:0, marginLeft:16 }}>
+              <div style={{ fontSize:11, color:'#666', textAlign:'right', flexShrink:0, marginLeft:16 }}>
                 Pág. 1
               </div>
             </div>
