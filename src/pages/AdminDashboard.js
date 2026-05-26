@@ -1078,6 +1078,8 @@ export default function AdminDashboard() {
               onSearchCie10={searchCie10}
               onBack={() => { setViewPersist('pacientes'); setSelPatient(null) }}
               isMobile={isMobile}
+              enabledModules={enabledModules}
+              clinicPlan={clinicPlan}
             />
           )}
 
@@ -1967,7 +1969,7 @@ const s = {
   fieldInput: { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
 }
 
-function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onEditMeasurement, onDeleteMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack }) {
+function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, tasks, treatments, notes, diagnoses, library, tab, setTab, saving, modal, modalData, setModal, setModalData, onSaveMeasurement, onEditMeasurement, onDeleteMeasurement, onSaveGoal, onDeleteGoal, onAssignTasks, onDeleteTask, onSaveTreatment, onSaveNote, onEditNote, onDeleteNote, onAddDiagnosis, onDeleteDiagnosis, cie10Search, setCie10Search, cie10Results, onSearchCie10, onBack, enabledModules, clinicPlan }) {
   const [careModules, setCareModules] = React.useState([])
 
   React.useEffect(() => {
