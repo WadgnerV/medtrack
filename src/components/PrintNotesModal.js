@@ -43,17 +43,25 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
     try {
       const el = printRef.current
       const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#fff' })
-      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' })
       const margin = 15
       const pdfW = pdf.internal.pageSize.getWidth() - margin * 2
-      const pageH = pdf.internal.pageSize.getHeight() - margin * 2
-      const imgH = (canvas.height * pdfW) / canvas.width
-      let y = 0
-      while (y < imgH) {
-        if (y > 0) pdf.addPage()
-        pdf.addImage(imgData, 'PNG', margin, margin - (y * (pdf.internal.pageSize.getHeight() / pageH)), pdfW, imgH)
-        y += pageH
+      const pdfH = pdf.internal.pageSize.getHeight() - margin * 2
+      const scale = pdfW / (canvas.width / 2)
+      const pageCanvasH = Math.floor(pdfH / scale)
+      let srcY = 0
+      while (srcY < canvas.height) {
+        const sliceH = Math.min(pageCanvasH, canvas.height - srcY)
+        const pageCanvas = document.createElement('canvas')
+        pageCanvas.width = canvas.width
+        pageCanvas.height = sliceH
+        const ctx = pageCanvas.getContext('2d')
+        ctx.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH)
+        const imgData = pageCanvas.toDataURL('image/png')
+        if (srcY > 0) pdf.addPage()
+        const renderedH = sliceH * scale
+        pdf.addImage(imgData, 'PNG', margin, margin, pdfW, renderedH)
+        srcY += pageCanvasH
       }
       const patName = `${patient?.profile?.last_name || ''}_${patient?.profile?.first_name || ''}`.replace(/\s/g, '_')
       pdf.save(`Notas_${MODULE_LABELS[moduleType]}_${patName}_${new Date().toISOString().split('T')[0]}.pdf`)
