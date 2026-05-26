@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import AntecedentsSection from './AntecedentsSection'
+import PrintNotesModal from './PrintNotesModal'
 
 const PLAN_OPTIONS = [
   'Cita control asignada',
@@ -61,6 +62,11 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [showPrint, setShowPrint] = useState(false)
+  const [antecedents, setAntecedents] = useState([])
+  const [apnpData, setApnpData] = useState(null)
+  const [agoData, setAgoData] = useState(null)
+  const [clinicSettings, setClinicSettings] = useState(null)
 
   const G = color || '#0F6E56'
   const inp1 = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
@@ -70,12 +76,16 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   useEffect(() => { if (patientId) load() }, [patientId])
 
   async function load() {
-    const { data } = await supabase.from('clinical_notes')
-      .select('*, author:recorded_by(first_name, last_name)')
-      .eq('patient_id', patientId)
-      .eq('module_type', moduleType)
-      .order('note_date', { ascending: false })
-    setNotes(data || [])
+    const [{ data: notesData }, { data: antData }, { data: cs }] = await Promise.all([
+      supabase.from('clinical_notes').select('*, author:recorded_by(first_name, last_name, prefix)').eq('patient_id', patientId).eq('module_type', moduleType).order('note_date', { ascending: false }),
+      supabase.from('patient_antecedents').select('*').eq('patient_id', patientId),
+      supabase.from('clinic_settings').select('*').limit(1).single(),
+    ])
+    setNotes(notesData || [])
+    setAntecedents(antData || [])
+    setApnpData((antData||[]).find(a=>a.type==='apnp')?.apnp_data || null)
+    setAgoData((antData||[]).find(a=>a.type==='ago')?.ago_data || null)
+    setClinicSettings(cs || null)
     setLoaded(true)
   }
 
@@ -115,8 +125,24 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       {patient && <AntecedentsSection patient={patient} profile={profile} canEdit={!!profile} compact={true} />}
 
       {/* Botón nueva nota */}
+      {showPrint && (
+        <PrintNotesModal
+          notes={notes}
+          patient={patient}
+          profile={profile}
+          moduleType={moduleType}
+          antecedents={antecedents}
+          apnpData={apnpData}
+          agoData={agoData}
+          clinicSettings={clinicSettings}
+          onClose={() => setShowPrint(false)}
+        />
+      )}
       {!showForm && (
-        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+          {notes.length > 0 && (
+            <button onClick={() => setShowPrint(true)} style={{ background:'#f0f4f8', color:'#1a3a5c', border:'1px solid #e2e8f0', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, cursor:'pointer' }}>🖨 Imprimir notas</button>
+          )}
           <button onClick={() => { setShowForm(true); setForm(emptyForm); setEditingId(null) }}
             style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
             + Nueva nota
