@@ -52,7 +52,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
       let y = 0
       while (y < imgH) {
         if (y > 0) pdf.addPage()
-        pdf.addImage(imgData, 'PNG', margin, margin - y, pdfW, imgH)
+        pdf.addImage(imgData, 'PNG', margin, margin - (y * (pdf.internal.pageSize.getHeight() / pageH)), pdfW, imgH)
         y += pageH
       }
       const patName = `${patient?.profile?.last_name || ''}_${patient?.profile?.first_name || ''}`.replace(/\s/g, '_')
