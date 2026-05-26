@@ -591,7 +591,7 @@ export default function DoctorDashboard() {
               <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
             {view === 'pacientes' && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
-            {view === 'perfil' && <button style={s.btnPrimary} onClick={() => setModal('new-measurement')}>+ Registrar medicion</button>}
+
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
           </div>
         )}
