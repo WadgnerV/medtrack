@@ -141,7 +141,7 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => localStorage.getItem('adminView') || 'calendario')
+  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion'].includes(v) ? v : 'calendario' })
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   const [searchPac, setSearchPac] = useState('')
   const [doctors, setDoctors] = useState([])
