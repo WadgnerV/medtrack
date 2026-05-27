@@ -15,8 +15,11 @@ const VARIANT_TO_PLAN: Record<string, string> = {
   '1704251': 'gold',
   '1704255': 'enterprise',
   '8f133a2a-6301-488e-9de7-3deee1a46f0a': 'basic',
+  '61d84776-0d2b-42b1-81fd-8355392ad737': 'starter',
   '39d1c093-2444-4198-bf85-3e6e0dda8735': 'gold',
+  'b9cfe853-6c36-4353-a797-7d31804873d4': 'gold_plus',
   '3fd628d0-7bd4-4742-a893-7ebd3f496594': 'enterprise',
+  'f7d3b59a-441c-4ec2-968c-7d7c1c07daf4': 'enterprise_plus',
 }
 
 serve(async (req) => {

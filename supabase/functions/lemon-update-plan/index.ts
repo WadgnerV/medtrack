@@ -11,9 +11,12 @@ const corsHeaders = {
 }
 
 const VARIANT_IDS: Record<string, string> = {
-  basic: '1704249',
-  gold: '1704251',
-  enterprise: '1704255',
+  basic: '8f133a2a-6301-488e-9de7-3deee1a46f0a',
+  starter: '61d84776-0d2b-42b1-81fd-8355392ad737',
+  gold: '39d1c093-2444-4198-bf85-3e6e0dda8735',
+  gold_plus: 'b9cfe853-6c36-4353-a797-7d31804873d4',
+  enterprise: '3fd628d0-7bd4-4742-a893-7ebd3f496594',
+  enterprise_plus: 'f7d3b59a-441c-4ec2-968c-7d7c1c07daf4',
 }
 
 serve(async (req) => {
