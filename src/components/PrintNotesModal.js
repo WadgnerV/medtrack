@@ -49,7 +49,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
       const pdfH = pdf.internal.pageSize.getHeight() - margin * 2
       const canvasScale = 2
       const mmPerPx = pdfW / (canvas.width / canvasScale)
-      const pageCanvasH = Math.floor(pdfH / mmPerPx) * canvasScale
+      const pageCanvasH = Math.floor((pdfH - margin) / mmPerPx) * canvasScale
       let srcY = 0
       while (srcY < canvas.height) {
         const sliceH = Math.min(pageCanvasH, canvas.height - srcY)
