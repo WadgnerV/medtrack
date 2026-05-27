@@ -92,7 +92,7 @@ export default function SuperAdminDashboard() {
       plan: form.plan||'basic', contract_ref: form.contract_ref||null,
       municipal_permit: form.municipal_permit||'no', health_permit: form.health_permit||'no',
       operational: form.operational||'no', send_welcome_email: form.send_welcome_email!==false,
-      enabled_modules: form.plan === 'enterprise' ? ['integral','metabolica','estetica','fisioterapia','enfermeria'] : (form.enabled_modules||[]),
+      enabled_modules: ['enterprise_plus','enterprise'].includes(form.plan) ? ['integral','metabolica','estetica','fisioterapia','enfermeria'] : (form.enabled_modules||[]),
     }
     if (form.id) {
       await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
@@ -242,9 +242,12 @@ export default function SuperAdminDashboard() {
               </div>
               <select value={filterPlan} onChange={e=>setFilterPlan(e.target.value)} style={{ padding:'7px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', color: filterPlan?'#1a3a5c':'#999' }}>
                 <option value="">Todos los planes</option>
-                <option value="basic">Básico</option>
+                <option value="basic">Basic</option>
+                <option value="starter">Starter</option>
                 <option value="gold">Gold</option>
+                <option value="gold_plus">Gold+</option>
                 <option value="enterprise">Enterprise</option>
+                <option value="enterprise_plus">Enterprise+</option>
               </select>
               <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{ padding:'7px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', color: filterStatus?'#1a3a5c':'#999' }}>
                 <option value="">Todos los estados</option>
@@ -263,9 +266,9 @@ export default function SuperAdminDashboard() {
                 return true
               }).map(clinic => {
                 const permitLabel = { yes:'✅ Sí', in_progress:'🟡 En trámite', no:'❌ No' }
-                const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }
-                const planColor = { basic:'#185FA5', gold:'#854F0B', enterprise:'#553c9a' }
-                const planBg = { basic:'#E6F1FB', gold:'#FAEEDA', enterprise:'#f0ebff' }
+                const planLabel = { basic:'Basic', starter:'Starter', gold:'Gold', gold_plus:'Gold+', enterprise:'Enterprise', enterprise_plus:'Enterprise+' }
+                const planColor = { basic:'#185FA5', starter:'#0F6E56', gold:'#854F0B', gold_plus:'#b45309', enterprise:'#553c9a', enterprise_plus:'#1a1a2e' }
+                const planBg = { basic:'#E6F1FB', starter:'#e6f7f3', gold:'#FAEEDA', gold_plus:'#fef3c7', enterprise:'#f0ebff', enterprise_plus:'#e8e8f0' }
                 return (
                   <div key={clinic.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
                     {/* Header card */}
@@ -472,19 +475,22 @@ export default function SuperAdminDashboard() {
                     : (p.enabled_modules||[]).slice(0, newPlan === 'basic' ? 2 : 5)
                 }))
               }} style={s.input}>
-                <option value="basic">Básico</option>
+                <option value="basic">Basic</option>
+                <option value="starter">Starter</option>
                 <option value="gold">Gold</option>
+                <option value="gold_plus">Gold+</option>
                 <option value="enterprise">Enterprise</option>
+                <option value="enterprise_plus">Enterprise+</option>
               </select>
               {form.plan && (
                 <div style={{ marginTop:8, background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:'10px 12px' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                     <div style={{ fontSize:11, fontWeight:600, color:BLUE }}>Incluye:</div>
                     <div style={{ fontSize:12, fontWeight:700, color:BLUE, background:'#e8f0f8', padding:'2px 10px', borderRadius:20 }}>
-                      {{'basic':'$49/mes','gold':'$199/mes','enterprise':'$449/mes'}[form.plan]}
+                      {{'basic':'$14.99/mes','starter':'$49.99/mes','gold':'$109.99/mes','gold_plus':'$249.99/mes','enterprise':'$499.99/mes','enterprise_plus':'$999.99/mes'}[form.plan]}
                     </div>
                   </div>
-                  {{'basic':['Hasta 2 médicos','Hasta 100 pacientes','2 módulos activos','Soporte por email'],'gold':['Hasta 10 médicos','Hasta 500 pacientes','Hasta 5 módulos personalizables','Reportes avanzados','Soporte prioritario'],'enterprise':['Médicos ilimitados','Pacientes ilimitados','Módulos personalizados ilimitados','Reportes + exportación','Soporte dedicado','Personalización de marca']}[form.plan]?.map((item,i) => (
+                  {{'basic':['Agenda ilimitada','Hasta 100 pacientes','Sin módulos clínicos','Sin correos automáticos','1 sucursal'],'starter':['Agenda ilimitada','Hasta 100 pacientes','Hasta 2 profesionales','2 módulos clínicos por paciente','Correos automáticos','1 sucursal'],'gold':['Agenda ilimitada','Hasta 300 pacientes','Hasta 10 profesionales','4 módulos clínicos por paciente','Correos automáticos','Reportes básicos','1 sucursal'],'gold_plus':['Agenda ilimitada','Hasta 500 pacientes','Hasta 20 profesionales','6 módulos por paciente incluyendo exclusivos','Correos automáticos','Reportes avanzados con exportación','Personalización de marca','Soporte prioritario','Hasta 2 sucursales'],'enterprise':['Agenda ilimitada','Hasta 1500 pacientes','Hasta 50 profesionales','10 módulos por paciente incluyendo exclusivos','Correos automáticos','Reportes avanzados con exportación','Personalización de marca','Soporte prioritario + marketing','Hasta 5 sucursales'],'enterprise_plus':['Agenda ilimitada','Pacientes ilimitados','Profesionales ilimitados','Módulos ilimitados todos exclusivos','Correos automáticos','Reportes avanzados con exportación','Personalización de marca','Soporte dedicado + marketing','Sucursales ilimitadas']}[form.plan]?.map((item,i) => (
                     <div key={i} style={{ fontSize:12, color:'#555', marginBottom:3 }}>✓ {item}</div>
                   ))}
                 </div>
@@ -493,12 +499,12 @@ export default function SuperAdminDashboard() {
             <div style={{ marginBottom:12 }}>
               <label style={s.fieldLabel}>Módulos habilitados <span style={{ color:'#D85A30' }}>*</span></label>
               <div style={{ fontSize:11, color:'#718096', marginBottom:8 }}>
-                {{'basic':'Seleccioná hasta 2 módulos','gold':'Seleccioná hasta 5 módulos','enterprise':'Todos los módulos disponibles'}[form.plan||'basic']}
+                {{'basic':'Sin módulos clínicos','starter':'Seleccioná hasta 2 módulos','gold':'Seleccioná hasta 4 módulos','gold_plus':'Seleccioná hasta 6 módulos','enterprise':'Seleccioná hasta 10 módulos','enterprise_plus':'Todos los módulos disponibles'}[form.plan||'basic']}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                 {[['integral','Atención Integral'],['metabolica','Atención Metabólica'],['estetica','Atención Estética'],['fisioterapia','Fisioterapia'],['enfermeria','Enfermería']].map(([key, label]) => {
                   const selected = (form.enabled_modules||[]).includes(key)
-                  const maxModules = {'basic':2,'gold':5,'enterprise':5}[form.plan||'basic']
+                  const maxModules = {'basic':0,'starter':2,'gold':4,'gold_plus':6,'enterprise':10,'enterprise_plus':99}[form.plan||'basic']
                   const atMax = (form.enabled_modules||[]).length >= maxModules && !selected
                   return (
                     <div key={key} onClick={() => {

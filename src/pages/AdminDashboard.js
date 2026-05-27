@@ -239,14 +239,17 @@ export default function AdminDashboard() {
   }
 
   const PLAN_LIMITS = {
-    basic:      { doctors: 2, patients: 100, modules: 2 },
-    gold:       { doctors: 10, patients: 500, modules: 5 },
-    enterprise: { doctors: Infinity, patients: Infinity, modules: Infinity },
+    basic:        { doctors: 0,        patients: 100,  modules: 0        },
+    starter:      { doctors: 2,        patients: 100,  modules: 2        },
+    gold:         { doctors: 10,       patients: 300,  modules: 4        },
+    gold_plus:    { doctors: 20,       patients: 500,  modules: 6        },
+    enterprise:   { doctors: 50,       patients: 1500, modules: 10       },
+    enterprise_plus: { doctors: Infinity, patients: Infinity, modules: Infinity },
   }
 
   function checkLimit(type) {
     const limits = PLAN_LIMITS[clinicPlan] || PLAN_LIMITS.basic
-    const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }[clinicPlan]
+    const planLabel = { basic:'Basic', starter:'Starter', gold:'Gold', gold_plus:'Gold+', enterprise:'Enterprise', enterprise_plus:'Enterprise+' }[clinicPlan]
     if (type === 'doctor') {
       const activeDoctors = doctors.filter(d => d.role === 'doctor').length
       if (activeDoctors >= limits.doctors) {
@@ -2421,8 +2424,8 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules =
     // Verificar límite de módulos si se va a activar uno nuevo
     if (!existing || !existing.is_active) {
       const activeModules = modules.filter(m => m.is_active).length
-      const limits = { basic: 2, gold: 5, enterprise: Infinity }
-      const planLabel = { basic:'Básico', gold:'Gold', enterprise:'Enterprise' }
+      const limits = { basic: 0, starter: 2, gold: 4, gold_plus: 6, enterprise: 10, enterprise_plus: Infinity }
+      const planLabel = { basic:'Basic', starter:'Starter', gold:'Gold', gold_plus:'Gold+', enterprise:'Enterprise', enterprise_plus:'Enterprise+' }
       const limit = limits[clinicPlan] ?? 2
       if (activeModules >= limit && limit !== Infinity) {
         alert(`Tu plan ${planLabel[clinicPlan]} permite un máximo de ${limit} módulo${limit!==1?'s':''} activo${limit!==1?'s':''}. Para activar más, actualizá tu plan.`)
