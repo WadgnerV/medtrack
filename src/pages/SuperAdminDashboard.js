@@ -47,6 +47,7 @@ const s = {
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
   const [view, setView] = useState(() => localStorage.getItem('superadminView') || 'clinicas')
+  const [branches, setBranches] = useState([])
   const [clinics, setClinics] = useState([])
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
@@ -73,6 +74,8 @@ export default function SuperAdminDashboard() {
   async function loadClinics() {
     const { data } = await supabase.from('clinics').select('*').order('name')
     setClinics(data || [])
+    const { data: br } = await supabase.from('branches').select('*').order('created_at', { ascending: true })
+    setBranches(br || [])
   }
 
   async function loadAdmins() {
@@ -317,6 +320,23 @@ export default function SuperAdminDashboard() {
                           <span style={{ fontSize:11, color:'#444', textAlign:'right', wordBreak:'break-word', maxWidth:'60%' }}>{value}</span>
                         </div>
                       ) : null)}
+                    </div>
+                    {/* Sucursales */}
+                    <div style={{ padding:'10px 18px', borderTop:'0.5px solid #f0f0f0' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                        <span style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.05em' }}>Sucursales</span>
+                        <span style={{ fontSize:10, color:'#999' }}>{branches.filter(b => b.clinic_id === clinic.id).length} activa{branches.filter(b => b.clinic_id === clinic.id).length !== 1 ? 's' : ''}</span>
+                      </div>
+                      {branches.filter(b => b.clinic_id === clinic.id).map(branch => (
+                        <div key={branch.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 8px', background:'#f7fafc', borderRadius:8, marginBottom:6 }}>
+                          <div>
+                            <div style={{ fontSize:12, fontWeight:600, color:'#222' }}>{branch.name}</div>
+                            {(branch.canton || branch.province) && <div style={{ fontSize:10, color:'#999' }}>{[branch.canton, branch.province].filter(Boolean).join(', ')}</div>}
+                          </div>
+                          <span style={{ fontSize:10, color: branch.is_active ? '#0F6E56' : '#999', background: branch.is_active ? '#e6f7f3' : '#f5f5f5', padding:'2px 8px', borderRadius:10, flexShrink:0 }}>{branch.is_active ? 'Activa' : 'Inactiva'}</span>
+                        </div>
+                      ))}
+                      {branches.filter(b => b.clinic_id === clinic.id).length === 0 && <div style={{ fontSize:11, color:'#ccc', textAlign:'center', padding:8 }}>Sin sucursales</div>}
                     </div>
                     {/* Footer card */}
                     <div style={{ padding:'10px 18px', borderTop:'0.5px solid #f0f0f0', display:'flex', gap:8 }}>
