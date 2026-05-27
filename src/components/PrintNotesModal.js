@@ -34,7 +34,26 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
   const clinicAddress = clinicSettings ? [clinicSettings.address, clinicSettings.district, clinicSettings.canton, clinicSettings.province].filter(Boolean).join(', ') : ''
 
   function doPrint() {
-    window.print()
+    const printContent = document.getElementById('print-content').innerHTML
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Notas clínicas</title>
+          <style>
+            body { font-family: Arial, sans-serif; font-size: 13pt; color: #222; line-height: 1.8; margin: 20mm; }
+            .note-block { page-break-inside: avoid; }
+            * { box-sizing: border-box; }
+          </style>
+        </head>
+        <body>${printContent}</body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => { printWindow.print(); printWindow.close() }, 500)
   }
 
   const fieldStyle = { marginBottom: 8 }
