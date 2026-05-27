@@ -103,6 +103,17 @@ export default function SuperAdminDashboard() {
     if (!form.id && form.send_welcome_email !== false && form.email) {
       // Obtener el id de la clínica recién creada
       const { data: newClinic } = await supabase.from('clinics').select('id').eq('name', form.name).order('created_at', { ascending: false }).limit(1).single()
+      if (newClinic?.id) {
+        await supabase.from('branches').insert({
+          clinic_id: newClinic.id,
+          name: form.name,
+          address: form.address || null,
+          district: form.district || null,
+          canton: form.canton || null,
+          province: form.province || null,
+          is_active: true,
+        })
+      }
       await supabase.functions.invoke('clinic-welcome', {
         body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null, clinic_id: newClinic?.id || '' }
       })
