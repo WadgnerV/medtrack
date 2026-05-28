@@ -52,6 +52,7 @@ export default function SuperAdminDashboard() {
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
+  const [branchReport, setBranchReport] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({})
   const [error, setError] = useState('')
@@ -76,6 +77,46 @@ export default function SuperAdminDashboard() {
     setClinics(data || [])
     const { data: br } = await supabase.from('branches').select('*').order('created_at', { ascending: true })
     setBranches(br || [])
+  }
+
+  async function saveBranch() {
+    setSaving(true)
+    if (form.id) {
+      await supabase.from('branches').update({
+        name: form.name, address: form.address || null,
+        district: form.district || null, canton: form.canton || null,
+        province: form.province || null, is_active: form.is_active !== false,
+      }).eq('id', form.id)
+    } else {
+      await supabase.from('branches').insert({
+        clinic_id: form.clinic_id, name: form.name,
+        address: form.address || null, district: form.district || null,
+        canton: form.canton || null, province: form.province || null,
+        is_active: true,
+      })
+    }
+    await loadClinics(); setModal(null); setSaving(false)
+  }
+
+  async function loadBranchReport(branch) {
+    const [{ data: staff }, { data: patients }] = await Promise.all([
+      supabase.from('branch_staff').select('profile:profile_id(first_name, last_name, role)').eq('branch_id', branch.id),
+      supabase.from('branch_patients').select('patient:patient_id(profile:profile_id(first_name, last_name))').eq('branch_id', branch.id),
+    ])
+    const admins = (staff || []).filter(s => ['admin','branch_admin','clinic_admin'].includes(s.profile?.role))
+    const personal = (staff || []).filter(s => !['admin','branch_admin','clinic_admin'].includes(s.profile?.role))
+    setBranchReport({
+      branch,
+      admins: admins.map(s => `${s.profile?.first_name} ${s.profile?.last_name}`),
+      personal: personal.map(s => `${s.profile?.first_name} ${s.profile?.last_name}`),
+      patients: (patients || []).map(p => `${p.patient?.profile?.first_name} ${p.patient?.profile?.last_name}`),
+    })
+    setModal('confirm-delete-branch')
+  }
+
+  async function deleteBranch(branchId) {
+    await supabase.from('branches').delete().eq('id', branchId)
+    await loadClinics(); setModal(null); setBranchReport(null)
   }
 
   async function loadAdmins() {
@@ -325,15 +366,26 @@ export default function SuperAdminDashboard() {
                     <div style={{ padding:'10px 18px', borderTop:'0.5px solid #f0f0f0' }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                         <span style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.05em' }}>Sucursales</span>
-                        <span style={{ fontSize:10, color:'#999' }}>{branches.filter(b => b.clinic_id === clinic.id).length} activa{branches.filter(b => b.clinic_id === clinic.id).length !== 1 ? 's' : ''}</span>
+                        <button onClick={() => { setForm({ clinic_id: clinic.id, name: clinic.name, is_active: true }); setModal('branch') }}
+                          style={{ fontSize:10, background:'#1a3a5c', color:'#fff', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}>
+                          + Agregar
+                        </button>
                       </div>
                       {branches.filter(b => b.clinic_id === clinic.id).map(branch => (
-                        <div key={branch.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 8px', background:'#f7fafc', borderRadius:8, marginBottom:6 }}>
-                          <div>
+                        <div key={branch.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 8px', background:'#f7fafc', borderRadius:8, marginBottom:6, gap:8 }}>
+                          <div style={{ flex:1 }}>
                             <div style={{ fontSize:12, fontWeight:600, color:'#222' }}>{branch.name}</div>
                             {(branch.canton || branch.province) && <div style={{ fontSize:10, color:'#999' }}>{[branch.canton, branch.province].filter(Boolean).join(', ')}</div>}
                           </div>
                           <span style={{ fontSize:10, color: branch.is_active ? '#0F6E56' : '#999', background: branch.is_active ? '#e6f7f3' : '#f5f5f5', padding:'2px 8px', borderRadius:10, flexShrink:0 }}>{branch.is_active ? 'Activa' : 'Inactiva'}</span>
+                          <button onClick={() => { setForm({ ...branch }); setModal('branch') }}
+                            style={{ fontSize:10, background:'none', border:'1px solid #e2e8f0', borderRadius:6, padding:'2px 8px', cursor:'pointer', color:'#555', flexShrink:0 }}>
+                            Editar
+                          </button>
+                          <button onClick={() => loadBranchReport(branch)}
+                            style={{ fontSize:10, background:'none', border:'1px solid #fca5a5', borderRadius:6, padding:'2px 8px', cursor:'pointer', color:'#dc2626', flexShrink:0 }}>
+                            Eliminar
+                          </button>
                         </div>
                       ))}
                       {branches.filter(b => b.clinic_id === clinic.id).length === 0 && <div style={{ fontSize:11, color:'#ccc', textAlign:'center', padding:8 }}>Sin sucursales</div>}
@@ -717,6 +769,88 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Modal Sucursal */}
+      {modal === 'branch' && (
+        <div style={s.modal} onClick={() => setModal(null)}>
+          <div style={s.modalBox} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>{form.id ? 'Editar sucursal' : 'Nueva sucursal'}</div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Nombre de la sucursal</label>
+              <input value={form.name||''} onChange={e => setForm(p=>({...p, name:e.target.value}))} style={s.input} />
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+              <div>
+                <label style={s.fieldLabel}>Provincia</label>
+                <input value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value}))} style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Cantón</label>
+                <input value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value}))} style={s.input} />
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+              <div>
+                <label style={s.fieldLabel}>Distrito</label>
+                <input value={form.district||''} onChange={e => setForm(p=>({...p, district:e.target.value}))} style={s.input} />
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Dirección</label>
+                <input value={form.address||''} onChange={e => setForm(p=>({...p, address:e.target.value}))} style={s.input} />
+              </div>
+            </div>
+            {form.id && (
+              <div style={{ marginBottom:14 }}>
+                <label style={s.fieldLabel}>Estado</label>
+                <select value={form.is_active?'true':'false'} onChange={e => setForm(p=>({...p, is_active:e.target.value==='true'}))} style={s.input}>
+                  <option value="true">Activa</option>
+                  <option value="false">Inactiva</option>
+                </select>
+              </div>
+            )}
+            <div style={{ display:'flex', gap:8, marginTop:20 }}>
+              <button onClick={() => setModal(null)} style={{ ...s.btnEdit, flex:1, textAlign:'center' }}>Cancelar</button>
+              <button onClick={saveBranch} disabled={saving||!form.name} style={{ ...s.btnPrimary, flex:1, opacity:(saving||!form.name)?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Confirmar Eliminar Sucursal */}
+      {modal === 'confirm-delete-branch' && branchReport && (
+        <div style={s.modal} onClick={() => { setModal(null); setBranchReport(null) }}>
+          <div style={{ ...s.modalBox, maxWidth:520 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize:16, fontWeight:600, color:'#dc2626', marginBottom:4 }}>Eliminar sucursal</div>
+            <div style={{ fontSize:13, color:'#555', marginBottom:16 }}>Esta acción no se puede deshacer. A continuación el resumen de la sucursal:</div>
+            <div style={{ background:'#f7fafc', borderRadius:10, padding:16, marginBottom:16, fontSize:13 }}>
+              <div style={{ fontWeight:700, fontSize:15, color:BLUE, marginBottom:12 }}>{branchReport.branch.name}</div>
+              <div style={{ marginBottom:8 }}>
+                <span style={{ fontWeight:600 }}>Administradores ({branchReport.admins.length}):</span>
+                {branchReport.admins.length > 0
+                  ? <ul style={{ margin:'4px 0 0 16px', padding:0 }}>{branchReport.admins.map((a,i) => <li key={i}>{a}</li>)}</ul>
+                  : <span style={{ color:'#999', marginLeft:8 }}>Ninguno</span>}
+              </div>
+              <div style={{ marginBottom:8 }}>
+                <span style={{ fontWeight:600 }}>Personal ({branchReport.personal.length}):</span>
+                {branchReport.personal.length > 0
+                  ? <ul style={{ margin:'4px 0 0 16px', padding:0 }}>{branchReport.personal.map((p,i) => <li key={i}>{p}</li>)}</ul>
+                  : <span style={{ color:'#999', marginLeft:8 }}>Ninguno</span>}
+              </div>
+              <div>
+                <span style={{ fontWeight:600 }}>Pacientes ({branchReport.patients.length}):</span>
+                {branchReport.patients.length > 0
+                  ? <ul style={{ margin:'4px 0 0 16px', padding:0 }}>{branchReport.patients.map((p,i) => <li key={i}>{p}</li>)}</ul>
+                  : <span style={{ color:'#999', marginLeft:8 }}>Ninguno</span>}
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <button onClick={() => { setModal(null); setBranchReport(null) }} style={{ ...s.btnEdit, flex:1, textAlign:'center' }}>Cancelar</button>
+              <button onClick={() => deleteBranch(branchReport.branch.id)} disabled={saving} style={{ ...s.btnDanger, flex:1, textAlign:'center', opacity:saving?0.7:1 }}>Eliminar sucursal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
