@@ -12,7 +12,7 @@ const STATUS_LABELS = { active:'Activo', remission:'En remisión', resolved:'Res
 const BLEEDING_LABELS = { light:'Ligero', moderate:'Moderado', heavy:'Abundante' }
 const PAP_LABELS = { normal:'Normal', abnormal:'Anormal', pending:'Pendiente', never:'Nunca realizado' }
 
-export default function PrintNotesModal({ notes, patient, profile, moduleType, antecedents, apnpData, agoData, clinicSettings, onClose }) {
+export default function PrintNotesModal({ notes, patient, profile, moduleType, antecedents, apnpData, agoData, clinicSettings, measurements, signosVitales, onClose }) {
   const [mode, setMode] = useState('all')
   const [selected, setSelected] = useState([])
 
@@ -246,8 +246,72 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                     Notas clínicas — {MODULE_LABELS[moduleType]}
                   </div>
                   {notesToPrint.length === 0 && <div style={{ fontSize:13, color:'#999', textAlign:'center', padding:16 }}>No hay notas seleccionadas</div>}
-                  {notesToPrint.map((note, idx) => (
+                  {notesToPrint.map((note, idx) => {
+                    const noteDate = note.note_date
+                    const signo = (signosVitales || []).find(s => s.note_date === noteDate)
+                    const meas = (measurements || []).find(m => m.measured_at?.startsWith(noteDate))
+                    return (
                     <div className="note-block" key={note.id} style={{ marginBottom:20, paddingBottom:16, borderBottom: idx < notesToPrint.length-1 ? '2px dashed #e2e8f0' : 'none' }}>
+
+                      {/* SIGNOS VITALES (módulo integral) */}
+                      {signo && moduleType === 'integral' && (
+                        <div style={{ marginBottom:12 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6 }}>Signos clínicos — {fmtDate(noteDate)}</div>
+                          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                            <thead>
+                              <tr style={{ background:'#edf2f7' }}>
+                                {['PAS', 'PAD', 'PAM', 'FC', 'SpO2', 'Glucosa', 'Peso'].map(h => (
+                                  <th key={h} style={{ padding:'4px 8px', textAlign:'center', color:'#1a3a5c', fontWeight:700, border:'1px solid #e2e8f0' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                {[
+                                  signo.pas ? `${signo.pas}${signo.pad ? `/${signo.pad}` : ''} mmHg` : '—',
+                                  signo.pad || '—',
+                                  signo.pam || '—',
+                                  signo.heart_rate ? `${signo.heart_rate} lpm` : '—',
+                                  signo.spo2 ? `${signo.spo2}%` : '—',
+                                  signo.glucose ? `${signo.glucose} mg/dL` : '—',
+                                  signo.weight_kg ? `${signo.weight_kg} kg` : '—',
+                                ].map((v, i) => (
+                                  <td key={i} style={{ padding:'4px 8px', textAlign:'center', border:'1px solid #e2e8f0', color:'#333' }}>{v}</td>
+                                ))}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* COMPOSICIÓN CORPORAL (módulo metabólico) */}
+                      {meas && moduleType === 'metabolica' && (
+                        <div style={{ marginBottom:12 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6 }}>Composición corporal — {fmtDate(noteDate)}</div>
+                          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                            <thead>
+                              <tr style={{ background:'#edf2f7' }}>
+                                {['Peso', 'Grasa corporal', 'Masa muscular', 'Grasa visceral'].map(h => (
+                                  <th key={h} style={{ padding:'4px 8px', textAlign:'center', color:'#1a3a5c', fontWeight:700, border:'1px solid #e2e8f0' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                {[
+                                  meas.weight_kg ? `${meas.weight_kg} kg` : '—',
+                                  meas.body_fat_pct ? `${meas.body_fat_pct}%` : '—',
+                                  meas.muscle_mass_kg ? `${meas.muscle_mass_kg} kg` : '—',
+                                  meas.visceral_fat_pts ? `${meas.visceral_fat_pts} pts` : '—',
+                                ].map((v, i) => (
+                                  <td key={i} style={{ padding:'4px 8px', textAlign:'center', border:'1px solid #e2e8f0', color:'#333' }}>{v}</td>
+                                ))}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
                       <div style={{ marginBottom:10 }}>
                         <div style={{ fontSize:13, color:'#555', marginBottom:2 }}>{fmtDate(note.note_date)}</div>
                         <div style={{ fontSize:14, fontWeight:700, color:'#1a3a5c' }}>
@@ -268,7 +332,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                         )
                       })}
                     </div>
-                  ))}
+                  )})}
                 </div>
 
                 {/* FIRMA */}
