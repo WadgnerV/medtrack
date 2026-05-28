@@ -65,6 +65,8 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const [showPrint, setShowPrint] = useState(false)
   const [measurements, setMeasurements] = useState([])
   const [signosVitales, setSignosVitales] = useState([])
+  const [treatments, setTreatments] = useState([])
+  const [diagnoses, setDiagnoses] = useState([])
   const [antecedents, setAntecedents] = useState([])
   const [apnpData, setApnpData] = useState(null)
   const [agoData, setAgoData] = useState(null)
@@ -78,12 +80,14 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   useEffect(() => { if (patientId) load() }, [patientId])
 
   async function load() {
-    const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }] = await Promise.all([
+    const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }, { data: treatData }, { data: diagData }] = await Promise.all([
       supabase.from('clinical_notes').select('*, author:recorded_by(first_name, last_name, prefix)').eq('patient_id', patientId).eq('module_type', moduleType).order('note_date', { ascending: false }),
       supabase.from('patient_antecedents').select('*').eq('patient_id', patientId),
       supabase.from('clinic_settings').select('*').limit(1).single(),
       supabase.from('measurements').select('*').eq('patient_id', patientId).order('measured_at', { ascending: false }),
       supabase.from('clinical_notes').select('*').eq('patient_id', patientId).eq('module_type', moduleType).not('pas', 'is', null).order('note_date', { ascending: false }),
+      supabase.from('treatments').select('*').eq('patient_id', patientId).eq('status', 'active').order('appointment_date', { ascending: false }),
+      supabase.from('patient_diagnoses').select('*').eq('patient_id', patientId).eq('is_active', true).order('diagnosis_date', { ascending: false }),
     ])
     setNotes(notesData || [])
     setAntecedents(antData || [])
@@ -92,6 +96,8 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     setClinicSettings(cs || null)
     setMeasurements(measData || [])
     setSignosVitales(signosData || [])
+    setTreatments(treatData || [])
+    setDiagnoses(diagData || [])
     setLoaded(true)
   }
 
@@ -149,6 +155,8 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
           clinicSettings={clinicSettings}
           measurements={measurements}
           signosVitales={signosVitales}
+          treatments={treatments}
+          diagnoses={diagnoses}
           onClose={() => setShowPrint(false)}
         />
       )}
