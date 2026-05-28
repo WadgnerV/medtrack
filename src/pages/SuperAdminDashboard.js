@@ -782,17 +782,23 @@ export default function SuperAdminDashboard() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Provincia</label>
-                <input value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value}))} style={s.input} />
+                <select value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value, canton:'', district:''}))} style={s.input}>
+                  <option value="">Seleccionar provincia</option>
+                  {Object.keys(CR_DATA).map(prov => <option key={prov} value={prov}>{prov}</option>)}
+                </select>
               </div>
               <div>
                 <label style={s.fieldLabel}>Cantón</label>
-                <input value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value}))} style={s.input} />
+                <select value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value, district:''}))} style={s.input} disabled={!form.province}>
+                  <option value="">Seleccionar cantón</option>
+                  {(CR_DATA[form.province]||[]).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Distrito</label>
-                <input value={form.district||''} onChange={e => setForm(p=>({...p, district:e.target.value}))} style={s.input} />
+                <input value={form.district||''} onChange={e => setForm(p=>({...p, district:e.target.value}))} placeholder="Ej: San Francisco" style={s.input} />
               </div>
               <div>
                 <label style={s.fieldLabel}>Dirección</label>
