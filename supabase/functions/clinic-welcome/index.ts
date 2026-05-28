@@ -9,8 +9,11 @@ const corsHeaders = {
 
 const CHECKOUT_UUIDS: Record<string, string> = {
   basic: '8f133a2a-6301-488e-9de7-3deee1a46f0a',
+  starter: '61d84776-0d2b-42b1-81fd-8355392ad737',
   gold: '39d1c093-2444-4198-bf85-3e6e0dda8735',
+  gold_plus: 'b9cfe853-6c36-4353-a797-7d31804873d4',
   enterprise: '3fd628d0-7bd4-4742-a893-7ebd3f496594',
+  enterprise_plus: 'f7d3b59a-441c-4ec2-968c-7d7c1c07daf4',
 }
 
 const CHECKOUT_BASE = 'https://medtrack.lemonsqueezy.com/checkout/buy'
@@ -25,9 +28,12 @@ function getCheckoutUrl(plan: string, clinicId: string, clinicEmail: string): st
 }
 
 const PLAN_INFO: Record<string, { label: string; price: string; features: string[] }> = {
-  basic: { label: 'Básico', price: '$49/mes', features: ['Hasta 2 médicos', 'Hasta 100 pacientes', '2 módulos activos', 'Soporte por email'] },
-  gold: { label: 'Gold', price: '$199/mes', features: ['Hasta 10 médicos', 'Hasta 500 pacientes', 'Hasta 5 módulos personalizables', 'Reportes avanzados', 'Soporte prioritario'] },
-  enterprise: { label: 'Enterprise', price: '$449/mes', features: ['Médicos ilimitados', 'Pacientes ilimitados', 'Módulos personalizados ilimitados', 'Reportes + exportación', 'Soporte dedicado', 'Personalización de marca'] },
+  basic: { label: 'Basic', price: '$14.99/mes', features: ['Agenda de citas ilimitadas', 'Hasta 100 pacientes', 'Sin módulos clínicos', 'Sin correos automáticos', '1 sucursal activa'] },
+  starter: { label: 'Starter', price: '$49.99/mes', features: ['Agenda de citas ilimitadas', 'Hasta 100 pacientes', 'Hasta 2 profesionales', '2 módulos clínicos por paciente', 'Correos automáticos', '1 sucursal activa'] },
+  gold: { label: 'Gold', price: '$109.99/mes', features: ['Agenda de citas ilimitadas', 'Hasta 300 pacientes', 'Hasta 10 profesionales', '4 módulos clínicos por paciente', 'Correos automáticos', 'Reportes básicos', '1 sucursal activa'] },
+  gold_plus: { label: 'Gold+', price: '$249.99/mes', features: ['Agenda de citas ilimitadas', 'Hasta 500 pacientes', 'Hasta 20 profesionales', '6 módulos por paciente incluyendo exclusivos', 'Correos automáticos', 'Reportes avanzados con exportación', 'Personalización de marca', 'Soporte prioritario', 'Hasta 2 sucursales activas'] },
+  enterprise: { label: 'Enterprise', price: '$499.99/mes', features: ['Agenda de citas ilimitadas', 'Hasta 1500 pacientes', 'Hasta 50 profesionales', '10 módulos por paciente incluyendo exclusivos', 'Correos automáticos', 'Reportes avanzados con exportación', 'Personalización de marca', 'Soporte prioritario + marketing', 'Hasta 5 sucursales activas'] },
+  enterprise_plus: { label: 'Enterprise+', price: '$999.99/mes', features: ['Agenda de citas ilimitadas', 'Pacientes ilimitados', 'Profesionales ilimitados', 'Módulos ilimitados todos exclusivos', 'Correos automáticos', 'Reportes avanzados con exportación', 'Personalización de marca', 'Soporte dedicado + marketing', 'Sucursales ilimitadas'] },
 }
 
 serve(async (req) => {
