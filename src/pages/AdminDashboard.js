@@ -141,7 +141,7 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion'].includes(v) ? v : 'calendario' })
+  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config'].includes(v) ? v : 'calendario' })
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   const [searchPac, setSearchPac] = useState('')
   const [doctors, setDoctors] = useState([])
@@ -896,9 +896,9 @@ export default function AdminDashboard() {
         </div>
 
         {[
-          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, { icon:'R', label:'Reportes', key:'reportes' }] },
-          { section:'Usuarios', items:[{ icon:'P', label:'Personal', key:'medicos', badge:doctors.length }, { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
-          { section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] },
+          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'R', label:'Reportes', key:'reportes' }] : [])] },
+          { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'P', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
+          ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'G', label:'Configuracion', key:'config' }] }]),
         ].map(group => (
           <div key={group.section}>
             <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
@@ -929,12 +929,12 @@ export default function AdminDashboard() {
             <div style={{ flex:1, padding:'8px 0' }}>
               {[
                 { label:'Dashboard', key:'dashboard', icon:'📊' },
-                { label:'Personal', key:'medicos', icon:'👥' },
+                ...(clinicPlan !== 'basic' ? [{ label:'Personal', key:'medicos', icon:'👥' }] : []),
                 { label:'Pacientes', key:'pacientes', icon:'👥' },
                 { label:'Calendario', key:'calendario', icon:'📅' },
-                { label:'Reportes', key:'reportes', icon:'📈' },
-                { label:'Biblioteca', key:'biblioteca', icon:'📚' },
-                { label:'Permisos', key:'permisos', icon:'🔑' },
+                ...(clinicPlan !== 'basic' ? [{ label:'Reportes', key:'reportes', icon:'📈' }] : []),
+                ...(clinicPlan !== 'basic' ? [{ label:'Biblioteca', key:'biblioteca', icon:'📚' }] : []),
+                ...(clinicPlan !== 'basic' ? [{ label:'Permisos', key:'permisos', icon:'🔑' }] : []),
                 { label:'Configuración', key:'config', icon:'⚙️' },
               ].map(item => (
                 <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
@@ -2050,7 +2050,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
           const tabs = [
             ...sorted.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
             { key:'chat_modulos', label:'Chat', color:'#555' },
-            { key:'modulos', label:'Módulos', color:'#888' },
+            ...(clinicPlan !== 'basic' ? [{ key:'modulos', label:'Módulos', color:'#888' }] : []),
           ]
           return tabs.map(t => (
             <div key={t.key} onClick={() => setTab(t.key)}
