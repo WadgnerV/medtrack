@@ -139,13 +139,14 @@ export default function SuperAdminDashboard() {
       enabled_modules: ['enterprise_plus','enterprise'].includes(form.plan) ? ['integral','metabolica','estetica','fisioterapia','enfermeria'] : (form.enabled_modules||[]),
     }
     if (form.id) {
-      await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
+      const { error: updateErr } = await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
+      if (updateErr) { alert('Error al actualizar: ' + updateErr.message); setSaving(false); return }
     } else {
-      await supabase.from('clinics').insert({ ...payload, is_active: true })
+      const { error: insertErr } = await supabase.from('clinics').insert({ ...payload, is_active: true })
+      if (insertErr) { alert('Error al crear: ' + insertErr.message); setSaving(false); return }
     }
-    // Correo bienvenida si es clínica nueva
-    if (!form.id && form.send_welcome_email !== false && form.email) {
-      // Obtener el id de la clínica recién creada
+    // Crear sucursal y correo si es clínica nueva
+    if (!form.id) {
       const { data: newClinic } = await supabase.from('clinics').select('id').eq('name', form.name).order('created_at', { ascending: false }).limit(1).single()
       if (newClinic?.id) {
         await supabase.from('branches').insert({
@@ -158,9 +159,11 @@ export default function SuperAdminDashboard() {
           is_active: true,
         })
       }
-      await supabase.functions.invoke('clinic-welcome', {
-        body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null, clinic_id: newClinic?.id || '' }
-      })
+      if (form.send_welcome_email !== false && form.email) {
+        await supabase.functions.invoke('clinic-welcome', {
+          body: { clinic_name: form.name, clinic_email: form.email, plan: form.plan || 'basic', legal_name: form.legal_name || null, clinic_id: newClinic?.id || '' }
+        })
+      }
     }
     // Cambio de plan si es edición y el plan cambió
     if (form.id && form.email) {
