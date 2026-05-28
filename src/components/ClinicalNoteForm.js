@@ -24,6 +24,7 @@ function buildNoteText(form) {
   if (form.padecimiento.trim()) lines.push(`Padecimiento actual:\n${form.padecimiento.trim()}`)
   if (form.examen.trim()) lines.push(`Examen físico:\n${form.examen.trim()}`)
   if (form.procedimiento.trim()) lines.push(`Notas de procedimiento:\n${form.procedimiento.trim()}`)
+  if (form.tratamiento.trim()) lines.push(`Tratamiento:\n${form.tratamiento.trim()}`)
   const plan = [...form.planOpciones]
   if (form.planOtroChecked && form.planOtro.trim()) plan.push(`Otro: ${form.planOtro.trim()}`)
   if (plan.length > 0) lines.push(`Plan de seguimiento:\n${plan.map(p => `• ${p}`).join('\n')}`)
@@ -31,7 +32,7 @@ function buildNoteText(form) {
 }
 
 const emptyForm = {
-  motivo: '', padecimiento: '', examen: '', procedimiento: '',
+  motivo: '', padecimiento: '', examen: '', procedimiento: '', tratamiento: '',
   planOpciones: [], planOtroChecked: false, planOtro: ''
 }
 
@@ -44,6 +45,7 @@ function parseNoteText(text) {
     else if (s.startsWith('Padecimiento actual:\n')) form.padecimiento = s.replace('Padecimiento actual:\n', '')
     else if (s.startsWith('Examen físico:\n')) form.examen = s.replace('Examen físico:\n', '')
     else if (s.startsWith('Notas de procedimiento:\n')) form.procedimiento = s.replace('Notas de procedimiento:\n', '')
+    else if (s.startsWith('Tratamiento:\n')) form.tratamiento = s.replace('Tratamiento:\n', '')
     else if (s.startsWith('Plan de seguimiento:\n')) {
       const items = s.replace('Plan de seguimiento:\n', '').split('\n').map(l => l.replace('• ', ''))
       items.forEach(item => {
@@ -212,6 +214,14 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
               <textarea style={inpM} value={form.procedimiento}
                 onChange={e => setForm(p => ({ ...p, procedimiento: e.target.value }))}
                 placeholder="Procedimiento realizado..." />
+            </div>
+
+            {/* Tratamiento */}
+            <div>
+              <label style={label}>Tratamiento</label>
+              <textarea style={inpM} value={form.tratamiento}
+                onChange={e => setForm(p => ({ ...p, tratamiento: e.target.value }))}
+                placeholder="Medicamentos, dosis, indicaciones terapéuticas..." />
             </div>
 
             {/* Plan de seguimiento */}

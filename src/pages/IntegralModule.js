@@ -177,7 +177,6 @@ export default function IntegralModule({ patient, careModule, canEdit, profile }
   const TABS = [
     ...(canEdit ? [{ key:'notas', label:'Notas clínicas' }] : []),
     { key:'signos', label:'Signos clínicos' },
-    { key:'tratamientos', label:'Tratamientos' },
     { key:'diagnosticos', label:'Diagnósticos' },
     { key:'tareas', label:'Tareas' },
   ]
@@ -333,55 +332,6 @@ export default function IntegralModule({ patient, careModule, canEdit, profile }
       )}
 
       {/* Tratamientos */}
-      {tab === 'tratamientos' && (
-        <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-            <div style={{ fontSize:14, fontWeight:600 }}>Tratamientos activos</div>
-            {canEdit && <button onClick={() => setShowTratForm(!showTratForm)} style={{ padding:'5px 12px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12 }}>+ Agregar</button>}
-          </div>
-          {canEdit && showTratForm && (
-            <div style={{ background:'#f8f8f8', borderRadius:10, padding:'12px', marginBottom:12, maxWidth:480 }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:10 }}>
-                <select value={tratSeleccionado} onChange={e => setTratSeleccionado(e.target.value)}
-                  style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', background:'#fff', fontFamily:'inherit' }}>
-                  <option value="">Seleccioná un tratamiento...</option>
-                  {TRATAMIENTOS_PREDEFINIDOS.map(t => <option key={t} value={t}>{t}</option>)}
-                  <option value="otra">+ Otro tratamiento</option>
-                </select>
-                {tratSeleccionado === 'otra' && (
-                  <input placeholder="Nombre del tratamiento *" value={tratOtra} onChange={e => setTratOtra(e.target.value)}
-                    style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
-                )}
-                <div style={{ display:'flex', gap:8 }}>
-                  <input placeholder="Descripción (opcional)" value={tratDescription} onChange={e => setTratDescription(e.target.value)}
-                    style={{ flex:1, padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
-                  <input placeholder="Dosis" value={tratDosage} onChange={e => setTratDosage(e.target.value)}
-                    style={{ width:100, padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
-                </div>
-              </div>
-              <div style={{ display:'flex', gap:8 }}>
-                <button onClick={() => setShowTratForm(false)} style={{ padding:'6px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar</button>
-                <button onClick={saveTratamiento} disabled={savingTrat} style={{ padding:'6px 16px', background:COLOR, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>{savingTrat ? 'Guardando...' : 'Guardar'}</button>
-              </div>
-            </div>
-          )}
-          {treatments.length === 0 ? (
-            <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin tratamientos activos.</div>
-          ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-              {treatments.map(t => (
-                <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px', position:'relative' }}>
-                  <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{t.name}</div>
-                  {t.description && <div style={{ fontSize:11, color:'#888' }}>{t.description}</div>}
-                  {t.dosage && <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>Dosis: {t.dosage}</div>}
-                  {canEdit && <button onClick={() => deleteTratamiento(t.id)} style={{ position:'absolute', top:6, right:6, background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#ccc' }}>×</button>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Diagnósticos */}
       {tab === 'diagnosticos' && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>

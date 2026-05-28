@@ -12,7 +12,7 @@ const STATUS_LABELS = { active:'Activo', remission:'En remisión', resolved:'Res
 const BLEEDING_LABELS = { light:'Ligero', moderate:'Moderado', heavy:'Abundante' }
 const PAP_LABELS = { normal:'Normal', abnormal:'Anormal', pending:'Pendiente', never:'Nunca realizado' }
 
-export default function PrintNotesModal({ notes, patient, profile, moduleType, antecedents, apnpData, agoData, clinicSettings, measurements, signosVitales, treatments, diagnoses, onClose }) {
+export default function PrintNotesModal({ notes, patient, profile, moduleType, antecedents, apnpData, agoData, clinicSettings, measurements, signosVitales, diagnoses, onClose }) {
   const [mode, setMode] = useState('all')
   const [selected, setSelected] = useState([])
 
@@ -331,34 +331,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                           </div>
                         )
                       })}
-                      {/* TRATAMIENTO (match por fecha) */}
-                      {(() => {
-                        const noteTreats = (treatments || []).filter(t => t.appointment_date === noteDate)
-                        if (noteTreats.length === 0) return null
-                        return (
-                          <div style={{ marginTop:10 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6 }}>Tratamiento indicado — {fmtDate(noteDate)}</div>
-                            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
-                              <thead>
-                                <tr style={{ background:'#edf2f7' }}>
-                                  {['Tratamiento', 'Dosis', 'Descripción'].map(h => (
-                                    <th key={h} style={{ padding:'4px 8px', textAlign:'left', color:'#1a3a5c', fontWeight:700, border:'1px solid #e2e8f0' }}>{h}</th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {noteTreats.map((t, i) => (
-                                  <tr key={i}>
-                                    <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333' }}>{t.name || '—'}</td>
-                                    <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333' }}>{t.dosage || '—'}</td>
-                                    <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333' }}>{t.description || '—'}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )
-                      })()}
+
                     </div>
                   )})}
                 </div>
@@ -369,25 +342,15 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                     <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
                       Diagnósticos activos
                     </div>
-                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
-                      <thead>
-                        <tr style={{ background:'#edf2f7' }}>
-                          {['Código CIE-10', 'Descripción', 'Fecha de diagnóstico', 'Notas'].map(h => (
-                            <th key={h} style={{ padding:'4px 8px', textAlign:'left', color:'#1a3a5c', fontWeight:700, border:'1px solid #e2e8f0' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {diagnoses.map((d, i) => (
-                          <tr key={i} style={{ background: i%2===0 ? '#fff' : '#f7fafc' }}>
-                            <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333', fontWeight:600 }}>{d.cie10_code || '—'}</td>
-                            <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333' }}>{d.cie10_description || '—'}</td>
-                            <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333' }}>{d.diagnosis_date ? fmtDate(d.diagnosis_date) : '—'}</td>
-                            <td style={{ padding:'4px 8px', border:'1px solid #e2e8f0', color:'#333' }}>{d.notes || '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                      {diagnoses.map((d, i) => (
+                        <div key={i} style={{ background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:'8px 10px' }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c' }}>{d.cie10_code} — {d.cie10_description}</div>
+                          {d.diagnosis_date && <div style={{ fontSize:11, color:'#666', marginTop:2 }}>Fecha: {fmtDate(d.diagnosis_date)}</div>}
+                          {d.notes && <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{d.notes}</div>}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
