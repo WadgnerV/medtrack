@@ -50,6 +50,7 @@ const SPECIAL = [
   { value: 'CC', label: 'Con comida (CC)' },
   { value: 'en ayunas', label: 'En ayunas' },
   { value: 'PRN', label: 'Solo en caso necesario (PRN)' },
+  { value: 'STAT', label: 'Inmediatamente (STAT)' },
   { value: 'agitar antes de usar', label: 'Agitar antes de usar' },
   { value: 'refrigerar', label: 'Refrigerar' },
   { value: 'evitar exposición solar', label: 'Evitar exposición solar' },
