@@ -307,9 +307,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                   <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom: showNewTemplate ? 8 : 0 }}>
                     {templates.map(t => (
                       <div key={t.id} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'8px 10px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
-                        <div style={{ flex:1, cursor:'pointer' }} onClick={() => { setForm(p => ({ ...p, examen: p.examen ? p.examen + '
-
-' + t.content : t.content })); setShowTemplates(false) }}>
+                        <div style={{ flex:1, cursor:'pointer' }} onClick={() => { setForm(p => ({ ...p, examen: p.examen ? p.examen + '\n\n' + t.content : t.content })); setShowTemplates(false) }}>
                           <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a' }}>{t.title}</div>
                           <div style={{ fontSize:11, color:'#888', marginTop:2 }}>
                             {t.creator?.prefix ? t.creator.prefix + ' ' : ''}{t.creator?.first_name} {t.creator?.last_name}
