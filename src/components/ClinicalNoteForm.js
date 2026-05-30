@@ -129,13 +129,23 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     <div class="doc-title">${titles[type]}</div>
     <h1>${clinicSettings?.clinic_name || 'Clínica'}</h1>
     <div class="sub">Fecha: ${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    <hr class="divider">
     <div class="section">Datos del paciente</div>
-    <div class="field"><span class="label">Nombre:</span><span class="value">${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}</span></div>
-    <div class="field"><span class="label">Identificación:</span><span class="value">${patient?.id_number||'—'}</span></div>
-    <div class="field"><span class="label">Fecha de nacimiento:</span><span class="value">${patient?.birth_date ? fmtDate(patient.birth_date) : '—'}${patient?.birth_date ? ' (' + age(patient.birth_date) + ' años)' : ''}</span></div>
-
-    <div class="field"><span class="label">Prescrito por:</span><span class="value">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</span></div>
-    <div style="margin-top:12px;">${itemsHtml}</div>
+    <div class="two-col">
+      <div class="col-block"><div class="col-label">Nombre completo</div><div class="col-value">${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}</div></div>
+      <div class="col-block"><div class="col-label">Identificación</div><div class="col-value">${patient?.id_number||'—'}</div></div>
+    </div>
+    <div class="two-col">
+      <div class="col-block"><div class="col-label">Fecha de nacimiento</div><div class="col-value">${patient?.birth_date ? fmtDate(patient.birth_date) : '—'}</div></div>
+      <div class="col-block"><div class="col-label">Edad</div><div class="col-value">${patient?.birth_date ? age(patient.birth_date) + ' años' : '—'}</div></div>
+    </div>
+    <hr class="divider">
+    <div class="section">${titles[type]}</div>
+    <div class="two-col">
+      <div class="col-block"><div class="col-label">Prescrito / Solicitado por</div><div class="col-value">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</div></div>
+    </div>
+    <hr class="divider">
+    <div style="margin-top:16px;">${itemsHtml}</div>
     <div class="sign"><div class="sign-line"></div><div class="sign-name">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</div><div style="font-size:10pt;color:#888;">Firma y sello</div></div>
     <div class="footer">Documento generado por MedTrack. Información confidencial de uso médico exclusivo.</div>
     </body></html>`
