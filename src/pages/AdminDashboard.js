@@ -1718,6 +1718,8 @@ export default function AdminDashboard() {
               doctors={doctors}
               profile={profile}
               isMobile={isMobile}
+              branches={branches}
+              isClinicAdmin={isClinicAdmin}
             />
           )}
 

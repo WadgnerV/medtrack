@@ -46,7 +46,7 @@ const CHART_COLORS = [BLUE, BLUE3, BLUE4, GRAY, BLUE2, '#553c9a', '#2d3748', GRA
 const cardStyle = { background:'#f7fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:'14px 16px', pageBreakInside:'avoid', breakInside:'avoid' }
 const secTitle = { fontSize:12, fontWeight:700, color:BLUE, marginBottom:10, borderLeft:'3px solid '+BLUE, paddingLeft:8, letterSpacing:'0.02em', textTransform:'uppercase' }
 
-export default function ReportesView({ appts, patients, doctors, profile, isMobile }) {
+export default function ReportesView({ appts, patients, doctors, profile, isMobile, branches=[], isClinicAdmin=false }) {
   const today = new Date()
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]
   const todayStr = today.toISOString().split('T')[0]
@@ -57,9 +57,10 @@ export default function ReportesView({ appts, patients, doctors, profile, isMobi
   const [dragging, setDragging] = useState(null)
   const [reporteOrder, setReporteOrder] = useState(REPORTES_DISPONIBLES.map(r => r.id))
   const [exporting, setExporting] = useState(false)
+  const [selBranchR, setSelBranchR] = useState('')
   const reportRef = useRef(null)
 
-  const filteredAppts = appts.filter(a => a.appointment_date >= dateFrom && a.appointment_date <= dateTo)
+  const filteredAppts = appts.filter(a => a.appointment_date >= dateFrom && a.appointment_date <= dateTo && (!selBranchR || a.branch_id === selBranchR))
   const totalCitas = filteredAppts.length
   const citasConfirmadas = filteredAppts.filter(a => a.status === 'confirmed_patient' || a.status === 'confirmed_doctor').length
   const citasAusentes = filteredAppts.filter(a => a.status === 'no_show').length
@@ -185,6 +186,16 @@ export default function ReportesView({ appts, patients, doctors, profile, isMobi
             <input type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)}
               style={{ padding:'6px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none' }} />
           </div>
+          {isClinicAdmin && branches.length > 1 && (
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <label style={{ fontSize:13, color:GRAY }}>Sucursal</label>
+              <select value={selBranchR} onChange={e=>setSelBranchR(e.target.value)}
+                style={{ padding:'6px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', color: selBranchR ? BLUE : '#888' }}>
+                <option value="">Todas</option>
+                {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
