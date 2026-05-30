@@ -141,7 +141,7 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config'].includes(v) ? v : 'calendario' })
+  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config','sucursales'].includes(v) ? v : 'calendario' })
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   const [searchPac, setSearchPac] = useState('')
   const [doctors, setDoctors] = useState([])
@@ -216,6 +216,8 @@ export default function AdminDashboard() {
   const [cie10Results, setCie10Results] = useState([])
   const [clinicSettings, setClinicSettings] = useState(null)
   const [clinicPlan, setClinicPlan] = useState('basic')
+  const isClinicAdmin = profile?.role === 'clinic_admin'
+  const [branches, setBranches] = useState([])
   const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria'])
   const [savingSettings, setSavingSettings] = useState(false)
 
@@ -226,7 +228,7 @@ export default function AdminDashboard() {
 
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings()])
+    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches()])
     setLoading(false)
   }
 
@@ -320,6 +322,12 @@ export default function AdminDashboard() {
     await loadDoctors()
     setModal(null)
     setSaving(false)
+  }
+
+  async function loadBranches() {
+    if (!profile?.clinic_id) return
+    const { data } = await supabase.from('branches').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    setBranches(data || [])
   }
 
   async function loadDoctors() {
@@ -909,6 +917,56 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+            {modal === 'branch' && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>{form.id ? 'Editar sucursal' : 'Nueva sucursal'}</div>
+                  <div style={{ marginBottom:14 }}>
+                    <label style={s.fieldLabel}>Nombre</label>
+                    <input value={form.name||''} onChange={e => setForm(p=>({...p, name:e.target.value}))} style={s.fieldInput} />
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+                    <div><label style={s.fieldLabel}>Provincia</label><input value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Cantón</label><input value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Distrito</label><input value={form.district||''} onChange={e => setForm(p=>({...p, district:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Dirección</label><input value={form.address||''} onChange={e => setForm(p=>({...p, address:e.target.value}))} style={s.fieldInput} /></div>
+                  </div>
+                  {form.id && <div style={{ marginBottom:14 }}>
+                    <label style={s.fieldLabel}>Estado</label>
+                    <select value={form.is_active?'true':'false'} onChange={e => setForm(p=>({...p, is_active:e.target.value==='true'}))} style={s.fieldInput}>
+                      <option value="true">Activa</option>
+                      <option value="false">Inactiva</option>
+                    </select>
+                  </div>}
+                  <div style={{ display:'flex', gap:8, marginTop:8 }}>
+                    <button onClick={() => setModal(null)} style={{ ...s.btnEdit, flex:1, textAlign:'center' }}>Cancelar</button>
+                    <button onClick={async () => {
+                      setSaving(true)
+                      if (form.id) {
+                        await supabase.from('branches').update({ name:form.name, province:form.province||null, canton:form.canton||null, district:form.district||null, address:form.address||null, is_active:form.is_active!==false }).eq('id', form.id)
+                      } else {
+                        await supabase.from('branches').insert({ clinic_id:form.clinic_id, name:form.name, province:form.province||null, canton:form.canton||null, district:form.district||null, address:form.address||null, is_active:true })
+                      }
+                      await loadBranches(); setModal(null); setSaving(false)
+                    }} disabled={saving||!form.name} style={{ ...s.btnPrimary, flex:1, opacity:(saving||!form.name)?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {modal === 'new-branch-admin' && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:520, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
+                  <NewUserForm
+                    type="doctor"
+                    doctors={doctors}
+                    saving={saving}
+                    error={formError}
+                    onSave={form => createUser(form, 'branch_admin')}
+                    onClose={() => setModal(null)}
+                  />
+                </div>
+              </div>
+            )}
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} doctors={doctors}
                 saving={saving} error={formError} defaultDate={selDate} defaultTime={modalData.defaultTime}
@@ -944,7 +1002,7 @@ export default function AdminDashboard() {
         </div>
 
         {[
-          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'R', label:'Reportes', key:'reportes' }] : [])] },
+          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'R', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'S', label:'Sucursales', key:'sucursales' }] : [])] },
           { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'P', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
           ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'G', label:'Configuracion', key:'config' }] }]),
         ].map(group => (
@@ -1012,6 +1070,7 @@ export default function AdminDashboard() {
               <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
             {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('doctor')) return; setFormError(''); setModal('new-doctor') }}>+ Nuevo personal</button>}
+            {view === 'medicos' && isClinicAdmin && <button style={{ ...s.btnPrimary, background:'#1a3a5c' }} onClick={() => { setFormError(''); setModal('new-branch-admin') }}>+ Nuevo admin sucursal</button>}
             {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
@@ -1713,6 +1772,32 @@ export default function AdminDashboard() {
                   </div>
                 )
               })()}
+            </div>
+          )}
+
+          {view === 'sucursales' && isClinicAdmin && (
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'20px 24px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+                <div style={{ fontSize:15, fontWeight:600, color:'#1a1a1a' }}>Sucursales de la clínica</div>
+                <button style={s.btnPrimary} onClick={() => { setForm({ clinic_id: profile?.clinic_id, name:'', is_active:true }); setModal('branch') }}>+ Nueva sucursal</button>
+              </div>
+              {branches.length === 0 && <div style={{ textAlign:'center', padding:40, color:'#999', fontSize:13 }}>No hay sucursales registradas</div>}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                {branches.map(branch => (
+                  <div key={branch.id} style={{ border:'0.5px solid #eee', borderRadius:10, padding:'14px 16px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                      <div>
+                        <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{branch.name}</div>
+                        {(branch.canton || branch.province) && <div style={{ fontSize:12, color:'#999' }}>{[branch.canton, branch.province].filter(Boolean).join(', ')}</div>}
+                      </div>
+                      <span style={{ fontSize:11, color: branch.is_active ? '#0F6E56' : '#999', background: branch.is_active ? '#e6f7f3' : '#f5f5f5', padding:'2px 8px', borderRadius:10 }}>{branch.is_active ? 'Activa' : 'Inactiva'}</span>
+                    </div>
+                    <div style={{ display:'flex', gap:6 }}>
+                      <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...branch }); setModal('branch') }}>Editar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
