@@ -454,6 +454,23 @@ export default function AdminDashboard() {
     setModal(null); setSaving(false)
   }
 
+  async function saveEditPatient() {
+    setSaving(true)
+    await supabase.from('profiles').update({
+      first_name: form.firstName, last_name: form.lastName,
+    }).eq('id', form.profileId)
+    await supabase.from('patients').update({
+      id_number: form.idNumber || null,
+      phone: form.phone || null,
+      birth_date: form.birthDate || null,
+      sex: form.sex || null,
+      province: form.province || null,
+      canton: form.canton || null,
+      height_cm: form.height ? parseInt(form.height) : null,
+    }).eq('id', form.patientId)
+    await loadPatients(); setModal(null); setSaving(false)
+  }
+
   async function reassignPatient(patientId, doctorId) {
     setSaving(true)
     await supabase.from('patients').update({ assigned_doctor_id: doctorId || null }).eq('id', patientId)
@@ -861,6 +878,65 @@ export default function AdminDashboard() {
                 onSave={docId => reassignPatient(modalData.patient.id, docId)}
                 onClose={() => setModal(null)} />
             )}
+            {modal === 'edit-patient' && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>Editar paciente</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Nombre</label>
+                      <input value={form.firstName||''} onChange={e => setForm(p=>({...p, firstName:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Apellido</label>
+                      <input value={form.lastName||''} onChange={e => setForm(p=>({...p, lastName:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Número de identificación</label>
+                      <input value={form.idNumber||''} onChange={e => setForm(p=>({...p, idNumber:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Teléfono</label>
+                      <input value={form.phone||''} onChange={e => setForm(p=>({...p, phone:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Fecha de nacimiento</label>
+                      <input type="date" value={form.birthDate||''} onChange={e => setForm(p=>({...p, birthDate:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Sexo</label>
+                      <select value={form.sex||''} onChange={e => setForm(p=>({...p, sex:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }}>
+                        <option value="">Sin especificar</option>
+                        <option value="male">Masculino</option>
+                        <option value="female">Femenino</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Provincia</label>
+                      <select value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value, canton:''}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }}>
+                        <option value="">Seleccionar...</option>
+                        {Object.keys(CR_DATA).map(prov => <option key={prov} value={prov}>{prov}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Cantón</label>
+                      <select value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} disabled={!form.province}>
+                        <option value="">Seleccionar...</option>
+                        {(CR_DATA[form.province]||[]).map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Altura (cm)</label>
+                      <input type="number" value={form.height||''} onChange={e => setForm(p=>({...p, height:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:8, marginTop:8 }}>
+                    <button onClick={() => setModal(null)} style={{ flex:1, padding:'8px', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
+                    <button onClick={saveEditPatient} disabled={saving} style={{ flex:1, padding:'8px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} doctors={doctors}
                 saving={saving} error={formError} defaultDate={selDate} defaultTime={modalData.defaultTime}
@@ -1125,7 +1201,7 @@ export default function AdminDashboard() {
                       {allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}
                     </div>
                     <div style={{ display:'flex', gap:4, flexShrink:0, marginLeft:8 }}>
-                      <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
+                      <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setForm({ profileId: p.profile_id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                       <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                     </div>
                   </div>
@@ -1144,7 +1220,7 @@ export default function AdminDashboard() {
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                   <div style={{ flex:'0 0 12%', display:'flex', justifyContent:'flex-end', gap:4 }}>
-                    <button style={s.iconBtn} title="Reasignar" onClick={e => { e.stopPropagation(); setModal('assign'); setModalData({ patient:p }) }}>R</button>
+                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setForm({ profileId: p.profile_id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
                 </div>
