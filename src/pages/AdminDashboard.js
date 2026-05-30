@@ -455,19 +455,19 @@ export default function AdminDashboard() {
     setModal(null); setSaving(false)
   }
 
-  async function saveEditPatient() {
+  async function saveEditPatient(form) {
     setSaving(true)
     await supabase.from('profiles').update({
-      first_name: editPatientForm.firstName, last_name: editPatientForm.lastName,
+      first_name: form.firstName, last_name: form.lastName,
     }).eq('id', editPatientForm.profileId)
     await supabase.from('patients').update({
-      id_number: editPatientForm.idNumber || null,
-      phone: editPatientForm.phone || null,
-      birth_date: editPatientForm.birthDate || null,
-      sex: editPatientForm.sex || null,
-      province: editPatientForm.province || null,
-      canton: editPatientForm.canton || null,
-      height_cm: editPatientForm.height ? parseInt(editPatientForm.height) : null,
+      id_number: form.idNumber || null,
+      phone: form.phone || null,
+      birth_date: form.birthDate || null,
+      sex: form.sex || null,
+      province: form.province || null,
+      canton: form.canton || null,
+      height_cm: form.height ? parseInt(form.height) : null,
     }).eq('id', editPatientForm.patientId)
     await loadPatients(); setModal(null); setSaving(false)
   }
@@ -881,54 +881,16 @@ export default function AdminDashboard() {
             )}
             {modal === 'edit-patient' && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
-                <div style={{ background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
-                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>Editar paciente</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Nombre</label>
-                      <input value={editPatientForm.firstName||''} onChange={e => setEditPatientForm(p=>({...p, firstName:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Apellido</label>
-                      <input value={editPatientForm.lastName||''} onChange={e => setEditPatientForm(p=>({...p, lastName:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Número de identificación</label>
-                      <input value={editPatientForm.idNumber||''} onChange={e => setEditPatientForm(p=>({...p, idNumber:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Teléfono</label>
-                      <input value={editPatientForm.phone||''} onChange={e => setEditPatientForm(p=>({...p, phone:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Fecha de nacimiento</label>
-                      <input type="date" value={editPatientForm.birthDate||''} onChange={e => setEditPatientForm(p=>({...p, birthDate:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Sexo</label>
-                      <select value={editPatientForm.sex||''} onChange={e => setEditPatientForm(p=>({...p, sex:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }}>
-                        <option value="">Sin especificar</option>
-                        <option value="male">Masculino</option>
-                        <option value="female">Femenino</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Provincia</label>
-                      <input value={editPatientForm.province||''} onChange={e => setEditPatientForm(p=>({...p, province:e.target.value}))} placeholder="ej: San José" style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Cantón</label>
-                      <input value={editPatientForm.canton||''} onChange={e => setEditPatientForm(p=>({...p, canton:e.target.value}))} placeholder="ej: Escazú" style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Altura (cm)</label>
-                      <input type="number" value={editPatientForm.height||''} onChange={e => setEditPatientForm(p=>({...p, height:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
-                    </div>
-                  </div>
-                  <div style={{ display:'flex', gap:8, marginTop:8 }}>
-                    <button onClick={() => setModal(null)} style={{ flex:1, padding:'8px', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
-                    <button onClick={saveEditPatient} disabled={saving} style={{ flex:1, padding:'8px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
-                  </div>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:520, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
+                  <NewUserForm
+                    type="patient"
+                    doctors={doctors}
+                    saving={saving}
+                    error={formError}
+                    initialData={editPatientForm}
+                    onSave={saveEditPatient}
+                    onClose={() => setModal(null)}
+                  />
                 </div>
               </div>
             )}
@@ -1680,7 +1642,7 @@ export default function AdminDashboard() {
   )
 }
 
-function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
+function NewUserForm({ type, doctors, saving, error, onSave, onClose, initialData }) {
   const [specialties, setSpecialties] = useState([])
 
   useEffect(() => {
@@ -1706,11 +1668,11 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
     'Puntarenas': ['Puntarenas','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito','Rio Nuevo','Monteverde','Puerto Jimenez'],
     'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
   }
-  const [form, setForm] = useState({ prefix:'', profession:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
+  const [form, setForm] = useState(initialData || { prefix:'', profession:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   return (
     <>
-      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{type === 'doctor' ? 'Nuevo personal' : 'Nuevo paciente'}</div>
+      <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{initialData ? (type === 'doctor' ? 'Editar personal' : 'Editar paciente') : (type === 'doctor' ? 'Nuevo personal' : 'Nuevo paciente')}</div>
       {error && <div style={{ background:'#FAECE7', color:'#C24B2A', fontSize:14, padding:'8px 11px', borderRadius:8, marginBottom:12 }}>{error}</div>}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
         {type === 'doctor' && (
@@ -1741,8 +1703,8 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
         )}
         <Field label="Nombre" value={form.firstName} onChange={f('firstName')} placeholder="Maria" />
         <Field label="Apellido" value={form.lastName} onChange={f('lastName')} placeholder="Rodriguez" />
-        <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>
-        <div style={{ gridColumn:'1/-1' }}><Field label="Contrasena temporal" value={form.password} onChange={f('password')} type="password" placeholder="Minimo 6 caracteres" /></div>
+        {!initialData && <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>}
+        {!initialData && <div style={{ gridColumn:'1/-1' }}><Field label="Contrasena temporal" value={form.password} onChange={f('password')} type="password" placeholder="Minimo 6 caracteres" /></div>}
         {type === 'doctor' && <>
           <div style={{ gridColumn:'1/-1' }}>
             <label style={s.fieldLabel}>Tipo de consulta</label>
@@ -1847,7 +1809,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose }) {
       </div>
       <div style={{ display:'flex', gap:8 }}>
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
-        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Creando...' : 'Crear usuario'}</button>
+        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : initialData ? 'Guardar cambios' : 'Crear usuario'}</button>
       </div>
     </>
   )
