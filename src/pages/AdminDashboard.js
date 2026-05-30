@@ -217,6 +217,7 @@ export default function AdminDashboard() {
   const [clinicSettings, setClinicSettings] = useState(null)
   const [clinicPlan, setClinicPlan] = useState('basic')
   const isClinicAdmin = profile?.role === 'clinic_admin'
+  const [selBranch, setSelBranch] = useState('')
   const [branches, setBranches] = useState([])
   const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria'])
   const [savingSettings, setSavingSettings] = useState(false)
@@ -640,7 +641,7 @@ export default function AdminDashboard() {
   }
 
   function apptsByDate(dateStr) {
-    return appts.filter(a => a.appointment_date === dateStr && a.status !== 'cancelled').sort((a,b) => a.appointment_time.localeCompare(b.appointment_time))
+    return appts.filter(a => a.appointment_date === dateStr && a.status !== 'cancelled' && (!selBranch || a.branch_id === selBranch)).sort((a,b) => a.appointment_time.localeCompare(b.appointment_time))
   }
 
   function doctorColor(doctorId) {
@@ -1328,6 +1329,13 @@ export default function AdminDashboard() {
                     <button style={s.calNavBtn} onClick={() => { const d = new Date(selDate||new Date()); d.setDate(d.getDate()+1); setSelDate(d.toISOString().split('T')[0]) }}>{'>'}</button>
                   </>}
                 </div>
+                {isClinicAdmin && branches.length > 1 && (
+                  <select value={selBranch} onChange={e => setSelBranch(e.target.value)}
+                    style={{ padding:'5px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:12, outline:'none', color: selBranch ? '#1a3a5c' : '#888' }}>
+                    <option value="">Todas las sucursales</option>
+                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                )}
                 <div style={{ display:'flex', background:'#f5f5f5', borderRadius:8, padding:3, gap:2 }}>
                   {[['mes','Mes'],['semana','Semana'],['dia','Día']].map(([key,label]) => (
                     <button key={key} onClick={() => setCalView(key)}
