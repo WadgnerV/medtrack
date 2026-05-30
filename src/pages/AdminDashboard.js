@@ -922,7 +922,7 @@ export default function AdminDashboard() {
             {modal === 'branch' && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
                 <div style={{ background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
-                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>{form.id ? 'Editar sucursal' : 'Nueva sucursal'}</div>
+                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>{branchForm.id ? 'Editar sucursal' : 'Nueva sucursal'}</div>
                   <div style={{ marginBottom:14 }}>
                     <label style={s.fieldLabel}>Nombre</label>
                     <input value={branchForm.name||''} onChange={e => setBranchForm(p=>({...p, name:e.target.value}))} style={s.fieldInput} />
