@@ -317,11 +317,29 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             </div>
           </div>
 
-          <div style={{ display:'flex', gap:8, marginTop:14 }}>
+          <div style={{ display:'flex', gap:8, marginTop:14, flexWrap:'wrap' }}>
             <button onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}
               style={{ padding:'8px 14px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
               Cancelar
             </button>
+            {form.tratamiento?.trim() && (
+              <button onClick={() => printDoc('receta')}
+                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>
+                🖨️ Receta
+              </button>
+            )}
+            {form.imagenes?.trim() && (
+              <button onClick={() => printDoc('imagenes')}
+                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>
+                🖨️ Imágenes
+              </button>
+            )}
+            {form.laboratorios?.trim() && (
+              <button onClick={() => printDoc('laboratorios')}
+                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>
+                🖨️ Laboratorios
+              </button>
+            )}
             <button onClick={save} disabled={saving}
               style={{ flex:1, padding:'8px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving ? 0.7 : 1 }}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar nota' : 'Guardar nota'}
