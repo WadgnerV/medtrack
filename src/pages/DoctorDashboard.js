@@ -100,7 +100,6 @@ export default function DoctorDashboard() {
   useEffect(() => { 
     if (profile?.id) {
       loadAll()
-      // Solo restaurar paciente si la vista guardada es 'perfil'
       const savedView = localStorage.getItem('doctorView')
       const saved = localStorage.getItem('doctorSelPatient')
       if (savedView === 'perfil' && saved) {
@@ -109,7 +108,8 @@ export default function DoctorDashboard() {
           loadPatientData(p.id)
           loadPatientCareModules(p.id)
         } catch {}
-      } else if (savedView !== 'perfil') {
+      } else {
+        localStorage.setItem('doctorView', 'calendario')
         localStorage.removeItem('doctorSelPatient')
         setSelPatient(null)
       }
