@@ -456,6 +456,7 @@ export default function AdminDashboard() {
   }
 
   async function saveEditPatient(form) {
+    console.log('editPatientForm:', editPatientForm, 'form:', form)
     setSaving(true)
     const profileId = editPatientForm.profileId
     const patientId = editPatientForm.patientId
