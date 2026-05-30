@@ -456,7 +456,6 @@ export default function AdminDashboard() {
   }
 
   async function saveEditPatient(form) {
-    console.log('editPatientForm:', editPatientForm, 'form:', form)
     setSaving(true)
     const profileId = editPatientForm.profileId
     const patientId = editPatientForm.patientId
@@ -465,7 +464,7 @@ export default function AdminDashboard() {
       first_name: form.firstName, last_name: form.lastName,
     }).eq('id', profileId)
     if (e1) { alert('Error perfil: ' + e1.message); setSaving(false); return }
-    const { error: e2 } = await supabase.from('patients').update({
+    const { data: patData, error: e2 } = await supabase.from('patients').update({
       id_number: form.idNumber || null,
       phone: form.phone || null,
       birth_date: form.birthDate || null,
@@ -473,8 +472,9 @@ export default function AdminDashboard() {
       province: form.province || null,
       canton: form.canton || null,
       height_cm: form.height ? parseInt(form.height) : null,
-    }).eq('id', patientId)
+    }).eq('id', patientId).select()
     if (e2) { alert('Error paciente: ' + e2.message); setSaving(false); return }
+    if (!patData || patData.length === 0) { alert('RLS bloqueó el update — sin permiso'); setSaving(false); return }
     await loadPatients(); setModal(null); setSaving(false)
   }
 
