@@ -124,7 +124,7 @@ export default function SuperAdminDashboard() {
   }
 
   async function loadAdmins() {
-    const { data } = await supabase.from('profiles').select('*').eq('role', 'admin').order('last_name')
+    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','clinic_admin','branch_admin']).order('last_name')
     setAdmins(data || [])
   }
 
