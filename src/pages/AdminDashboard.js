@@ -1196,7 +1196,7 @@ export default function AdminDashboard() {
                       {allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}
                     </div>
                     <div style={{ display:'flex', gap:4, flexShrink:0, marginLeft:8 }}>
-                      <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile_id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
+                      <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                       <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                     </div>
                   </div>
@@ -1215,7 +1215,7 @@ export default function AdminDashboard() {
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                   <div style={{ flex:'0 0 12%', display:'flex', justifyContent:'flex-end', gap:4 }}>
-                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile_id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
+                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
                 </div>
