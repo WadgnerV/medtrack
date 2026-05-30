@@ -457,10 +457,14 @@ export default function AdminDashboard() {
 
   async function saveEditPatient(form) {
     setSaving(true)
-    await supabase.from('profiles').update({
+    const profileId = editPatientForm.profileId
+    const patientId = editPatientForm.patientId
+    if (!profileId || !patientId) { alert('Error: IDs no encontrados'); setSaving(false); return }
+    const { error: e1 } = await supabase.from('profiles').update({
       first_name: form.firstName, last_name: form.lastName,
-    }).eq('id', editPatientForm.profileId)
-    await supabase.from('patients').update({
+    }).eq('id', profileId)
+    if (e1) { alert('Error perfil: ' + e1.message); setSaving(false); return }
+    const { error: e2 } = await supabase.from('patients').update({
       id_number: form.idNumber || null,
       phone: form.phone || null,
       birth_date: form.birthDate || null,
@@ -468,7 +472,8 @@ export default function AdminDashboard() {
       province: form.province || null,
       canton: form.canton || null,
       height_cm: form.height ? parseInt(form.height) : null,
-    }).eq('id', editPatientForm.patientId)
+    }).eq('id', patientId)
+    if (e2) { alert('Error paciente: ' + e2.message); setSaving(false); return }
     await loadPatients(); setModal(null); setSaving(false)
   }
 
