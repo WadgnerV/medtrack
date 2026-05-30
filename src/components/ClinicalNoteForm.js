@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import PrescriptionForm from './PrescriptionForm'
+import MedicalImagingForm from './MedicalImagingForm'
+import LabStudiesForm from './LabStudiesForm'
 import { supabase } from '../lib/supabase'
 import AntecedentsSection from './AntecedentsSection'
 import PrintNotesModal from './PrintNotesModal'
@@ -26,6 +28,8 @@ function buildNoteText(form) {
   if (form.examen.trim()) lines.push(`Examen físico:\n${form.examen.trim()}`)
   if (form.procedimiento.trim()) lines.push(`Notas de procedimiento:\n${form.procedimiento.trim()}`)
   if (form.tratamiento.trim()) lines.push(`Tratamiento:\n${form.tratamiento.trim()}`)
+  if (form.imagenes.trim()) lines.push(`Imágenes médicas solicitadas:\n${form.imagenes.trim()}`)
+  if (form.laboratorios.trim()) lines.push(`Estudios de laboratorio solicitados:\n${form.laboratorios.trim()}`)
   const plan = [...form.planOpciones]
   if (form.planOtroChecked && form.planOtro.trim()) plan.push(`Otro: ${form.planOtro.trim()}`)
   if (plan.length > 0) lines.push(`Plan de seguimiento:\n${plan.map(p => `• ${p}`).join('\n')}`)
@@ -34,6 +38,7 @@ function buildNoteText(form) {
 
 const emptyForm = {
   motivo: '', padecimiento: '', examen: '', procedimiento: '', tratamiento: '',
+  imagenes: '', laboratorios: '',
   planOpciones: [], planOtroChecked: false, planOtro: ''
 }
 
@@ -47,6 +52,8 @@ function parseNoteText(text) {
     else if (s.startsWith('Examen físico:\n')) form.examen = s.replace('Examen físico:\n', '')
     else if (s.startsWith('Notas de procedimiento:\n')) form.procedimiento = s.replace('Notas de procedimiento:\n', '')
     else if (s.startsWith('Tratamiento:\n')) form.tratamiento = s.replace('Tratamiento:\n', '')
+    else if (s.startsWith('Imágenes médicas solicitadas:\n')) form.imagenes = s.replace('Imágenes médicas solicitadas:\n', '')
+    else if (s.startsWith('Estudios de laboratorio solicitados:\n')) form.laboratorios = s.replace('Estudios de laboratorio solicitados:\n', '')
     else if (s.startsWith('Plan de seguimiento:\n')) {
       const items = s.replace('Plan de seguimiento:\n', '').split('\n').map(l => l.replace('• ', ''))
       items.forEach(item => {
@@ -223,6 +230,26 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
               <PrescriptionForm
                 value={form.tratamiento}
                 onChange={val => setForm(p => ({ ...p, tratamiento: val }))}
+                color={color}
+              />
+            </div>
+
+            {/* Imágenes médicas */}
+            <div>
+              <label style={label}>Imágenes médicas solicitadas</label>
+              <MedicalImagingForm
+                value={form.imagenes}
+                onChange={val => setForm(p => ({ ...p, imagenes: val }))}
+                color={color}
+              />
+            </div>
+
+            {/* Laboratorios */}
+            <div>
+              <label style={label}>Estudios de laboratorio solicitados</label>
+              <LabStudiesForm
+                value={form.laboratorios}
+                onChange={val => setForm(p => ({ ...p, laboratorios: val }))}
                 color={color}
               />
             </div>
