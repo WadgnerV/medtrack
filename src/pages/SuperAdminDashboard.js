@@ -47,7 +47,9 @@ const s = {
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
   const [view, setView] = useState(() => localStorage.getItem('superadminView') || 'clinicas')
+  const [adminViewMode, setAdminViewMode] = useState('lista')
   const [branches, setBranches] = useState([])
+  const [branchStaff, setBranchStaff] = useState([])
   const [clinics, setClinics] = useState([])
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
@@ -77,6 +79,8 @@ export default function SuperAdminDashboard() {
     setClinics(data || [])
     const { data: br } = await supabase.from('branches').select('*').order('created_at', { ascending: true })
     setBranches(br || [])
+    const { data: bs } = await supabase.from('branch_staff').select('branch_id, profile_id').order('created_at')
+    setBranchStaff(bs || [])
   }
 
   async function saveBranch() {
@@ -420,8 +424,81 @@ export default function SuperAdminDashboard() {
                 <div style={s.title}>Administradores</div>
                 <div style={s.sub}>Gestión de admins por clínica</div>
               </div>
-              <button style={s.btnPrimary} onClick={() => { setForm({ profession:'', clinic_id:'' }); setError(''); setModal('new-admin') }}>+ Nuevo admin</button>
+              <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                <div style={{ display:'flex', background:'#f5f5f5', borderRadius:8, padding:3, gap:2 }}>
+                  {[['lista','☰ Lista'],['diagrama','⬡ Diagrama']].map(([k,l]) => (
+                    <button key={k} onClick={() => setAdminViewMode(k)}
+                      style={{ padding:'5px 12px', borderRadius:6, border:'none', cursor:'pointer', fontSize:12, fontWeight: adminViewMode===k?600:400, background: adminViewMode===k?'#fff':'transparent', color: adminViewMode===k?BLUE:'#888', boxShadow: adminViewMode===k?'0 1px 4px rgba(0,0,0,0.08)':'none' }}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                <button style={s.btnPrimary} onClick={() => { setForm({ profession:'', clinic_id:'', role:'clinic_admin' }); setError(''); setModal('new-admin') }}>+ Nuevo admin</button>
+              </div>
             </div>
+
+            {/* Vista Diagrama */}
+            {adminViewMode === 'diagrama' && (
+              <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+                {clinics.map(clinic => {
+                  const clinicAdmins = admins.filter(a => a.clinic_id === clinic.id && a.role === 'clinic_admin')
+                  const branchAdmins = admins.filter(a => a.clinic_id === clinic.id && ['admin','branch_admin'].includes(a.role))
+                  return (
+                    <div key={clinic.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:20 }}>
+                      {/* Clínica */}
+                      <div style={{ textAlign:'center', marginBottom:16 }}>
+                        <div style={{ display:'inline-block', background:BLUE, color:'#fff', borderRadius:10, padding:'8px 24px', fontSize:14, fontWeight:700 }}>{clinic.name}</div>
+                        <div style={{ fontSize:11, color:'#999', marginTop:4 }}>{clinic.plan?.toUpperCase()}</div>
+                      </div>
+
+                      {/* Clinic Admins */}
+                      {clinicAdmins.length > 0 && (
+                        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginBottom:16 }}>
+                          <div style={{ width:1, height:20, background:'#e2e8f0' }} />
+                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8 }}>Admin de clínica</div>
+                          <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center' }}>
+                            {clinicAdmins.map(a => (
+                              <div key={a.id} style={{ background:'#e6f7f3', border:'1px solid #0F6E56', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, color:'#0F6E56', textAlign:'center' }}>
+                                {a.first_name} {a.last_name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Branch Admins por sucursal */}
+                      {branches.filter(b => b.clinic_id === clinic.id).length > 0 && (
+                        <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                          <div style={{ width:1, height:20, background:'#e2e8f0' }} />
+                          <div style={{ display:'flex', gap:16, flexWrap:'wrap', justifyContent:'center' }}>
+                            {branches.filter(b => b.clinic_id === clinic.id).map(branch => {
+                              const bAdmins = branchAdmins.filter(a => {
+                                const inBranchStaff = branchStaff?.some(bs => bs.branch_id === branch.id && bs.profile_id === a.id)
+                                return inBranchStaff
+                              })
+                              return (
+                                <div key={branch.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', minWidth:140 }}>
+                                  <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:6 }}>Admin de sucursal</div>
+                                  <div style={{ fontSize:11, color:'#1a3a5c', fontWeight:600, marginBottom:8 }}>{branch.name}</div>
+                                  {bAdmins.length > 0 ? bAdmins.map(a => (
+                                    <div key={a.id} style={{ background:'#e6f1fb', border:'1px solid #1a3a5c', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, color:'#1a3a5c', textAlign:'center', marginBottom:4 }}>
+                                      {a.first_name} {a.last_name}
+                                    </div>
+                                  )) : <div style={{ fontSize:11, color:'#ccc' }}>Sin admin asignado</div>}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Vista Lista */}
+            {adminViewMode === 'lista' && <>
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:16, display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
               <div style={{ position:'relative', flex:1, minWidth:180 }}>
                 <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:13, color:'#bbb' }}>🔍</span>
@@ -473,6 +550,7 @@ export default function SuperAdminDashboard() {
               </table>
               {admins.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay administradores registrados</div>}
             </div>
+            </>}
           </div>
         )}
       </div>
