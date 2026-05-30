@@ -161,6 +161,8 @@ export default function AdminDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [calView, setCalView] = useState('semana')
+  const [popupAppt, setPopupAppt] = useState(null)
+  const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
@@ -1332,7 +1334,7 @@ export default function AdminDashboard() {
                                     const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                     return (
                                       <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
-                                        onClick={() => { setSelDate(dateStr); setModal('edit-appt'); setModalData({appt:a}) }}>
+                                        onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
                                           {a.status === 'confirmed_patient' && <span>✅</span>}
@@ -1457,6 +1459,80 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
+
+              {/* POPUP DE CITA */}
+              {popupAppt && (
+                <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setPopupAppt(null)}>
+                  <div style={{ position:'fixed', left: popupPos.x, top: popupPos.y, width:300, background:'#fff', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)', border:'0.5px solid #eee', zIndex:201, overflow:'hidden' }}
+                    onClick={e => e.stopPropagation()}>
+                    {/* Header con color del médico */}
+                    <div style={{ background: doctorColor(popupAppt.doctor_id)+'15', borderBottom:'0.5px solid #eee', padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize:11, color:'#888', marginBottom:2 }}>
+                          {popupAppt.doctor ? `${popupAppt.doctor.first_name} ${popupAppt.doctor.last_name}` : 'Sin médico asignado'}
+                        </div>
+                        <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>
+                          {new Date(popupAppt.appointment_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}
+                        </div>
+                        <div style={{ fontSize:12, color:'#555' }}>
+                          {(() => {
+                            const [h,m] = (popupAppt.appointment_time||'00:00').split(':').map(Number)
+                            const end = h*60+m+(popupAppt.duration_min||30)
+                            const fmt = (hh,mm) => { const p=hh>=12?'pm':'am'; return (hh%12||12)+':'+(mm<10?'0':'')+mm+p }
+                            return fmt(h,m)+' — '+fmt(Math.floor(end/60)%24,end%60)+` (${popupAppt.duration_min||30} min)`
+                          })()}
+                        </div>
+                      </div>
+                      <button onClick={() => setPopupAppt(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:16, color:'#999', padding:0 }}>✕</button>
+                    </div>
+
+                    {/* Estado */}
+                    <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
+                      <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Estado</div>
+                      <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
+                        {[
+                          { key:'pending_confirmation', label:'Sin confirmar', color:'#F59E0B' },
+                          { key:'confirmed_patient', label:'Confirmado paciente ✅', color:'#0F6E56' },
+                          { key:'confirmed_doctor', label:'Confirmado médico ✅', color:'#185FA5' },
+                          { key:'no_show', label:'No asistió ❌', color:'#854F0B' },
+                        ].map(st => (
+                          <button key={st.key} onClick={() => { updateApptStatus(popupAppt.id, st.key, popupAppt); setPopupAppt(p => ({...p, status: st.key})) }}
+                            style={{ padding:'3px 8px', borderRadius:20, border:`1px solid ${st.color}`, background: popupAppt.status === st.key ? st.color : '#fff', color: popupAppt.status === st.key ? '#fff' : st.color, fontSize:10, cursor:'pointer', fontWeight: popupAppt.status === st.key ? 600 : 400 }}>
+                            {st.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Paciente */}
+                    <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:4 }}>
+                        {popupAppt.patient?.profile?.last_name} {popupAppt.patient?.profile?.first_name}
+                      </div>
+                      {popupAppt.patient?.phone && <div style={{ fontSize:11, color:'#666' }}>📞 {popupAppt.patient.phone}</div>}
+                      {popupAppt.patient?.profile?.email && <div style={{ fontSize:11, color:'#666' }}>✉️ {popupAppt.patient.profile.email}</div>}
+                      {popupAppt.visit_type && <div style={{ fontSize:11, color:'#888', marginTop:4 }}>{popupAppt.visit_type}</div>}
+                      {popupAppt.notes && <div style={{ fontSize:11, color:'#888', marginTop:2, fontStyle:'italic' }}>{popupAppt.notes}</div>}
+                    </div>
+
+                    {/* Acciones */}
+                    <div style={{ padding:'10px 14px', display:'flex', gap:6 }}>
+                      <button onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); openPatient(p) } }}
+                        style={{ flex:1, padding:'6px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:500 }}>
+                        Ver expediente
+                      </button>
+                      <button onClick={() => { setPopupAppt(null); setModal('edit-appt'); setModalData({appt:popupAppt}) }}
+                        style={{ padding:'6px 10px', background:'#fff', color:'#555', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', fontSize:11 }}>
+                        Editar
+                      </button>
+                      <button onClick={() => { if(window.confirm('¿Cancelar esta cita?')) { updateApptStatus(popupAppt.id, 'cancelled'); setPopupAppt(null) } }}
+                        style={{ padding:'6px 10px', background:'#fff', color:'#D85A30', border:'1px solid #D85A30', borderRadius:8, cursor:'pointer', fontSize:11 }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
