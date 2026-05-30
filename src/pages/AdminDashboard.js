@@ -218,6 +218,7 @@ export default function AdminDashboard() {
   const [clinicPlan, setClinicPlan] = useState('basic')
   const isClinicAdmin = profile?.role === 'clinic_admin'
   const [selBranch, setSelBranch] = useState('')
+  const [branchForm, setBranchForm] = useState({})
   const [branches, setBranches] = useState([])
   const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria'])
   const [savingSettings, setSavingSettings] = useState(false)
@@ -924,17 +925,17 @@ export default function AdminDashboard() {
                   <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>{form.id ? 'Editar sucursal' : 'Nueva sucursal'}</div>
                   <div style={{ marginBottom:14 }}>
                     <label style={s.fieldLabel}>Nombre</label>
-                    <input value={form.name||''} onChange={e => setForm(p=>({...p, name:e.target.value}))} style={s.fieldInput} />
+                    <input value={branchForm.name||''} onChange={e => setBranchForm(p=>({...p, name:e.target.value}))} style={s.fieldInput} />
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                    <div><label style={s.fieldLabel}>Provincia</label><input value={form.province||''} onChange={e => setForm(p=>({...p, province:e.target.value}))} style={s.fieldInput} /></div>
-                    <div><label style={s.fieldLabel}>Cantón</label><input value={form.canton||''} onChange={e => setForm(p=>({...p, canton:e.target.value}))} style={s.fieldInput} /></div>
-                    <div><label style={s.fieldLabel}>Distrito</label><input value={form.district||''} onChange={e => setForm(p=>({...p, district:e.target.value}))} style={s.fieldInput} /></div>
-                    <div><label style={s.fieldLabel}>Dirección</label><input value={form.address||''} onChange={e => setForm(p=>({...p, address:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Provincia</label><input value={branchForm.province||''} onChange={e => setBranchForm(p=>({...p, province:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Cantón</label><input value={branchForm.canton||''} onChange={e => setBranchForm(p=>({...p, canton:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Distrito</label><input value={branchForm.district||''} onChange={e => setBranchForm(p=>({...p, district:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Dirección</label><input value={branchForm.address||''} onChange={e => setBranchForm(p=>({...p, address:e.target.value}))} style={s.fieldInput} /></div>
                   </div>
-                  {form.id && <div style={{ marginBottom:14 }}>
+                  {branchForm.id && <div style={{ marginBottom:14 }}>
                     <label style={s.fieldLabel}>Estado</label>
-                    <select value={form.is_active?'true':'false'} onChange={e => setForm(p=>({...p, is_active:e.target.value==='true'}))} style={s.fieldInput}>
+                    <select value={branchForm.is_active?'true':'false'} onChange={e => setBranchForm(p=>({...p, is_active:e.target.value==='true'}))} style={s.fieldInput}>
                       <option value="true">Activa</option>
                       <option value="false">Inactiva</option>
                     </select>
@@ -943,13 +944,13 @@ export default function AdminDashboard() {
                     <button onClick={() => setModal(null)} style={{ ...s.btnEdit, flex:1, textAlign:'center' }}>Cancelar</button>
                     <button onClick={async () => {
                       setSaving(true)
-                      if (form.id) {
-                        await supabase.from('branches').update({ name:form.name, province:form.province||null, canton:form.canton||null, district:form.district||null, address:form.address||null, is_active:form.is_active!==false }).eq('id', form.id)
+                      if (branchForm.id) {
+                        await supabase.from('branches').update({ name:branchForm.name, province:branchForm.province||null, canton:branchForm.canton||null, district:branchForm.district||null, address:branchForm.address||null, is_active:branchForm.is_active!==false }).eq('id', branchForm.id)
                       } else {
-                        await supabase.from('branches').insert({ clinic_id:form.clinic_id, name:form.name, province:form.province||null, canton:form.canton||null, district:form.district||null, address:form.address||null, is_active:true })
+                        await supabase.from('branches').insert({ clinic_id:branchForm.clinic_id, name:branchForm.name, province:branchForm.province||null, canton:branchForm.canton||null, district:branchForm.district||null, address:branchForm.address||null, is_active:true })
                       }
                       await loadBranches(); setModal(null); setSaving(false)
-                    }} disabled={saving||!form.name} style={{ ...s.btnPrimary, flex:1, opacity:(saving||!form.name)?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
+                    }} disabled={saving||!branchForm.name} style={{ ...s.btnPrimary, flex:1, opacity:(saving||!form.name)?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
                   </div>
                 </div>
               </div>
@@ -1789,10 +1790,10 @@ export default function AdminDashboard() {
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'20px 24px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
                 <div style={{ fontSize:15, fontWeight:600, color:'#1a1a1a' }}>Sucursales de la clínica</div>
-                <button style={s.btnPrimary} onClick={() => { setForm({ clinic_id: profile?.clinic_id, name:'', is_active:true }); setModal('branch') }}>+ Nueva sucursal</button>
+                <button style={s.btnPrimary} onClick={() => { setBranchForm({ clinic_id: profile?.clinic_id, name:'', is_active:true }); setModal('branch') }}>+ Nueva sucursal</button>
               </div>
               {branches.length === 0 && <div style={{ textAlign:'center', padding:40, color:'#999', fontSize:13 }}>No hay sucursales registradas</div>}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
                 {branches.map(branch => (
                   <div key={branch.id} style={{ border:'0.5px solid #eee', borderRadius:10, padding:'14px 16px' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
@@ -1803,7 +1804,7 @@ export default function AdminDashboard() {
                       <span style={{ fontSize:11, color: branch.is_active ? '#0F6E56' : '#999', background: branch.is_active ? '#e6f7f3' : '#f5f5f5', padding:'2px 8px', borderRadius:10 }}>{branch.is_active ? 'Activa' : 'Inactiva'}</span>
                     </div>
                     <div style={{ display:'flex', gap:6 }}>
-                      <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...branch }); setModal('branch') }}>Editar</button>
+                      <button style={s.btnEdit} onClick={() => { setBranchForm({ ...branch }); setModal('branch') }}>Editar</button>
                     </div>
                   </div>
                 ))}

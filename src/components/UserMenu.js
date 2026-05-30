@@ -440,7 +440,12 @@ export default function UserMenu() {
           </div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:11, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{profile?.first_name} {profile?.last_name}</div>
-            <div style={{ fontSize:10, color:'#999' }}>{profile?.role === 'admin' ? 'Administrador' : profile?.role === 'doctor' ? 'Médico colaborador' : 'Paciente'}</div>
+            <div style={{ fontSize:10, color:'#999' }}>{
+              profile?.role === 'clinic_admin' ? 'Admin de clínica' :
+              profile?.role === 'branch_admin' ? 'Admin de sucursal' :
+              profile?.role === 'admin' ? 'Administrador' :
+              profile?.role === 'doctor' ? 'Médico colaborador' : 'Paciente'
+            }</div>
           </div>
           <span style={{ fontSize:10, color:'#bbb' }}>{open ? '▲' : '▼'}</span>
         </div>
