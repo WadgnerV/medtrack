@@ -950,7 +950,7 @@ export default function AdminDashboard() {
                         await supabase.from('branches').insert({ clinic_id:branchForm.clinic_id, name:branchForm.name, province:branchForm.province||null, canton:branchForm.canton||null, district:branchForm.district||null, address:branchForm.address||null, is_active:true })
                       }
                       await loadBranches(); setModal(null); setSaving(false)
-                    }} disabled={saving||!branchForm.name} style={{ ...s.btnPrimary, flex:1, opacity:(saving||!form.name)?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
+                    }} disabled={saving||!branchForm.name} style={{ ...s.btnPrimary, flex:1, opacity:(saving||!branchForm.name)?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
                   </div>
                 </div>
               </div>
