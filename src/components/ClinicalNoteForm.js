@@ -300,7 +300,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                 </button>
               </div>
               {showTemplates && (
-                <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:10, marginBottom:8 }}>
+                <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:10, marginBottom:8, maxWidth:420 }}>
                   {templates.length === 0 && !showNewTemplate && (
                     <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:'8px 0' }}>No hay plantillas para este módulo</div>
                   )}
