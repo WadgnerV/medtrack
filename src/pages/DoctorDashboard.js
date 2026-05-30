@@ -17,7 +17,7 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => localStorage.getItem('doctorView') || 'calendario')
+  const [view, setView] = useState(() => { const v = localStorage.getItem('doctorView'); return ['calendario','pacientes','perfil','dashboard','chat','tareas'].includes(v) ? v : 'calendario' })
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
   const [msgs, setMsgs] = useState([])
@@ -1327,7 +1327,7 @@ export default function DoctorDashboard() {
                 <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setPopupAppt(null)}>
                   <div style={{ position:'fixed', left: popupPos.x, top: popupPos.y, width:300, background:'#fff', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)', border:'0.5px solid #eee', zIndex:201, overflow:'hidden' }}
                     onClick={e => e.stopPropagation()}>
-                    <div style={{ background: doctorColor(popupAppt.doctor_id)+'15', borderBottom:'0.5px solid #eee', padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                    <div style={{ background: G+'15', borderBottom:'0.5px solid #eee', padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                       <div>
                         <div style={{ fontSize:11, color:'#888', marginBottom:2 }}>
                           {popupAppt.doctor ? `${popupAppt.doctor.first_name} ${popupAppt.doctor.last_name}` : 'Sin médico asignado'}
