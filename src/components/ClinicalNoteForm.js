@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import PrescriptionForm from './PrescriptionForm'
 import { supabase } from '../lib/supabase'
 import AntecedentsSection from './AntecedentsSection'
 import PrintNotesModal from './PrintNotesModal'
@@ -219,9 +220,11 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             {/* Tratamiento */}
             <div>
               <label style={label}>Tratamiento</label>
-              <textarea style={inpM} value={form.tratamiento}
-                onChange={e => setForm(p => ({ ...p, tratamiento: e.target.value }))}
-                placeholder="Medicamentos, dosis, indicaciones terapéuticas..." />
+              <PrescriptionForm
+                value={form.tratamiento}
+                onChange={val => setForm(p => ({ ...p, tratamiento: val }))}
+                color={color}
+              />
             </div>
 
             {/* Plan de seguimiento */}
