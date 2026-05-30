@@ -1498,13 +1498,13 @@ export default function AdminDashboard() {
                       <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Estado</div>
                       <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
                         {[
-                          { key:'pending_confirmation', label:'Sin confirmar', color:'#F59E0B' },
-                          { key:'confirmed_patient', label:'Confirmado paciente ✅', color:'#0F6E56' },
-                          { key:'confirmed_doctor', label:'Confirmado médico ✅', color:'#185FA5' },
-                          { key:'no_show', label:'No asistió ❌', color:'#854F0B' },
+                          { key:'pending_confirmation', label:'Sin confirmar' },
+                          { key:'confirmed_patient', label:'Confirmado paciente ✅' },
+                          { key:'confirmed_doctor', label:'Confirmado médico ✅' },
+                          { key:'no_show', label:'No asistió ❌' },
                         ].map(st => (
                           <button key={st.key} onClick={() => { updateApptStatus(popupAppt.id, st.key, popupAppt); setPopupAppt(p => ({...p, status: st.key})) }}
-                            style={{ padding:'3px 8px', borderRadius:20, border:`1px solid ${st.color}`, background: popupAppt.status === st.key ? st.color : '#fff', color: popupAppt.status === st.key ? '#fff' : st.color, fontSize:10, cursor:'pointer', fontWeight: popupAppt.status === st.key ? 600 : 400 }}>
+                            style={{ padding:'3px 8px', borderRadius:20, border:'1px solid #bfdbfe', background: popupAppt.status === st.key ? '#1a3a5c' : '#eff6ff', color: popupAppt.status === st.key ? '#fff' : '#555', fontSize:10, cursor:'pointer', fontWeight: popupAppt.status === st.key ? 600 : 400 }}>
                             {st.label}
                           </button>
                         ))}
