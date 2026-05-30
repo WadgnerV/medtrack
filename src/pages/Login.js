@@ -68,7 +68,7 @@ export default function Login() {
       setError(msg); setLoading(false); return
     }
     if (role === 'superadmin')  navigate('/superadmin')
-    else if (role === 'admin')  navigate('/admin')
+    else if (role === 'admin' || role === 'clinic_admin' || role === 'branch_admin')  navigate('/admin')
     else if (role === 'receptionist') navigate('/recepcion')
     else if (role === 'doctor') navigate('/doctor')
     else                        navigate('/paciente')
