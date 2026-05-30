@@ -914,17 +914,11 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Provincia</label>
-                      <select value={editPatientForm.province||''} onChange={e => setEditPatientForm(p=>({...p, province:e.target.value, canton:''}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }}>
-                        <option value="">Seleccionar...</option>
-                        {Object.keys(CR_DATA).map(prov => <option key={prov} value={prov}>{prov}</option>)}
-                      </select>
+                      <input value={editPatientForm.province||''} onChange={e => setEditPatientForm(p=>({...p, province:e.target.value}))} placeholder="ej: San José" style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
                     </div>
                     <div>
                       <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Cantón</label>
-                      <select value={editPatientForm.canton||''} onChange={e => setEditPatientForm(p=>({...p, canton:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} disabled={!editPatientForm.province}>
-                        <option value="">Seleccionar...</option>
-                        {(CR_DATA[editPatientForm.province]||[]).map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <input value={editPatientForm.canton||''} onChange={e => setEditPatientForm(p=>({...p, canton:e.target.value}))} placeholder="ej: Escazú" style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} />
                     </div>
                     <div>
                       <label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Altura (cm)</label>
