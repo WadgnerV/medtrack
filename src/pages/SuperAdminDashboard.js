@@ -439,7 +439,7 @@ export default function SuperAdminDashboard() {
 
             {/* Vista Diagrama */}
             {adminViewMode === 'diagrama' && (
-              <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
                 {clinics.map(clinic => {
                   const clinicAdmins = admins.filter(a => a.clinic_id === clinic.id && a.role === 'clinic_admin')
                   const branchAdmins = admins.filter(a => a.clinic_id === clinic.id && ['admin','branch_admin'].includes(a.role))
