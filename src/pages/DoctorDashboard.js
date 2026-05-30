@@ -17,7 +17,7 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => { const v = localStorage.getItem('doctorView'); return ['calendario','pacientes','perfil','dashboard','chat','tareas'].includes(v) ? v : 'calendario' })
+  const [view, setView] = useState(() => { const v = localStorage.getItem('doctorView'); return v === 'perfil' ? 'perfil' : 'calendario' })
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
   const [msgs, setMsgs] = useState([])
