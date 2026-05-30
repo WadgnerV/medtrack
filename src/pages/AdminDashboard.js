@@ -326,7 +326,7 @@ export default function AdminDashboard() {
   }
 
   async function loadPatients() {
-    const { data } = await supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
+    const { data } = await supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
     setPatients(data || [])
   }
 
