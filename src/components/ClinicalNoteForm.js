@@ -118,21 +118,22 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       const d = new Date(dob), n = new Date()
       return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0)
     }
-    const titles = { receta: 'Prescripción médica', imagenes: 'Solicitud de imágenes médicas', laboratorios: 'Solicitud de estudios de laboratorio' }
+    const titles = { receta: 'RECETA MÉDICA', imagenes: 'SOLICITUD DE IMÁGENES MÉDICAS', laboratorios: 'SOLICITUD DE EXÁMENES DE LABORATORIO' }
     const content_map = { receta: form.tratamiento, imagenes: form.imagenes, laboratorios: form.laboratorios }
     const body = content_map[type] || ''
     const lines = body.split('\n').filter(Boolean)
     const itemsHtml = lines.map(l => `<div style="margin-bottom:8px;font-size:14pt;">${l}</div>`).join('')
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titles[type]}</title>
-    <style>body{font-family:Arial,sans-serif;margin:20mm;color:#222;} h1{font-size:18pt;color:#1a3a5c;margin:0 0 4px;} .sub{font-size:11pt;color:#666;margin-bottom:16px;} .section{font-size:12pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #1a3a5c;padding-bottom:4px;margin:16px 0 10px;} .field{display:flex;gap:8px;margin-bottom:4px;} .label{font-size:10pt;color:#888;width:140px;flex-shrink:0;} .value{font-size:11pt;color:#222;} .sign{margin-top:48px;text-align:center;} .sign-line{border-top:1px solid #1a3a5c;width:260px;margin:0 auto 6px;} .sign-name{font-size:12pt;font-weight:700;color:#1a3a5c;} .footer{margin-top:32px;font-size:9pt;color:#aaa;font-style:italic;border-top:1px solid #eee;padding-top:8px;}</style>
+    <style>body{font-family:Arial,sans-serif;margin:20mm;color:#222;font-size:13pt;} h1{font-size:20pt;color:#1a3a5c;margin:0 0 4px;} .doc-title{font-size:22pt;font-weight:900;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:0.08em;border-bottom:3px solid #1a3a5c;padding-bottom:10px;margin-bottom:20px;} .sub{font-size:12pt;color:#666;margin-bottom:16px;} .section{font-size:13pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #1a3a5c;padding-bottom:4px;margin:16px 0 10px;} .field{display:flex;gap:8px;margin-bottom:6px;} .label{font-size:11pt;color:#888;width:160px;flex-shrink:0;} .value{font-size:12pt;color:#222;} .sign{margin-top:48px;text-align:center;} .sign-line{border-top:1px solid #1a3a5c;width:260px;margin:0 auto 6px;} .sign-name{font-size:13pt;font-weight:700;color:#1a3a5c;} .footer{margin-top:32px;font-size:10pt;color:#aaa;font-style:italic;border-top:1px solid #eee;padding-top:8px;}</style>
     </head><body>
+    <div class="doc-title">${titles[type]}</div>
     <h1>${clinicSettings?.clinic_name || 'Clínica'}</h1>
     <div class="sub">Fecha: ${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
     <div class="section">Datos del paciente</div>
     <div class="field"><span class="label">Nombre:</span><span class="value">${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}</span></div>
     <div class="field"><span class="label">Identificación:</span><span class="value">${patient?.id_number||'—'}</span></div>
     <div class="field"><span class="label">Fecha de nacimiento:</span><span class="value">${patient?.birth_date ? fmtDate(patient.birth_date) : '—'}${patient?.birth_date ? ' (' + age(patient.birth_date) + ' años)' : ''}</span></div>
-    <div class="section">${titles[type]}</div>
+
     <div class="field"><span class="label">Prescrito por:</span><span class="value">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</span></div>
     <div style="margin-top:12px;">${itemsHtml}</div>
     <div class="sign"><div class="sign-line"></div><div class="sign-name">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</div><div style="font-size:10pt;color:#888;">Firma y sello</div></div>
