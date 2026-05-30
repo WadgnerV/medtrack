@@ -44,6 +44,8 @@ export default function DoctorDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
   const [calView, setCalView] = useState('semana')
+  const [popupAppt, setPopupAppt] = useState(null)
+  const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
@@ -1027,7 +1029,50 @@ export default function DoctorDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+              {/* Mini calendario lateral */}
+              {!isMobile && (
+                <div style={{ width:220, flexShrink:0, background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:14 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                    <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}
+                      style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#888', padding:'2px 6px' }}>{'<'}</button>
+                    <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c' }}>{MONTHS[calMonth]} {calYear}</div>
+                    <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}
+                      style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#888', padding:'2px 6px' }}>{'>'}</button>
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:4 }}>
+                    {['L','M','M','J','V','S','D'].map((d,i) => (
+                      <div key={i} style={{ textAlign:'center', fontSize:10, color:'#bbb', fontWeight:500, padding:'2px 0' }}>{d}</div>
+                    ))}
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1 }}>
+                    {renderCalendar().map((cell, i) => {
+                      const hasAppts = cell.dateStr ? apptsByDate(cell.dateStr).length > 0 : false
+                      return (
+                        <div key={i} onClick={() => { if(cell.dateStr) { setSelDate(cell.dateStr); setCalView('dia') } }}
+                          style={{ textAlign:'center', fontSize:11, padding:'3px 2px', borderRadius:4, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? G : selDate === cell.dateStr ? '#1a3a5c' : 'transparent', color: cell.isToday || selDate === cell.dateStr ? '#fff' : '#444', fontWeight: cell.isToday ? 700 : 400, position:'relative' }}>
+                          {cell.day}
+                          {hasAppts && !cell.isToday && <div style={{ position:'absolute', bottom:1, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background: G }} />}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <button onClick={() => {
+                    const today = new Date()
+                    const d = new Date(today)
+                    d.setDate(d.getDate() - d.getDay())
+                    setWeekStart(new Date(d))
+                    setCalMonth(today.getMonth())
+                    setCalYear(today.getFullYear())
+                    setSelDate(today.toISOString().split('T')[0])
+                    setCalView('semana')
+                  }} style={{ width:'100%', marginTop:12, padding:'6px', background:'#f0f4f8', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', fontWeight:500 }}>
+                    Hoy
+                  </button>
+                </div>
+              )}
+              {/* Columna principal */}
+              <div style={{ flex:1, display:'flex', flexDirection:'column', gap:12 }}>
               {/* Controles de vista */}
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', gap:6 }}>
@@ -1171,7 +1216,7 @@ export default function DoctorDashboard() {
                                     const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                     return (
                                       <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
-                                        onClick={() => { setSelDate(dateStr); setModal('edit-appt'); setModalData({appt:a}) }}>
+                                        onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color:G, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
                                           {a.status === 'confirmed_patient' && <span>✅</span>}
@@ -1253,7 +1298,7 @@ export default function DoctorDashboard() {
                                 const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                 return (
                                   <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:G+'22', borderLeft:'3px solid '+G, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
-                                    onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
+                                    onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                     <div style={{ fontSize:11, fontWeight:700, color:G, marginBottom:2, display:'flex', justifyContent:'space-between' }}>
                                       <span>{timeStr}</span>
                                       {a.status === 'confirmed_patient' && <span>✅</span>}
@@ -1276,6 +1321,74 @@ export default function DoctorDashboard() {
                   </div>
                 )
               })()}
+
+              {/* POPUP DE CITA */}
+              {popupAppt && (
+                <div style={{ position:'fixed', inset:0, zIndex:200 }} onClick={() => setPopupAppt(null)}>
+                  <div style={{ position:'fixed', left: popupPos.x, top: popupPos.y, width:300, background:'#fff', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,0.18)', border:'0.5px solid #eee', zIndex:201, overflow:'hidden' }}
+                    onClick={e => e.stopPropagation()}>
+                    <div style={{ background: doctorColor(popupAppt.doctor_id)+'15', borderBottom:'0.5px solid #eee', padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize:11, color:'#888', marginBottom:2 }}>
+                          {popupAppt.doctor ? `${popupAppt.doctor.first_name} ${popupAppt.doctor.last_name}` : 'Sin médico asignado'}
+                        </div>
+                        <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>
+                          {new Date(popupAppt.appointment_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}
+                        </div>
+                        <div style={{ fontSize:12, color:'#555' }}>
+                          {(() => {
+                            const [h,m] = (popupAppt.appointment_time||'00:00').split(':').map(Number)
+                            const end = h*60+m+(popupAppt.duration_min||30)
+                            const fmt = (hh,mm) => { const p=hh>=12?'pm':'am'; return (hh%12||12)+':'+(mm<10?'0':'')+mm+p }
+                            return fmt(h,m)+' — '+fmt(Math.floor(end/60)%24,end%60)+` (${popupAppt.duration_min||30} min)`
+                          })()}
+                        </div>
+                      </div>
+                      <button onClick={() => setPopupAppt(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:16, color:'#999', padding:0 }}>✕</button>
+                    </div>
+                    <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
+                      <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Estado</div>
+                      <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
+                        {[
+                          { key:'pending_confirmation', label:'Sin confirmar' },
+                          { key:'confirmed_patient', label:'Confirmado paciente ✅' },
+                          { key:'confirmed_doctor', label:'Confirmado médico ✅' },
+                          { key:'no_show', label:'No asistió ❌' },
+                        ].map(st => (
+                          <button key={st.key} onClick={() => { updateApptStatus(popupAppt.id, st.key); setPopupAppt(p => ({...p, status: st.key})) }}
+                            style={{ padding:'3px 8px', borderRadius:20, border:'1px solid #bfdbfe', background: popupAppt.status === st.key ? '#1a3a5c' : '#eff6ff', color: popupAppt.status === st.key ? '#fff' : '#555', fontSize:10, cursor:'pointer', fontWeight: popupAppt.status === st.key ? 600 : 400 }}>
+                            {st.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:4 }}>
+                        {popupAppt.patient?.profile?.last_name} {popupAppt.patient?.profile?.first_name}
+                      </div>
+                      {popupAppt.patient?.phone && <div style={{ fontSize:11, color:'#666' }}>📞 {popupAppt.patient.phone}</div>}
+                      {popupAppt.patient?.profile?.email && <div style={{ fontSize:11, color:'#666' }}>✉️ {popupAppt.patient.profile.email}</div>}
+                      {popupAppt.visit_type && <div style={{ fontSize:11, color:'#888', marginTop:4 }}>{popupAppt.visit_type}</div>}
+                      {popupAppt.notes && <div style={{ fontSize:11, color:'#888', marginTop:2, fontStyle:'italic' }}>{popupAppt.notes}</div>}
+                    </div>
+                    <div style={{ padding:'10px 14px', display:'flex', gap:6 }}>
+                      <button onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); openPatient(p) } }}
+                        style={{ flex:1, padding:'6px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:500 }}>
+                        Ver expediente
+                      </button>
+                      <button onClick={() => { setPopupAppt(null); setModal('edit-appt'); setModalData({appt:popupAppt}) }}
+                        style={{ padding:'6px 10px', background:'#fff', color:'#555', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', fontSize:11 }}>
+                        Editar
+                      </button>
+                      <button onClick={() => { if(window.confirm('¿Cancelar esta cita?')) { cancelAppt(popupAppt.id); setPopupAppt(null) } }}
+                        style={{ padding:'6px 10px', background:'#fff', color:'#D85A30', border:'1px solid #D85A30', borderRadius:8, cursor:'pointer', fontSize:11 }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              </div>{/* fin columna principal */}
             </div>
           )}
 
