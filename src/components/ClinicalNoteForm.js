@@ -66,6 +66,11 @@ function parseNoteText(text) {
 }
 
 export default function ClinicalNoteForm({ patientId, moduleType, color, patient, profile }) {
+  const [templates, setTemplates] = useState([])
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [showNewTemplate, setShowNewTemplate] = useState(false)
+  const [newTemplate, setNewTemplate] = useState({ title:'', content:'' })
+  const [savingTemplate, setSavingTemplate] = useState(false)
   const [notes, setNotes] = useState([])
   const [loaded, setLoaded] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -154,6 +159,38 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     w.document.close()
     w.focus()
     setTimeout(() => { w.print(); w.close() }, 500)
+  }
+
+  async function loadTemplates() {
+    if (!moduleType || !profile?.clinic_id) return
+    const { data } = await supabase.from('exam_templates')
+      .select('*, creator:created_by(first_name, last_name, prefix)')
+      .eq('clinic_id', profile.clinic_id)
+      .eq('module_type', moduleType)
+      .order('created_at', { ascending: false })
+    setTemplates(data || [])
+  }
+
+  async function saveTemplate() {
+    if (!newTemplate.title.trim() || !newTemplate.content.trim()) return
+    setSavingTemplate(true)
+    await supabase.from('exam_templates').insert({
+      clinic_id: profile.clinic_id,
+      module_type: moduleType,
+      title: newTemplate.title.trim(),
+      content: newTemplate.content.trim(),
+      created_by: profile.id,
+    })
+    await loadTemplates()
+    setNewTemplate({ title:'', content:'' })
+    setShowNewTemplate(false)
+    setSavingTemplate(false)
+  }
+
+  async function deleteTemplate(id) {
+    if (!window.confirm('¿Eliminar esta plantilla?')) return
+    await supabase.from('exam_templates').delete().eq('id', id)
+    await loadTemplates()
   }
 
   async function save() {
@@ -255,7 +292,58 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
 
             {/* Examen físico */}
             <div>
-              <label style={label}>Examen físico</label>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                <label style={{ ...label, marginBottom:0 }}>Examen físico</label>
+                <button type="button" onClick={() => setShowTemplates(p => !p)}
+                  style={{ padding:'3px 10px', fontSize:11, border:`1px solid ${color}`, borderRadius:6, background: showTemplates ? color : '#fff', color: showTemplates ? '#fff' : color, cursor:'pointer' }}>
+                  📋 Plantillas
+                </button>
+              </div>
+              {showTemplates && (
+                <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:8, padding:10, marginBottom:8 }}>
+                  {templates.length === 0 && !showNewTemplate && (
+                    <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:'8px 0' }}>No hay plantillas para este módulo</div>
+                  )}
+                  <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom: showNewTemplate ? 8 : 0 }}>
+                    {templates.map(t => (
+                      <div key={t.id} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:6, padding:'8px 10px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
+                        <div style={{ flex:1, cursor:'pointer' }} onClick={() => { setForm(p => ({ ...p, examen: p.examen ? p.examen + '
+
+' + t.content : t.content })); setShowTemplates(false) }}>
+                          <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a' }}>{t.title}</div>
+                          <div style={{ fontSize:11, color:'#888', marginTop:2 }}>
+                            {t.creator?.prefix ? t.creator.prefix + ' ' : ''}{t.creator?.first_name} {t.creator?.last_name}
+                          </div>
+                        </div>
+                        {t.created_by === profile?.id && (
+                          <button onClick={() => deleteTemplate(t.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:14, flexShrink:0 }}>×</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {showNewTemplate ? (
+                    <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                      <input value={newTemplate.title} onChange={e => setNewTemplate(p=>({...p, title:e.target.value}))}
+                        placeholder="Título de la plantilla..." style={{ padding:'6px 8px', fontSize:12, border:'1px solid #e2e8f0', borderRadius:6, outline:'none' }} />
+                      <textarea value={newTemplate.content} onChange={e => setNewTemplate(p=>({...p, content:e.target.value}))}
+                        placeholder="Contenido del examen físico..." rows={4}
+                        style={{ padding:'6px 8px', fontSize:12, border:'1px solid #e2e8f0', borderRadius:6, outline:'none', resize:'vertical', fontFamily:'inherit' }} />
+                      <div style={{ display:'flex', gap:6 }}>
+                        <button onClick={() => setShowNewTemplate(false)} style={{ padding:'5px 10px', fontSize:11, border:'1px solid #e2e8f0', borderRadius:6, background:'#fff', cursor:'pointer', color:'#666' }}>Cancelar</button>
+                        <button onClick={saveTemplate} disabled={savingTemplate || !newTemplate.title || !newTemplate.content}
+                          style={{ padding:'5px 10px', fontSize:11, border:'none', borderRadius:6, background:color, color:'#fff', cursor:'pointer', opacity: savingTemplate || !newTemplate.title || !newTemplate.content ? 0.5 : 1 }}>
+                          {savingTemplate ? 'Guardando...' : 'Guardar plantilla'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button onClick={() => setShowNewTemplate(true)}
+                      style={{ marginTop:6, width:'100%', padding:'5px', fontSize:11, border:`1px dashed ${color}`, borderRadius:6, background:'transparent', color:color, cursor:'pointer' }}>
+                      + Nueva plantilla
+                    </button>
+                  )}
+                </div>
+              )}
               <textarea style={inpM} value={form.examen}
                 onChange={e => setForm(p => ({ ...p, examen: e.target.value }))}
                 placeholder="Hallazgos del examen físico..." />
