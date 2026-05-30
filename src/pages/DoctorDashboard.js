@@ -17,7 +17,7 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => { const v = localStorage.getItem('doctorView'); return v === 'perfil' ? 'perfil' : 'calendario' })
+  const [view, setView] = useState('calendario')
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
   const [msgs, setMsgs] = useState([])
@@ -25,7 +25,7 @@ export default function DoctorDashboard() {
   const [perms, setPerms] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selPatient, setSelPatient] = useState(() => {
-    try { const s = localStorage.getItem('doctorSelPatient'); return s ? JSON.parse(s) : null } catch { return null }
+    return null
   })
   const [patientCareModules, setPatientCareModules] = useState([])
   const [patientTab, setPatientTab] = useState('progreso')
@@ -100,19 +100,9 @@ export default function DoctorDashboard() {
   useEffect(() => { 
     if (profile?.id) {
       loadAll()
-      const savedView = localStorage.getItem('doctorView')
-      const saved = localStorage.getItem('doctorSelPatient')
-      if (savedView === 'perfil' && saved) {
-        try {
-          const p = JSON.parse(saved)
-          loadPatientData(p.id)
-          loadPatientCareModules(p.id)
-        } catch {}
-      } else {
-        localStorage.setItem('doctorView', 'calendario')
-        localStorage.removeItem('doctorSelPatient')
-        setSelPatient(null)
-      }
+      localStorage.setItem('doctorView', 'calendario')
+      localStorage.removeItem('doctorSelPatient')
+      setSelPatient(null)
     }
   }, [profile?.id])
 
