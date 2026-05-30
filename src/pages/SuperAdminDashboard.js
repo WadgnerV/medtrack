@@ -203,7 +203,7 @@ export default function SuperAdminDashboard() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { first_name: form.first_name, last_name: form.last_name, role: 'admin' } }
+        options: { data: { first_name: form.first_name, last_name: form.last_name, role: form.role || 'admin' } }
       })
       if (authError) { setError('Error: ' + authError.message); setSaving(false); return }
       for (let i = 0; i < 10; i++) {
@@ -214,7 +214,7 @@ export default function SuperAdminDashboard() {
       await supabase.from('profiles').update({
         first_name: form.first_name,
         last_name: form.last_name,
-        role: 'admin',
+        role: form.role || 'admin',
         clinic_id: form.clinic_id,
         profession: form.profession,
         is_active: true,
@@ -711,6 +711,14 @@ export default function SuperAdminDashboard() {
                   {isHealthPro(form.profession) ? '✅ Aparecerá en lista de médicos y podrá ser asignado a módulos' : 'ℹ️ Solo acceso administrativo, no aparecerá en lista de médicos'}
                 </div>
               )}
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={s.fieldLabel}>Rol <span style={{ color:'#D85A30' }}>*</span></label>
+              <select value={form.role||'admin'} onChange={f('role')} style={s.input}>
+                <option value="admin">Admin de sucursal</option>
+                <option value="clinic_admin">Admin de clínica</option>
+                <option value="branch_admin">Branch Admin</option>
+              </select>
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Clínica asignada <span style={{ color:'#D85A30' }}>*</span></label>
