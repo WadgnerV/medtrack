@@ -1202,7 +1202,50 @@ export default function AdminDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+              {/* Mini calendario lateral */}
+              {!isMobile && (
+                <div style={{ width:220, flexShrink:0, background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:14 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                    <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}
+                      style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#888', padding:'2px 6px' }}>{'<'}</button>
+                    <div style={{ fontSize:12, fontWeight:600, color:'#1a3a5c' }}>{MONTHS[calMonth]} {calYear}</div>
+                    <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y+1) } else setCalMonth(m => m+1) }}
+                      style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'#888', padding:'2px 6px' }}>{'>'}</button>
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:4 }}>
+                    {['L','M','M','J','V','S','D'].map((d,i) => (
+                      <div key={i} style={{ textAlign:'center', fontSize:10, color:'#bbb', fontWeight:500, padding:'2px 0' }}>{d}</div>
+                    ))}
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:1 }}>
+                    {renderCalendar().map((cell, i) => {
+                      const hasAppts = cell.dateStr ? apptsByDate(cell.dateStr).length > 0 : false
+                      return (
+                        <div key={i} onClick={() => { if(cell.dateStr) { setSelDate(cell.dateStr); setCalView('dia') } }}
+                          style={{ textAlign:'center', fontSize:11, padding:'3px 2px', borderRadius:4, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? G : selDate === cell.dateStr ? '#1a3a5c' : 'transparent', color: cell.isToday || selDate === cell.dateStr ? '#fff' : '#444', fontWeight: cell.isToday ? 700 : 400, position:'relative' }}>
+                          {cell.day}
+                          {hasAppts && !cell.isToday && <div style={{ position:'absolute', bottom:1, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background: G }} />}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <button onClick={() => {
+                    const today = new Date()
+                    const d = new Date(today)
+                    d.setDate(d.getDate() - d.getDay())
+                    setWeekStart(new Date(d))
+                    setCalMonth(today.getMonth())
+                    setCalYear(today.getFullYear())
+                    setSelDate(today.toISOString().split('T')[0])
+                    setCalView('semana')
+                  }} style={{ width:'100%', marginTop:12, padding:'6px', background:'#f0f4f8', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', fontWeight:500 }}>
+                    Hoy
+                  </button>
+                </div>
+              )}
+              {/* Columna principal */}
+              <div style={{ flex:1, display:'flex', flexDirection:'column', gap:12 }}>
               {/* Controles de vista */}
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', gap:6 }}>
@@ -1540,6 +1583,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               )}
+              </div>{/* fin columna principal */}
             </div>
           )}
 
