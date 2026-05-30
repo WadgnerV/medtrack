@@ -333,7 +333,7 @@ export default function AdminDashboard() {
   }
 
   async function loadAppts() {
-    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, profile:profile_id(first_name, last_name)), doctor:doctor_id(id, first_name, last_name)').order('appointment_date').order('appointment_time')
+    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, phone, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name)').order('appointment_date').order('appointment_time')
     setAppts(data || [])
   }
 
@@ -576,11 +576,18 @@ export default function AdminDashboard() {
       // Enviar correo de confirmación al paciente
       const patient = patients.find(p => p.id === form.patientId)
       const doctor = doctors.find(d => d.id === form.doctorId)
-      if (patient?.profile?.email) {
+      let patientEmail = patient?.profile?.email
+      let patientName = `${patient?.profile?.first_name||''} ${patient?.profile?.last_name||''}`
+      if (!patientEmail) {
+        const { data: pr } = await supabase.from('patients').select('profile:profile_id(first_name, last_name, email)').eq('id', form.patientId).single()
+        patientEmail = pr?.profile?.email
+        patientName = `${pr?.profile?.first_name||''} ${pr?.profile?.last_name||''}`
+      }
+      if (patientEmail) {
         await supabase.functions.invoke('appointment-confirmation', {
           body: {
-            patient_email: patient.profile.email,
-            patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
+            patient_email: patientEmail,
+            patient_name: patientName,
             doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
             appointment_date: form.date,
             appointment_time: form.time,
