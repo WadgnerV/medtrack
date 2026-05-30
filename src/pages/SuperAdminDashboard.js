@@ -195,6 +195,9 @@ export default function SuperAdminDashboard() {
     if (!form.first_name || !form.last_name || !form.email || !form.password || !form.clinic_id || !form.profession) {
       setError('Todos los campos son obligatorios'); return
     }
+    if (form.role === 'branch_admin' && !form.branch_id) {
+      setError('Debes seleccionar una sucursal para el admin de sucursal'); return
+    }
     if (form.password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres'); return
     }
@@ -220,6 +223,9 @@ export default function SuperAdminDashboard() {
         is_active: true,
         is_health_professional: isHealthPro(form.profession),
       }).eq('id', authData.user.id)
+      if (form.role === 'branch_admin' && form.branch_id) {
+        await supabase.from('branch_staff').insert({ branch_id: form.branch_id, profile_id: authData.user.id })
+      }
       await loadAdmins(); setModal(null)
     } catch(e) { setError('Error: ' + e.message) }
     setSaving(false)
@@ -714,19 +720,27 @@ export default function SuperAdminDashboard() {
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Rol <span style={{ color:'#D85A30' }}>*</span></label>
-              <select value={form.role||'admin'} onChange={f('role')} style={s.input}>
-                <option value="admin">Admin de sucursal</option>
+              <select value={form.role||'clinic_admin'} onChange={e => setForm(p=>({...p, role:e.target.value, branch_id:''}))} style={s.input}>
                 <option value="clinic_admin">Admin de clínica</option>
-                <option value="branch_admin">Branch Admin</option>
+                <option value="branch_admin">Admin de sucursal</option>
               </select>
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Clínica asignada <span style={{ color:'#D85A30' }}>*</span></label>
-              <select value={form.clinic_id||''} onChange={f('clinic_id')} style={s.input}>
+              <select value={form.clinic_id||''} onChange={e => setForm(p=>({...p, clinic_id:e.target.value, branch_id:''}))} style={s.input}>
                 <option value="">Seleccioná una clínica...</option>
                 {clinics.filter(c => c.is_active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
+            {form.role === 'branch_admin' && form.clinic_id && (
+              <div style={{ marginBottom:14 }}>
+                <label style={s.fieldLabel}>Sucursal asignada <span style={{ color:'#D85A30' }}>*</span></label>
+                <select value={form.branch_id||''} onChange={f('branch_id')} style={s.input}>
+                  <option value="">Seleccioná una sucursal...</option>
+                  {branches.filter(b => b.clinic_id === form.clinic_id).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
+            )}
             <div style={{ display:'flex', gap:8, marginTop:20 }}>
               <button onClick={() => setModal(null)} style={{ ...s.btnEdit, flex:1, textAlign:'center' }}>Cancelar</button>
               <button onClick={createAdmin} disabled={saving} style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }}>{saving?'Creando...':'Crear admin'}</button>
