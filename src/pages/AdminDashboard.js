@@ -217,7 +217,20 @@ export default function AdminDashboard() {
   const [clinicSettings, setClinicSettings] = useState(null)
   const [clinicPlan, setClinicPlan] = useState('basic')
   const isClinicAdmin = profile?.role === 'clinic_admin'
+  const isBranchAdmin = profile?.role === 'branch_admin' || profile?.role === 'admin'
   const [selBranch, setSelBranch] = useState('')
+  const [myBranchId, setMyBranchId] = useState(null)
+
+  // Filtros automáticos para branch_admin
+  const filteredPatients = myBranchId
+    ? patients.filter(p => p.branch_id === myBranchId || p.clinic_id === profile?.clinic_id)
+    : patients
+  const filteredDoctors = myBranchId
+    ? doctors.filter(d => d.branch_id === myBranchId)
+    : doctors
+  const filteredAppts = myBranchId
+    ? appts.filter(a => a.branch_id === myBranchId)
+    : appts
   const [branchForm, setBranchForm] = useState({})
   const [branches, setBranches] = useState([])
   const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria'])
@@ -230,7 +243,12 @@ export default function AdminDashboard() {
 
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadDoctors(), loadPatients(), loadAppts(), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches()])
+    let branchId = null
+    if (profile?.role === 'branch_admin' || profile?.role === 'admin') {
+      const { data: bs } = await supabase.from('branch_staff').select('branch_id').eq('profile_id', profile.id).single()
+      if (bs?.branch_id) { branchId = bs.branch_id; setMyBranchId(bs.branch_id) }
+    }
+    await Promise.all([loadDoctors(), loadPatients(branchId), loadAppts(branchId), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches()])
     setLoading(false)
   }
 
@@ -337,13 +355,17 @@ export default function AdminDashboard() {
     setDoctors(data || [])
   }
 
-  async function loadPatients() {
-    const { data } = await supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
+  async function loadPatients(branchId) {
+    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
+    if (branchId) query = query.eq('branch_id', branchId)
+    const { data } = await query
     setPatients(data || [])
   }
 
-  async function loadAppts() {
-    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, phone, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name)').order('appointment_date').order('appointment_time')
+  async function loadAppts(branchId) {
+    let query = supabase.from('appointments').select('*, patient:patient_id(id, phone, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name)').order('appointment_date').order('appointment_time')
+    if (branchId) query = query.eq('branch_id', branchId)
+    const { data } = await query
     setAppts(data || [])
   }
 
