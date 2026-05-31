@@ -207,6 +207,9 @@ export default function SuperAdminDashboard() {
     }
     setSaving(true)
     try {
+      // Guardar sesión actual del superadmin
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -230,6 +233,12 @@ export default function SuperAdminDashboard() {
       if (form.role === 'branch_admin' && form.branch_id) {
         await supabase.from('branch_staff').insert({ branch_id: form.branch_id, profile_id: authData.user.id })
       }
+
+      // Restaurar sesión del superadmin
+      if (currentSession) {
+        await supabase.auth.setSession({ access_token: currentSession.access_token, refresh_token: currentSession.refresh_token })
+      }
+
       await loadAdmins(); setModal(null)
     } catch(e) { setError('Error: ' + e.message) }
     setSaving(false)
