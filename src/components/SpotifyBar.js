@@ -188,12 +188,14 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     clearTimeout(searchTimeout.current)
     if (!q.trim()) { setSearchResults([]); return }
     searchTimeout.current = setTimeout(async () => {
+      const trimmed = q.trim()
+      if (!trimmed) return
       const tk = await getValidToken()
       if (!tk) return
-      const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=20`, { headers: { Authorization: `Bearer ${tk}` } })
+      const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(trimmed)}&type=track&limit=20`, { headers: { Authorization: `Bearer ${tk}` } })
       const data = await res.json()
       setSearchResults(data.tracks?.items || [])
-    }, 400)
+    }, 600)
   }
 
   async function playTrack(uri, contextUri) {
