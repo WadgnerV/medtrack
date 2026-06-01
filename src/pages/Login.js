@@ -63,29 +63,30 @@ export default function Login() {
       {!isMobile && (
         <div style={{
           flex: 1,
-          background: `radial-gradient(ellipse at ${gradientPos.x}% ${gradientPos.y}%, #1D9E75 0%, #1a3a5c 45%, #0d1f35 100%)`,
-          transition: 'background 0.3s ease',
+          background: '#f8fafc',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: 60, position: 'relative', overflow: 'hidden'
         }}>
+          {/* Manchas de color en esquinas */}
+          <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.08) 0%, transparent 70%)', top: -200, left: -200, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,58,92,0.07) 0%, transparent 70%)', bottom: -150, right: -100, pointerEvents: 'none' }} />
           {/* Círculos decorativos */}
-          <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.08)', top: -100, left: -100 }} />
-          <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.05)', top: -200, left: -200 }} />
-          <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.08)', bottom: -80, right: -80 }} />
-          <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.04)', bottom: -180, right: -180 }} />
+          <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', border: '1px solid rgba(26,58,92,0.08)', top: -100, left: -100 }} />
+          <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', border: '1px solid rgba(29,158,117,0.06)', top: -200, left: -200 }} />
+          <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', border: '1px solid rgba(26,58,92,0.08)', bottom: -80, right: -80 }} />
+          <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', border: '1px solid rgba(29,158,117,0.05)', bottom: -180, right: -180 }} />
 
           {/* Contenido */}
           <div style={{ position: 'relative', textAlign: 'center', maxWidth: 420 }}>
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 40 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, border: '1px solid rgba(255,255,255,0.2)' }}>+</div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '0.02em' }}>MedTrack</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 36 }}>
+              <img src="/medtrack-logo.png" alt="MedTrack" style={{ width: 180, marginBottom: 0 }} />
             </div>
 
-            <div style={{ fontSize: 32, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 16 }}>
+            <div style={{ fontSize: 32, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.3, marginBottom: 16 }}>
               Gestión clínica<br />inteligente
             </div>
-            <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6, marginBottom: 48 }}>
+            <div style={{ fontSize: 16, color: '#666', lineHeight: 1.6, marginBottom: 48 }}>
               La plataforma que simplifica el trabajo de tu clínica, desde el calendario hasta las notas clínicas.
             </div>
 
@@ -97,8 +98,8 @@ export default function Login() {
               { icon: '💊', text: 'Recetas y solicitudes de laboratorio' },
             ].map((f, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, textAlign: 'left' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{f.icon}</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)' }}>{f.text}</div>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(26,58,92,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{f.icon}</div>
+                <div style={{ fontSize: 14, color: '#444' }}>{f.text}</div>
               </div>
             ))}
           </div>
