@@ -13,6 +13,7 @@ const GRAY2 = '#718096'
 const GRAY3 = '#a0aec0'
 
 const REPORTES_DISPONIBLES = [
+  { id: 'citas_por_mes', label: 'Citas por mes' },
   { id: 'citas_total', label: 'Resumen de citas' },
   { id: 'citas_confirmadas', label: 'Citas confirmadas' },
   { id: 'citas_ausentes', label: 'Ausencias (no-show)' },
@@ -67,6 +68,22 @@ export default function ReportesView({ appts, patients, doctors, profile, isMobi
   const citasPrimeraVez = filteredAppts.filter(a => a.visit_type?.toLowerCase().includes('primera')).length
   const citasPendientes = filteredAppts.filter(a => a.status === 'pending_confirmation').length
   const citasCanceladas = filteredAppts.filter(a => a.status === 'cancelled').length
+
+  const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
+  const citasPorMes = (() => {
+    const map = {}
+    filteredAppts.forEach(a => {
+      if (!a.appointment_date) return
+      const d = new Date(a.appointment_date + 'T12:00:00')
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+      const label = MESES[d.getMonth()] + ' ' + String(d.getFullYear()).slice(2)
+      if (!map[key]) map[key] = { mes: label, total: 0, confirmadas: 0, ausentes: 0 }
+      map[key].total++
+      if (a.status === 'confirmed_patient' || a.status === 'confirmed_doctor') map[key].confirmadas++
+      if (a.status === 'no_show') map[key].ausentes++
+    })
+    return Object.keys(map).sort().map(k => map[k])
+  })()
 
   const citasPorDoctor = doctors.map(d => ({
     nombre: d.last_name?.split(' ')[0] || d.first_name,
@@ -244,6 +261,26 @@ export default function ReportesView({ appts, patients, doctors, profile, isMobi
         {/* Reportes en 2 columnas */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
           {reporteOrder.filter(id=>selectedReportes.includes(id)).map(id=>{
+
+            if (id==='citas_por_mes') return (
+              <div key={id} style={{ ...cardStyle, gridColumn:'1/-1' }}>
+                <div style={secTitle}>Citas por mes</div>
+                {citasPorMes.length === 0 && <div style={{ textAlign:'center', color:GRAY3, fontSize:13, padding:20 }}>Sin datos en el período seleccionado</div>}
+                {citasPorMes.length > 0 && (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={citasPorMes} margin={{ top:8, right:8, left:0, bottom:0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="mes" tick={{ fontSize:11, fill:GRAY2 }} />
+                      <YAxis tick={{ fontSize:11, fill:GRAY2 }} />
+                      <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} />
+                      <Bar dataKey="total" name="Total" fill={BLUE} radius={[4,4,0,0]} />
+                      <Bar dataKey="confirmadas" name="Confirmadas" fill={G} radius={[4,4,0,0]} />
+                      <Bar dataKey="ausentes" name="No-show" fill="#e53e3e" radius={[4,4,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            )
 
             if (id==='citas_total') return (
               <div key={id} style={{ ...cardStyle, gridColumn:'1/-1' }}>
