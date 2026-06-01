@@ -72,9 +72,9 @@ export default function Landing() {
       `}</style>
 
       {/* NAVBAR */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #f0f0f0', padding: '0 40px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #f0f0f0', padding: '0 40px', height: 88, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => scrollTo('hero')}>
-          <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 64 }} />
+          <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 78 }} />
         </div>
         <div className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <span className="nav-link" onClick={() => scrollTo('features')}>Funcionalidades</span>
@@ -115,8 +115,13 @@ export default function Landing() {
       )}
 
       {/* HERO */}
-      <section id="hero" className="hero-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '100px 24px 60px', maxWidth: 1100, margin: '0 auto' }}>
+      <section id="hero" className="hero-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 24px 60px', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 680 }}>
+          {/* Logo protagonista */}
+          <div style={{ marginBottom: 32 }}>
+            <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 90, display: 'block' }} />
+          </div>
+
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(29,158,117,0.08)', border: '1px solid rgba(29,158,117,0.2)', borderRadius: 20, padding: '6px 14px', marginBottom: 28 }}>
             <div style={{ width: 7, height: 7, borderRadius: '50%', background: G, animation: 'pulse 2s infinite' }} />
