@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import ReportesView from '../components/ReportesView'
 
 const G = '#1D9E75'
 const BLUE = '#1a3a5c'
@@ -59,6 +60,8 @@ export default function SuperAdminDashboard() {
   const [form, setForm] = useState({})
   const [error, setError] = useState('')
   const [searchClinic, setSearchClinic] = useState('')
+  const [allAppts, setAllAppts] = useState([])
+  const [allPatients, setAllPatients] = useState([])
   const [filterPlan, setFilterPlan] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [searchAdmin, setSearchAdmin] = useState('')
@@ -73,7 +76,18 @@ export default function SuperAdminDashboard() {
     return () => window.removeEventListener('resize', handler)
   }, [])
 
-  function setViewPersist(v) { localStorage.setItem('superadminView', v); setView(v) }
+  async function loadReportData() {
+    const { data: appts } = await supabase.from('appointments').select('*, patient:patient_id(id, profile:profile_id(first_name, last_name)), doctor:doctor_id(id, first_name, last_name)').order('appointment_date')
+    setAllAppts(appts || [])
+    const { data: patients } = await supabase.from('patients').select('id, status, birth_date, sex, province, clinic_id, profile:profile_id(id, first_name, last_name, email)').order('created_at', { ascending: false })
+    setAllPatients(patients || [])
+  }
+
+  function setViewPersist(v) {
+    localStorage.setItem('superadminView', v)
+    setView(v)
+    if (v === 'reportes') loadReportData()
+  }
 
   useEffect(() => { loadAll() }, [])
 
@@ -294,6 +308,7 @@ export default function SuperAdminDashboard() {
   const menuItems = [
     { key:'clinicas', label:'🏥 Clínicas' },
     { key:'admins', label:'👤 Administradores' },
+    { key:'reportes', label:'📊 Reportes' },
   ]
 
   return (
@@ -1072,6 +1087,31 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
+        {view === 'reportes' && (
+          <div>
+            <div style={s.header}>
+              <div>
+                <div style={s.title}>Reportes</div>
+                <div style={s.sub}>Estadísticas globales de todas las clínicas</div>
+              </div>
+            </div>
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:16, display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
+              <select value={filterClinic} onChange={e => setFilterClinic(e.target.value)}
+                style={{ padding:'7px 10px', border:'1px solid #e0e0e0', borderRadius:8, fontSize:13, outline:'none', color: filterClinic?'#1a3a5c':'#999' }}>
+                <option value="">Todas las clínicas</option>
+                {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              {filterClinic && <button onClick={() => setFilterClinic('')} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer' }}>✕ Limpiar</button>}
+            </div>
+            <ReportesView
+              appts={filterClinic ? allAppts.filter(a => a.clinic_id === filterClinic) : allAppts}
+              patients={filterClinic ? allPatients.filter(p => p.clinic_id === filterClinic) : allPatients}
+              doctors={admins}
+              profile={profile}
+              isMobile={isMobile}
+            />
+          </div>
+        )}
     </div>
   )
 }
