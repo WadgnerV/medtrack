@@ -75,10 +75,7 @@ export default function Login() {
           <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,58,92,0.10) 0%, transparent 65%)', bottom: -200, right: -150, pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.07) 0%, transparent 65%)', bottom: 100, left: -100, pointerEvents: 'none' }} />
 
-          {/* Logo pequeño arriba */}
-          <div style={{ position: 'absolute', top: 32, left: 48, opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 44 }} />
-          </div>
+
 
           {/* Contenido central */}
           <div style={{ maxWidth: 480, width: '100%', position: 'relative' }}>
@@ -164,9 +161,9 @@ export default function Login() {
             <>
               {/* Logo */}
               <div style={{ marginBottom: 36, textAlign: 'left' }}>
-                <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 72, marginBottom: 32, display: 'block' }} />
-                <div style={{ fontSize: 26, fontWeight: 700, color: BLUE, marginBottom: 6, letterSpacing: '-0.02em' }}>Bienvenido</div>
-                <div style={{ fontSize: 13, color: '#aaa', fontWeight: 400 }}>Iniciá sesión para continuar</div>
+                <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 100, marginBottom: 32, display: 'block', margin: '0 auto 32px' }} />
+                <div style={{ fontSize: 26, fontWeight: 700, color: BLUE, marginBottom: 6, letterSpacing: '-0.02em', textAlign: 'center' }}>Bienvenido</div>
+                <div style={{ fontSize: 13, color: '#aaa', fontWeight: 400, textAlign: 'center' }}>Iniciá sesión para continuar</div>
               </div>
 
               {error && (
