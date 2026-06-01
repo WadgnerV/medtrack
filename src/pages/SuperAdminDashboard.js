@@ -577,12 +577,12 @@ export default function SuperAdminDashboard() {
             </div>
             <div style={s.card}>
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
-                <thead>
+                {!isMobile && <thead>
                   <tr style={{ borderBottom:'1px solid #f0f0f0' }}>
                     {['Administrador','Email','Profesión','Clínica','Perfil','Estado','Acciones'].map(h => <th key={h} style={s.th}>{h}</th>)}
                   </tr>
-                </thead>
-                <tbody>
+                </thead>}
+                {!isMobile && <tbody>
                   {admins.filter(admin => {
                     const q = searchAdmin.toLowerCase()
                     if (q && !`${admin.first_name} ${admin.last_name}`.toLowerCase().includes(q) && !admin.email?.toLowerCase().includes(q)) return false
@@ -611,7 +611,33 @@ export default function SuperAdminDashboard() {
                       </tr>
                     )
                   })}
-                </tbody>
+                </tbody>}
+                {isMobile && <tbody><tr><td colSpan={1} style={{ padding:0 }}><div style={{ display:'flex', flexDirection:'column', gap:8, padding:8 }}>
+                  {admins.filter(admin => {
+                    const q = searchAdmin.toLowerCase()
+                    if (q && !`${admin.first_name} ${admin.last_name}`.toLowerCase().includes(q) && !admin.email?.toLowerCase().includes(q)) return false
+                    if (filterClinic && admin.clinic_id !== filterClinic) return false
+                    return true
+                  }).map(admin => {
+                    const clinic = clinics.find(c => c.id === admin.clinic_id)
+                    return (
+                      <div key={admin.id} style={{ background:'#f8fafc', borderRadius:10, padding:'12px 14px', border:'0.5px solid #eee' }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{admin.last_name} {admin.first_name}</div>
+                            <div style={{ fontSize:12, color:'#888' }}>{admin.email}</div>
+                          </div>
+                          <span style={{ ...s.badge, background: admin.is_active?'#E1F5EE':'#f5f5f5', color: admin.is_active?'#0F6E56':'#999', flexShrink:0 }}>{admin.is_active?'Activo':'Inactivo'}</span>
+                        </div>
+                        <div style={{ fontSize:12, color:'#666', marginBottom:4 }}>{admin.profession || '—'} · {clinic?.name || 'Sin clínica'}</div>
+                        <div style={{ display:'flex', gap:6, marginTop:8 }}>
+                          <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...admin }); setModal('edit-admin') }}>Editar</button>
+                          <button style={{ ...s.btnDanger, flex:1, textAlign:'center' }} onClick={() => deleteAdmin(admin.id)}>Desactivar</button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div></td></tr></tbody>}
               </table>
               {admins.length === 0 && <div style={{ textAlign:'center', padding:24, color:'#999', fontSize:13 }}>No hay administradores registrados</div>}
             </div>
