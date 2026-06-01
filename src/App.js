@@ -9,6 +9,7 @@ import PatientDashboard from './pages/PatientDashboard'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import ReceptionistDashboard from './pages/ReceptionistDashboard'
 import SpotifyCallback from './pages/SpotifyCallback'
+import Landing from './pages/Landing'
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           } />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/spotify-callback" element={<SpotifyCallback />} />
+          <Route path="/landing" element={<Landing />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
