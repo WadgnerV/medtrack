@@ -28,7 +28,7 @@ const s = {
   logoSub: { fontSize:11, color:'#999' },
   menuItem: { padding:'9px 20px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:10 },
   main: { flex:1, overflowY:'auto', padding:28 },
-  header: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 },
+  header: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:10 },
   title: { fontSize:18, fontWeight:700, color:BLUE },
   sub: { fontSize:13, color:'#888', marginTop:2 },
   card: { background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'16px 18px', marginBottom:16 },
@@ -63,6 +63,15 @@ export default function SuperAdminDashboard() {
   const [filterStatus, setFilterStatus] = useState('')
   const [searchAdmin, setSearchAdmin] = useState('')
   const [filterClinic, setFilterClinic] = useState('')
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [showDrawer, setShowDrawer] = useState(false)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   function setViewPersist(v) { localStorage.setItem('superadminView', v); setView(v) }
 
@@ -282,17 +291,60 @@ export default function SuperAdminDashboard() {
     </select>
   )
 
+  const menuItems = [
+    { key:'clinicas', label:'🏥 Clínicas' },
+    { key:'admins', label:'👤 Administradores' },
+  ]
+
   return (
     <div style={s.wrap}>
-      <div style={s.sidebar}>
+      {/* Header móvil */}
+      {isMobile && (
+        <div style={{ position:'fixed', top:0, left:0, right:0, height:52, background:'#fff', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 16px', zIndex:100 }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:BLUE }}>MEDTRACK</div>
+            <div style={{ fontSize:9, color:'#999' }}>Super Admin</div>
+          </div>
+          <button onClick={() => setShowDrawer(true)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:BLUE }}>☰</button>
+        </div>
+      )}
+
+      {/* Drawer móvil */}
+      {isMobile && showDrawer && (
+        <>
+          <div onClick={() => setShowDrawer(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
+          <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column' }}>
+            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div>
+                <div style={{ fontSize:14, fontWeight:700, color:BLUE }}>MEDTRACK</div>
+                <div style={{ fontSize:10, color:'#999' }}>Super Admin</div>
+              </div>
+              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+            </div>
+            <div style={{ flex:1, padding:'8px 0' }}>
+              {menuItems.map(item => (
+                <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
+                  style={{ padding:'12px 16px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 500 : 400 }}>
+                  {item.label}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding:'16px', borderTop:'0.5px solid #eee' }}>
+              <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
+              <div style={{ fontSize:11, color:'#999', marginBottom:8 }}>Super Administrador</div>
+              <button onClick={signOut} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:0 }}>Cerrar sesión</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Sidebar desktop */}
+      {!isMobile && <div style={s.sidebar}>
         <div style={s.logo}>
           <div style={s.logoTitle}>MEDTRACK</div>
           <div style={s.logoSub}>Super Admin</div>
         </div>
-        {[
-          { key:'clinicas', label:'🏥 Clínicas' },
-          { key:'admins', label:'👤 Administradores' },
-        ].map(item => (
+        {menuItems.map(item => (
           <div key={item.key} onClick={() => setViewPersist(item.key)}
             style={{ ...s.menuItem, background: view===item.key?'#f0fdf9':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?600:400 }}>
             {item.label}
@@ -305,7 +357,7 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
-      <div style={s.main}>
+      <div style={{ ...s.main, padding: isMobile ? '68px 12px 16px' : 28 }}>
         {/* Vista Clínicas */}
         {view === 'clinicas' && (
           <div>
@@ -337,7 +389,7 @@ export default function SuperAdminDashboard() {
               </select>
               {(searchClinic||filterPlan||filterStatus) && <button onClick={()=>{setSearchClinic('');setFilterPlan('');setFilterStatus('')}} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:'4px 8px' }}>✕ Limpiar</button>}
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
+            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:16 }}>
               {clinics.filter(clinic => {
                 const q = searchClinic.toLowerCase()
                 if (q && !clinic.name?.toLowerCase().includes(q) && !clinic.legal_name?.toLowerCase().includes(q) && !clinic.email?.toLowerCase().includes(q)) return false
@@ -452,7 +504,7 @@ export default function SuperAdminDashboard() {
 
             {/* Vista Diagrama */}
             {adminViewMode === 'diagrama' && (
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:16 }}>
                 {clinics.map(clinic => {
                   const clinicAdmins = admins.filter(a => a.clinic_id === clinic.id && a.role === 'clinic_admin')
                   const branchAdmins = admins.filter(a => a.clinic_id === clinic.id && ['admin','branch_admin'].includes(a.role))
