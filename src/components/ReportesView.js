@@ -49,7 +49,7 @@ const secTitle = { fontSize:12, fontWeight:700, color:BLUE, marginBottom:10, bor
 
 export default function ReportesView({ appts, patients, doctors, profile, isMobile, branches=[], isClinicAdmin=false }) {
   const today = new Date()
-  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]
+  const firstOfMonth = new Date(today.getFullYear(), today.getMonth()-2, 1).toISOString().split('T')[0]
   const todayStr = today.toISOString().split('T')[0]
 
   const [dateFrom, setDateFrom] = useState(firstOfMonth)
@@ -268,15 +268,13 @@ export default function ReportesView({ appts, patients, doctors, profile, isMobi
                 {citasPorMes.length === 0 && <div style={{ textAlign:'center', color:GRAY3, fontSize:13, padding:20 }}>Sin datos en el período seleccionado</div>}
                 {citasPorMes.length > 0 && (
                   <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={citasPorMes} margin={{ top:8, right:8, left:0, bottom:0 }}>
+                    <LineChart data={citasPorMes} margin={{ top:8, right:8, left:0, bottom:0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                       <XAxis dataKey="mes" tick={{ fontSize:11, fill:GRAY2 }} />
                       <YAxis tick={{ fontSize:11, fill:GRAY2 }} />
                       <Tooltip contentStyle={{ fontSize:12, borderRadius:8 }} />
-                      <Bar dataKey="total" name="Total" fill={BLUE} radius={[4,4,0,0]} />
-                      <Bar dataKey="confirmadas" name="Confirmadas" fill={G} radius={[4,4,0,0]} />
-                      <Bar dataKey="ausentes" name="No-show" fill="#e53e3e" radius={[4,4,0,0]} />
-                    </BarChart>
+                      <Line type="monotone" dataKey="total" name="Citas" stroke={BLUE} strokeWidth={2} dot={{ r:4, fill:BLUE }} />
+                    </LineChart>
                   </ResponsiveContainer>
                 )}
               </div>
