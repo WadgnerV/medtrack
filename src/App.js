@@ -41,6 +41,7 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/spotify-callback" element={<SpotifyCallback />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

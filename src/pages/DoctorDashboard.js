@@ -9,6 +9,7 @@ import EnfermeriaModule from './EnfermeriaModule'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import SpotifyBar from '../components/SpotifyBar'
 import UserMenu from '../components/UserMenu'
 
 const G = '#1D9E75'
@@ -1776,6 +1777,7 @@ function NoteForm({ saving, onSave, onClose }) {
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
         <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave({ ...form, pam })}>{saving ? 'Guardando...' : 'Guardar nota'}</button>
       </div>
+      <SpotifyBar returnTo='/doctor' />
     </>
   )
 }

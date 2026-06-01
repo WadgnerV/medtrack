@@ -10,6 +10,7 @@ import FisioterapiaModule from './FisioterapiaModule'
 import EnfermeriaModule from './EnfermeriaModule'
 import ReportesView from '../components/ReportesView'
 import UserMenu from '../components/UserMenu'
+import SpotifyBar from '../components/SpotifyBar'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
 const G = '#1D9E75'
@@ -1907,6 +1908,7 @@ export default function AdminDashboard() {
 
         </div>
       </div>
+      <SpotifyBar returnTo='/admin' />
     </div>
   )
 }
