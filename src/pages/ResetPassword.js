@@ -51,7 +51,7 @@ export default function ResetPassword() {
           <div style={{ width:40, height:40, borderRadius:12, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>💊</div>
           <div>
             <div style={{ fontSize:16, fontWeight:700, color:'#1a1a1a', letterSpacing:'0.05em' }}>MEDTRACK</div>
-            <div style={{ fontSize:12, color:'#888' }}>by Glow Clinic</div>
+            
           </div>
         </div>
 

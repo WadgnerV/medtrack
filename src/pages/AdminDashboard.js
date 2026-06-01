@@ -1022,7 +1022,7 @@ export default function AdminDashboard() {
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
             <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
-            <div style={{ fontSize:9, color:'#999' }}>by Glow Clinic</div>
+            
           </div>
         </div>
 
