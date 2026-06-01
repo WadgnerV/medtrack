@@ -251,7 +251,7 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     const challenge = await generateCodeChallenge(verifier)
     localStorage.setItem('spotify_code_verifier', verifier)
     localStorage.setItem('spotify_return_to', returnTo)
-    const params = new URLSearchParams({ client_id: CLIENT_ID, response_type: 'code', redirect_uri: REDIRECT_URI, scope: SCOPES, code_challenge_method: 'S256', code_challenge: challenge, state: Math.random().toString(36).substring(2) })
+    const params = new URLSearchParams({ client_id: CLIENT_ID, response_type: 'code', redirect_uri: REDIRECT_URI, scope: SCOPES, code_challenge_method: 'S256', code_challenge: challenge, state: Math.random().toString(36).substring(2), show_dialog: 'true' })
     window.location.href = `https://accounts.spotify.com/authorize?${params}`
   }
 
