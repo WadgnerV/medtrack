@@ -57,10 +57,17 @@ export default function Landing() {
         .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,158,117,0.35) !important; }
         .input-field:focus { border-color: ${G} !important; outline: none; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
         @media (max-width: 768px) {
-          .hero-title { font-size: 42px !important; }
+          .hero-title { font-size: 38px !important; }
+          .hero-section { padding: 90px 20px 50px !important; }
           .plans-grid { grid-template-columns: 1fr !important; }
           .features-grid { grid-template-columns: 1fr !important; }
           .nav-desktop { display: none !important; }
+          .nav-mobile-btn { display: flex !important; }
+          .contact-grid { grid-template-columns: 1fr !important; }
+          .contact-form { padding: 28px 20px !important; }
+          .footer-inner { flex-direction: column !important; text-align: center !important; gap: 16px !important; }
+          .stats-row { gap: 24px !important; }
+          .hero-btns { flex-direction: column !important; }
         }
       `}</style>
 
@@ -81,11 +88,34 @@ export default function Landing() {
             Iniciar sesión
           </a>
         </div>
-        <button onClick={() => setMenuOpen(p => !p)} style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22 }} className="nav-mobile">☰</button>
+        <button onClick={() => setMenuOpen(p => !p)} className="nav-mobile-btn"
+          style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: BLUE, padding: 4 }}>
+          {menuOpen ? '✕' : '☰'}
+        </button>
       </nav>
 
+      {/* Drawer móvil */}
+      {menuOpen && (
+        <div style={{ position: 'fixed', top: 72, left: 0, right: 0, background: '#fff', borderBottom: '1px solid #eee', zIndex: 99, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
+          {[['Funcionalidades', 'features'], ['Planes', 'plans'], ['Contacto', 'contact']].map(([label, id]) => (
+            <div key={id} onClick={() => scrollTo(id)}
+              style={{ padding: '12px 0', fontSize: 16, fontWeight: 500, color: BLUE, cursor: 'pointer', borderBottom: '1px solid #f5f5f5' }}>
+              {label}
+            </div>
+          ))}
+          <button onClick={() => scrollTo('contact')}
+            style={{ marginTop: 8, width: '100%', padding: '12px', background: G, color: '#fff', border: 'none', borderRadius: 9, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
+            Solicitar demo
+          </button>
+          <a href="/login"
+            style={{ marginTop: 8, display: 'block', width: '100%', padding: '11px', background: 'transparent', color: BLUE, border: `2px solid ${BLUE}`, borderRadius: 9, fontSize: 15, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box' }}>
+            Iniciar sesión
+          </a>
+        </div>
+      )}
+
       {/* HERO */}
-      <section id="hero" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '100px 24px 60px', maxWidth: 1100, margin: '0 auto' }}>
+      <section id="hero" className="hero-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '100px 24px 60px', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 680 }}>
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(29,158,117,0.08)', border: '1px solid rgba(29,158,117,0.2)', borderRadius: 20, padding: '6px 14px', marginBottom: 28 }}>
@@ -104,7 +134,7 @@ export default function Landing() {
             MedTrack centraliza tu agenda, expedientes, prescripciones y reportes en una sola plataforma — adaptada a la forma en que trabajás.
           </p>
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div className="hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button className="cta-btn" onClick={() => scrollTo('contact')}
               style={{ background: G, color: '#fff', border: 'none', borderRadius: 10, padding: '14px 28px', fontSize: 16, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(29,158,117,0.3)' }}>
               Solicitar demo gratuita
@@ -116,7 +146,7 @@ export default function Landing() {
           </div>
 
           {/* Stats */}
-          <div style={{ display: 'flex', gap: 40, marginTop: 56, flexWrap: 'wrap' }}>
+          <div className="stats-row" style={{ display: 'flex', gap: 40, marginTop: 56, flexWrap: 'wrap' }}>
             {[['6', 'Planes disponibles'], ['∞', 'Módulos personalizables'], ['100%', 'Digital y en la nube']].map(([n, l]) => (
               <div key={l}>
                 <div style={{ fontSize: 28, fontWeight: 800, color: BLUE }}>{n}</div>
@@ -205,8 +235,8 @@ export default function Landing() {
               <div style={{ fontSize: 15, color: '#888', lineHeight: 1.6 }}>Nos pondremos en contacto con vos en las próximas 24 horas para coordinar tu demo.</div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ background: '#fff', borderRadius: 16, padding: '40px 36px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <form onSubmit={handleSubmit} className="contact-form" style={{ background: '#fff', borderRadius: 16, padding: '40px 36px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="contact-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 700, color: '#888', display: 'block', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Nombre *</label>
                   <input className="input-field" value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} required placeholder="Dr. Juan Pérez"
@@ -239,7 +269,7 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer style={{ background: BLUE, color: '#fff', padding: '40px 24px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+        <div className="footer-inner" style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 32, filter: 'brightness(0) invert(1)' }} />
           </div>
