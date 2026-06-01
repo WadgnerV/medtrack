@@ -390,7 +390,12 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
                       style={{ background: '#1DB954', border: 'none', borderRadius: 12, padding: '3px 10px', color: '#000', fontSize: 10, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>▶ Play</button>
                   </div>
                   {loadingTracks && <div style={{ textAlign: 'center', padding: 20, color: '#b3b3b3', fontSize: 12 }}>Cargando...</div>}
-                  {playlistTracks.map((item, idx) => item.track && (
+                  {!loadingTracks && playlistTracks[0]?._error && (
+                    <div style={{ margin: '16px 12px', padding: '12px 14px', background: 'rgba(255,255,255,0.05)', borderRadius: 8, border: '1px solid #333' }}>
+                      <div style={{ fontSize: 12, color: '#b3b3b3', lineHeight: 1.5 }}>⚠️ {playlistTracks[0].message}</div>
+                    </div>
+                  )}
+                  {!loadingTracks && !playlistTracks[0]?._error && playlistTracks.map((item, idx) => item.track && (
                     <TrackRow key={item.track.id + idx} t={item.track} onClick={() => playTrack(item.track.uri, selPlaylist.uri)} />
                   ))}
                 </div>
