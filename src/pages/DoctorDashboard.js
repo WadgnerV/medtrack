@@ -194,6 +194,26 @@ export default function DoctorDashboard() {
     }
   }
 
+  async function saveEditPatient(form) {
+    setSaving(true)
+    const profileId = editPatientForm.profileId
+    const patientId = editPatientForm.patientId
+    if (!profileId || !patientId) { setSaving(false); return }
+    await supabase.from('profiles').update({
+      first_name: form.firstName, last_name: form.lastName,
+    }).eq('id', profileId)
+    await supabase.from('patients').update({
+      id_number: form.idNumber || null,
+      phone: form.phone || null,
+      birth_date: form.birthDate || null,
+      sex: form.sex || null,
+      province: form.province || null,
+      canton: form.canton || null,
+      height_cm: form.height ? parseInt(form.height) : null,
+    }).eq('id', patientId)
+    await loadPatients(); setModal(null); setSaving(false)
+  }
+
   function openPatient(p) {
     setSelPatientPersist(p)
     setPatientTab('progreso')
