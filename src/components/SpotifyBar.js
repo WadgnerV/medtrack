@@ -25,9 +25,17 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
   const [playlists, setPlaylists] = useState([])
   const [deviceId, setDeviceId] = useState(null)
   const [playerReady, setPlayerReady] = useState(false)
+  const [shuffle, setShuffle] = useState(false)
+  const [repeat, setRepeat] = useState('off') // off, track, context
+  const [selPlaylist, setSelPlaylist] = useState(null)
+  const [playlistTracks, setPlaylistTracks] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [rightPanel, setRightPanel] = useState('playlists') // playlists, tracks, search
   const playerRef = useRef(null)
+  const searchTimeout = useRef(null)
 
-  // Cargar Web Playback SDK
   useEffect(() => {
     if (!token) return
     if (window.Spotify) { initPlayer(); return }
@@ -36,7 +44,7 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     script.async = true
     document.body.appendChild(script)
     window.onSpotifyWebPlaybackSDKReady = () => initPlayer()
-    return () => { document.body.removeChild(script) }
+    return () => { try { document.body.removeChild(script) } catch(e) {} }
   }, [token])
 
   function initPlayer() {
@@ -49,7 +57,6 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     player.addListener('ready', ({ device_id }) => {
       setDeviceId(device_id)
       setPlayerReady(true)
-      // Transferir reproducción a este dispositivo
       fetch('https://api.spotify.com/v1/me/player', {
         method: 'PUT',
         headers: { Authorization: `Bearer ${localStorage.getItem('spotify_token')}`, 'Content-Type': 'application/json' },
@@ -63,13 +70,15 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
         setTrack({
           name: item.name,
           artist: item.artists?.map(a => a.name).join(', '),
-          album: item.album?.name,
           image: item.album?.images?.[0]?.url,
           duration: state.duration,
           progress: state.position,
+          uri: item.uri,
         })
       }
       setIsPlaying(!state.paused)
+      setShuffle(state.shuffle)
+      setRepeat(state.repeat_mode === 0 ? 'off' : state.repeat_mode === 1 ? 'track' : 'context')
     })
     player.connect()
     playerRef.current = player
@@ -88,13 +97,7 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     const res = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: CLIENT_ID,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: REDIRECT_URI,
-        code_verifier: verifier,
-      })
+      body: new URLSearchParams({ client_id: CLIENT_ID, grant_type: 'authorization_code', code, redirect_uri: REDIRECT_URI, code_verifier: verifier })
     })
     const data = await res.json()
     if (data.access_token) {
@@ -106,56 +109,95 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     }
   }
 
-  async function refreshAccessToken() {
-    const refreshTk = localStorage.getItem('spotify_refresh_token')
-    if (!refreshTk) return null
-    const res = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: CLIENT_ID,
-        grant_type: 'refresh_token',
-        refresh_token: refreshTk,
-      })
-    })
-    const data = await res.json()
-    if (data.access_token) {
-      localStorage.setItem('spotify_token', data.access_token)
-      localStorage.setItem('spotify_token_expires', Date.now() + data.expires_in * 1000)
-      setToken(data.access_token)
-      return data.access_token
-    }
-    return null
-  }
-
   async function getValidToken() {
     const expires = localStorage.getItem('spotify_token_expires')
-    if (expires && Date.now() > parseInt(expires) - 60000) return await refreshAccessToken()
+    if (expires && Date.now() > parseInt(expires) - 60000) {
+      const refreshTk = localStorage.getItem('spotify_refresh_token')
+      if (!refreshTk) return null
+      const res = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ client_id: CLIENT_ID, grant_type: 'refresh_token', refresh_token: refreshTk })
+      })
+      const data = await res.json()
+      if (data.access_token) {
+        localStorage.setItem('spotify_token', data.access_token)
+        localStorage.setItem('spotify_token_expires', Date.now() + data.expires_in * 1000)
+        setToken(data.access_token)
+        return data.access_token
+      }
+      return null
+    }
     return localStorage.getItem('spotify_token')
   }
 
-  // Actualizar progreso cada segundo
   useEffect(() => {
     if (!playerRef.current || !isPlaying) return
     const interval = setInterval(() => {
-      setTrack(p => p ? { ...p, progress: p.progress + 1000 } : p)
+      setTrack(p => p ? { ...p, progress: Math.min(p.progress + 1000, p.duration) } : p)
     }, 1000)
     return () => clearInterval(interval)
   }, [isPlaying])
 
+  useEffect(() => {
+    if (expanded && token) fetchPlaylists()
+  }, [expanded, token])
+
   async function fetchPlaylists() {
     const tk = await getValidToken()
     if (!tk) return
-    const res = await fetch('https://api.spotify.com/v1/me/playlists?limit=30', {
-      headers: { Authorization: `Bearer ${tk}` }
-    })
+    const res = await fetch('https://api.spotify.com/v1/me/playlists?limit=30', { headers: { Authorization: `Bearer ${tk}` } })
     const data = await res.json()
     setPlaylists(data.items || [])
   }
 
-  useEffect(() => {
-    if (expanded && token) fetchPlaylists()
-  }, [expanded, token])
+  async function fetchPlaylistTracks(playlist) {
+    const tk = await getValidToken()
+    if (!tk) return
+    setSelPlaylist(playlist)
+    setRightPanel('tracks')
+    const res = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=50`, { headers: { Authorization: `Bearer ${tk}` } })
+    const data = await res.json()
+    setPlaylistTracks(data.items?.filter(i => i.track) || [])
+  }
+
+  async function search(q) {
+    if (!q.trim()) { setSearchResults([]); return }
+    const tk = await getValidToken()
+    if (!tk) return
+    setSearching(true)
+    const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=20`, { headers: { Authorization: `Bearer ${tk}` } })
+    const data = await res.json()
+    setSearchResults(data.tracks?.items || [])
+    setSearching(false)
+  }
+
+  function handleSearch(e) {
+    setSearchQuery(e.target.value)
+    clearTimeout(searchTimeout.current)
+    searchTimeout.current = setTimeout(() => search(e.target.value), 500)
+  }
+
+  async function playTrack(uri, contextUri) {
+    const tk = await getValidToken()
+    if (!tk || !deviceId) return
+    const body = contextUri ? { context_uri: contextUri, offset: { uri } } : { uris: [uri] }
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+  }
+
+  async function playPlaylist(uri) {
+    const tk = await getValidToken()
+    if (!tk || !deviceId) return
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context_uri: uri })
+    })
+  }
 
   async function control(action) {
     if (!playerRef.current) return
@@ -167,15 +209,22 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     setTimeout(() => setLoading(false), 400)
   }
 
-  async function playPlaylist(uri) {
+  async function toggleShuffle() {
     const tk = await getValidToken()
-    if (!tk || !deviceId) return
-    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ context_uri: uri })
-    })
-    setExpanded(false)
+    if (!tk) return
+    const newVal = !shuffle
+    await fetch(`https://api.spotify.com/v1/me/player/shuffle?state=${newVal}`, { method: 'PUT', headers: { Authorization: `Bearer ${tk}` } })
+    setShuffle(newVal)
+  }
+
+  async function cycleRepeat() {
+    const tk = await getValidToken()
+    if (!tk) return
+    const modes = ['off', 'track', 'context']
+    const next = modes[(modes.indexOf(repeat) + 1) % 3]
+    const apiMode = next === 'off' ? 'off' : next === 'track' ? 'track' : 'context'
+    await fetch(`https://api.spotify.com/v1/me/player/repeat?state=${apiMode}`, { method: 'PUT', headers: { Authorization: `Bearer ${tk}` } })
+    setRepeat(next)
   }
 
   async function connectSpotify() {
@@ -183,15 +232,7 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
     const challenge = await generateCodeChallenge(verifier)
     localStorage.setItem('spotify_code_verifier', verifier)
     localStorage.setItem('spotify_return_to', returnTo)
-    const params = new URLSearchParams({
-      client_id: CLIENT_ID,
-      response_type: 'code',
-      redirect_uri: REDIRECT_URI,
-      scope: SCOPES,
-      code_challenge_method: 'S256',
-      code_challenge: challenge,
-      state: Math.random().toString(36).substring(2),
-    })
+    const params = new URLSearchParams({ client_id: CLIENT_ID, response_type: 'code', redirect_uri: REDIRECT_URI, scope: SCOPES, code_challenge_method: 'S256', code_challenge: challenge, state: Math.random().toString(36).substring(2) })
     window.location.href = `https://accounts.spotify.com/authorize?${params}`
   }
 
@@ -204,95 +245,172 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
   }
 
   const progress = track ? Math.min(Math.round((track.progress / track.duration) * 100), 100) : 0
-  const fmtTime = ms => { const s = Math.floor((ms||0)/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}` }
+  const fmtTime = ms => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }
+  const repeatIcon = repeat === 'off' ? '🔁' : repeat === 'track' ? '🔂' : '🔁'
+  const repeatColor = repeat === 'off' ? '#535353' : '#1DB954'
+
+  const SpotifyIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+    </svg>
+  )
 
   if (!token) return (
-    <div style={{ position:'fixed', bottom:20, right:20, zIndex:1000 }}>
-      <button onClick={connectSpotify} style={{ background:'#1DB954', color:'#fff', border:'none', borderRadius:24, padding:'10px 18px', fontSize:13, fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', gap:8, boxShadow:'0 4px 16px rgba(0,0,0,0.3)' }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-        Conectar Spotify
+    <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
+      <button onClick={connectSpotify} style={{ background: '#1DB954', color: '#fff', border: 'none', borderRadius: 24, padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+        <SpotifyIcon /> Conectar Spotify
       </button>
     </div>
   )
 
   return (
     <>
-      {expanded && <div style={{ position:'fixed', inset:0, zIndex:999 }} onClick={() => setExpanded(false)} />}
+      {expanded && <div style={{ position: 'fixed', inset: 0, zIndex: 999 }} onClick={() => setExpanded(false)} />}
 
       {expanded && (
-        <div style={{ position:'fixed', bottom:80, right:20, width:320, background:'#121212', borderRadius:16, boxShadow:'0 8px 40px rgba(0,0,0,0.6)', zIndex:1000, overflow:'hidden', fontFamily:'Inter, sans-serif' }}>
-          {/* Album art */}
-          <div style={{ padding:20, background:'linear-gradient(180deg, #2a2a2a 0%, #121212 100%)' }}>
-            {track?.image
-              ? <img src={track.image} alt="" style={{ width:'100%', borderRadius:8, marginBottom:14, boxShadow:'0 4px 20px rgba(0,0,0,0.5)' }} />
-              : <div style={{ width:'100%', height:160, background:'#282828', borderRadius:8, marginBottom:14, display:'flex', alignItems:'center', justifyContent:'center', fontSize:48 }}>🎵</div>}
-            <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{track?.name || 'Sin reproducción'}</div>
-            <div style={{ fontSize:13, color:'#b3b3b3', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{track?.artist || (playerReady ? 'Listo para reproducir' : 'Iniciando...')}</div>
-          </div>
+        <div style={{ position: 'fixed', bottom: 80, right: 20, width: 620, background: '#121212', borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.7)', zIndex: 1000, overflow: 'hidden', fontFamily: 'Inter, sans-serif', display: 'flex' }}
+          onClick={e => e.stopPropagation()}>
 
-          {/* Progreso */}
-          <div style={{ padding:'0 20px 12px' }}>
-            <div style={{ height:4, background:'#535353', borderRadius:2, marginBottom:6 }}>
-              <div style={{ height:'100%', width:`${progress}%`, background:'#1DB954', borderRadius:2, transition:'width 1s linear' }} />
+          {/* Panel izquierdo — reproductor */}
+          <div style={{ width: 260, flexShrink: 0, borderRight: '1px solid #282828' }}>
+            <div style={{ padding: 16, background: 'linear-gradient(180deg, #2a2a2a 0%, #121212 100%)' }}>
+              {track?.image
+                ? <img src={track.image} alt="" style={{ width: '100%', borderRadius: 8, marginBottom: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }} />
+                : <div style={{ width: '100%', height: 140, background: '#282828', borderRadius: 8, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><SpotifyIcon /></div>}
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track?.name || 'Sin reproducción'}</div>
+              <div style={{ fontSize: 11, color: '#b3b3b3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track?.artist || (playerReady ? 'Listo' : 'Iniciando...')}</div>
             </div>
-            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#b3b3b3' }}>
-              <span>{fmtTime(track?.progress)}</span>
-              <span>{fmtTime(track?.duration)}</span>
+
+            {/* Progreso */}
+            <div style={{ padding: '8px 16px' }}>
+              <div style={{ height: 3, background: '#535353', borderRadius: 2, marginBottom: 4 }}>
+                <div style={{ height: '100%', width: `${progress}%`, background: '#1DB954', borderRadius: 2, transition: 'width 1s linear' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#b3b3b3' }}>
+                <span>{fmtTime(track?.progress)}</span><span>{fmtTime(track?.duration)}</span>
+              </div>
+            </div>
+
+            {/* Controles */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '8px 16px' }}>
+              <button onClick={toggleShuffle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, opacity: shuffle ? 1 : 0.5, filter: shuffle ? 'none' : 'grayscale(1)' }} title="Aleatorio">🔀</button>
+              <button onClick={() => control('prev')} disabled={loading} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b3b3b3', fontSize: 20, padding: 0 }}>⏮</button>
+              <button onClick={() => control(isPlaying ? 'pause' : 'play')} disabled={loading}
+                style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                {isPlaying ? '⏸' : '▶'}
+              </button>
+              <button onClick={() => control('next')} disabled={loading} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b3b3b3', fontSize: 20, padding: 0 }}>⏭</button>
+              <button onClick={cycleRepeat} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: repeatColor }} title={`Repetir: ${repeat}`}>{repeatIcon}</button>
+            </div>
+
+            {/* Desconectar */}
+            <div style={{ padding: '8px 16px 16px' }}>
+              <button onClick={disconnect} style={{ width: '100%', padding: '6px', background: 'transparent', border: '1px solid #535353', borderRadius: 20, color: '#b3b3b3', fontSize: 11, cursor: 'pointer' }}>
+                Desconectar
+              </button>
             </div>
           </div>
 
-          {/* Controles */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:24, padding:'0 20px 20px' }}>
-            <button onClick={() => control('prev')} disabled={loading} style={{ background:'none', border:'none', cursor:'pointer', color:'#b3b3b3', fontSize:22, padding:0, opacity:loading?0.5:1 }}>⏮</button>
-            <button onClick={() => control(isPlaying ? 'pause' : 'play')} disabled={loading}
-              style={{ width:52, height:52, borderRadius:'50%', background:'#fff', border:'none', cursor:'pointer', fontSize:22, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 12px rgba(0,0,0,0.4)', opacity:loading?0.7:1 }}>
-              {isPlaying ? '⏸' : '▶'}
-            </button>
-            <button onClick={() => control('next')} disabled={loading} style={{ background:'none', border:'none', cursor:'pointer', color:'#b3b3b3', fontSize:22, padding:0, opacity:loading?0.5:1 }}>⏭</button>
-          </div>
+          {/* Panel derecho */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            {/* Tabs */}
+            <div style={{ display: 'flex', borderBottom: '1px solid #282828' }}>
+              {[['playlists', 'Playlists'], ['search', 'Buscar']].map(([key, label]) => (
+                <button key={key} onClick={() => { setRightPanel(key); if (key === 'search') setTimeout(() => document.getElementById('spotify-search')?.focus(), 100) }}
+                  style={{ flex: 1, padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: rightPanel === key || (rightPanel === 'tracks' && key === 'playlists') ? '#1DB954' : '#b3b3b3', borderBottom: rightPanel === key || (rightPanel === 'tracks' && key === 'playlists') ? '2px solid #1DB954' : '2px solid transparent' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
 
-          {/* Playlists */}
-          {playlists.length > 0 && (
-            <div style={{ borderTop:'1px solid #282828' }}>
-              <div style={{ fontSize:11, fontWeight:600, color:'#b3b3b3', textTransform:'uppercase', letterSpacing:'0.08em', padding:'12px 16px 8px' }}>Mis playlists</div>
-              <div style={{ maxHeight:180, overflowY:'auto' }}>
+            {/* Búsqueda */}
+            {rightPanel === 'search' && (
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <div style={{ padding: '10px 12px' }}>
+                  <input id="spotify-search" value={searchQuery} onChange={handleSearch} placeholder="Buscar canciones..." autoFocus
+                    style={{ width: '100%', padding: '8px 12px', background: '#282828', border: 'none', borderRadius: 20, color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', maxHeight: 340 }}>
+                  {searching && <div style={{ textAlign: 'center', padding: 20, color: '#b3b3b3', fontSize: 12 }}>Buscando...</div>}
+                  {searchResults.map(t => (
+                    <div key={t.id} onClick={() => playTrack(t.uri)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px', cursor: 'pointer', background: track?.uri === t.uri ? '#282828' : 'transparent' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#282828'}
+                      onMouseLeave={e => e.currentTarget.style.background = track?.uri === t.uri ? '#282828' : 'transparent'}>
+                      {t.album?.images?.[0]?.url ? <img src={t.album.images[0].url} alt="" style={{ width: 36, height: 36, borderRadius: 4, flexShrink: 0 }} /> : <div style={{ width: 36, height: 36, background: '#333', borderRadius: 4, flexShrink: 0 }} />}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12, color: track?.uri === t.uri ? '#1DB954' : '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
+                        <div style={{ fontSize: 10, color: '#b3b3b3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.artists?.map(a => a.name).join(', ')}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Playlists */}
+            {rightPanel === 'playlists' && (
+              <div style={{ flex: 1, overflowY: 'auto', maxHeight: 380 }}>
                 {playlists.map(pl => (
-                  <div key={pl.id} onClick={() => playPlaylist(pl.uri)}
-                    style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 16px', cursor:'pointer' }}
+                  <div key={pl.id}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', cursor: 'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#282828'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    {pl.images?.[0]?.url
-                      ? <img src={pl.images[0].url} alt="" style={{ width:36, height:36, borderRadius:4, flexShrink:0 }} />
-                      : <div style={{ width:36, height:36, background:'#333', borderRadius:4, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎵</div>}
-                    <div>
-                      <div style={{ fontSize:12, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:220 }}>{pl.name}</div>
-                      <div style={{ fontSize:10, color:'#b3b3b3' }}>{pl.tracks?.total} canciones</div>
+                    <div onClick={() => fetchPlaylistTracks(pl)} style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                      {pl.images?.[0]?.url ? <img src={pl.images[0].url} alt="" style={{ width: 38, height: 38, borderRadius: 4, flexShrink: 0 }} /> : <div style={{ width: 38, height: 38, background: '#333', borderRadius: 4, flexShrink: 0 }} />}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pl.name}</div>
+                        <div style={{ fontSize: 10, color: '#b3b3b3' }}>{pl.tracks?.total} canciones</div>
+                      </div>
                     </div>
+                    <button onClick={() => playPlaylist(pl.uri)} style={{ background: '#1DB954', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', fontSize: 12, color: '#000', fontWeight: 700, flexShrink: 0 }}>▶</button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Desconectar */}
-          <div style={{ padding:'12px 16px 16px', borderTop:'1px solid #282828' }}>
-            <button onClick={disconnect} style={{ width:'100%', padding:'8px', background:'transparent', border:'1px solid #535353', borderRadius:20, color:'#b3b3b3', fontSize:12, cursor:'pointer' }}>
-              Desconectar Spotify
-            </button>
+            {/* Canciones de playlist */}
+            {rightPanel === 'tracks' && selPlaylist && (
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: '1px solid #282828' }}>
+                  <button onClick={() => setRightPanel('playlists')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b3b3b3', fontSize: 16, padding: 0 }}>←</button>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selPlaylist.name}</div>
+                  <button onClick={() => playPlaylist(selPlaylist.uri)} style={{ marginLeft: 'auto', background: '#1DB954', border: 'none', borderRadius: 12, padding: '3px 10px', color: '#000', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>▶ Play</button>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', maxHeight: 320 }}>
+                  {playlistTracks.map((item, idx) => {
+                    const t = item.track
+                    if (!t) return null
+                    const isCurrentTrack = track?.uri === t.uri
+                    return (
+                      <div key={t.id + idx} onClick={() => playTrack(t.uri, selPlaylist.uri)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px', cursor: 'pointer', background: isCurrentTrack ? '#282828' : 'transparent' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#282828'}
+                        onMouseLeave={e => e.currentTarget.style.background = isCurrentTrack ? '#282828' : 'transparent'}>
+                        {t.album?.images?.[0]?.url ? <img src={t.album.images[0].url} alt="" style={{ width: 34, height: 34, borderRadius: 3, flexShrink: 0 }} /> : <div style={{ width: 34, height: 34, background: '#333', borderRadius: 3, flexShrink: 0 }} />}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12, color: isCurrentTrack ? '#1DB954' : '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
+                          <div style={{ fontSize: 10, color: '#b3b3b3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.artists?.map(a => a.name).join(', ')}</div>
+                        </div>
+                        <div style={{ fontSize: 10, color: '#b3b3b3', flexShrink: 0, marginLeft: 'auto' }}>{fmtTime(t.duration_ms)}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Botón flotante */}
       <div onClick={() => setExpanded(p => !p)}
-        style={{ position:'fixed', bottom:20, right:20, zIndex:1000, background:'#1DB954', borderRadius:50, padding: track ? '8px 16px 8px 8px' : '14px', cursor:'pointer', display:'flex', alignItems:'center', gap:10, boxShadow:'0 4px 20px rgba(29,185,84,0.5)', transition:'all 0.2s' }}>
-        {track?.image
-          ? <img src={track.image} alt="" style={{ width:36, height:36, borderRadius:6, flexShrink:0 }} />
-          : <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>}
+        style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000, background: '#1DB954', borderRadius: 50, padding: track ? '8px 16px 8px 8px' : '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 4px 20px rgba(29,185,84,0.5)', transition: 'all 0.2s' }}>
+        {track?.image ? <img src={track.image} alt="" style={{ width: 36, height: 36, borderRadius: 6, flexShrink: 0 }} /> : <SpotifyIcon />}
         {track && (
-          <div style={{ minWidth:0 }}>
-            <div style={{ fontSize:12, fontWeight:600, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:140 }}>{track.name}</div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,0.8)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:140 }}>{track.artist}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{track.name}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{track.artist}</div>
           </div>
         )}
       </div>
