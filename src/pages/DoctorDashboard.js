@@ -714,7 +714,7 @@ export default function DoctorDashboard() {
                 const initials = (p.first_name?.[0]||'')+(p.last_name?.[0]||'');
                 const citasPac = appts.filter(a=>a.patient_id===p.id).length;
                 return (
-                  <div key={p.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                  <div key={p.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:'1px solid #ebebeb' }}>
                     <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, flexShrink:0 }}>
                       {initials}
                     </div>
@@ -909,7 +909,7 @@ export default function DoctorDashboard() {
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Historial de mediciones</div>
                     {measurements.slice(0,8).map(m => (
-                      <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0', fontSize:14 }}>
+                      <div key={m.id} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:8, padding:'8px 0', borderBottom:'1px solid #ebebeb', fontSize:14 }}>
                         <span style={{ color:'#888' }}>{m.measured_at}</span>
                         <span style={{ color:'#1a1a1a' }}>{m.weight_kg ? m.weight_kg + ' kg' : '--'}</span>
                         <span style={{ color:'#1a1a1a' }}>{m.body_fat_pct ? m.body_fat_pct + '%' : '--'}</span>
@@ -956,7 +956,7 @@ export default function DoctorDashboard() {
                   <button style={{ ...s.btnPrimary, marginBottom:12 }} onClick={() => setModal('assign-tasks')}>+ Asignar tarea</button>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     {tasks.map(t => (
-                      <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                      <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 0', borderBottom:'1px solid #ebebeb' }}>
                         <div style={{ width:18, height:18, borderRadius:'50%', border: '1.5px solid ' + (t.is_completed ? G : '#ddd'), background: t.is_completed ? G : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff', flexShrink:0 }}>
                           {t.is_completed ? 'v' : ''}
                         </div>
@@ -975,7 +975,7 @@ export default function DoctorDashboard() {
                   <button style={{ ...s.btnPrimary, marginBottom:12 }} onClick={() => setModal('new-treatment')}>+ Registrar tratamiento</button>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     {treatments.map(t => (
-                      <div key={t.id} style={{ padding:'10px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                      <div key={t.id} style={{ padding:'10px 0', borderBottom:'1px solid #ebebeb' }}>
                         <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:4 }}>{t.product_name}</div>
                         <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:4 }}>
                           {t.appointment_date && <span style={{ fontSize:14, padding:'1px 7px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.appointment_date}</span>}
@@ -1007,7 +1007,7 @@ export default function DoctorDashboard() {
                         return null
                       }
                       return (
-                        <div key={n.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                        <div key={n.id} style={{ padding:'12px 0', borderBottom:'1px solid #ebebeb' }}>
                           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
                             <div style={{ fontSize:14, color:'#999' }}>{n.note_date} · {n.visit_type}</div>
                             <div style={{ display:'flex', gap:6 }}>
@@ -1049,7 +1049,7 @@ export default function DoctorDashboard() {
                         <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', zIndex:10, maxHeight:240, overflowY:'auto' }}>
                           {cie10Results.map(r => (
                             <div key={r.code} onClick={() => addDiagnosis(r.code, r.description)}
-                              style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'0.5px solid #f0f0f0', fontSize:14 }}
+                              style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'1px solid #ebebeb', fontSize:14 }}
                               onMouseEnter={e => e.currentTarget.style.background = '#f8f8f8'}
                               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                               <span style={{ fontWeight:500, color:'#1D9E75', marginRight:8 }}>{r.code}</span>
@@ -1063,7 +1063,7 @@ export default function DoctorDashboard() {
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Diagnosticos activos ({diagnoses.length})</div>
                     {diagnoses.map(d => (
-                      <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+                      <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'1px solid #ebebeb' }}>
                         <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5', fontWeight:500, whiteSpace:'nowrap' }}>{d.cie10_code}</span>
                         <span style={{ fontSize:14, flex:1, color:'#1a1a1a' }}>{d.cie10_description}</span>
                         <span style={{ fontSize:14, color:'#bbb', whiteSpace:'nowrap' }}>{d.diagnosis_date}</span>
@@ -1226,7 +1226,7 @@ export default function DoctorDashboard() {
                     <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, borderBottom:'0.5px solid #eee' }}>
                       <div />
                       {weekDays.map(({date, isToday}) => (
-                        <div key={date.toISOString()} style={{ textAlign:'center', padding:'8px 4px', borderLeft:'0.5px solid #f0f0f0', background: isToday ? '#f0fdf9' : '#fff' }}>
+                        <div key={date.toISOString()} style={{ textAlign:'center', padding:'8px 4px', borderLeft:'1px solid #ebebeb', background: isToday ? '#f0fdf9' : '#fff' }}>
                           <div style={{ fontSize:11, color:'#999', textTransform:'uppercase' }}>
                             {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][date.getDay()===0?6:date.getDay()-1]}
                           </div>
@@ -1244,9 +1244,9 @@ export default function DoctorDashboard() {
                         {/* Columna horas */}
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: h > 0 ? '0.5px solid #f0f0f0' : 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                            <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
                               <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0' }} />
                             </div>
                           ))}
                         </div>
@@ -1254,11 +1254,11 @@ export default function DoctorDashboard() {
                         {weekDays.map(({dateStr, isToday}) => {
                           const dayAppts = apptsByDate(dateStr)
                           return (
-                            <div key={dateStr} style={{ borderLeft:'0.5px solid #f0f0f0', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
+                            <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', cursor:'pointer', position:'relative' }}
+                                <div key={h} style={{ height:SLOT_H, borderBottom:'1px solid #ebebeb', cursor:'pointer', position:'relative' }}
                                   onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                                  <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                                  <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0', pointerEvents:'none' }} />
                                 </div>
                               ))}
                               {/* Indicador hora actual */}
@@ -1333,17 +1333,17 @@ export default function DoctorDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: h > 0 ? '0.5px solid #f0f0f0' : 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                            <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
                               <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0' }} />
                             </div>
                           ))}
                         </div>
                         <div style={{ position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0', cursor:'pointer', position:'relative' }}
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'1px solid #ebebeb', borderLeft:'1px solid #ebebeb', cursor:'pointer', position:'relative' }}
                               onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0', pointerEvents:'none' }} />
                             </div>
                           ))}
                           {isToday && nowOffsetPx >= 0 && (
@@ -1472,7 +1472,7 @@ export default function DoctorDashboard() {
                     const unread = c.msgs.filter(m => !m.is_read && m.sender_role === 'patient').length
                     return (
                       <div key={c.patientId} onClick={() => openChat(c)}
-                        style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', cursor:'pointer', background: activeChat?.patientId === c.patientId ? '#E1F5EE' : 'transparent' }}>
+                        style={{ padding:'10px 12px', borderBottom:'1px solid #ebebeb', cursor:'pointer', background: activeChat?.patientId === c.patientId ? '#E1F5EE' : 'transparent' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:2 }}>
                           <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{c.name || 'Paciente'}</div>
                           {unread > 0 && <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', marginTop:4 }} />}

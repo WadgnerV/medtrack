@@ -1220,7 +1220,7 @@ export default function AdminDashboard() {
 
           {view === 'pacientes' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-          <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
+          <div style={{ padding:'10px 12px', borderBottom:'1px solid #ebebeb', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:14, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 36%' }}>Paciente</div>
                 <div style={{ flex:'0 0 8%' }}>Edad</div>
@@ -1441,7 +1441,7 @@ export default function AdminDashboard() {
                     <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, borderBottom:'0.5px solid #eee' }}>
                       <div />
                       {weekDays.map(({date, isToday}) => (
-                        <div key={date.toISOString()} style={{ textAlign:'center', padding:'8px 4px', borderLeft:'0.5px solid #f0f0f0', background: isToday ? '#f0fdf9' : '#fff' }}>
+                        <div key={date.toISOString()} style={{ textAlign:'center', padding:'8px 4px', borderLeft:'1px solid #ebebeb', background: isToday ? '#f0fdf9' : '#fff' }}>
                           <div style={{ fontSize:11, color:'#999', textTransform:'uppercase' }}>
                             {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][date.getDay()===0?6:date.getDay()-1]}
                           </div>
@@ -1455,20 +1455,20 @@ export default function AdminDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:`48px repeat(7,1fr)`, position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: h > 0 ? '0.5px solid #f0f0f0' : 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                            <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
                               <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0' }} />
                             </div>
                           ))}
                         </div>
                         {weekDays.map(({dateStr, isToday}) => {
                           const dayAppts = apptsByDate(dateStr)
                           return (
-                            <div key={dateStr} style={{ borderLeft:'0.5px solid #f0f0f0', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
+                            <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', cursor:'pointer', position:'relative' }}
+                                <div key={h} style={{ height:SLOT_H, borderBottom:'1px solid #ebebeb', cursor:'pointer', position:'relative' }}
                                   onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                                  <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                                  <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0', pointerEvents:'none' }} />
                                 </div>
                               ))}
                               {isToday && nowOffsetPx >= 0 && (
@@ -1541,17 +1541,17 @@ export default function AdminDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: h > 0 ? '0.5px solid #f0f0f0' : 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
+                            <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
                               <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0' }} />
                             </div>
                           ))}
                         </div>
                         <div style={{ position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderBottom:'0.5px solid #f5f5f5', borderLeft:'0.5px solid #f0f0f0', cursor:'pointer', position:'relative' }}
+                            <div key={h} style={{ height:SLOT_H, borderBottom:'1px solid #ebebeb', borderLeft:'1px solid #ebebeb', cursor:'pointer', position:'relative' }}
                               onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'0.5px dashed #f0f0f0', pointerEvents:'none' }} />
+                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0', pointerEvents:'none' }} />
                             </div>
                           ))}
                           {isToday && nowOffsetPx >= 0 && (
@@ -1708,7 +1708,7 @@ export default function AdminDashboard() {
                     const unread = c.msgs.filter(m => !m.is_read && m.sender_role === 'patient').length
                     return (
                       <div key={c.patientId} onClick={() => openChat(c)}
-                        style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', cursor:'pointer', background: activeChat?.patientId === c.patientId ? '#E1F5EE' : 'transparent' }}>
+                        style={{ padding:'10px 12px', borderBottom:'1px solid #ebebeb', cursor:'pointer', background: activeChat?.patientId === c.patientId ? '#E1F5EE' : 'transparent' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:2 }}>
                           <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{c.name || 'Paciente'}</div>
                           {unread > 0 && <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', marginTop:4 }} />}
@@ -1812,7 +1812,7 @@ export default function AdminDashboard() {
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
                     <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Permisos - {doctors.find(d => d.id === selDoctor)?.first_name} {doctors.find(d => d.id === selDoctor)?.last_name}</div>
                     {fields.map(f => (
-                      <div key={f.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                      <div key={f.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px solid #ebebeb' }}>
                         <span style={{ fontSize:14, color:'#444' }}>{f.label}</span>
                         <div onClick={() => savePerm(selDoctor, f.key, !perm[f.key])}
                           style={{ width:36, height:20, borderRadius:10, cursor:'pointer', transition:'background 0.2s', position:'relative', background: perm[f.key] ? G : '#e0e0e0' }}>
@@ -1862,7 +1862,7 @@ export default function AdminDashboard() {
                 { l:'WhatsApp de agenda', k:'whatsapp', ph:'+506 0000-0000' },
                 { l:'Correo de contacto', k:'email', ph:'info@clinica.com' },
               ].map((row,i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:'0.5px solid #f5f5f5' }}>
+                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px solid #ebebeb' }}>
                   <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{row.l}</div>
                   <input value={clinicSettings[row.k]||''} onChange={e => setClinicSettings(p=>({...p,[row.k]:e.target.value}))}
                     placeholder={row.ph} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', width:220 }} />
@@ -2405,7 +2405,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
                 <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', zIndex:10, maxHeight:240, overflowY:'auto' }}>
                   {cie10Results.map(r => (
                     <div key={r.code} onClick={() => onAddDiagnosis(r.code, r.description)}
-                      style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'0.5px solid #f0f0f0', fontSize:14 }}
+                      style={{ padding:'9px 12px', cursor:'pointer', borderBottom:'1px solid #ebebeb', fontSize:14 }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f8f8f8'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <span style={{ fontWeight:500, color:'#1D9E75', marginRight:8 }}>{r.code}</span>
@@ -2419,7 +2419,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
           <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
             <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:12 }}>Diagnosticos activos ({diagnoses.length})</div>
             {diagnoses.map(d => (
-              <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f0f0f0' }}>
+              <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'1px solid #ebebeb' }}>
                 <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5', fontWeight:500, whiteSpace:'nowrap' }}>{d.cie10_code}</span>
                 <span style={{ fontSize:14, flex:1, color:'#1a1a1a' }}>{d.cie10_description}</span>
                 <span style={{ fontSize:14, color:'#bbb', whiteSpace:'nowrap' }}>{d.diagnosis_date}</span>
