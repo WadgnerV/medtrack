@@ -1305,7 +1305,16 @@ export default function AdminDashboard() {
                     {renderCalendar().map((cell, i) => {
                       const hasAppts = cell.dateStr ? apptsByDate(cell.dateStr).length > 0 : false
                       return (
-                        <div key={i} onClick={() => { if(cell.dateStr) { setSelDate(cell.dateStr); setCalView('dia') } }}
+                        <div key={i} onClick={() => { if(cell.dateStr) {
+                          const d = new Date(cell.dateStr + 'T12:00:00')
+                          const day = d.getDay()
+                          const diff = day === 0 ? -6 : 1 - day
+                          const monday = new Date(d)
+                          monday.setDate(d.getDate() + diff)
+                          setWeekStart(new Date(monday))
+                          setSelDate(cell.dateStr)
+                          setCalView('semana')
+                        } }}
                           style={{ textAlign:'center', fontSize:11, padding:'3px 2px', borderRadius:4, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? G : selDate === cell.dateStr ? '#1a3a5c' : 'transparent', color: cell.isToday || selDate === cell.dateStr ? '#fff' : '#444', fontWeight: cell.isToday ? 700 : 400, position:'relative' }}>
                           {cell.day}
                           {hasAppts && !cell.isToday && <div style={{ position:'absolute', bottom:1, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background: G }} />}
@@ -1379,7 +1388,16 @@ export default function AdminDashboard() {
                     {renderCalendar().map((cell, i) => {
                       const dayAppts = cell.dateStr ? apptsByDate(cell.dateStr) : []
                       return (
-                        <div key={i} onClick={() => { if(cell.dateStr) { setSelDate(cell.dateStr); setCalView('dia') } }}
+                        <div key={i} onClick={() => { if(cell.dateStr) {
+                          const d = new Date(cell.dateStr + 'T12:00:00')
+                          const day = d.getDay()
+                          const diff = day === 0 ? -6 : 1 - day
+                          const monday = new Date(d)
+                          monday.setDate(d.getDate() + diff)
+                          setWeekStart(new Date(monday))
+                          setSelDate(cell.dateStr)
+                          setCalView('semana')
+                        } }}
                           style={{ minHeight:70, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? ('1px solid '+G) : '1px solid transparent' }}>
                           <div style={{ fontSize:13, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
                           {dayAppts.slice(0,2).map(a => {
