@@ -67,7 +67,7 @@ export default function Landing() {
       {/* NAVBAR */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #f0f0f0', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => scrollTo('hero')}>
-          <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 36 }} />
+          <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 52 }} />
         </div>
         <div className="nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <span className="nav-link" onClick={() => scrollTo('features')}>Funcionalidades</span>
@@ -77,6 +77,9 @@ export default function Landing() {
             style={{ background: G, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 14px rgba(29,158,117,0.25)' }}>
             Solicitar demo
           </button>
+          <a href="/login" style={{ background: 'transparent', color: BLUE, border: `1.5px solid ${BLUE}`, borderRadius: 8, padding: '7px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', textDecoration: 'none' }}>
+            Iniciar sesión
+          </a>
         </div>
         <button onClick={() => setMenuOpen(p => !p)} style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22 }} className="nav-mobile">☰</button>
       </nav>
