@@ -195,7 +195,7 @@ export default function Landing() {
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: G, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Contacto</div>
             <h2 style={{ fontSize: 38, fontWeight: 800, color: BLUE, letterSpacing: '-0.02em', marginBottom: 14 }}>¿Listo para transformar tu clínica?</h2>
-            <p style={{ fontSize: 16, color: '#888', lineHeight: 1.6 }}>Escribinos y coordinamos una demo personalizada para mostrarte todo lo que MedTrack puede hacer por tu práctica médica.</p>
+            <p style={{ fontSize: 16, color: '#888', lineHeight: 1.6 }}>Escribinos y coordinamos una demo personalizada para mostrarte todo lo que MedTrack puede hacer por tu práctica profesional.</p>
           </div>
 
           {sent ? (
