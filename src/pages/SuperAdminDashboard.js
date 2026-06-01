@@ -21,7 +21,7 @@ const CR_DATA = {
 const isHealthPro = (prof) => HEALTH_PROFESSIONS.includes(prof)
 
 const s = {
-  wrap: { display:'flex', height:'100vh', fontFamily:'"Inter", system-ui, sans-serif', background:'#f5f5f5' },
+  wrap: { display:'flex', height:'100vh', fontFamily:'"Inter", system-ui, sans-serif', background:'#f5f5f5', overflowX:'hidden' },
   sidebar: { width:220, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', padding:'20px 0' },
   logo: { padding:'0 20px 20px', borderBottom:'0.5px solid #f0f0f0', marginBottom:16 },
   logoTitle: { fontSize:16, fontWeight:700, color:BLUE },
@@ -355,9 +355,9 @@ export default function SuperAdminDashboard() {
           <div style={{ fontSize:11, color:'#999', marginBottom:8 }}>Super Administrador</div>
           <button onClick={signOut} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:0 }}>Cerrar sesión</button>
         </div>
-      </div>
+      </div>}
 
-      <div style={{ ...s.main, padding: isMobile ? '68px 12px 16px' : 28 }}>
+      <div style={{ ...s.main, padding: isMobile ? '68px 12px 16px' : 28, overflowX:'hidden' }}>
         {/* Vista Clínicas */}
         {view === 'clinicas' && (
           <div>
