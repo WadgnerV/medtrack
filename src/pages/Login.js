@@ -80,16 +80,22 @@ export default function Login() {
 
           {/* Contenido */}
           <div style={{ position: 'relative', textAlign: 'center', maxWidth: 420 }}>
-            {/* Logo */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 36 }}>
-              <img src="/medtrack-logo.png" alt="MedTrack" style={{ width: 260, marginBottom: 0 }} />
+
+
+            {/* Cinta de colores */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 32, justifyContent: 'center' }}>
+              {['#1D9E75','#1a3a5c','#2dd4bf','#1a3a5c','#1D9E75','#0d9488','#1a3a5c'].map((c,i) => (
+                <div key={i} style={{ height: 5, flex: 1, borderRadius: 3, background: c, opacity: 0.85 + i*0.02 }} />
+              ))}
             </div>
 
-            <div style={{ fontSize: 32, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.3, marginBottom: 16 }}>
-              Gestión clínica<br />inteligente
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 20, fontWeight: 400, color: '#1a3a5c', fontStyle: 'italic', letterSpacing: '0.02em', marginBottom: 4, fontFamily: 'Georgia, serif' }}>Gestión clínica</div>
+              <div style={{ fontSize: 52, fontWeight: 900, color: '#1a3a5c', lineHeight: 1, letterSpacing: '-0.03em', fontFamily: '"Inter", system-ui' }}>inteligente.</div>
             </div>
-            <div style={{ fontSize: 16, color: '#666', lineHeight: 1.6, marginBottom: 48 }}>
-              La plataforma que simplifica el trabajo de tu clínica, desde el calendario hasta las notas clínicas.
+
+            <div style={{ fontSize: 15, color: '#555', lineHeight: 1.7, marginBottom: 40, maxWidth: 360 }}>
+              La plataforma que <span style={{ color: '#1D9E75', fontWeight: 600 }}>simplifica</span> el trabajo de tu clínica, desde el calendario hasta las notas clínicas.
             </div>
 
             {/* Features */}
@@ -123,6 +129,7 @@ export default function Login() {
           {!showReset ? (
             <>
               <div style={{ marginBottom: 32 }}>
+                <img src="/medtrack-logo.png" alt="MedTrack" style={{ width: 130, marginBottom: 20, display: 'block' }} />
                 <div style={{ fontSize: 24, fontWeight: 700, color: BLUE, marginBottom: 6 }}>Bienvenido</div>
                 <div style={{ fontSize: 14, color: '#888' }}>Iniciá sesión para continuar</div>
               </div>
