@@ -40,7 +40,11 @@ export default function Landing() {
     setForm({ name: '', email: '', clinic: '', message: '' })
   }
 
-  const scrollTo = id => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); setMenuOpen(false) }
+  const scrollTo = (id, prefill) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    setMenuOpen(false)
+    if (prefill) setForm(p => ({ ...p, message: prefill }))
+  }
 
   return (
     <div style={{ fontFamily: '"Inter", system-ui, sans-serif', color: '#1a1a1a', background: '#fff', overflowX: 'hidden' }}>
@@ -139,7 +143,7 @@ export default function Landing() {
           </p>
 
           <div className="hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="cta-btn" onClick={() => scrollTo('contact')}
+            <button className="cta-btn" onClick={() => scrollTo('contact', 'Me gustaría solicitar una demo de MedTrack para conocer el sistema.')}
               style={{ background: G, color: '#fff', border: 'none', borderRadius: 10, padding: '14px 28px', fontSize: 16, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(29,158,117,0.3)' }}>
               Solicitar demo gratuita
             </button>
