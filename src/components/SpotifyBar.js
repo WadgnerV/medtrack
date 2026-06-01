@@ -296,11 +296,11 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
       {expanded && <div style={{ position: 'fixed', inset: 0, zIndex: 999 }} onClick={() => setExpanded(false)} />}
 
       {expanded && (
-        <div style={{ position: 'fixed', bottom: 80, right: 20, width: 680, height: 480, background: '#121212', borderRadius: 16, boxShadow: '0 8px 48px rgba(0,0,0,0.7)', zIndex: 1000, overflow: 'hidden', fontFamily: 'Inter, sans-serif', display: 'flex' }}
+        <div style={{ position: 'fixed', bottom: 80, right: 20, width: 700, height: 520, background: '#121212', borderRadius: 16, boxShadow: '0 8px 48px rgba(0,0,0,0.7)', zIndex: 1000, overflow: 'hidden', fontFamily: 'Inter, sans-serif', display: 'flex' }}
           onClick={e => e.stopPropagation()}>
 
           {/* Panel izquierdo — reproductor */}
-          <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid #282828', background: 'linear-gradient(180deg, #1a1a2e 0%, #121212 60%)' }}>
+          <div style={{ width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid #282828', background: 'linear-gradient(180deg, #1a1a2e 0%, #121212 60%)' }}>
             {/* Album art */}
             <div style={{ padding: '20px 20px 12px' }}>
               {track?.image
@@ -354,7 +354,7 @@ export default function SpotifyBar({ returnTo = '/admin' }) {
           </div>
 
           {/* Panel derecho — biblioteca */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
             {/* Búsqueda */}
             <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid #282828' }}>
               <input value={searchQuery} onChange={e => handleSearch(e.target.value)}

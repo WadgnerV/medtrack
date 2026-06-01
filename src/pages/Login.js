@@ -63,13 +63,15 @@ export default function Login() {
       {!isMobile && (
         <div style={{
           flex: 1,
-          background: '#f8fafc',
+          background: '#ffffff',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: 60, position: 'relative', overflow: 'hidden'
         }}>
           {/* Manchas de color en esquinas */}
-          <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.08) 0%, transparent 70%)', top: -200, left: -200, pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,58,92,0.07) 0%, transparent 70%)', bottom: -150, right: -100, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)', top: -200, left: -200, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,58,92,0.14) 0%, transparent 70%)', bottom: -150, right: -100, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.10) 0%, transparent 70%)', bottom: 100, left: -100, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(26,58,92,0.08) 0%, transparent 70%)', top: 50, right: -80, pointerEvents: 'none' }} />
           {/* Círculos decorativos */}
           <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', border: '1px solid rgba(26,58,92,0.08)', top: -100, left: -100 }} />
           <div style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', border: '1px solid rgba(29,158,117,0.06)', top: -200, left: -200 }} />
@@ -80,7 +82,7 @@ export default function Login() {
           <div style={{ position: 'relative', textAlign: 'center', maxWidth: 420 }}>
             {/* Logo */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 36 }}>
-              <img src="/medtrack-logo.png" alt="MedTrack" style={{ width: 180, marginBottom: 0 }} />
+              <img src="/medtrack-logo.png" alt="MedTrack" style={{ width: 260, marginBottom: 0 }} />
             </div>
 
             <div style={{ fontSize: 32, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.3, marginBottom: 16 }}>
