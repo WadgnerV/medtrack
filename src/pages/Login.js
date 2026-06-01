@@ -77,7 +77,7 @@ export default function Login() {
 
           {/* Logo pequeño arriba */}
           <div style={{ position: 'absolute', top: 32, left: 48, opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 32 }} />
+            <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 44 }} />
           </div>
 
           {/* Contenido central */}
@@ -101,7 +101,7 @@ export default function Login() {
             {/* Título principal */}
             <div style={{ marginBottom: 24, opacity: mounted ? 1 : 0, animation: mounted ? 'fadeUp 0.7s ease 0.2s both' : 'none' }}>
               <div style={{
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: 300,
                 color: '#666',
                 fontStyle: 'italic',
@@ -113,7 +113,7 @@ export default function Login() {
                 Gestión clínica
               </div>
               <div style={{
-                fontSize: 72,
+                fontSize: 86,
                 fontWeight: 900,
                 color: BLUE,
                 lineHeight: 0.95,
@@ -164,7 +164,7 @@ export default function Login() {
             <>
               {/* Logo */}
               <div style={{ marginBottom: 36, textAlign: 'left' }}>
-                <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 52, marginBottom: 28, display: 'block' }} />
+                <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 72, marginBottom: 32, display: 'block' }} />
                 <div style={{ fontSize: 26, fontWeight: 700, color: BLUE, marginBottom: 6, letterSpacing: '-0.02em' }}>Bienvenido</div>
                 <div style={{ fontSize: 13, color: '#aaa', fontWeight: 400 }}>Iniciá sesión para continuar</div>
               </div>
