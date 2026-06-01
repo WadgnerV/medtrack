@@ -115,13 +115,12 @@ export default function Landing() {
       )}
 
       {/* HERO */}
-      <section id="hero" className="hero-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 24px 60px', maxWidth: 1100, margin: '0 auto' }}>
+      <section id="hero" className="hero-section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '100px 24px 60px', maxWidth: 1100, margin: '0 auto', position: 'relative' }}>
+        {/* Logo protagonista esquina derecha */}
+        <div style={{ position: 'absolute', top: 80, right: 0, opacity: 0.12, pointerEvents: 'none' }}>
+          <img src="/medtrack-logo.png" alt="" style={{ width: 420 }} />
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 680 }}>
-          {/* Logo protagonista */}
-          <div style={{ marginBottom: 32 }}>
-            <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 90, display: 'block' }} />
-          </div>
-
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(29,158,117,0.08)', border: '1px solid rgba(29,158,117,0.2)', borderRadius: 20, padding: '6px 14px', marginBottom: 28 }}>
             <div style={{ width: 7, height: 7, borderRadius: '50%', background: G, animation: 'pulse 2s infinite' }} />
