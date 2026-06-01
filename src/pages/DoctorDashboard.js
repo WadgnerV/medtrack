@@ -46,6 +46,7 @@ export default function DoctorDashboard() {
   const [calView, setCalView] = useState('semana')
   const [popupAppt, setPopupAppt] = useState(null)
   const [popupPos, setPopupPos] = useState({ x:0, y:0 })
+  const [editPatientForm, setEditPatientForm] = useState({})
   const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
