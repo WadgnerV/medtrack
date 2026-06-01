@@ -4,12 +4,12 @@ const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 
 const PLANS = [
-  { name: 'Basic', price: 14.99, color: '#64748b', professionals: 0, patients: 100, modules: 0, branches: 1, desc: 'Ideal para consultorios individuales que necesitan gestión básica de agenda y pacientes.' },
-  { name: 'Starter', price: 49.99, color: G, professionals: 2, patients: 100, modules: 2, branches: 1, desc: 'Perfecto para clínicas pequeñas con un equipo médico en crecimiento.', popular: false },
-  { name: 'Gold', price: 109.99, color: '#f59e0b', professionals: 10, patients: 300, modules: 4, branches: 1, desc: 'Para clínicas medianas con múltiples especialidades y mayor volumen de pacientes.', popular: true },
+  { name: 'Basic', price: 9.99, color: '#64748b', professionals: 0, patients: 100, modules: 0, branches: 1, desc: 'Ideal para consultorios individuales que necesitan gestión básica de agenda y pacientes.' },
+  { name: 'Starter', price: 39.99, color: G, professionals: 2, patients: 100, modules: 2, branches: 1, desc: 'Perfecto para clínicas pequeñas con un equipo médico en crecimiento.', popular: false },
+  { name: 'Gold', price: 149.99, color: '#f59e0b', professionals: 10, patients: 300, modules: 4, branches: 1, desc: 'Para clínicas medianas con múltiples especialidades y mayor volumen de pacientes.', popular: true },
   { name: 'Gold+', price: 249.99, color: '#8b5cf6', professionals: 20, patients: 500, modules: 6, branches: 2, desc: 'Ideal para grupos médicos con varias sucursales y especialidades.' },
-  { name: 'Enterprise', price: 499.99, color: BLUE, professionals: 50, patients: 1500, modules: 10, branches: 5, desc: 'Para grandes clínicas y hospitales con operaciones a escala.' },
-  { name: 'Enterprise+', price: 999.99, color: '#0f172a', professionals: '∞', patients: '∞', modules: '∞', branches: '∞', desc: 'Acceso ilimitado a todas las funcionalidades. Para redes de salud.' },
+  { name: 'Enterprise', price: 599.99, color: BLUE, professionals: 50, patients: 1500, modules: 10, branches: 5, desc: 'Para grandes clínicas y hospitales con operaciones a escala.' },
+  { name: 'Enterprise+', price: 899.99, color: '#0f172a', professionals: '∞', patients: '∞', modules: '∞', branches: '∞', desc: 'Acceso ilimitado a todas las funcionalidades. Para redes de salud.' },
 ]
 
 const FEATURES = [
