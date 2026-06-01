@@ -116,10 +116,10 @@ export default function DoctorDashboard() {
     // Pacientes asignados por assigned_doctor_id O por módulo de atención
     const [byDoctor, byModule] = await Promise.all([
       supabase.from('patients')
-        .select('id, status, specialty_type, birth_date, sex, province, height_cm, profile:profile_id(id, first_name, last_name, email)')
+        .select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, profile:profile_id(id, first_name, last_name, email)')
         .eq('assigned_doctor_id', profile.id),
       supabase.from('patient_care_modules')
-        .select('patient:patient_id(id, status, specialty_type, birth_date, sex, province, height_cm, profile:profile_id(id, first_name, last_name, email))')
+        .select('patient:patient_id(id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, profile:profile_id(id, first_name, last_name, email))')
         .eq('assigned_professional_id', profile.id)
         .eq('is_active', true)
     ])
@@ -471,6 +471,42 @@ export default function DoctorDashboard() {
             {modal === 'edit-note' && (
               <NoteForm saving={saving} note={modalData.note} onSave={form => editNote(modalData.note.id, form)} onClose={() => setModal(null)} />
             )}
+            {modal === 'edit-patient' && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>Editar paciente</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Nombre</label>
+                      <input value={editPatientForm.firstName||''} onChange={e => setEditPatientForm(p=>({...p, firstName:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Apellido</label>
+                      <input value={editPatientForm.lastName||''} onChange={e => setEditPatientForm(p=>({...p, lastName:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Identificación</label>
+                      <input value={editPatientForm.idNumber||''} onChange={e => setEditPatientForm(p=>({...p, idNumber:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Teléfono</label>
+                      <input value={editPatientForm.phone||''} onChange={e => setEditPatientForm(p=>({...p, phone:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Fecha de nacimiento</label>
+                      <input type="date" value={editPatientForm.birthDate||''} onChange={e => setEditPatientForm(p=>({...p, birthDate:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Sexo</label>
+                      <select value={editPatientForm.sex||''} onChange={e => setEditPatientForm(p=>({...p, sex:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }}>
+                        <option value="">Sin especificar</option>
+                        <option value="male">Masculino</option>
+                        <option value="female">Femenino</option>
+                        <option value="other">Otro</option>
+                      </select></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Provincia</label>
+                      <input value={editPatientForm.province||''} onChange={e => setEditPatientForm(p=>({...p, province:e.target.value}))} placeholder="ej: Heredia" style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Cantón</label>
+                      <input value={editPatientForm.canton||''} onChange={e => setEditPatientForm(p=>({...p, canton:e.target.value}))} placeholder="ej: Heredia" style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                    <div><label style={{ fontSize:12, color:'#888', display:'block', marginBottom:4 }}>Altura (cm)</label>
+                      <input type="number" value={editPatientForm.height||''} onChange={e => setEditPatientForm(p=>({...p, height:e.target.value}))} style={{ width:'100%', padding:'8px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' }} /></div>
+                  </div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <button onClick={() => setModal(null)} style={{ flex:1, padding:'8px', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
+                    <button onClick={() => saveEditPatient(editPatientForm)} disabled={saving} style={{ flex:1, padding:'8px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>{saving?'Guardando...':'Guardar'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} saving={saving} defaultDate={selDate} defaultTime={modalData.defaultTime}
                 doctorId={profile?.id} onSave={saveAppt} onClose={() => setModal(null)}
@@ -713,6 +749,7 @@ export default function DoctorDashboard() {
                   <span style={{ fontSize:11, padding:'3px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: p.status==='active' ? '#E1F5EE' : '#FAEEDA', color: p.status==='active' ? '#0F6E56' : '#854F0B' }}>
                     {p.status==='active' ? 'activo' : 'pendiente'}
                   </span>
+                  <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                 </div>
               ))}
               {patients.length === 0 && <div style={{ padding:40, textAlign:'center', fontSize:14, color:'#999' }}>No tienes pacientes asignados aun</div>}
@@ -750,8 +787,9 @@ export default function DoctorDashboard() {
                   <div style={{ flex:'0 0 10%', fontSize:14, color:'#666' }}>{age(p.birth_date)} años</div>
                   <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.specialty_type || '--'}</div>
                 <div style={{ flex:'0 0 22%', fontSize:14, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
-                  <div style={{ flex:'0 0 11%' }}>
+                  <div style={{ flex:'0 0 11%', display:'flex', alignItems:'center', gap:6 }}>
                     <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
+                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                   </div>
                 </div>
               ))}
