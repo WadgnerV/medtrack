@@ -254,7 +254,11 @@ export default function SuperAdminDashboard() {
       is_active: form.is_active,
       is_health_professional: isHealthPro(form.profession),
     }).eq('id', form.id)
-    await loadAdmins(); setModal(null); setSaving(false)
+    // Actualizar sucursal si es branch_admin
+    if ((form.role === 'branch_admin' || form.role === 'admin') && form.branch_id) {
+      await supabase.from('branch_staff').upsert({ profile_id: form.id, branch_id: form.branch_id }, { onConflict: 'profile_id' })
+    }
+    await loadClinics(); await loadAdmins(); setModal(null); setSaving(false)
   }
 
   async function deleteAdmin(id) {
@@ -840,7 +844,19 @@ export default function SuperAdminDashboard() {
       {modal === 'edit-admin' && (
         <div style={s.modal} onClick={() => setModal(null)}>
           <div style={s.modalBox} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:20 }}>Editar administrador</div>
+            <div style={{ fontSize:16, fontWeight:600, color:BLUE, marginBottom:8 }}>Editar administrador</div>
+            {(() => {
+              const clinic = clinics.find(c => c.id === form.clinic_id)
+              const bStaff = branchStaff.find(bs => bs.profile_id === form.id)
+              const branch = bStaff ? branches.find(b => b.id === bStaff.branch_id) : null
+              return (
+                <div style={{ background:'#f0f4f8', borderRadius:8, padding:'8px 12px', marginBottom:16, fontSize:12, color:'#1a3a5c' }}>
+                  {form.role === 'clinic_admin' && clinic && `Este usuario es administrador de la clínica ${clinic.name}`}
+                  {(form.role === 'branch_admin' || form.role === 'admin') && clinic && branch && `Este usuario es administrador de la sucursal ${branch.name} de la clínica ${clinic.name}`}
+                  {(form.role === 'branch_admin' || form.role === 'admin') && clinic && !branch && `Este usuario es administrador de la clínica ${clinic.name} (sin sucursal asignada)`}
+                </div>
+              )
+            })()}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Nombre</label>
@@ -862,11 +878,20 @@ export default function SuperAdminDashboard() {
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Clínica asignada</label>
-              <select value={form.clinic_id||''} onChange={f('clinic_id')} style={s.input}>
+              <select value={form.clinic_id||''} onChange={e => setForm(p=>({...p, clinic_id:e.target.value, branch_id:''}))} style={s.input}>
                 <option value="">Sin asignar</option>
                 {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
+            {(form.role === 'branch_admin' || form.role === 'admin') && form.clinic_id && (
+              <div style={{ marginBottom:14 }}>
+                <label style={s.fieldLabel}>Sucursal asignada</label>
+                <select value={form.branch_id||branchStaff.find(bs=>bs.profile_id===form.id)?.branch_id||''} onChange={e => setForm(p=>({...p, branch_id:e.target.value}))} style={s.input}>
+                  <option value="">Sin sucursal</option>
+                  {branches.filter(b => b.clinic_id === form.clinic_id).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
+            )}
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Estado</label>
               <select value={form.is_active?'true':'false'} onChange={e => setForm(p=>({...p,is_active:e.target.value==='true'}))} style={s.input}>
