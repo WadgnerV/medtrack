@@ -161,7 +161,7 @@ export default function Login() {
             <>
               {/* Logo */}
               <div style={{ marginBottom: 36, textAlign: 'left' }}>
-                <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 100, marginBottom: 32, display: 'block', margin: '0 auto 32px' }} />
+                <img src="/medtrack-logo.png" alt="MedTrack" style={{ width: '80%', maxWidth: 260, marginBottom: 32, display: 'block', margin: '0 auto 32px' }} />
                 <div style={{ fontSize: 26, fontWeight: 700, color: BLUE, marginBottom: 6, letterSpacing: '-0.02em', textAlign: 'center' }}>Bienvenido</div>
                 <div style={{ fontSize: 13, color: '#aaa', fontWeight: 400, textAlign: 'center' }}>Iniciá sesión para continuar</div>
               </div>
