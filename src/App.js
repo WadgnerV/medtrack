@@ -8,6 +8,7 @@ import DoctorDashboard from './pages/DoctorDashboard'
 import PatientDashboard from './pages/PatientDashboard'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import ReceptionistDashboard from './pages/ReceptionistDashboard'
+import SpotifyCallback from './pages/SpotifyCallback'
 
 function App() {
   return (
