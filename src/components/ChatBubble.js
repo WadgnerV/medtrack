@@ -24,7 +24,7 @@ export default function ChatBubble({ profile }) {
   const inputRef = useRef(null)
 
   useEffect(() => {
-    if (!profile?.clinic_id) return
+    if (!profile) return
     loadConversations()
     if (profile?.role === 'superadmin') loadClinics()
     else loadStaff()
@@ -64,11 +64,14 @@ export default function ChatBubble({ profile }) {
   }, [open, view])
 
   async function loadConversations() {
-    const { data } = await supabase
+    let query = supabase
       .from('chat_conversations')
       .select(`*, participants:chat_participants(profile_id, last_read_at, profile:profile_id(first_name, last_name, role)), last_message:chat_messages(content, created_at, sender_id)`)
-      .eq('clinic_id', profile.clinic_id)
       .order('updated_at', { ascending: false })
+    
+    if (!isSuperAdmin) query = query.eq('clinic_id', profile.clinic_id)
+    
+    const { data } = await query
 
     if (!data) return
     const myConvs = data.filter(c => c.participants?.some(p => p.profile_id === profile.id))
@@ -91,7 +94,11 @@ export default function ChatBubble({ profile }) {
   }
 
   async function loadClinics() {
-    const { data } = await supabase.from('clinics').select('id, name').eq('is_active', true).order('name')
+    const { data } = await supabase
+      .from('clinics')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name')
     setClinics(data || [])
   }
 
