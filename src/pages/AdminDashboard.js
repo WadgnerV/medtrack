@@ -1466,9 +1466,10 @@ export default function AdminDashboard() {
                           return (
                             <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, borderBottom:'1px solid #ebebeb', cursor:'pointer', position:'relative' }}
+                                <div key={h} style={{ height:SLOT_H, cursor:'pointer', position:'relative',
+                                    backgroundImage: 'linear-gradient(to bottom, #ebebeb 0px, transparent 1px, transparent 50%, #e0e0e0 50%, transparent calc(50% + 1px), transparent 100%)',
+                                    backgroundSize: `100% ${SLOT_H}px` }}
                                   onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                                  <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0', pointerEvents:'none' }} />
                                 </div>
                               ))}
                               {isToday && nowOffsetPx >= 0 && (
@@ -1480,7 +1481,7 @@ export default function AdminDashboard() {
                               {dayAppts.map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
-                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI) + (ah - HORA_INI)
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI)
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
                                 const color = doctorColor(a.doctor_id)
                                 return (
@@ -1562,7 +1563,7 @@ export default function AdminDashboard() {
                           {dayAppts.map(a => {
                             const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                             if (ah < HORA_INI || ah >= HORA_FIN) return null
-                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI)
+                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
                             const color = doctorColor(a.doctor_id)
                             const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#854F0B' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }
