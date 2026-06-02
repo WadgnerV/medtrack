@@ -981,7 +981,7 @@ export default function SuperAdminDashboard() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Nombre</label>
-                <input value={form.first_name||''} onChange={f('first_name')} style={s.input} />
+                <input value={form.first_name||''} onChange={e => { console.log('first_name changed', e.target.value); f('first_name')(e) }} style={s.input} />
               </div>
               <div>
                 <label style={s.fieldLabel}>Apellido</label>
