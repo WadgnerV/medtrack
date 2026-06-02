@@ -165,7 +165,8 @@ export default function ConsentimientosTab({ patient, profile }) {
 
     useEffect(() => {
       const canvas = ref.current
-      canvas.width = canvas.offsetWidth
+      const rect = canvas.getBoundingClientRect()
+      canvas.width = rect.width || 500
       canvas.height = 120
       ctx.current = canvas.getContext('2d')
       ctx.current.strokeStyle = '#1a1a1a'
