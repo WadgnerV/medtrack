@@ -359,7 +359,7 @@ export default function AdminDashboard() {
   }
 
   async function loadPatients(branchId) {
-    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').order('created_at', { ascending: false })
+    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').eq('clinic_id', profile.clinic_id).order('created_at', { ascending: false })
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
     setPatients(data || [])
