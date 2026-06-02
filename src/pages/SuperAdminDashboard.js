@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import ReportesView from '../components/ReportesView'
 import SpotifyBar from '../components/SpotifyBar'
+import ChatBubble from '../components/ChatBubble'
 
 const G = '#1D9E75'
 const BLUE = '#1a3a5c'
@@ -1113,6 +1114,7 @@ export default function SuperAdminDashboard() {
             />
           </div>
         )}
+      <ChatBubble profile={profile} />
       <SpotifyBar returnTo='/superadmin' />
     </div>
   )
