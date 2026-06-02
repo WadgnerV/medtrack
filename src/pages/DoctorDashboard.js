@@ -1276,7 +1276,7 @@ export default function DoctorDashboard() {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
                                 const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
-                                const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
+                                const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 4, 18)
                                 return (
                                   <>{(() => {
                                     const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
