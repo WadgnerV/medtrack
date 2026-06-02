@@ -1,6 +1,45 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
+function SigPad({ label, value, onChange }) {
+  const ref = useRef()
+  const drawing = useRef(false)
+  const ctx = useRef()
+
+  useEffect(() => {
+    const canvas = ref.current
+    const rect = canvas.getBoundingClientRect()
+    canvas.width = rect.width || 500
+    canvas.height = 120
+    ctx.current = canvas.getContext('2d')
+    ctx.current.strokeStyle = '#1a1a1a'
+    ctx.current.lineWidth = 2
+    ctx.current.lineCap = 'round'
+  }, [])
+
+  function getPos(e) {
+    const r = ref.current.getBoundingClientRect()
+    const src = e.touches ? e.touches[0] : e
+    return { x: src.clientX - r.left, y: src.clientY - r.top }
+  }
+
+  function start(e) { e.preventDefault(); drawing.current = true; const p = getPos(e); ctx.current.beginPath(); ctx.current.moveTo(p.x, p.y) }
+  function move(e) { e.preventDefault(); if (!drawing.current) return; const p = getPos(e); ctx.current.lineTo(p.x, p.y); ctx.current.stroke() }
+  function end(e) { e.preventDefault(); drawing.current = false; onChange(ref.current.toDataURL()) }
+  function clear() { ctx.current.clearRect(0, 0, ref.current.width, ref.current.height); onChange('') }
+
+  return (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ fontSize:13, fontWeight:500, marginBottom:6, color:'#333' }}>{label}</div>
+      <canvas ref={ref} style={{ width:'100%', height:120, border:'1px solid #ddd', borderRadius:8, cursor:'crosshair', touchAction:'none', background:'#fafafa' }}
+        onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
+        onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
+      <button onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
+      {value && <div style={{ fontSize:11, color:'#1D9E75', marginTop:2 }}>✓ Firma registrada</div>}
+    </div>
+  )
+}
+
 export default function ConsentimientosTab({ patient, profile }) {
   const [consents, setConsents] = useState([])
   const [clinic, setClinic] = useState(null)
@@ -34,6 +73,12 @@ export default function ConsentimientosTab({ patient, profile }) {
     setForm({ procedure_type:'', sessions:'', body_area:'', adverse_effects:'' })
     setDoctorSig('')
     setPatientSig('')
+  }
+
+  async function handleDeleteConsent(c) {
+    if (!window.confirm('¿Eliminar este consentimiento?')) return
+    await supabase.from('informed_consents').delete().eq('id', c.id)
+    setConsents(cs => cs.filter(x => x.id !== c.id))
   }
 
   async function handleSave() {
@@ -157,64 +202,6 @@ export default function ConsentimientosTab({ patient, profile }) {
     win.document.close()
     win.print()
   }
-
-  function SigPad({ label, value, onChange }) {
-    const ref = useRef()
-    const drawing = useRef(false)
-    const ctx = useRef()
-
-    useEffect(() => {
-      const canvas = ref.current
-      const rect = canvas.getBoundingClientRect()
-      canvas.width = rect.width || 500
-      canvas.height = 120
-      ctx.current = canvas.getContext('2d')
-      ctx.current.strokeStyle = '#1a1a1a'
-      ctx.current.lineWidth = 2
-      ctx.current.lineCap = 'round'
-    }, [])
-
-    function getPos(e) {
-      const r = ref.current.getBoundingClientRect()
-      const src = e.touches ? e.touches[0] : e
-      return { x: src.clientX - r.left, y: src.clientY - r.top }
-    }
-
-    function start(e) { e.preventDefault(); drawing.current = true; const p = getPos(e); ctx.current.beginPath(); ctx.current.moveTo(p.x, p.y) }
-    function move(e) { e.preventDefault(); if (!drawing.current) return; const p = getPos(e); ctx.current.lineTo(p.x, p.y); ctx.current.stroke() }
-    function end(e) { e.preventDefault(); drawing.current = false; onChange(ref.current.toDataURL()) }
-    function clear() { ctx.current.clearRect(0, 0, ref.current.width, ref.current.height); onChange('') }
-
-    return (
-      <div style={{ marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:500, marginBottom:6, color:'#333' }}>{label}</div>
-        <canvas ref={ref} style={{ width:'100%', height:120, border:'1px solid #ddd', borderRadius:8, cursor:'crosshair', touchAction:'none', background:'#fafafa' }}
-          onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
-          onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
-        <button onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
-        {value && <div style={{ fontSize:11, color:'#1D9E75', marginTop:2 }}>✓ Firma registrada</div>}
-      </div>
-    )
-  }
-
-  const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
-
-  const s = {
-    wrap: { padding:'16px 0' },
-    toolbar: { display:'flex', justifyContent:'flex-end', marginBottom:14 },
-    btn: { background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:500, cursor:'pointer' },
-    empty: { textAlign:'center', color:'#aaa', fontSize:14, padding:'40px 0' },
-    table: { width:'100%', borderCollapse:'collapse', fontSize:13 },
-    th: { textAlign:'left', padding:'8px 12px', color:'#888', fontWeight:500, borderBottom:'1px solid #eee' },
-    td: { padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', color:'#333', verticalAlign:'middle' },
-    iconBtn: { background:'none', border:'1px solid #eee', borderRadius:6, padding:'4px 10px', fontSize:12, cursor:'pointer', color:'#555', marginRight:6 },
-    overlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' },
-    modalBox: { background:'#fff', borderRadius:14, padding:28, width:'100%', maxWidth:560, maxHeight:'90vh', overflowY:'auto' },
-    label: { fontSize:13, fontWeight:500, color:'#333', marginBottom:4, display:'block' },
-    input: { width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:14 },
-    textarea: { width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:14, minHeight:80, resize:'vertical' },
-  }
-
   return (
     <div style={s.wrap}>
       <div style={s.toolbar}>
@@ -251,6 +238,7 @@ export default function ConsentimientosTab({ patient, profile }) {
                 </td>
                 <td style={s.td}>
                   <button style={s.iconBtn} onClick={() => handlePrint(c)}>Imprimir</button>
+                  <button style={s.deleteBtn} onClick={() => handleDeleteConsent(c)}>Eliminar</button>
                 </td>
               </tr>
             ))}
