@@ -2327,10 +2327,12 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
         </div>
         <div>
           <div style={{ fontSize:15, fontWeight:500, color:'#1a1a1a' }}>{pName}</div>
-          <div style={{ fontSize:14, color:'#666', marginTop:2 }}>{age(patient.birth_date)} anos · {patient.height_cm ? patient.height_cm + ' cm' : ''} · {patient.sex || ''}</div>
-          <div style={{ display:'flex', gap:6, marginTop:5 }}>
-            <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>{patient.specialty_type || 'Sin tipo de consulta'}</span>
-            <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{patient.profile?.email}</span>
+          <div style={{ fontSize:14, color:'#666', marginTop:2 }}>{age(patient.birth_date)} años · {patient.height_cm ? patient.height_cm + ' cm' : ''} · {patient.sex || ''}</div>
+          <div style={{ display:'flex', gap:6, marginTop:5, flexWrap:'wrap' }}>
+            <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>{patient.profile?.email}</span>
+            {patient.id_number && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>ID: {patient.id_number}</span>}
+            {patient.phone && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>📞 {patient.phone}</span>}
+            {(patient.province || patient.canton) && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>📍 {[patient.province, patient.canton].filter(Boolean).join(', ')}</span>}
           </div>
         </div>
         <button style={{ marginLeft:'auto', background:'none', border:'1px solid #eee', borderRadius:8, padding:'6px 12px', fontSize:14, cursor:'pointer', color:'#666' }} onClick={onBack}>
