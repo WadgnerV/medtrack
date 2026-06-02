@@ -1246,8 +1246,8 @@ export default function DoctorDashboard() {
                         {/* Columna horas */}
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: '1px solid #ebebeb', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:0 }}>
-                              <span style={{ fontSize:10, color:'#bbb', marginTop:-6, lineHeight:1 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                            <div key={h} style={{ height:SLOT_H, position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, borderTop:'1px solid #ebebeb', boxSizing:'border-box' }}>
+                              <span style={{ fontSize:10, color:'#bbb', lineHeight:1, marginTop:-6 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
                             </div>
                           ))}
                         </div>
@@ -1257,10 +1257,9 @@ export default function DoctorDashboard() {
                           return (
                             <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, cursor:'pointer', position:'relative',
-                                    backgroundImage: 'linear-gradient(to bottom, #ebebeb 0px, transparent 1px, transparent 50%, #e0e0e0 50%, transparent calc(50% + 1px), transparent 100%)',
-                                    backgroundSize: `100% ${SLOT_H}px` }}
+                                <div key={h} style={{ height:SLOT_H, cursor:'pointer', position:'relative', borderTop:'1px solid #ebebeb', boxSizing:'border-box' }}
                                   onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
+                                  <div style={{ position:'absolute', top:'50%', left:0, right:0, borderTop:'1px dashed #e8e8e8', pointerEvents:'none' }} />
                                 </div>
                               ))}
                               {/* Indicador hora actual */}
@@ -1335,8 +1334,8 @@ export default function DoctorDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: '1px solid #ebebeb', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:0 }}>
-                              <span style={{ fontSize:10, color:'#bbb', marginTop:-6, lineHeight:1 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                            <div key={h} style={{ height:SLOT_H, position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, borderTop:'1px solid #ebebeb', boxSizing:'border-box' }}>
+                              <span style={{ fontSize:10, color:'#bbb', lineHeight:1, marginTop:-6 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
                             </div>
                           ))}
                         </div>
