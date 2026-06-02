@@ -1516,6 +1516,8 @@ export default function DoctorDashboard() {
 
         </div>
       </div>
+      <ChatBubble profile={profile} />
+      <SpotifyBar returnTo='/doctor' />
     </div>
   )
 }
@@ -1777,8 +1779,6 @@ function NoteForm({ saving, onSave, onClose }) {
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
         <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave({ ...form, pam })}>{saving ? 'Guardando...' : 'Guardar nota'}</button>
       </div>
-      <ChatBubble profile={profile} />
-      <SpotifyBar returnTo='/doctor' />
     </>
   )
 }
