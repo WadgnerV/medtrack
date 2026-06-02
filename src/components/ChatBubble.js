@@ -221,7 +221,7 @@ export default function ChatBubble({ profile }) {
       {/* Panel */}
       {open && (
         <div onClick={e => e.stopPropagation()}
-          style={{ position:'fixed', bottom:80, right:20, width:340, height:500, background:'#fff', borderRadius:16, boxShadow:'0 8px 40px rgba(0,0,0,0.15)', zIndex:999, display:'flex', flexDirection:'column', overflow:'hidden', fontFamily:'Inter, sans-serif', border:'1px solid #eee' }}>
+          style={{ position:'fixed', bottom:80, right:80, width:340, height:500, background:'#fff', borderRadius:16, boxShadow:'0 8px 40px rgba(0,0,0,0.15)', zIndex:999, display:'flex', flexDirection:'column', overflow:'hidden', fontFamily:'Inter, sans-serif', border:'1px solid #eee' }}>
 
           {/* Header */}
           <div style={{ background:BLUE, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
@@ -438,7 +438,7 @@ export default function ChatBubble({ profile }) {
 
       {/* Burbuja flotante */}
       <div onClick={() => { setOpen(p => !p); if (!open) loadConversations() }}
-        style={{ position:'fixed', bottom:20, right: 84, zIndex:1000, width:48, height:48, borderRadius:'50%', background:BLUE, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 16px rgba(26,58,92,0.4)', transition:'transform 0.2s' }}
+        style={{ position:'fixed', bottom:20, right: 160, zIndex:1000, width:48, height:48, borderRadius:'50%', background:BLUE, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 16px rgba(26,58,92,0.4)', transition:'transform 0.2s' }}
         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
