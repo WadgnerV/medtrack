@@ -253,6 +253,8 @@ export default function SuperAdminDashboard() {
         role: form.role || 'admin',
         clinic_id: form.clinic_id,
         profession: form.profession,
+        prefix: form.prefix || null,
+        medical_code: form.medical_code || null,
         is_active: true,
         is_health_professional: isHealthPro(form.profession),
       }).eq('id', authData.user.id)
@@ -906,6 +908,24 @@ export default function SuperAdminDashboard() {
                 </div>
               )}
             </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+              <div>
+                <label style={s.fieldLabel}>Prefijo</label>
+                <select value={form.prefix||''} onChange={e => setForm(p=>({...p, prefix:e.target.value}))} style={s.input}>
+                  <option value="">Sin prefijo</option>
+                  <option value="Dr.">Dr.</option>
+                  <option value="Dra.">Dra.</option>
+                  <option value="Lic.">Lic.</option>
+                  <option value="Licda.">Licda.</option>
+                  <option value="Mgtr.">Mgtr.</option>
+                  <option value="Esp.">Esp.</option>
+                </select>
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Código profesional</label>
+                <input value={form.medical_code||''} onChange={e => setForm(p=>({...p, medical_code:e.target.value}))} placeholder="Ej: MED-12345" style={s.input} />
+              </div>
+            </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Rol <span style={{ color:'#D85A30' }}>*</span></label>
               <select value={form.role||'clinic_admin'} onChange={e => setForm(p=>({...p, role:e.target.value, branch_id:''}))} style={s.input}>
@@ -972,6 +992,24 @@ export default function SuperAdminDashboard() {
                   {isHealthPro(form.profession) ? '✅ Aparecerá en lista de médicos' : 'ℹ️ Solo acceso administrativo'}
                 </div>
               )}
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+              <div>
+                <label style={s.fieldLabel}>Prefijo</label>
+                <select value={form.prefix||''} onChange={e => setForm(p=>({...p, prefix:e.target.value}))} style={s.input}>
+                  <option value="">Sin prefijo</option>
+                  <option value="Dr.">Dr.</option>
+                  <option value="Dra.">Dra.</option>
+                  <option value="Lic.">Lic.</option>
+                  <option value="Licda.">Licda.</option>
+                  <option value="Mgtr.">Mgtr.</option>
+                  <option value="Esp.">Esp.</option>
+                </select>
+              </div>
+              <div>
+                <label style={s.fieldLabel}>Código profesional</label>
+                <input value={form.medical_code||''} onChange={e => setForm(p=>({...p, medical_code:e.target.value}))} placeholder="Ej: MED-12345" style={s.input} />
+              </div>
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Clínica asignada</label>
