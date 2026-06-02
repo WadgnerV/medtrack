@@ -31,10 +31,11 @@ function SigPad({ label, value, onChange }) {
   return (
     <div style={{ marginBottom:16 }}>
       <div style={{ fontSize:13, fontWeight:500, marginBottom:6, color:'#333' }}>{label}</div>
-      <canvas ref={ref} style={{ width:'100%', height:120, border:'1px solid #ddd', borderRadius:8, cursor:'crosshair', touchAction:'none', background:'#fafafa' }}
+      <canvas ref={ref}
+        style={{ width:'100%', height:120, border:'1px solid #ddd', borderRadius:8, cursor:'crosshair', touchAction:'none', background:'#fafafa' }}
         onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
         onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
-      <button onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
+      <button type="button" onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
       {value && <div style={{ fontSize:11, color:'#1D9E75', marginTop:2 }}>✓ Firma registrada</div>}
     </div>
   )
@@ -47,10 +48,7 @@ export default function ConsentimientosTab({ patient, profile }) {
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [viewing, setViewing] = useState(null)
   const [form, setForm] = useState({ procedure_type:'', sessions:'', body_area:'', adverse_effects:'' })
-  const doctorSigRef = useRef()
-  const patientSigRef = useRef()
   const [doctorSig, setDoctorSig] = useState('')
   const [patientSig, setPatientSig] = useState('')
 
@@ -73,12 +71,6 @@ export default function ConsentimientosTab({ patient, profile }) {
     setForm({ procedure_type:'', sessions:'', body_area:'', adverse_effects:'' })
     setDoctorSig('')
     setPatientSig('')
-  }
-
-  async function handleDeleteConsent(c) {
-    if (!window.confirm('¿Eliminar este consentimiento?')) return
-    await supabase.from('informed_consents').delete().eq('id', c.id)
-    setConsents(cs => cs.filter(x => x.id !== c.id))
   }
 
   async function handleSave() {
@@ -104,6 +96,12 @@ export default function ConsentimientosTab({ patient, profile }) {
     setModal(false)
     resetForm()
     setSaving(false)
+  }
+
+  async function handleDeleteConsent(c) {
+    if (!window.confirm('¿Eliminar este consentimiento?')) return
+    await supabase.from('informed_consents').delete().eq('id', c.id)
+    setConsents(cs => cs.filter(x => x.id !== c.id))
   }
 
   function handlePrint(c) {
@@ -142,12 +140,10 @@ export default function ConsentimientosTab({ patient, profile }) {
         <p>${branch?.address || clinic?.address || ''}</p>
       </div>
       <div class="title">Consentimiento Informado</div>
-
       <div class="section">
         <p>Yo, <strong>${pName}</strong>${pId ? `, portador(a) de la identificación número <strong>${pId}</strong>,` : ','} en pleno uso de mis facultades mentales y de forma libre y voluntaria, declaro haber recibido información clara, suficiente y comprensible sobre el procedimiento médico que se detalla a continuación, incluyendo su naturaleza, beneficios esperados, riesgos y posibles efectos adversos.</p>
         <p>El procedimiento será realizado por: <strong>${dName}</strong>${dCode ? ` — ${dCode}` : ''}.</p>
       </div>
-
       <div class="section">
         <p><span class="label">Detalles del procedimiento:</span></p>
         <table class="data-table">
@@ -156,24 +152,20 @@ export default function ConsentimientosTab({ patient, profile }) {
           ${c.body_area ? `<tr><td>Área de aplicación</td><td>${c.body_area}</td></tr>` : ''}
         </table>
       </div>
-
       ${c.adverse_effects ? `
       <div class="section">
         <p><span class="label">Efectos adversos informados al paciente:</span></p>
         <p style="margin-left:12px">${c.adverse_effects}</p>
       </div>` : ''}
-
       <div class="section">
         <p>Habiendo comprendido la información anterior, <strong>otorgo mi consentimiento</strong> para que se realice el procedimiento descrito, y declaro haber tenido la oportunidad de formular preguntas, las cuales fueron respondidas de manera satisfactoria.</p>
         <p>Entiendo que puedo revocar este consentimiento en cualquier momento antes de que se inicie el procedimiento.</p>
       </div>
-
       <hr/>
       <div class="section">
         <p>Firmado en: <strong>${c.branch_address || ''}</strong></p>
         <p>Fecha y hora: <strong>${fecha}</strong></p>
       </div>
-
       <div class="sig-row">
         <div class="sig-box">
           ${c.doctor_signature ? `<img src="${c.doctor_signature}" alt="Firma profesional"/>` : '<div style="height:80px"></div>'}
@@ -192,7 +184,6 @@ export default function ConsentimientosTab({ patient, profile }) {
           </div>
         </div>
       </div>
-
       <div class="footer">
         <p>Este documento forma parte del expediente clínico del paciente y tiene carácter legal.</p>
         <p>${clinic?.legal_name || clinic?.name || ''} — ${clinic?.legal_id || ''}</p>
@@ -202,6 +193,26 @@ export default function ConsentimientosTab({ patient, profile }) {
     win.document.close()
     win.print()
   }
+
+  const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
+
+  const s = {
+    wrap: { padding:'16px 0' },
+    toolbar: { display:'flex', justifyContent:'flex-end', marginBottom:14 },
+    btn: { background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:500, cursor:'pointer' },
+    empty: { textAlign:'center', color:'#aaa', fontSize:14, padding:'40px 0' },
+    table: { width:'100%', borderCollapse:'collapse', fontSize:13 },
+    th: { textAlign:'left', padding:'8px 12px', color:'#888', fontWeight:500, borderBottom:'1px solid #eee' },
+    td: { padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', color:'#333', verticalAlign:'middle' },
+    iconBtn: { background:'none', border:'1px solid #eee', borderRadius:6, padding:'4px 10px', fontSize:12, cursor:'pointer', color:'#555', marginRight:6 },
+    deleteBtn: { background:'none', border:'1px solid #fde0e0', borderRadius:6, padding:'4px 10px', fontSize:12, cursor:'pointer', color:'#d9534f' },
+    overlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' },
+    modalBox: { background:'#fff', borderRadius:14, padding:28, width:'100%', maxWidth:560, maxHeight:'90vh', overflowY:'auto' },
+    label: { fontSize:13, fontWeight:500, color:'#333', marginBottom:4, display:'block' },
+    input: { width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:14 },
+    textarea: { width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:14, minHeight:80, resize:'vertical' },
+  }
+
   return (
     <div style={s.wrap}>
       <div style={s.toolbar}>
