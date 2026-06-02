@@ -1,9 +1,7 @@
-const CACHE = 'medtrack-v1';
+const CACHE = 'medtrack-v2';
 const ASSETS = [
   '/',
   '/index.html',
-  '/static/js/main.chunk.js',
-  '/static/js/bundle.js',
   '/manifest.json',
 ];
 
@@ -24,13 +22,25 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const url = e.request.url;
+
+  // No interceptar requests a Supabase ni APIs externas
+  if (url.includes('supabase.co') || url.includes('anthropic.com') || url.includes('api.')) {
+    return;
+  }
+
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request).catch(() => caches.match('/index.html'))
     );
     return;
   }
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
+
+  // Solo cachear assets estáticos
+  if (url.includes('/static/')) {
+    e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request))
+    );
+    return;
+  }
 });
