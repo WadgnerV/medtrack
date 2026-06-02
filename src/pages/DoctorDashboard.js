@@ -1246,8 +1246,8 @@ export default function DoctorDashboard() {
                         {/* Columna horas */}
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
-                              <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                            <div key={h} style={{ height:SLOT_H, borderTop: '1px solid #ebebeb', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:0 }}>
+                              <span style={{ fontSize:10, color:'#bbb', marginTop:-6, lineHeight:1 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
                             </div>
                           ))}
                         </div>
@@ -1335,8 +1335,8 @@ export default function DoctorDashboard() {
                       <div style={{ display:'grid', gridTemplateColumns:'48px 1fr', position:'relative' }}>
                         <div>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
-                              <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
+                            <div key={h} style={{ height:SLOT_H, borderTop: '1px solid #ebebeb', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:0 }}>
+                              <span style={{ fontSize:10, color:'#bbb', marginTop:-6, lineHeight:1 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
                             </div>
                           ))}
                         </div>
