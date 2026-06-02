@@ -279,6 +279,8 @@ export default function SuperAdminDashboard() {
       last_name: form.last_name,
       clinic_id: form.clinic_id,
       profession: form.profession,
+      prefix: form.prefix || null,
+      medical_code: form.medical_code || null,
       is_active: form.is_active,
       is_health_professional: isHealthPro(form.profession),
     }).eq('id', form.id)
