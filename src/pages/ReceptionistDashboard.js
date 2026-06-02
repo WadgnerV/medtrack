@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import SpotifyBar from '../components/SpotifyBar'
+import ChatBubble from '../components/ChatBubble'
 import { useAuth } from '../context/AuthContext'
 
 const G = '#1D9E75'
@@ -602,6 +603,7 @@ export default function ReceptionistDashboard() {
           </div>
         </div>
       )}
+      <ChatBubble profile={profile} />
       <SpotifyBar returnTo='/recepcion' />
     </div>
   )
