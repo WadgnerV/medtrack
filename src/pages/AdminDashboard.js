@@ -1947,6 +1947,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose, initialDat
     'Limon': ['Limon','Pococi','Siquirres','Talamanca','Matina','Guacimo'],
   }
   const [form, setForm] = useState(initialData || { prefix:'', profession:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
+  useEffect(() => { if (initialData) setForm(initialData) }, [initialData])
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
   return (
     <>
