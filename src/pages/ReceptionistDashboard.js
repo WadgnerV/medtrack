@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import SpotifyBar from '../components/SpotifyBar'
+import NotificationBell from '../components/NotificationBell'
 import ChatBubble from '../components/ChatBubble'
 import { useAuth } from '../context/AuthContext'
 
@@ -218,6 +219,7 @@ export default function ReceptionistDashboard() {
           <div style={{ display:'flex', gap:8 }}>
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'pacientes' && <button style={s.btnPrimary} onClick={() => { setModal('new-patient'); setModalData({}) }}>+ Nuevo paciente</button>}
+            <NotificationBell profile={profile} />
           </div>
         </div>
 

@@ -12,6 +12,7 @@ import ReportesView from '../components/ReportesView'
 import UserMenu from '../components/UserMenu'
 import SpotifyBar from '../components/SpotifyBar'
 import ChatBubble from '../components/ChatBubble'
+import NotificationBell from '../components/NotificationBell'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
 const G = '#1D9E75'
@@ -1100,6 +1101,7 @@ export default function AdminDashboard() {
             {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
+            <NotificationBell profile={profile} />
           </div>
         )}
 

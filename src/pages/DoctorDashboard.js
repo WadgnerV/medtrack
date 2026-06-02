@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import SpotifyBar from '../components/SpotifyBar'
 import ChatBubble from '../components/ChatBubble'
+import NotificationBell from '../components/NotificationBell'
 import UserMenu from '../components/UserMenu'
 
 const G = '#1D9E75'
@@ -644,6 +645,7 @@ export default function DoctorDashboard() {
             {view === 'pacientes' && <div style={{ fontSize:14, color:'#666' }}>{patients.length} pacientes asignados</div>}
 
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
+            <NotificationBell profile={profile} />
           </div>
         )}
 
