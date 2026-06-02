@@ -1000,7 +1000,7 @@ export default function SuperAdminDashboard() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Prefijo</label>
-                <select value={form.prefix||''} onChange={e => setForm(p=>({...p, prefix:e.target.value}))} style={s.input}>
+                <select value={form.prefix||''} onChange={e => { console.log('prefix changed to', e.target.value); setForm(p=>({...p, prefix:e.target.value})) }} style={s.input}>
                   <option value="">Sin prefijo</option>
                   <option value="Dr.">Dr.</option>
                   <option value="Dra.">Dra.</option>
