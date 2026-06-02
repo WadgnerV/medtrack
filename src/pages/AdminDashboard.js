@@ -1458,7 +1458,6 @@ export default function AdminDashboard() {
                           {hours.map(h => (
                             <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
                               <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0' }} />
                             </div>
                           ))}
                         </div>
@@ -1544,7 +1543,6 @@ export default function AdminDashboard() {
                           {hours.map(h => (
                             <div key={h} style={{ height:SLOT_H, borderTop: 'none', position:'relative', display:'flex', alignItems:'flex-start', justifyContent:'flex-end', paddingRight:6, paddingTop:2 }}>
                               <span style={{ fontSize:10, color:'#bbb', marginTop:-7 }}>{h === 0 ? '12 AM' : h < 12 ? h+' AM' : h === 12 ? '12 PM' : (h-12)+' PM'}</span>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0' }} />
                             </div>
                           ))}
                         </div>
