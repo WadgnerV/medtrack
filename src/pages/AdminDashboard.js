@@ -1483,7 +1483,7 @@ export default function AdminDashboard() {
                               {dayAppts.map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
-                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI)
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
                                 const color = doctorColor(a.doctor_id)
                                 return (
