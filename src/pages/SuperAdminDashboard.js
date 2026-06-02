@@ -272,7 +272,7 @@ export default function SuperAdminDashboard() {
     setSaving(false)
   }
 
-  async function saveAdmin() {
+  async function saveAdmin() { console.log("saveAdmin called", form)
     setSaving(true)
     await supabase.from('profiles').update({
       first_name: form.first_name,
