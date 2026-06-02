@@ -282,6 +282,10 @@ export default function Landing() {
             <img src="/medtrack-logo.png" alt="MedTrack" style={{ height: 32, filter: 'brightness(0) invert(1)' }} />
           </div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>© 2026 MedTrack · Todos los derechos reservados</div>
+          <div style={{ display: 'flex', gap: 20 }}>
+            <a href="/privacidad" style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }} onMouseEnter={e => e.target.style.color='#fff'} onMouseLeave={e => e.target.style.color='rgba(255,255,255,0.5)'}>Política de Privacidad</a>
+            <a href="/terminos" style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }} onMouseEnter={e => e.target.style.color='#fff'} onMouseLeave={e => e.target.style.color='rgba(255,255,255,0.5)'}>Términos y Condiciones</a>
+          </div>
           <div style={{ display: 'flex', gap: 24 }}>
             {['Funcionalidades', 'Planes', 'Contacto'].map(l => (
               <span key={l} onClick={() => scrollTo(l.toLowerCase())} style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', cursor: 'pointer', transition: 'color 0.2s' }}

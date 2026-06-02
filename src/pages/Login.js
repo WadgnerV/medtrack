@@ -245,8 +245,12 @@ export default function Login() {
             </>
           )}
 
-          <div style={{ marginTop: 40, fontSize: 11, color: '#ddd', textAlign: 'center' }}>
-            © 2026 MedTrack · Todos los derechos reservados
+          <div style={{ marginTop: 40, textAlign: 'center' }}>
+            <div style={{ fontSize: 11, color: '#ddd', marginBottom: 8 }}>© 2026 MedTrack · Todos los derechos reservados</div>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+              <a href="/privacidad" style={{ fontSize: 11, color: '#bbb', textDecoration: 'none' }}>Política de Privacidad</a>
+              <a href="/terminos" style={{ fontSize: 11, color: '#bbb', textDecoration: 'none' }}>Términos y Condiciones</a>
+            </div>
           </div>
         </div>
       </div>
