@@ -22,7 +22,7 @@ export default function ConsentimientosTab({ patient, profile }) {
     const [{ data: c }, { data: b }, { data: cs }] = await Promise.all([
       supabase.from('clinics').select('name, legal_name, legal_id, address').eq('id', profile.clinic_id).single(),
       supabase.from('branches').select('address').eq('clinic_id', profile.clinic_id).limit(1).single(),
-      supabase.from('informed_consents').select('*, doctor:signed_by(first_name, last_name)').eq('patient_id', patient.id).order('created_at', { ascending: false })
+      supabase.from('informed_consents').select('*, doctor:signed_by(first_name, last_name, prefix, medical_code)').eq('patient_id', patient.id).order('created_at', { ascending: false })
     ])
     setClinic(c)
     setBranch(b)
@@ -64,51 +64,93 @@ export default function ConsentimientosTab({ patient, profile }) {
   function handlePrint(c) {
     const win = window.open('', '_blank')
     const pName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
-    const dName = c.doctor ? `${c.doctor.first_name} ${c.doctor.last_name}` : ''
+    const pId = patient.id_number || ''
+    const prefix = c.doctor?.prefix ? c.doctor.prefix + ' ' : ''
+    const dName = c.doctor ? `${prefix}${c.doctor.first_name} ${c.doctor.last_name}` : ''
+    const dCode = c.doctor?.medical_code ? `Cód. profesional: ${c.doctor.medical_code}` : ''
     const fecha = new Date(c.signed_at).toLocaleString('es-CR', { dateStyle:'full', timeStyle:'short' })
     win.document.write(`
       <html><head><title>Consentimiento Informado</title>
       <style>
-        body { font-family: Arial, sans-serif; max-width: 750px; margin: 40px auto; font-size: 13px; color: #222; line-height: 1.6; }
-        h2 { text-align:center; font-size:15px; margin-bottom:2px; }
-        h3 { text-align:center; font-size:13px; font-weight:normal; margin-top:0; }
-        .section { margin: 18px 0; }
+        body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; font-size: 13px; color: #222; line-height: 1.7; }
+        .header { text-align:center; margin-bottom:6px; }
+        .header h1 { font-size:16px; margin:0 0 2px; }
+        .header p { font-size:12px; margin:0; color:#444; }
+        .title { text-align:center; font-size:15px; font-weight:bold; margin:20px 0 6px; letter-spacing:1px; text-transform:uppercase; border-top:2px solid #222; border-bottom:2px solid #222; padding:6px 0; }
+        .section { margin:16px 0; }
+        .section p { margin:6px 0; }
         .label { font-weight:bold; }
-        .sig-row { display:flex; justify-content:space-between; margin-top:40px; gap:40px; }
-        .sig-box { flex:1; text-align:center; border-top:1px solid #333; padding-top:8px; font-size:12px; }
-        img { max-width:180px; max-height:80px; display:block; margin:0 auto 6px; }
-        hr { border:none; border-top:1px solid #ccc; margin:18px 0; }
+        .data-table { width:100%; border-collapse:collapse; margin:10px 0; }
+        .data-table td { padding:5px 8px; border:1px solid #ccc; font-size:13px; }
+        .data-table td:first-child { font-weight:bold; width:200px; background:#f9f9f9; }
+        .sig-row { display:flex; justify-content:space-between; margin-top:50px; gap:40px; }
+        .sig-box { flex:1; text-align:center; }
+        .sig-box img { max-width:180px; max-height:80px; display:block; margin:0 auto 6px; }
+        .sig-line { border-top:1px solid #333; padding-top:8px; font-size:12px; margin-top:4px; }
+        .sig-box p { margin:2px 0; font-size:12px; }
+        hr { border:none; border-top:1px solid #ccc; margin:14px 0; }
+        .footer { margin-top:30px; font-size:11px; color:#666; text-align:center; }
       </style></head><body>
-      <h2>${clinic?.legal_name || clinic?.name || ''}</h2>
-      <h3>Cédula Jurídica / ID: ${clinic?.legal_id || ''}</h3>
-      <h3>${branch?.address || clinic?.address || ''}</h3>
+      <div class="header">
+        <h1>${clinic?.legal_name || clinic?.name || ''}</h1>
+        <p>Cédula Jurídica: ${clinic?.legal_id || ''}</p>
+        <p>${branch?.address || clinic?.address || ''}</p>
+      </div>
+      <div class="title">Consentimiento Informado</div>
+
+      <div class="section">
+        <p>Yo, <strong>${pName}</strong>${pId ? `, portador(a) de la identificación número <strong>${pId}</strong>,` : ','} en pleno uso de mis facultades mentales y de forma libre y voluntaria, declaro haber recibido información clara, suficiente y comprensible sobre el procedimiento médico que se detalla a continuación, incluyendo su naturaleza, beneficios esperados, riesgos y posibles efectos adversos.</p>
+        <p>El procedimiento será realizado por: <strong>${dName}</strong>${dCode ? ` — ${dCode}` : ''}.</p>
+      </div>
+
+      <div class="section">
+        <p><span class="label">Detalles del procedimiento:</span></p>
+        <table class="data-table">
+          <tr><td>Procedimiento a realizar</td><td>${c.procedure_type}</td></tr>
+          ${c.sessions ? `<tr><td>Cantidad de sesiones</td><td>${c.sessions}</td></tr>` : ''}
+          ${c.body_area ? `<tr><td>Área de aplicación</td><td>${c.body_area}</td></tr>` : ''}
+        </table>
+      </div>
+
+      ${c.adverse_effects ? `
+      <div class="section">
+        <p><span class="label">Efectos adversos informados al paciente:</span></p>
+        <p style="margin-left:12px">${c.adverse_effects}</p>
+      </div>` : ''}
+
+      <div class="section">
+        <p>Habiendo comprendido la información anterior, <strong>otorgo mi consentimiento</strong> para que se realice el procedimiento descrito, y declaro haber tenido la oportunidad de formular preguntas, las cuales fueron respondidas de manera satisfactoria.</p>
+        <p>Entiendo que puedo revocar este consentimiento en cualquier momento antes de que se inicie el procedimiento.</p>
+      </div>
+
       <hr/>
-      <h2>CONSENTIMIENTO INFORMADO</h2>
       <div class="section">
-        <p>Yo, <strong>${pName}</strong>, en pleno uso de mis facultades mentales, declaro haber sido informado/a de manera clara y comprensible sobre el procedimiento que se describe a continuación, sus alcances, riesgos y efectos adversos posibles, y manifiesto mi conformidad para que sea realizado.</p>
-      </div>
-      <div class="section">
-        <p><span class="label">Procedimiento a realizar:</span> ${c.procedure_type}</p>
-        ${c.sessions ? `<p><span class="label">Cantidad de sesiones:</span> ${c.sessions}</p>` : ''}
-        ${c.body_area ? `<p><span class="label">Área de aplicación:</span> ${c.body_area}</p>` : ''}
-        ${c.adverse_effects ? `<p><span class="label">Efectos adversos informados:</span><br/>${c.adverse_effects}</p>` : ''}
-      </div>
-      <div class="section">
-        <p>El/la paciente declara haber recibido explicación sobre los posibles efectos adversos mencionados, y acepta voluntariamente someterse al procedimiento descrito.</p>
-        <p>Este consentimiento fue firmado en: <strong>${c.branch_address || ''}</strong></p>
+        <p>Firmado en: <strong>${c.branch_address || ''}</strong></p>
         <p>Fecha y hora: <strong>${fecha}</strong></p>
       </div>
+
       <div class="sig-row">
         <div class="sig-box">
-          ${c.doctor_signature ? `<img src="${c.doctor_signature}" alt="Firma médico"/>` : ''}
-          <p>${dName}</p>
-          <p>Profesional tratante</p>
+          ${c.doctor_signature ? `<img src="${c.doctor_signature}" alt="Firma profesional"/>` : '<div style="height:80px"></div>'}
+          <div class="sig-line">
+            <p><strong>${dName}</strong></p>
+            ${dCode ? `<p>${dCode}</p>` : ''}
+            <p>Profesional tratante</p>
+          </div>
         </div>
         <div class="sig-box">
-          ${c.patient_signature ? `<img src="${c.patient_signature}" alt="Firma paciente"/>` : ''}
-          <p>${pName}</p>
-          <p>Paciente</p>
+          ${c.patient_signature ? `<img src="${c.patient_signature}" alt="Firma paciente"/>` : '<div style="height:80px"></div>'}
+          <div class="sig-line">
+            <p><strong>${pName}</strong></p>
+            ${pId ? `<p>ID: ${pId}</p>` : ''}
+            <p>Paciente</p>
+          </div>
         </div>
+      </div>
+
+      <div class="footer">
+        <p>Este documento forma parte del expediente clínico del paciente y tiene carácter legal.</p>
+        <p>${clinic?.legal_name || clinic?.name || ''} — ${clinic?.legal_id || ''}</p>
       </div>
       </body></html>
     `)
