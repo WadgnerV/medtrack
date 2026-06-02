@@ -274,7 +274,7 @@ export default function SuperAdminDashboard() {
 
   async function saveAdmin() { console.log("saveAdmin called", form)
     setSaving(true)
-    await supabase.from('profiles').update({
+    const { error: updateErr } = await supabase.from('profiles').update({
       first_name: form.first_name,
       last_name: form.last_name,
       clinic_id: form.clinic_id,
@@ -284,6 +284,8 @@ export default function SuperAdminDashboard() {
       is_active: form.is_active,
       is_health_professional: isHealthPro(form.profession),
     }).eq('id', form.id)
+    if (updateErr) { console.error('Update error:', updateErr); alert('Error: ' + updateErr.message); setSaving(false); return }
+    console.log('Update OK')
     // Actualizar sucursal si es branch_admin
     if ((form.role === 'branch_admin' || form.role === 'admin') && form.branch_id) {
       await supabase.from('branch_staff').upsert({ profile_id: form.id, branch_id: form.branch_id }, { onConflict: 'profile_id' })
