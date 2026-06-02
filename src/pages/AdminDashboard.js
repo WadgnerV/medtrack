@@ -1480,7 +1480,7 @@ export default function AdminDashboard() {
                               {dayAppts.map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
-                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI) + (ah - HORA_INI)
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
                                 const color = doctorColor(a.doctor_id)
                                 return (
@@ -1562,7 +1562,7 @@ export default function AdminDashboard() {
                           {dayAppts.map(a => {
                             const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                             if (ah < HORA_INI || ah >= HORA_FIN) return null
-                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI)
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
                             const color = doctorColor(a.doctor_id)
                             const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#854F0B' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }

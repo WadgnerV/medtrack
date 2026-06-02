@@ -1272,7 +1272,7 @@ export default function DoctorDashboard() {
                               {dayAppts.map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
-                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI) + (ah - HORA_INI)
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 20)
                                 return (
                                   <>{(() => {
@@ -1354,7 +1354,7 @@ export default function DoctorDashboard() {
                           {dayAppts.map(a => {
                             const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                             if (ah < HORA_INI || ah >= HORA_FIN) return null
-                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                            const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H + (ah - HORA_INI)
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
                             {(() => {
                                 const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
