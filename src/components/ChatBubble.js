@@ -16,13 +16,18 @@ export default function ChatBubble({ profile }) {
   const [sending, setSending] = useState(false)
   const [convType, setConvType] = useState(null) // 'support' | 'internal'
   const [selStaff, setSelStaff] = useState([])
+  const [clinics, setClinics] = useState([])
+  const [selClinic, setSelClinic] = useState(null)
+  const [clinicStaff, setClinicStaff] = useState([])
+  const isSuperAdmin = profile?.role === 'superadmin'
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
   useEffect(() => {
     if (!profile?.clinic_id) return
     loadConversations()
-    loadStaff()
+    if (profile?.role === 'superadmin') loadClinics()
+    else loadStaff()
 
     // Realtime para mensajes nuevos
     const channel = supabase.channel('chat')
@@ -85,6 +90,21 @@ export default function ChatBubble({ profile }) {
     setUnread(total)
   }
 
+  async function loadClinics() {
+    const { data } = await supabase.from('clinics').select('id, name').eq('is_active', true).order('name')
+    setClinics(data || [])
+  }
+
+  async function loadClinicStaff(clinicId) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, role, profession')
+      .eq('clinic_id', clinicId)
+      .eq('is_active', true)
+      .in('role', ['doctor', 'receptionist', 'admin', 'clinic_admin', 'branch_admin'])
+    setClinicStaff(data || [])
+  }
+
   async function loadStaff() {
     const { data } = await supabase
       .from('profiles')
@@ -125,6 +145,7 @@ export default function ChatBubble({ profile }) {
     setSending(true)
 
     // Determinar participantes
+    const targetClinicId = isSuperAdmin ? selClinic?.id : profile.clinic_id
     let participants = [profile.id]
     if (convType === 'support') {
       // Buscar superadmin o soporte definido
@@ -205,7 +226,7 @@ export default function ChatBubble({ profile }) {
           {/* Header */}
           <div style={{ background:BLUE, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             {view !== 'home' && (
-              <button onClick={() => { setView('home'); setActiveConv(null); setConvType(null); setSelStaff([]) }}
+              <button onClick={() => { setView('home'); setActiveConv(null); setConvType(null); setSelStaff([]); setSelClinic(null); setClinicStaff([]) }}
                 style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.7)', fontSize:18, padding:0, lineHeight:1 }}>←</button>
             )}
             <div style={{ flex:1 }}>
@@ -266,7 +287,41 @@ export default function ChatBubble({ profile }) {
           {/* Nueva conversación */}
           {view === 'new' && (
             <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-              {!convType ? (
+              {/* Superadmin: primero selecciona clínica */}
+              {isSuperAdmin && !selClinic && (
+                <div style={{ flex:1, overflowY:'auto' }}>
+                  <div style={{ padding:'10px 16px', fontSize:12, color:'#888', borderBottom:'1px solid #eee' }}>Seleccioná una clínica</div>
+                  {clinics.map(c => (
+                    <div key={c.id} onClick={() => { setSelClinic(c); loadClinicStaff(c.id) }}
+                      style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', cursor:'pointer', borderBottom:'1px solid #f5f5f5' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f9f9f9'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                      <div style={{ width:36, height:36, borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🏥</div>
+                      <div style={{ fontSize:13, fontWeight:500, color:BLUE }}>{c.name}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isSuperAdmin && selClinic && !convType && (
+                <div style={{ flex:1, overflowY:'auto' }}>
+                  <div style={{ padding:'10px 16px', fontSize:12, color:'#888', borderBottom:'1px solid #eee' }}>Personal de {selClinic.name}</div>
+                  {clinicStaff.map(s => (
+                    <div key={s.id} onClick={() => { setSelStaff([s.id]); setConvType('internal') }}
+                      style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', cursor:'pointer', borderBottom:'1px solid #f5f5f5' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f9f9f9'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                      <div style={{ width:34, height:34, borderRadius:'50%', background:'#e5e7eb', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:600, color:'#666' }}>
+                        {s.first_name?.[0]}{s.last_name?.[0]}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{s.first_name} {s.last_name}</div>
+                        <div style={{ fontSize:11, color:'#aaa' }}>{roleLabel(s.role)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!isSuperAdmin && !convType ? (
                 <div style={{ padding:20, display:'flex', flexDirection:'column', gap:12 }}>
                   <div style={{ fontSize:13, color:'#888', marginBottom:4 }}>¿Con quién querés hablar?</div>
                   <div onClick={() => setConvType('support')}
@@ -290,7 +345,7 @@ export default function ChatBubble({ profile }) {
                     </div>
                   </div>
                 </div>
-              ) : convType === 'support' ? (
+              ) : (!isSuperAdmin && convType === 'support') ? (
                 <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24, gap:16 }}>
                   <div style={{ fontSize:48 }}>🛟</div>
                   <div style={{ fontSize:14, fontWeight:600, color:BLUE, textAlign:'center' }}>Iniciar chat con soporte</div>
@@ -300,7 +355,7 @@ export default function ChatBubble({ profile }) {
                     {sending ? 'Iniciando...' : 'Iniciar conversación'}
                   </button>
                 </div>
-              ) : (
+              ) : (!isSuperAdmin ? (
                 <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
                   <div style={{ padding:'10px 16px', borderBottom:'1px solid #eee', fontSize:12, color:'#888' }}>
                     Seleccioná una o más personas
@@ -333,7 +388,7 @@ export default function ChatBubble({ profile }) {
                     </div>
                   )}
                 </div>
-              )}
+              ) : null)}
             </div>
           )}
 
