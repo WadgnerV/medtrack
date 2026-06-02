@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import DocumentosTab from '../components/DocumentosTab'
+import ConsentimientosTab from '../components/ConsentimientosTab'
 import IntegralModule from './IntegralModule'
 import ModuleChat from '../components/ModuleChat'
 import MetabolicModule from './MetabolicModule'
@@ -2364,6 +2365,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
             { key:'chat_modulos', label:'Chat', color:'#555' },
             ...(clinicPlan !== 'basic' ? [{ key:'modulos', label:'Módulos', color:'#888' }] : []),
             { key:'documentos', label:'Documentos', color:'#555' },
+            { key:'consentimientos', label:'Consentimientos', color:'#555' },
           ]
           return tabs.map(t => (
             <div key={t.key} onClick={() => setTab(t.key)}
@@ -2403,6 +2405,10 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
 
       {tab === 'documentos' && (
         <DocumentosTab patient={patient} profile={profile} />
+      )}
+
+      {tab === 'consentimientos' && (
+        <ConsentimientosTab patient={patient} profile={profile} />
       )}
 
       {tab === 'diagnosticos' && (
