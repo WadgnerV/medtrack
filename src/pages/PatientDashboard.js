@@ -261,7 +261,7 @@ export default function PatientDashboard() {
 
   function initials(fn, ln) { return ((fn||'')[0]||'') + ((ln||'')[0]||'') }
 
-  if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:14, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
+  if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:13, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
 
   return (
     <div style={{ display:'flex', height:'100vh', fontFamily:"Inter, system-ui, sans-serif", background:'#f5f5f5', overflowX:'hidden', maxWidth:'100vw' }}>
@@ -282,7 +282,7 @@ export default function PatientDashboard() {
               <div><label style={s.fieldLabel}>Masa muscular (kg)</label><input type="number" value={measForm.muscle} onChange={e => setMeasForm(p => ({ ...p, muscle:e.target.value }))} placeholder="42.3" style={s.fieldInput} /></div>
               <div><label style={s.fieldLabel}>Grasa visceral (pts)</label><input type="number" value={measForm.visceral} onChange={e => setMeasForm(p => ({ ...p, visceral:e.target.value }))} placeholder="8" style={s.fieldInput} /></div>
             </div>
-            <button style={{ ...s.btnPrimary, width:'100%', justifyContent:'center', padding:11, fontSize:14, opacity:saving?0.7:1 }} disabled={saving} onClick={saveMeasurement}>
+            <button style={{ ...s.btnPrimary, width:'100%', justifyContent:'center', padding:11, fontSize:13, opacity:saving?0.7:1 }} disabled={saving} onClick={saveMeasurement}>
               {saving ? 'Guardando...' : 'Guardar mediciones'}
             </button>
           </div>
@@ -294,7 +294,7 @@ export default function PatientDashboard() {
         <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
           <div>
-            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
+            <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
             
           </div>
         </div>
@@ -363,7 +363,7 @@ export default function PatientDashboard() {
         ) : (
           <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
             <div>
-              <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>
+              <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>
                 {(() => {
                   const MODULE_LABELS = {
                     modulo_integral:     'Atención médica integral',
@@ -376,7 +376,7 @@ export default function PatientDashboard() {
                   return { ...base, ...MODULE_LABELS }[view] || view
                 })()}
               </div>
-              <div style={{ fontSize:14, color:'#999', marginTop:1 }}>Glow Clinic</div>
+              <div style={{ fontSize:13, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               {view === 'progreso' && (
@@ -410,7 +410,7 @@ export default function PatientDashboard() {
                   <div onClick={() => window.open('https://wa.me/50660464569?text=Hola,%20quisiera%20agendar%20una%20cita%20en%20Glow%20Clinic', '_blank')}
                     style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                     <div>
-                      <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Sin cita agendada</div>
+                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Sin cita agendada</div>
                       <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Tocá para contactarnos por WhatsApp</div>
                     </div>
                     <span style={{ fontSize:20 }}>💬</span>
@@ -570,28 +570,28 @@ export default function PatientDashboard() {
                 )}
               </div>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Historial completo</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:12 }}>Historial completo</div>
                 {clinicalNotes.length === 0 && measurements.length === 0
-                  ? <div style={{ fontSize:14, color:'#bbb', textAlign:'center', padding:16 }}>Sin registros aún</div>
+                  ? <div style={{ fontSize:13, color:'#bbb', textAlign:'center', padding:16 }}>Sin registros aún</div>
                   : [...clinicalNotes.map(n=>({...n, tipo:'clinico', fecha:n.note_date})), ...measurements.map(m=>({...m, tipo:'medicion', fecha:m.measured_at}))]
                       .sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))
                       .map((r,i) => (
                         <div key={i} style={{ borderBottom:'0.5px solid #f5f5f5', paddingBottom:12, marginBottom:12 }}>
-                          <div style={{ fontSize:14, color:'#999', fontWeight:500, marginBottom:6 }}>
+                          <div style={{ fontSize:13, color:'#999', fontWeight:500, marginBottom:6 }}>
                             {r.tipo==='clinico'?'Signos clínicos':'Medición'} · {new Date(r.fecha).toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                           </div>
                           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                             {r.tipo==='clinico' && <>
-                              {r.pas && r.pad && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>Presión</div><div style={{ fontSize:14, fontWeight:600 }}>{r.pas}/{r.pad} mmHg</div></div>}
-                              {r.glucose && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>Glicemia</div><div style={{ fontSize:14, fontWeight:600 }}>{r.glucose} mg/dL</div></div>}
-                              {r.heart_rate && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>FC</div><div style={{ fontSize:14, fontWeight:600 }}>{r.heart_rate} lpm</div></div>}
-                              {r.spo2 && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>SpO₂</div><div style={{ fontSize:14, fontWeight:600 }}>{r.spo2}%</div></div>}
+                              {r.pas && r.pad && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>Presión</div><div style={{ fontSize:13, fontWeight:600 }}>{r.pas}/{r.pad} mmHg</div></div>}
+                              {r.glucose && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>Glicemia</div><div style={{ fontSize:13, fontWeight:600 }}>{r.glucose} mg/dL</div></div>}
+                              {r.heart_rate && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>FC</div><div style={{ fontSize:13, fontWeight:600 }}>{r.heart_rate} lpm</div></div>}
+                              {r.spo2 && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>SpO₂</div><div style={{ fontSize:13, fontWeight:600 }}>{r.spo2}%</div></div>}
                             </>}
                             {r.tipo==='medicion' && <>
-                              {r.weight_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>Peso</div><div style={{ fontSize:14, fontWeight:600 }}>{r.weight_kg} kg</div></div>}
-                              {r.body_fat_pct && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>% Grasa</div><div style={{ fontSize:14, fontWeight:600 }}>{r.body_fat_pct}%</div></div>}
-                              {r.muscle_mass_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>Músculo</div><div style={{ fontSize:14, fontWeight:600 }}>{r.muscle_mass_kg} kg</div></div>}
-                              {r.visceral_fat_pts && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:14, color:'#999' }}>Visceral</div><div style={{ fontSize:14, fontWeight:600 }}>{r.visceral_fat_pts} pts</div></div>}
+                              {r.weight_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>Peso</div><div style={{ fontSize:13, fontWeight:600 }}>{r.weight_kg} kg</div></div>}
+                              {r.body_fat_pct && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>% Grasa</div><div style={{ fontSize:13, fontWeight:600 }}>{r.body_fat_pct}%</div></div>}
+                              {r.muscle_mass_kg && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>Músculo</div><div style={{ fontSize:13, fontWeight:600 }}>{r.muscle_mass_kg} kg</div></div>}
+                              {r.visceral_fat_pts && <div style={{ background:'#f9f9f9', borderRadius:8, padding:'8px 10px' }}><div style={{ fontSize:13, color:'#999' }}>Visceral</div><div style={{ fontSize:13, fontWeight:600 }}>{r.visceral_fat_pts} pts</div></div>}
                             </>}
                           </div>
                         </div>
@@ -604,21 +604,21 @@ export default function PatientDashboard() {
           {view === 'tareas' && (
             <div>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
-                <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Mis tareas de esta semana</div>
+                <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Mis tareas de esta semana</div>
                 {tasks.map(t => (
                   <div key={t.id} onClick={() => toggleTask(t)}
                     style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0', borderBottom:'0.5px solid #f5f5f5', cursor:'pointer' }}>
-                    <div style={{ width:20, height:20, borderRadius:'50%', border: '1.5px solid ' + (t.is_completed ? G : '#ddd'), background: t.is_completed ? G : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff', flexShrink:0, transition:'all 0.2s' }}>
+                    <div style={{ width:20, height:20, borderRadius:'50%', border: '1.5px solid ' + (t.is_completed ? G : '#ddd'), background: t.is_completed ? G : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, color:'#fff', flexShrink:0, transition:'all 0.2s' }}>
                       {t.is_completed ? 'v' : ''}
                     </div>
-                    <span style={{ fontSize:14, flex:1, color: t.is_completed ? '#bbb' : '#1a1a1a', textDecoration: t.is_completed ? 'line-through' : 'none' }}>{t.description}</span>
-                    {t.category && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.category}</span>}
+                    <span style={{ fontSize:13, flex:1, color: t.is_completed ? '#bbb' : '#1a1a1a', textDecoration: t.is_completed ? 'line-through' : 'none' }}>{t.description}</span>
+                    {t.category && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.category}</span>}
                   </div>
                 ))}
-                {tasks.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:20 }}>Tu medico no ha asignado tareas aun</div>}
+                {tasks.length === 0 && <div style={{ fontSize:13, color:'#999', textAlign:'center', padding:20 }}>Tu medico no ha asignado tareas aun</div>}
               </div>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                <div style={{ fontSize:14, fontWeight:500, marginBottom:2 }}>Hidratacion de hoy</div>
+                <div style={{ fontSize:13, fontWeight:500, marginBottom:2 }}>Hidratacion de hoy</div>
                 <div style={{ fontSize:12, color:'#aaa', marginBottom:14 }}>Meta: {goalMl} mL {latest?.weight_kg ? `· ${latest.weight_kg} kg × 35 mL` : '· sin peso registrado'}</div>
 
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(48px, 1fr))', gap:10, marginBottom:16 }}>
@@ -676,20 +676,20 @@ export default function PatientDashboard() {
 
           {view === 'tratamientos' && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-              <div style={{ fontSize:14, fontWeight:500, marginBottom:12 }}>Historial de tratamientos</div>
+              <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>Historial de tratamientos</div>
               {treatments.map(t => (
                 <div key={t.id} style={{ padding:'12px 0', borderBottom:'0.5px solid #f0f0f0' }}>
-                  <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a', marginBottom:6 }}>{t.product_name}</div>
+                  <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:6 }}>{t.product_name}</div>
                   <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:6 }}>
-                    {t.appointment_date && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.appointment_date}</span>}
-                    {t.dose && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>{t.dose}</span>}
-                    {t.zone && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#FAEEDA', color:'#854F0B' }}>{t.zone}</span>}
-                    {t.session_label && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.session_label}</span>}
+                    {t.appointment_date && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.appointment_date}</span>}
+                    {t.dose && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#E6F1FB', color:'#185FA5' }}>{t.dose}</span>}
+                    {t.zone && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#FAEEDA', color:'#854F0B' }}>{t.zone}</span>}
+                    {t.session_label && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#888' }}>{t.session_label}</span>}
                   </div>
-                  {t.notes && <div style={{ fontSize:14, color:'#666', lineHeight:1.6 }}>{t.notes}</div>}
+                  {t.notes && <div style={{ fontSize:13, color:'#666', lineHeight:1.6 }}>{t.notes}</div>}
                 </div>
               ))}
-              {treatments.length === 0 && <div style={{ fontSize:14, color:'#999', textAlign:'center', padding:30 }}>Sin tratamientos registrados aun</div>}
+              {treatments.length === 0 && <div style={{ fontSize:13, color:'#999', textAlign:'center', padding:30 }}>Sin tratamientos registrados aun</div>}
             </div>
           )}
 
@@ -775,7 +775,7 @@ export default function PatientDashboard() {
                   </button>
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                    <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Funcionalidades PRO disponibles</div>
+                    <div style={{ fontSize:13, fontWeight:600, marginBottom:12 }}>Funcionalidades PRO disponibles</div>
                     {(() => {
                       const base = [
                         { label:'Nutrición', desc:'Contador de calorías, macros y consejos con IA' },
@@ -819,12 +819,12 @@ export default function PatientDashboard() {
                         if (data.url) window.open(data.url, '_blank')
                       } catch(e) { alert('Error al crear el link de pago') }
                     }}
-                      style={{ background:'#fff', color:'#0F6E56', border:'none', borderRadius:10, padding:'12px 28px', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                      style={{ background:'#fff', color:'#0F6E56', border:'none', borderRadius:10, padding:'12px 28px', fontSize:13, fontWeight:700, cursor:'pointer' }}>
                       Suscribirme por $4.99/mes →
                     </button>
                   </div>
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                    <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>¿Qué incluye el PRO?</div>
+                    <div style={{ fontSize:13, fontWeight:600, marginBottom:12 }}>¿Qué incluye el PRO?</div>
                     {(() => {
                       const base = [
                         'Contador de calorías y macros diarios',
@@ -887,7 +887,7 @@ export default function PatientDashboard() {
 
                 const navItem = (key, label, icon) => (
                   <div key={key} onClick={() => { setView(key); setShowDrawer(false) }}
-                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', cursor:'pointer', background: view === key ? '#E1F5EE' : 'transparent', color: view === key ? G : '#555', fontWeight: view === key ? 500 : 400, fontSize:14 }}>
+                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', cursor:'pointer', background: view === key ? '#E1F5EE' : 'transparent', color: view === key ? G : '#555', fontWeight: view === key ? 500 : 400, fontSize:13 }}>
                     <i className={`ti ${icon}`} style={{ fontSize:16, color: view === key ? G : '#999' }} aria-hidden="true"></i>
                     {label}
                   </div>
@@ -909,13 +909,13 @@ export default function PatientDashboard() {
                     {profile?.plan !== 'pro' && (
                       <div onClick={() => { setView('pro'); setShowDrawer(false) }}
                         style={{ margin:'12px 12px 0', padding:'8px 14px', borderRadius:20, background:'#E1F5EE', cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
-                        <i className="ti ti-bolt" style={{ fontSize:14, color:'#0F6E56' }} aria-hidden="true"></i>
+                        <i className="ti ti-bolt" style={{ fontSize:13, color:'#0F6E56' }} aria-hidden="true"></i>
                         <span style={{ fontSize:12, color:'#0F6E56', fontWeight:500 }}>Activar PRO</span>
                       </div>
                     )}
                     {profile?.plan === 'pro' && (
                       <div style={{ margin:'12px 12px 0', padding:'8px 14px', borderRadius:20, background:'#E1F5EE', display:'flex', alignItems:'center', gap:6 }}>
-                        <i className="ti ti-star" style={{ fontSize:14, color:'#0F6E56' }} aria-hidden="true"></i>
+                        <i className="ti ti-star" style={{ fontSize:13, color:'#0F6E56' }} aria-hidden="true"></i>
                         <span style={{ fontSize:12, color:'#0F6E56', fontWeight:500 }}>Plan PRO activo</span>
                       </div>
                     )}
@@ -931,8 +931,8 @@ export default function PatientDashboard() {
 }
 
 const s = {
-  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:14, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
-  btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:14, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
-  fieldLabel: { display:'block', fontSize:14, color:'#666', marginBottom:4, fontWeight:500 },
-  fieldInput: { width:'100%', padding:'8px 10px', fontSize:14, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a' },
+  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
+  btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:13, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
+  fieldLabel: { display:'block', fontSize:13, color:'#666', marginBottom:4, fontWeight:500 },
+  fieldInput: { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a' },
 }

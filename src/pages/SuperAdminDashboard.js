@@ -325,7 +325,7 @@ export default function SuperAdminDashboard() {
       {isMobile && (
         <div style={{ position:'fixed', top:0, left:0, right:0, height:52, background:'#fff', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 16px', zIndex:100 }}>
           <div>
-            <div style={{ fontSize:14, fontWeight:700, color:BLUE }}>MEDTRACK</div>
+            <div style={{ fontSize:13, fontWeight:700, color:BLUE }}>MEDTRACK</div>
             <div style={{ fontSize:9, color:'#999' }}>Super Admin</div>
           </div>
           <button onClick={() => setShowDrawer(true)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:BLUE }}>☰</button>
@@ -340,7 +340,7 @@ export default function SuperAdminDashboard() {
             <div style={{ padding:'14px', borderBottom:'0.5px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <div style={{ width:26, height:26, background:G, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:14 }} aria-hidden="true"></i>
+                  <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:13 }} aria-hidden="true"></i>
                 </div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
@@ -560,7 +560,7 @@ export default function SuperAdminDashboard() {
                     <div key={clinic.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:20 }}>
                       {/* Clínica */}
                       <div style={{ textAlign:'center', marginBottom:16 }}>
-                        <div style={{ display:'inline-block', background:BLUE, color:'#fff', borderRadius:10, padding:'8px 24px', fontSize:14, fontWeight:700 }}>{clinic.name}</div>
+                        <div style={{ display:'inline-block', background:BLUE, color:'#fff', borderRadius:10, padding:'8px 24px', fontSize:13, fontWeight:700 }}>{clinic.name}</div>
                         <div style={{ fontSize:11, color:'#999', marginTop:4 }}>{clinic.plan?.toUpperCase()}</div>
                       </div>
 
@@ -672,7 +672,7 @@ export default function SuperAdminDashboard() {
                       <div key={admin.id} style={{ background:'#f8fafc', borderRadius:10, padding:'12px 14px', border:'0.5px solid #eee' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
                           <div>
-                            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a' }}>{admin.last_name} {admin.first_name}</div>
+                            <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>{admin.last_name} {admin.first_name}</div>
                             <div style={{ fontSize:12, color:'#888' }}>{admin.email}</div>
                           </div>
                           <span style={{ ...s.badge, background: admin.is_active?'#E1F5EE':'#f5f5f5', color: admin.is_active?'#0F6E56':'#999', flexShrink:0 }}>{admin.is_active?'Activo':'Inactivo'}</span>

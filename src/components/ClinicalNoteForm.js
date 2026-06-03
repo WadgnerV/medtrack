@@ -345,7 +345,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       {showForm && (
         <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'16px', marginBottom:16 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-            <div style={{ fontSize:14, fontWeight:600 }}>{editingId ? 'Editar nota clínica' : 'Nueva nota clínica'}</div>
+            <div style={{ fontSize:13, fontWeight:600 }}>{editingId ? 'Editar nota clínica' : 'Nueva nota clínica'}</div>
             <button onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}
               style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa', lineHeight:1 }}>×</button>
           </div>
@@ -391,7 +391,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                           </div>
                         </div>
                         {t.created_by === profile?.id && (
-                          <button onClick={() => deleteTemplate(t.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:14, flexShrink:0 }}>×</button>
+                          <button onClick={() => deleteTemplate(t.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:13, flexShrink:0 }}>×</button>
                         )}
                       </div>
                     ))}
