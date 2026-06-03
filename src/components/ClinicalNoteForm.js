@@ -142,6 +142,24 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient }) {
   )
 }
 
+function CollapsibleSection({ label, count, color, children }) {
+  const [open, setOpen] = useState(false)
+  const G = color || '#0F6E56'
+  return (
+    <div style={{ marginBottom:4 }}>
+      <div onClick={() => setOpen(o => !o)}
+        style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 10px', borderRadius:8, background:'#f8f8f8', cursor:'pointer', border:'0.5px solid #eee' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ fontSize:12, fontWeight:500, color:'#555' }}>{label}</span>
+          {count > 0 && <span style={{ fontSize:11, background:G, color:'#fff', borderRadius:20, padding:'1px 7px', fontWeight:500 }}>{count}</span>}
+        </div>
+        <i className={`ti ${open ? 'ti-chevron-up' : 'ti-chevron-down'}`} style={{ fontSize:14, color:'#999' }} aria-hidden="true"></i>
+      </div>
+      {open && <div style={{ marginTop:6 }}>{children}</div>}
+    </div>
+  )
+}
+
 export default function ClinicalNoteForm({ patientId, moduleType, color, patient, profile }) {
   const [templates, setTemplates] = useState([])
   const [showTemplates, setShowTemplates] = useState(false)
@@ -532,24 +550,22 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             </div>
 
             {/* Imágenes médicas */}
-            <div>
-              <label style={label}>Imágenes médicas solicitadas</label>
+            <CollapsibleSection label="Imágenes médicas solicitadas" count={form.imagenes ? form.imagenes.split('\n').filter(l => l.trim()).length : 0} color={color}>
               <MedicalImagingForm
                 value={form.imagenes}
                 onChange={val => setForm(p => ({ ...p, imagenes: val }))}
                 color={color}
               />
-            </div>
+            </CollapsibleSection>
 
             {/* Laboratorios */}
-            <div>
-              <label style={label}>Estudios de laboratorio solicitados</label>
+            <CollapsibleSection label="Estudios de laboratorio solicitados" count={form.laboratorios ? form.laboratorios.split('\n').filter(l => l.trim()).length : 0} color={color}>
               <LabStudiesForm
                 value={form.laboratorios}
                 onChange={val => setForm(p => ({ ...p, laboratorios: val }))}
                 color={color}
               />
-            </div>
+            </CollapsibleSection>
 
             {/* Plan de seguimiento */}
             <div>
