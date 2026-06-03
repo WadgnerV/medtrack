@@ -2327,7 +2327,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
         </div>
       )}
 
-      <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14, display:'flex', alignItems:'center', gap:14 }}>
+      <div style={{ background:'#EAF4F0', border:'0.5px solid #c8e6dc', borderRadius:12, padding:'14px 16px', marginBottom:14, display:'flex', alignItems:'center', gap:14 }}>
         <div style={{ width:48, height:48, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:500, flexShrink:0 }}>
           {(pName[0] || '').toUpperCase()}
         </div>
