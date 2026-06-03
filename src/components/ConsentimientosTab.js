@@ -41,6 +41,31 @@ function SigPad({ label, value, onChange }) {
   )
 }
 
+const EFECTOS_ADVERSOS = [
+  { group: 'Locales', items: [
+    'Dolor o molestia en el sitio de aplicación',
+    'Eritema (enrojecimiento)',
+    'Edema (inflamación)',
+    'Equimosis (moretones)',
+    'Prurito (picazón)',
+    'Induración o nódulos',
+    'Infección local',
+  ]},
+  { group: 'Sistémicos', items: [
+    'Reacción alérgica',
+    'Mareo o lipotimia',
+    'Náuseas',
+    'Cefalea',
+  ]},
+  { group: 'Resultado', items: [
+    'Efecto mayor al esperado',
+    'Efecto menor al esperado por incumplimiento de indicaciones postprocedimiento',
+    'Asimetría o resultado no esperado',
+    'Migración del producto',
+    'Necrosis tisular (raro)',
+  ]},
+]
+
 export default function ConsentimientosTab({ patient, profile }) {
   const [consents, setConsents] = useState([])
   const [clinic, setClinic] = useState(null)
@@ -48,7 +73,8 @@ export default function ConsentimientosTab({ patient, profile }) {
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ procedure_type:'', sessions:'', body_area:'', adverse_effects:'' })
+  const [form, setForm] = useState({ procedure_type:'', sessions:'', body_area:'' })
+  const [selectedEffects, setSelectedEffects] = useState([])
   const [doctorSig, setDoctorSig] = useState('')
   const [patientSig, setPatientSig] = useState('')
 
@@ -68,7 +94,8 @@ export default function ConsentimientosTab({ patient, profile }) {
   }
 
   function resetForm() {
-    setForm({ procedure_type:'', sessions:'', body_area:'', adverse_effects:'' })
+    setForm({ procedure_type:'', sessions:'', body_area:'' })
+    setSelectedEffects([])
     setDoctorSig('')
     setPatientSig('')
   }
@@ -86,7 +113,7 @@ export default function ConsentimientosTab({ patient, profile }) {
       procedure_type: form.procedure_type,
       sessions: form.sessions ? parseInt(form.sessions) : null,
       body_area: form.body_area,
-      adverse_effects: form.adverse_effects,
+      adverse_effects: selectedEffects.join('\n'),
       branch_address: branch?.address || '',
       doctor_signature: doctorSig,
       patient_signature: patientSig,
@@ -272,7 +299,26 @@ export default function ConsentimientosTab({ patient, profile }) {
             <input style={s.input} value={form.body_area} onChange={e => setForm(f => ({...f, body_area: e.target.value}))} placeholder="Ej: Frente y entrecejo" />
 
             <label style={s.label}>Efectos adversos informados</label>
-            <textarea style={s.textarea} value={form.adverse_effects} onChange={e => setForm(f => ({...f, adverse_effects: e.target.value}))} placeholder="Describa los efectos adversos explicados al paciente..." />
+            <div style={{ border:'0.5px solid #e0e0e0', borderRadius:8, padding:'12px 14px', marginBottom:14, background:'#fafafa' }}>
+              {EFECTOS_ADVERSOS.map(group => (
+                <div key={group.group} style={{ marginBottom:12 }}>
+                  <div style={{ fontSize:11, fontWeight:500, color:'#888', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:6 }}>{group.group}</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'4px 12px' }}>
+                    {group.items.map(item => (
+                      <label key={item} style={{ display:'flex', alignItems:'flex-start', gap:6, cursor:'pointer', fontSize:12, color:'#333', lineHeight:1.4 }}>
+                        <input type="checkbox" checked={selectedEffects.includes(item)}
+                          onChange={e => setSelectedEffects(prev => e.target.checked ? [...prev, item] : prev.filter(x => x !== item))}
+                          style={{ marginTop:2, accentColor:'#1D9E75', flexShrink:0 }} />
+                        {item}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {selectedEffects.length > 0 && (
+                <div style={{ marginTop:8, fontSize:11, color:'#1D9E75' }}>{selectedEffects.length} efecto{selectedEffects.length > 1 ? 's' : ''} seleccionado{selectedEffects.length > 1 ? 's' : ''}</div>
+              )}
+            </div>
 
             <div style={{ background:'#f8f8f8', borderRadius:8, padding:'10px 12px', fontSize:12, color:'#666', marginBottom:16 }}>
               📍 {branch?.address || clinic?.address || 'Sin dirección registrada'} · {new Date().toLocaleString('es-CR', { dateStyle:'full', timeStyle:'short' })}
