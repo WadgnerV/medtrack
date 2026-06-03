@@ -182,7 +182,7 @@ export default function ConsentimientosTab({ patient, profile }) {
       ${c.adverse_effects ? `
       <div class="section">
         <p><span class="label">Efectos adversos informados al paciente:</span></p>
-        <p style="margin-left:12px">${c.adverse_effects}</p>
+        <p style="margin-left:12px">${(c.adverse_effects || '').split('\n').filter(Boolean).join(', ')}</p>
       </div>` : ''}
       <div class="section">
         <p>Habiendo comprendido la información anterior, <strong>otorgo mi consentimiento</strong> para que se realice el procedimiento descrito, y declaro haber tenido la oportunidad de formular preguntas, las cuales fueron respondidas de manera satisfactoria.</p>

@@ -349,8 +349,8 @@ export default function PatientDashboard() {
         </div>
 
         <div style={{ padding:'8px 14px 4px', borderTop:'0.5px solid #f0f0f0' }}>
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'#bbb', textDecoration:'none', display:'block', marginBottom:2 }}>Política de privacidad</a>
-          <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'#bbb', textDecoration:'none' }}>Términos y condiciones</a>
+          <a href="/privacidad" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'#bbb', textDecoration:'none', display:'block', marginBottom:2 }}>Política de privacidad</a>
+          <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'#bbb', textDecoration:'none' }}>Términos y condiciones</a>
         </div>
         <UserMenu dropUp={true} />
       </div>}
