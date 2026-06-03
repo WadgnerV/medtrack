@@ -451,16 +451,16 @@ export default function UserMenu() {
         </div>
 
         {open && (
-          <div style={{ position:'absolute', top:'calc(100% + 4px)', right:0, minWidth:180, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
+          <div style={{ position:'absolute', bottom:'calc(100% + 4px)', left:0, minWidth:180, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
             <div onClick={() => { setView('profile'); setOpen(false) }} style={s.menuItem}>
-              <span style={{ fontSize:14 }}>👤</span><span>Mi perfil</span>
+              <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i><span>Mi perfil</span>
             </div>
             <div onClick={() => { setView('password'); setOpen(false) }} style={s.menuItem}>
-              <span style={{ fontSize:14 }}>🔑</span><span>Cambiar contraseña</span>
+              <i className="ti ti-lock" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i><span>Cambiar contraseña</span>
             </div>
             <div style={{ height:'0.5px', background:'#f0f0f0' }} />
             <div onClick={handleSignOut} style={{ ...s.menuItem, color:'#D85A30' }}>
-              <span style={{ fontSize:14 }}>⏻</span><span>Cerrar sesión</span>
+              <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30' }} aria-hidden="true"></i><span>Cerrar sesión</span>
             </div>
           </div>
         )}
