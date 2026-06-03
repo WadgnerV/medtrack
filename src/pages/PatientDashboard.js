@@ -490,36 +490,7 @@ export default function PatientDashboard() {
                 </div>
               )}
 
-              {/* Tratamientos activos */}
-              {(treatments.length > 0 || aestheticProcedures.length > 0) && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:12, fontWeight:500, color:'#888', marginBottom:10 }}>Tratamientos activos</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    {(() => {
-                      const seen = new Set()
-                      return treatments.filter(t => {
-                        const key = (t.name || '').toLowerCase().trim()
-                        if (seen.has(key)) return false
-                        seen.add(key); return true
-                      }).slice(0,4).map(t => (
-                        <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
-                          <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:3 }}>{t.name || 'Tratamiento'}</div>
-                          {t.dosage && <div style={{ fontSize:11, color:'#666' }}>{t.dosage}</div>}
-                          {t.created_at && <div style={{ fontSize:11, color:'#999', marginTop:2 }}>{new Date(t.created_at).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
-                          <div style={{ display:'inline-block', fontSize:10, padding:'2px 7px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56', marginTop:4 }}>Médico</div>
-                        </div>
-                      ))
-                    })()}
-                    {aestheticProcedures.slice(0,2).map(t => (
-                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
-                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:3 }}>{t.product_name}</div>
-                        {t.appointment_date && <div style={{ fontSize:11, color:'#999' }}>{t.appointment_date}</div>}
-                        <div style={{ display:'inline-block', fontSize:10, padding:'2px 7px', borderRadius:20, background:'#EEEDFE', color:'#3C3489', marginTop:4 }}>Estética</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
 
             </div>
           )}
