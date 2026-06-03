@@ -314,9 +314,9 @@ export default function SuperAdminDashboard() {
   )
 
   const menuItems = [
-    { key:'clinicas', label:'🏥 Clínicas' },
-    { key:'admins', label:'👤 Administradores' },
-    { key:'reportes', label:'📊 Reportes' },
+    { key:'clinicas', label:'Clínicas', icon:'ti-building-hospital' },
+    { key:'admins', label:'Administradores', icon:'ti-users' },
+    { key:'reportes', label:'Reportes', icon:'ti-chart-bar' },
   ]
 
   return (
@@ -337,25 +337,36 @@ export default function SuperAdminDashboard() {
         <>
           <div onClick={() => setShowDrawer(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
           <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column' }}>
-            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div>
-                <div style={{ fontSize:14, fontWeight:700, color:BLUE }}>MEDTRACK</div>
-                <div style={{ fontSize:10, color:'#999' }}>Super Admin</div>
+            <div style={{ padding:'14px', borderBottom:'0.5px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:26, height:26, background:G, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:14 }} aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
+                  <div style={{ fontSize:10, color:'#999' }}>Super Admin</div>
+                </div>
               </div>
-              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>
             </div>
             <div style={{ flex:1, padding:'8px 0' }}>
               {menuItems.map(item => (
                 <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
-                  style={{ padding:'12px 16px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 500 : 400 }}>
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 16px', cursor:'pointer', fontSize:13, background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400 }}>
+                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
                   {item.label}
                 </div>
               ))}
             </div>
-            <div style={{ padding:'16px', borderTop:'0.5px solid #eee' }}>
-              <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
-              <div style={{ fontSize:11, color:'#999', marginBottom:8 }}>Super Administrador</div>
-              <button onClick={signOut} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:0 }}>Cerrar sesión</button>
+            <div style={{ borderTop:'0.5px solid #f0f0f0', padding:'10px 14px', display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, color:G, flexShrink:0 }}>
+                {(profile?.first_name?.[0]||'') + (profile?.last_name?.[0]||'')}
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:11, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{profile?.first_name} {profile?.last_name}</div>
+                <div style={{ fontSize:10, color:'#999' }}>Super Administrador</div>
+              </div>
+              <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30', cursor:'pointer' }} onClick={signOut} title="Cerrar sesión" aria-hidden="true"></i>
             </div>
           </div>
         </>
@@ -363,20 +374,33 @@ export default function SuperAdminDashboard() {
 
       {/* Sidebar desktop */}
       {!isMobile && <div style={s.sidebar}>
-        <div style={s.logo}>
-          <div style={s.logoTitle}>MEDTRACK</div>
-          <div style={s.logoSub}>Super Admin</div>
-        </div>
-        {menuItems.map(item => (
-          <div key={item.key} onClick={() => setViewPersist(item.key)}
-            style={{ ...s.menuItem, background: view===item.key?'#f0fdf9':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?600:400 }}>
-            {item.label}
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'14px 14px 12px', borderBottom:'0.5px solid #f0f0f0' }}>
+          <div style={{ width:28, height:28, background:G, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
           </div>
-        ))}
-        <div style={{ marginTop:'auto', padding:'16px 20px', borderTop:'0.5px solid #f0f0f0' }}>
-          <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
-          <div style={{ fontSize:11, color:'#999', marginBottom:8 }}>Super Administrador</div>
-          <button onClick={signOut} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:0 }}>Cerrar sesión</button>
+          <div>
+            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
+            <div style={{ fontSize:10, color:'#999' }}>Super Admin</div>
+          </div>
+        </div>
+        <div style={{ flex:1, padding:'8px 0' }}>
+          {menuItems.map(item => (
+            <div key={item.key} onClick={() => setViewPersist(item.key)}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', cursor:'pointer', fontSize:13, background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400 }}>
+              <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
+              {item.label}
+            </div>
+          ))}
+        </div>
+        <div style={{ borderTop:'0.5px solid #f0f0f0', padding:'10px 14px', display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, color:G, flexShrink:0 }}>
+            {(profile?.first_name?.[0]||'') + (profile?.last_name?.[0]||'')}
+          </div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:11, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{profile?.first_name} {profile?.last_name}</div>
+            <div style={{ fontSize:10, color:'#999' }}>Super Administrador</div>
+          </div>
+          <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30', cursor:'pointer' }} onClick={signOut} title="Cerrar sesión" aria-hidden="true"></i>
         </div>
       </div>}
 
