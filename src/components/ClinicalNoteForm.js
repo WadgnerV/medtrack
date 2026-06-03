@@ -296,7 +296,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       <div class="header">
         <div class="clinic-name">${clinicName}</div>
         <div class="clinic-sub">${clinicAddress}${clinicPhone ? ' · ' + clinicPhone : ''}</div>
-        ${consecutive ? `<div class="consecutive">N° Consecutivo: ${consecutive}</div>` : ''}
+        ${consecutive ? `<div class="consecutive" style="text-align:right">N° Consecutivo: ${consecutive}</div>` : ''}
       </div>
       <div class="doctor-bar">
         <div>
