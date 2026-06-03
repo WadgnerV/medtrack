@@ -880,48 +880,43 @@ export default function PatientDashboard() {
             {/* Items del menú */}
             <div style={{ flex:1, padding:'8px 0' }}>
               {(() => {
-                const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
-                const MODULE_LABELS = { integral:'Atención médica integral', metabolica:'Atención médica metabólica', estetica:'Atención médica estética', fisioterapia:'Atención de fisioterapia', enfermeria:'Atención de enfermería' }
+                const MODULE_LABELS = { integral:'Integral', metabolica:'Metabólica', estetica:'Estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                const MODULE_ICONS = { integral:'ti-stethoscope', metabolica:'ti-activity', estetica:'ti-sparkles', fisioterapia:'ti-run', enfermeria:'ti-first-aid-kit' }
                 const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
                 const sortedMods = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
 
-                const sections = [
-                  { label:'Inicio', key:'inicio', icon:'ti-home' },
-                  ...sortedMods.map(m => ({ label: MODULE_LABELS[m.module_type], key:'modulo_'+m.module_type, color: MODULE_COLORS[m.module_type] })),
-                  { label:'Chat con mi médico', key:'chat' },
-                ]
-
-                const proItems = profile?.plan === 'pro' ? [
-                  { label:'Nutrición', key:'nutricion' },
-                  { label:'Bienestar', key:'bienestar' },
-                  ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem' }] : []),
-                  ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc' }] : []),
-                ] : []
+                const navItem = (key, label, icon) => (
+                  <div key={key} onClick={() => { setView(key); setShowDrawer(false) }}
+                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', cursor:'pointer', background: view === key ? '#E1F5EE' : 'transparent', color: view === key ? G : '#555', fontWeight: view === key ? 500 : 400, fontSize:14 }}>
+                    <i className={`ti ${icon}`} style={{ fontSize:16, color: view === key ? G : '#999' }} aria-hidden="true"></i>
+                    {label}
+                  </div>
+                )
 
                 return (
                   <>
-                    {sections.map(item => (
-                      <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
-                        style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 16px', cursor:'pointer', background: view === item.key ? (item.color ? item.color+'15' : '#E1F5EE') : 'transparent', borderLeft: view === item.key ? `3px solid ${item.color || G}` : '3px solid transparent', color: view === item.key ? (item.color || G) : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
-                        {item.color && <div style={{ width:8, height:8, borderRadius:'50%', background:item.color, flexShrink:0 }} />}
-                        {item.label}
-                      </div>
-                    ))}
-                    {proItems.length > 0 && (
-                      <>
-                        <div style={{ padding:'8px 16px 4px', fontSize:11, color:'#c8960c', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.06em', marginTop:8 }}>⭐ Plan PRO</div>
-                        {proItems.map(item => (
-                          <div key={item.key} onClick={() => { setView(item.key); setShowDrawer(false) }}
-                            style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 16px', cursor:'pointer', background: view === item.key ? '#FFF8E1' : 'transparent', borderLeft: view === item.key ? `3px solid #c8960c` : '3px solid transparent', color: view === item.key ? '#c8960c' : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
-                            {item.label}
-                          </div>
-                        ))}
-                      </>
-                    )}
+                    {navItem('inicio', 'Inicio', 'ti-home')}
+                    {sortedMods.length > 0 && <div style={{ fontSize:10, color:'#bbb', padding:'10px 16px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>Mis módulos</div>}
+                    {sortedMods.map(m => navItem('modulo_' + m.module_type, MODULE_LABELS[m.module_type] || m.module_type, MODULE_ICONS[m.module_type] || 'ti-circle'))}
+                    {navItem('chat', 'Chat con mi médico', 'ti-message-circle')}
+                    {profile?.plan === 'pro' && <>
+                      <div style={{ fontSize:10, color:'#bbb', padding:'10px 16px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>PRO</div>
+                      {navItem('nutricion', 'Nutrición', 'ti-salad')}
+                      {navItem('bienestar', 'Bienestar', 'ti-brain')}
+                      {patient?.sex === 'female' && navItem('saludfem', 'Salud femenina', 'ti-gender-female')}
+                      {patient?.sex === 'male' && navItem('saludmasc', 'Salud masculina', 'ti-gender-male')}
+                    </>}
                     {profile?.plan !== 'pro' && (
                       <div onClick={() => { setView('pro'); setShowDrawer(false) }}
-                        style={{ margin:'12px 12px 0', padding:'10px 14px', borderRadius:10, background:'linear-gradient(135deg, #0F6E56, #1D9E75)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', textAlign:'center' }}>
-                        ⚡ Activar Plan PRO
+                        style={{ margin:'12px 12px 0', padding:'8px 14px', borderRadius:20, background:'#E1F5EE', cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+                        <i className="ti ti-bolt" style={{ fontSize:14, color:'#0F6E56' }} aria-hidden="true"></i>
+                        <span style={{ fontSize:12, color:'#0F6E56', fontWeight:500 }}>Activar PRO</span>
+                      </div>
+                    )}
+                    {profile?.plan === 'pro' && (
+                      <div style={{ margin:'12px 12px 0', padding:'8px 14px', borderRadius:20, background:'#E1F5EE', display:'flex', alignItems:'center', gap:6 }}>
+                        <i className="ti ti-star" style={{ fontSize:14, color:'#0F6E56' }} aria-hidden="true"></i>
+                        <span style={{ fontSize:12, color:'#0F6E56', fontWeight:500 }}>Plan PRO activo</span>
                       </div>
                     )}
                   </>
