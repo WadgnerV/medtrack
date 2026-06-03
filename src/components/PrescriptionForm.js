@@ -144,6 +144,7 @@ export default function PrescriptionForm({ value, onChange, color }) {
 
   const qty = calcQuantity(currentRx.frequency, currentRx.duration, currentRx.form)
   const isPRN = currentRx.frequency === 'PRN'
+  const isSTAT = currentRx.special_indication === 'Inmediatamente (STAT)'
 
   const inp = { padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', background:'#fff', width:'100%', boxSizing:'border-box' }
 
@@ -220,13 +221,13 @@ export default function PrescriptionForm({ value, onChange, color }) {
             {/* Frecuencia */}
             <div>
               <label style={{ fontSize:11, color:'#888', display:'block', marginBottom:3 }}>Frecuencia</label>
-              <select value={currentRx.frequency} onChange={e => setCurrentRx(p=>({...p, frequency:e.target.value}))} style={inp}>
+              <select value={currentRx.frequency} onChange={e => setCurrentRx(p=>({...p, frequency:e.target.value}))} style={{...inp, opacity: isSTAT ? 0.4 : 1}} disabled={isSTAT}>
                 {FREQUENCIES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
             </div>
 
             {/* Duración */}
-            {!isPRN && (
+            {!isPRN && !isSTAT && (
               <div>
                 <label style={{ fontSize:11, color:'#888', display:'block', marginBottom:3 }}>Duración</label>
                 <select value={currentRx.duration} onChange={e => setCurrentRx(p=>({...p, duration:e.target.value}))} style={inp}>
