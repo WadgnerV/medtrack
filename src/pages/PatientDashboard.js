@@ -348,7 +348,7 @@ export default function PatientDashboard() {
           )}
         </div>
 
-        <UserMenu />
+        <UserMenu dropUp={true} />
       </div>}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
@@ -358,7 +358,7 @@ export default function PatientDashboard() {
             <button onClick={() => setShowDrawer(true)}
               style={{ background:'none', border:'none', cursor:'pointer', fontSize:22, color:'#555', padding:'2px 6px', lineHeight:1 }}>☰</button>
             <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a', letterSpacing:'-0.3px' }}>MedTrack</div>
-            <UserMenu />
+            <UserMenu dropUp={false} />
           </div>
         ) : (
           <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>

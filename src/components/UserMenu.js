@@ -21,7 +21,7 @@ function calcAge(dob) {
   return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
 }
 
-export default function UserMenu() {
+export default function UserMenu({ dropUp = true }) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -451,7 +451,7 @@ export default function UserMenu() {
         </div>
 
         {open && (
-          <div style={{ position:'absolute', bottom:'calc(100% + 4px)', left:0, minWidth:180, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
+          <div style={{ position:'absolute', ...(dropUp ? { bottom:'calc(100% + 4px)' } : { top:'calc(100% + 4px)' }), left:0, minWidth:180, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
             <div onClick={() => { setView('profile'); setOpen(false) }} style={s.menuItem}>
               <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i><span>Mi perfil</span>
             </div>
