@@ -65,7 +65,7 @@ function parseNoteText(text) {
   return form
 }
 
-function CollapsibleNote({ n, color, onEdit, onDelete }) {
+function CollapsibleNote({ n, color, onEdit, onDelete, patient }) {
   const [expanded, setExpanded] = useState(false)
   const dName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
   const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
@@ -527,7 +527,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
         <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
       ) : notes.length === 0 ? (
         <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas clínicas registradas.</div>
-      ) : notes.map(n => <CollapsibleNote key={n.id} n={n} color={G} onEdit={startEdit} onDelete={deleteNote} />)}
+      ) : notes.map(n => <CollapsibleNote key={n.id} n={n} color={G} onEdit={startEdit} onDelete={deleteNote} patient={patient} />)}
     </div>
   )
 }
