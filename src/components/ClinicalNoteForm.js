@@ -211,6 +211,54 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     setLoaded(true)
   }
 
+  const LAB_CATEGORIES = {
+    'Hematología': ['Hemograma completo','Velocidad de sedimentación','Frotis de sangre periférica','Reticulocitos','Tiempo de protrombina','INR','Tiempo parcial de tromboplastina'],
+    'Química sanguínea': ['Glucosa en ayunas','Glucosa postprandial','HbA1c','Creatinina','BUN','Ácido úrico','Colesterol total','HDL','LDL','Triglicéridos','ALT','AST','Bilirrubinas totales','Fosfatasa alcalina','GGT','Proteínas totales','Albúmina','LDH','CPK'],
+    'Hormonales': ['FSH','LH','Estradiol','Progesterona','Testosterona total','Testosterona libre','Prolactina','DHEA-S','Cortisol matutino','Insulina en ayunas','Péptido C','IGF-1'],
+    'Tiroides': ['TSH','T3 libre','T4 libre','T3 total','T4 total','Anti-TPO','Anti-tiroglobulina','Tiroglobulina'],
+    'Electrolitos': ['Sodio','Potasio','Cloro','Calcio','Fósforo','Magnesio','Bicarbonato'],
+    'Orina': ['Uroanálisis completo','Urocultivo','Proteínas en orina 24h','Creatinina en orina','Microalbuminuria'],
+    'Heces': ['Examen general de heces','Coprocultivo','Parásitos en heces','Sangre oculta en heces','Calprotectina fecal','H. pylori en heces'],
+    'Embarazo': ['Beta HCG cuantitativa','Beta HCG cualitativa','Prueba de tolerancia a la glucosa'],
+    'Inmunología': ['ANA','Anti-DNA','Factor reumatoide','Anti-CCP','Complemento C3','Complemento C4','ANCA','Inmunoglobulinas IgG/IgA/IgM'],
+    'Reumático': ['PCR ultrasensible','VSG','Ácido úrico','HLA-B27'],
+    'Marcadores tumorales': ['PSA','CEA','CA 125','CA 19-9','AFP','CA 15-3','Beta-2 microglobulina'],
+    'Hepatitis': ['HBsAg','Anti-HBs','Anti-HBc total','Anti-VHC','Anti-VHA IgM'],
+    'Bacteriología': ['Hemocultivo','Cultivo de secreción','VDRL','FTA-ABS','VIH','HTLV'],
+    'Osteoporosis': ['Calcio sérico','Vitamina D 25-OH','PTH','Marcadores de remodelado óseo'],
+  }
+
+  function getLabCategory(examName) {
+    for (const [cat, exams] of Object.entries(LAB_CATEGORIES)) {
+      if (exams.some(e => e.toLowerCase() === examName.toLowerCase())) return cat
+    }
+    return 'Otros'
+  }
+
+  const LAB_CATEGORIES = {
+    'Hematología': ['Hemograma completo','Velocidad de sedimentación','Frotis de sangre periférica','Reticulocitos','Tiempo de protrombina','INR','Tiempo parcial de tromboplastina'],
+    'Química sanguínea': ['Glucosa en ayunas','Glucosa postprandial','HbA1c','Creatinina','BUN','Ácido úrico','Colesterol total','HDL','LDL','Triglicéridos','ALT','AST','Bilirrubinas totales','Fosfatasa alcalina','GGT','Proteínas totales','Albúmina','LDH','CPK'],
+    'Hormonales': ['FSH','LH','Estradiol','Progesterona','Testosterona total','Testosterona libre','Prolactina','DHEA-S','Cortisol matutino','Insulina en ayunas','Péptido C','IGF-1'],
+    'Tiroides': ['TSH','T3 libre','T4 libre','T3 total','T4 total','Anti-TPO','Anti-tiroglobulina','Tiroglobulina'],
+    'Electrolitos': ['Sodio','Potasio','Cloro','Calcio','Fósforo','Magnesio','Bicarbonato'],
+    'Orina': ['Uroanálisis completo','Urocultivo','Proteínas en orina 24h','Creatinina en orina','Microalbuminuria'],
+    'Heces': ['Examen general de heces','Coprocultivo','Parásitos en heces','Sangre oculta en heces','Calprotectina fecal','H. pylori en heces'],
+    'Embarazo': ['Beta HCG cuantitativa','Beta HCG cualitativa','Prueba de tolerancia a la glucosa'],
+    'Inmunología': ['ANA','Anti-DNA','Factor reumatoide','Anti-CCP','Complemento C3','Complemento C4','ANCA','Inmunoglobulinas IgG/IgA/IgM'],
+    'Reumático': ['PCR ultrasensible','VSG','Ácido úrico','HLA-B27'],
+    'Marcadores tumorales': ['PSA','CEA','CA 125','CA 19-9','AFP','CA 15-3','Beta-2 microglobulina'],
+    'Hepatitis': ['HBsAg','Anti-HBs','Anti-HBc total','Anti-VHC','Anti-VHA IgM'],
+    'Bacteriología': ['Hemocultivo','Cultivo de secreción','VDRL','FTA-ABS','VIH','HTLV'],
+    'Osteoporosis': ['Calcio sérico','Vitamina D 25-OH','PTH','Marcadores de remodelado óseo'],
+  }
+
+  function getLabCategory(examName) {
+    for (const [cat, exams] of Object.entries(LAB_CATEGORIES)) {
+      if (exams.some(e => e.toLowerCase() === examName.toLowerCase())) return cat
+    }
+    return 'Otros'
+  }
+
   async function printDoc(type) {
     const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' }) : '—'
     const age = dob => {
@@ -257,9 +305,27 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             </div>
           </div>`
         }).join('')
-      : lines.map((l, i) => `<div style="display:flex;gap:10px;margin-bottom:10px;font-size:11pt;">
-          <span style="color:#1D9E75;font-weight:700;">${i+1}.</span><span>${l.replace(/^•\s*/, '')}</span>
-        </div>`).join('')
+      : (() => {
+          const cleanLines = lines.map(l => l.replace(/^•\s*/, '').trim()).filter(Boolean)
+          if (type === 'laboratorios') {
+            const grouped = {}
+            cleanLines.forEach(l => {
+              const cat = Object.entries(LAB_CATEGORIES).find(([,exams]) => exams.some(e => e.toLowerCase() === l.toLowerCase()))?.[0] || 'Otros'
+              if (!grouped[cat]) grouped[cat] = []
+              grouped[cat].push(l)
+            })
+            return Object.entries(grouped).map(([cat, exams]) => `
+              <div style="margin-bottom:14px;">
+                <div style="font-size:9pt;font-weight:700;color:#085041;text-transform:uppercase;letter-spacing:0.07em;border-bottom:1.5px solid #1D9E75;padding-bottom:4px;margin-bottom:8px;">${cat}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;">
+                  ${exams.map(e => `<div style="display:flex;align-items:center;gap:6px;font-size:10pt;"><span style="color:#1D9E75;font-size:14pt;line-height:1;">·</span>${e}</div>`).join('')}
+                </div>
+              </div>`).join('')
+          }
+          return cleanLines.map((l, i) => `<div style="display:flex;gap:10px;margin-bottom:10px;font-size:11pt;">
+            <span style="color:#1D9E75;font-weight:700;">${i+1}.</span><span>${l}</span>
+          </div>`).join('')
+        })()
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titles[type]}</title>
     <style>
@@ -275,7 +341,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       .doctor-name { font-size: 11pt; font-weight: 700; color: #085041; }
       .doctor-detail { font-size: 9pt; color: #888; margin-top: 1px; }
       .body { padding: 20px 40px 28px; }
-      .patient-box { background: #f8fffe; border: 1px solid #E1F5EE; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+      .patient-box { background: #E1F5EE; border: 1px solid #9FE1CB; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
       .field-label { font-size: 8pt; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
       .field-value { font-size: 11pt; font-weight: 500; color: #1a1a1a; margin-top: 1px; }
       .section-title { font-size: 9pt; color: #1D9E75; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 14px; padding-bottom: 5px; border-bottom: 1.5px solid #E1F5EE; }
@@ -286,9 +352,9 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       .sig-line { border-top: 1px solid #1D9E75; padding-top: 8px; }
       .sig-name { font-size: 10pt; font-weight: 700; color: #085041; }
       .sig-detail { font-size: 8pt; color: #888; margin-top: 2px; }
-      .footer { background: #E1F5EE; border-top: 2px solid #1D9E75; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; }
-      .footer-clinic { font-size: 10pt; font-weight: 700; color: #085041; }
-      .footer-sub { font-size: 8pt; color: #0F6E56; }
+      .footer { background: #1D9E75; border-top: 2px solid #085041; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; }
+      .footer-clinic { font-size: 10pt; font-weight: 700; color: white; }
+      .footer-sub { font-size: 8pt; color: rgba(255,255,255,0.8); }
       @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
     </style>
     </head><body>
