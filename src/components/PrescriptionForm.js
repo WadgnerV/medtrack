@@ -79,13 +79,15 @@ function calcQuantity(frequency, duration, form) {
 
 function buildRxText(rx) {
   if (!rx.medication_name) return ''
-  const qty = calcQuantity(rx.frequency, rx.duration, rx.form)
+  const isSTAT = rx.special_indication === 'Inmediatamente (STAT)'
+  const isPRN = rx.frequency === 'PRN'
+  const qty = isSTAT ? null : calcQuantity(rx.frequency, rx.duration, rx.form)
   const formStr = rx.form ? ` ${rx.form}` : ''
   const doseStr = rx.dose_mg ? ` ${rx.dose_mg}` : ''
   const routeStr = rx.route ? ` ${rx.route}` : ''
   const indicationStr = rx.indication ? `, ${rx.indication}` : ''
-  const freqStr = rx.frequency === 'PRN' ? ' solo en caso necesario (PRN)' : ` ${rx.frequency}`
-  const durationStr = rx.frequency !== 'PRN' && rx.duration && !['continuo','indefinido'].includes(rx.duration)
+  const freqStr = isSTAT ? '' : isPRN ? ' solo en caso necesario (PRN)' : ` ${rx.frequency}`
+  const durationStr = isSTAT || isPRN ? '' : rx.duration && !['continuo','indefinido'].includes(rx.duration)
     ? ` por ${rx.duration}` : rx.duration === 'continuo' || rx.duration === 'indefinido' ? ` de forma ${rx.duration}` : ''
   const specialStr = rx.special_indication ? ` ${rx.special_indication}` : ''
   const qtyStr = qty ? `. #${qty} ${rx.form || 'unidades'}` : ''
