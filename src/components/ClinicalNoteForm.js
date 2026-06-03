@@ -131,9 +131,9 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient }) {
           </div>
           {(parsed.tratamiento || parsed.imagenes || parsed.laboratorios) && (
             <div style={{ display:'flex', gap:8, padding:'8px 14px 12px', flexWrap:'wrap' }}>
-              {parsed.tratamiento && <button onClick={() => printFromNote('receta')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>🖨️ Receta</button>}
-              {parsed.imagenes && <button onClick={() => printFromNote('imagenes')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>🖨️ Imágenes</button>}
-              {parsed.laboratorios && <button onClick={() => printFromNote('laboratorios')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>🖨️ Laboratorios</button>}
+              {parsed.tratamiento && <button onClick={() => printFromNote('receta')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:4 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Receta</button>}
+              {parsed.imagenes && <button onClick={() => printFromNote('imagenes')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:4 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imágenes</button>}
+              {parsed.laboratorios && <button onClick={() => printFromNote('laboratorios')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:4 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Laboratorios</button>}
             </div>
           )}
         </div>
@@ -218,21 +218,29 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     const clinicPhone = clinicSettings?.phone || ''
     const pName = `${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}`.trim()
 
+    const FORMS_LIST = ['comprimido','cápsula','tableta','jarabe','suspensión','crema','gel','parche','supositorio','ampolla','colirio','spray','inhalador','solución','pomada','sérum','loción','sobre','tabletas','cápsulas']
     const itemsHtml = type === 'receta'
       ? lines.map((l, i) => {
-          const sublines = l.split('\n').filter(Boolean)
-          const nombre = sublines[0] || l
-          const indicaciones = sublines.slice(1).join(' ')
+          const clean = l.replace(/^•\s*/, '').trim()
+          const words = clean.split(' ')
+          let splitIdx = words.length
+          for (let j = 1; j < words.length; j++) {
+            if (FORMS_LIST.some(f => words[j].toLowerCase().startsWith(f.toLowerCase())) || /^\d/.test(words[j])) {
+              splitIdx = j; break
+            }
+          }
+          const nombre = words.slice(0, splitIdx).join(' ')
+          const indicaciones = words.slice(splitIdx).join(' ')
           return `<div style="display:flex;gap:12px;margin-bottom:16px;">
             <div style="width:20px;height:20px;background:#1D9E75;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10pt;font-weight:700;flex-shrink:0;margin-top:2px;">${i+1}</div>
             <div>
               <div style="font-size:12pt;font-weight:700;color:#1a1a1a;">${nombre}</div>
-              ${indicaciones ? `<div style="font-size:10pt;color:#555;margin-top:3px;">${indicaciones}</div>` : ''}
+              ${indicaciones ? `<div style="font-size:10pt;color:#444;margin-top:3px;">${indicaciones}</div>` : ''}
             </div>
           </div>`
         }).join('')
       : lines.map((l, i) => `<div style="display:flex;gap:10px;margin-bottom:10px;font-size:11pt;">
-          <span style="color:#1D9E75;font-weight:700;">${i+1}.</span><span>${l}</span>
+          <span style="color:#1D9E75;font-weight:700;">${i+1}.</span><span>${l.replace(/^•\s*/, '')}</span>
         </div>`).join('')
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titles[type]}</title>
