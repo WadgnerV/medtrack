@@ -60,7 +60,7 @@ export default function PatientDashboard() {
 
   async function loadPatient() {
     const { data } = await supabase.from('patients')
-      .select('*, doctor:assigned_doctor_id(id, first_name, last_name, email)')
+      .select('*, doctor:assigned_doctor_id(id, first_name, last_name, email), profile:profile_id(first_name, last_name)')
       .eq('profile_id', profile.id)
       .single()
     if (data) {
