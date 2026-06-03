@@ -220,10 +220,15 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
 
     const itemsHtml = type === 'receta'
       ? lines.map((l, i) => {
-          const parts = l.split('|')
-          return `<div style="display:flex;gap:12px;margin-bottom:14px;">
+          const sublines = l.split('\n').filter(Boolean)
+          const nombre = sublines[0] || l
+          const indicaciones = sublines.slice(1).join(' ')
+          return `<div style="display:flex;gap:12px;margin-bottom:16px;">
             <div style="width:20px;height:20px;background:#1D9E75;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10pt;font-weight:700;flex-shrink:0;margin-top:2px;">${i+1}</div>
-            <div><div style="font-size:12pt;font-weight:700;color:#1a1a1a;">${parts[0]||''}</div>${parts[1]?`<div style="font-size:10pt;color:#888;margin-top:1px;">${parts[1]}</div>`:''}</div>
+            <div>
+              <div style="font-size:12pt;font-weight:700;color:#1a1a1a;">${nombre}</div>
+              ${indicaciones ? `<div style="font-size:10pt;color:#555;margin-top:3px;">${indicaciones}</div>` : ''}
+            </div>
           </div>`
         }).join('')
       : lines.map((l, i) => `<div style="display:flex;gap:10px;margin-bottom:10px;font-size:11pt;">
