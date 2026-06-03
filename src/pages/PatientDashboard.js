@@ -300,69 +300,53 @@ export default function PatientDashboard() {
         </div>
 
         {(() => {
-          const MODULE_LABELS = {
-            integral:     'Atención médica integral',
-            metabolica:   'Atención médica metabólica',
-            estetica:     'Atención médica estética',
-            fisioterapia: 'Atención de fisioterapia',
-            enfermeria:   'Atención de enfermería',
-          }
-          const MODULE_COLORS = {
-            integral:     '#1a5c8a',
-            metabolica:   '#0F6E56',
-            estetica:     '#8e44ad',
-            fisioterapia: '#e67e22',
-            enfermeria:   '#c0392b',
-          }
+          const MODULE_LABELS = { integral:'Integral', metabolica:'Metabólica', estetica:'Estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+          const MODULE_ICONS = { integral:'ti-stethoscope', metabolica:'ti-activity', estetica:'ti-sparkles', fisioterapia:'ti-run', enfermeria:'ti-first-aid-kit' }
           const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
-          const hasModules = careModules.length > 0
-          const sortedModules = hasModules ? [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type)) : []
-          const items = [
-            { label:'Inicio', key:'inicio', icon:'ti-home' },
-            ...sortedModules.map(m => ({
-              label: MODULE_LABELS[m.module_type] || m.module_type,
-              key: 'modulo_' + m.module_type,
-              color: MODULE_COLORS[m.module_type],
-              module: m,
-            })),
-            { label:'Chat con mi médico', key:'chat' },
-          ]
-          return items.map(item => (
-            <div key={item.key} onClick={() => setView(item.key)}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${item.color || G}` : '2px solid transparent', background: item.color ? (view === item.key ? item.color + '30' : item.color + '12') : view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#1a1a1a' : '#444', fontWeight: view === item.key ? 600 : 400, borderRadius: item.color ? '0 8px 8px 0' : 0, marginRight: item.color ? 8 : 0 }}>
-              {item.label}
+          const sortedModules = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
+
+          const navItem = (key, label, icon) => (
+            <div key={key} onClick={() => setView(key)}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:13, background: view === key ? '#E1F5EE' : 'transparent', color: view === key ? G : '#555', fontWeight: view === key ? 500 : 400, borderRadius: 0 }}>
+              <i className={`ti ${icon}`} style={{ fontSize:15, color: view === key ? G : '#999' }} aria-hidden="true"></i>
+              {label}
             </div>
-          ))
+          )
+
+          return <>
+            {navItem('inicio', 'Inicio', 'ti-home')}
+
+            {sortedModules.length > 0 && (
+              <div style={{ fontSize:10, color:'#bbb', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>Mis módulos</div>
+            )}
+            {sortedModules.map(m => navItem('modulo_' + m.module_type, MODULE_LABELS[m.module_type] || m.module_type, MODULE_ICONS[m.module_type] || 'ti-circle'))}
+
+            {navItem('chat', 'Chat con mi médico', 'ti-message-circle')}
+
+            {profile?.plan === 'pro' && <>
+              <div style={{ fontSize:10, color:'#bbb', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>PRO</div>
+              {navItem('nutricion', 'Nutrición', 'ti-salad')}
+              {navItem('bienestar', 'Bienestar', 'ti-brain')}
+              {patient?.sex === 'female' && navItem('saludfem', 'Salud femenina', 'ti-gender-female')}
+              {patient?.sex === 'male' && navItem('saludmasc', 'Salud masculina', 'ti-gender-male')}
+            </>}
+          </>
         })()}
 
-        {/* Items PRO */}
-        {profile?.plan === 'pro' && <>
-          <div style={{ fontSize:10, color:'#bbb', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>PRO</div>
-          {[
-            { label:'Nutrición', key:'nutricion' },
-            { label:'Bienestar', key:'bienestar' },
-            ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem' }] : []),
-            ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc' }] : []),
-          ].map(item => (
-            <div key={item.key} onClick={() => setView(item.key)}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${G}` : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#666', fontWeight: view === item.key ? 500 : 400 }}>
-              {item.label}
-              <span style={{ fontSize:10, color:'#c8960c', marginLeft:'auto' }}>★</span>
+        {/* Badge PRO */}
+        <div style={{ marginTop:'auto', padding:'12px 14px', borderTop:'0.5px solid #eee' }}>
+          {profile?.plan === 'pro' ? (
+            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:'#E1F5EE' }}>
+              <i className="ti ti-star" style={{ fontSize:12, color:'#0F6E56' }} aria-hidden="true"></i>
+              <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>Plan PRO activo</span>
             </div>
-          ))}
-        </>}
-
-        {/* Badge PRO discreto */}
-        {profile?.plan === 'pro' && (
-          <div style={{ margin:'8px 12px', padding:'5px 10px', borderRadius:20, background:'#E1F5EE', display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>★ Plan PRO activo</span>
-          </div>
-        )}
-        {profile?.plan !== 'pro' && (
-          <div onClick={() => setView('pro')} style={{ margin:'8px 12px', padding:'5px 10px', borderRadius:20, background:'#E1F5EE', cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>⚡ Activar PRO</span>
-          </div>
-        )}
+          ) : (
+            <div onClick={() => setView('pro')} style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:'#E1F5EE', cursor:'pointer' }}>
+              <i className="ti ti-bolt" style={{ fontSize:12, color:'#0F6E56' }} aria-hidden="true"></i>
+              <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>Activar PRO</span>
+            </div>
+          )}
+        </div>
 
         <UserMenu />
       </div>}
