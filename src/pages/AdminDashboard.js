@@ -149,6 +149,7 @@ export default function AdminDashboard() {
   const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config','sucursales'].includes(v) ? v : 'calendario' })
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   const [searchPac, setSearchPac] = useState('')
+  const [searchDoc, setSearchDoc] = useState('')
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
@@ -1143,6 +1144,12 @@ export default function AdminDashboard() {
 
     
       {view === 'medicos' && (
+            <div>
+              <div style={{ marginBottom:12, position:'relative' }}>
+                <i className="ti ti-search" style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:15, color:'#bbb' }} aria-hidden="true"></i>
+                <input value={searchDoc} onChange={e => setSearchDoc(e.target.value)} placeholder="Buscar por nombre o email..."
+                  style={{ width:'100%', padding:'8px 12px 8px 32px', fontSize:13, border:'0.5px solid #eee', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', background:'#fff' }} />
+              </div>
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
               {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:13, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
                 <div style={{ flex:'0 0 40%' }}>Medico</div>
@@ -1151,7 +1158,11 @@ export default function AdminDashboard() {
                 <div style={{ flex:'0 0 14%' }}>Estado</div>
                 <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
               </div>}
-              {[...doctors].sort((a,b) => {
+              {[...doctors].filter(d => {
+                if (!searchDoc) return true
+                const q = searchDoc.toLowerCase()
+                return (d.first_name||'').toLowerCase().includes(q) || (d.last_name||'').toLowerCase().includes(q) || (d.email||'').toLowerCase().includes(q)
+              }).sort((a,b) => {
                 const la = (a.last_name||'').toLowerCase()
                 const lb = (b.last_name||'').toLowerCase()
                 if (la !== lb) return la.localeCompare(lb)
