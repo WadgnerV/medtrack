@@ -193,43 +193,119 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     setLoaded(true)
   }
 
-  function printDoc(type) {
+  async function printDoc(type) {
     const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' }) : '—'
     const age = dob => {
       if (!dob) return null
       const d = new Date(dob), n = new Date()
       return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0)
     }
-    const titles = { receta: 'RECETA MÉDICA', imagenes: 'SOLICITUD DE IMÁGENES MÉDICAS', laboratorios: 'SOLICITUD DE EXÁMENES DE LABORATORIO' }
+
+    // Consecutivo
+    let consecutive = ''
+    if (type === 'receta' && profile?.clinic_id) {
+      const { data: consData } = await supabase.rpc('get_next_prescription_number', { p_clinic_id: profile.clinic_id })
+      if (consData) consecutive = consData
+    }
+
+    const titles = { receta: 'Receta médica', imagenes: 'Solicitud de imágenes médicas', laboratorios: 'Solicitud de exámenes de laboratorio' }
     const content_map = { receta: form.tratamiento, imagenes: form.imagenes, laboratorios: form.laboratorios }
     const body = content_map[type] || ''
     const lines = body.split('\n').filter(Boolean)
-    const itemsHtml = lines.map(l => `<div style="margin-bottom:8px;font-size:14pt;">${l}</div>`).join('')
+    const doctorName = `${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}`
+    const clinicName = clinicSettings?.clinic_name || 'Clínica'
+    const clinicAddress = [clinicSettings?.address, clinicSettings?.canton, clinicSettings?.province].filter(Boolean).join(', ')
+    const clinicPhone = clinicSettings?.phone || ''
+    const pName = `${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}`.trim()
+
+    const itemsHtml = type === 'receta'
+      ? lines.map((l, i) => {
+          const parts = l.split('|')
+          return `<div style="display:flex;gap:12px;margin-bottom:14px;">
+            <div style="width:20px;height:20px;background:#1D9E75;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10pt;font-weight:700;flex-shrink:0;margin-top:2px;">${i+1}</div>
+            <div><div style="font-size:12pt;font-weight:700;color:#1a1a1a;">${parts[0]||''}</div>${parts[1]?`<div style="font-size:10pt;color:#888;margin-top:1px;">${parts[1]}</div>`:''}</div>
+          </div>`
+        }).join('')
+      : lines.map((l, i) => `<div style="display:flex;gap:10px;margin-bottom:10px;font-size:11pt;">
+          <span style="color:#1D9E75;font-weight:700;">${i+1}.</span><span>${l}</span>
+        </div>`).join('')
+
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titles[type]}</title>
-    <style>body{font-family:Arial,sans-serif;margin:20mm;color:#222;font-size:13pt;} h1{font-size:20pt;color:#1a3a5c;margin:0 0 4px;} .doc-title{font-size:22pt;font-weight:900;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:0.08em;border-bottom:3px solid #1a3a5c;padding-bottom:10px;margin-bottom:20px;} .sub{font-size:12pt;color:#666;margin-bottom:16px;} .divider{border:none;border-top:1px solid #e2e8f0;margin:16px 0;} .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:8px;} .col-block{} .col-label{font-size:10pt;color:#888;margin-bottom:2px;} .col-value{font-size:12pt;color:#222;font-weight:500;border-bottom:1px solid #e2e8f0;padding-bottom:3px;} .section{font-size:13pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #1a3a5c;padding-bottom:4px;margin:20px 0 12px;} .sign{margin-top:48px;text-align:center;} .sign-line{border-top:1px solid #1a3a5c;width:260px;margin:0 auto 6px;} .sign-name{font-size:13pt;font-weight:700;color:#1a3a5c;} .footer{margin-top:32px;font-size:10pt;color:#aaa;font-style:italic;border-top:1px solid #eee;padding-top:8px;}</style>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', Arial, sans-serif; color: #1a1a1a; background: white; }
+      .page { max-width: 720px; margin: 0 auto; padding: 0; }
+      .header { text-align: center; padding: 24px 40px 16px; border-bottom: 3px solid #1D9E75; }
+      .clinic-name { font-size: 22pt; font-weight: 700; color: #085041; }
+      .clinic-sub { font-size: 10pt; color: #888; margin-top: 3px; }
+      .consecutive { font-size: 9pt; color: #1D9E75; font-weight: 600; letter-spacing: 0.06em; margin-top: 6px; }
+      .doctor-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 40px; background: #f8fffe; border-bottom: 0.5px solid #eee; }
+      .doctor-name { font-size: 11pt; font-weight: 700; color: #085041; }
+      .doctor-detail { font-size: 9pt; color: #888; margin-top: 1px; }
+      .body { padding: 20px 40px 28px; }
+      .patient-box { background: #f8fffe; border: 1px solid #E1F5EE; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+      .field-label { font-size: 8pt; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+      .field-value { font-size: 11pt; font-weight: 500; color: #1a1a1a; margin-top: 1px; }
+      .section-title { font-size: 9pt; color: #1D9E75; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin-bottom: 14px; padding-bottom: 5px; border-bottom: 1.5px solid #E1F5EE; }
+      .divider { border: none; border-top: 1px solid #f0f0f0; margin: 16px 0; }
+      .sig-area { display: flex; justify-content: flex-end; margin-top: 36px; }
+      .sig-box { text-align: center; width: 200px; }
+      .sig-space { height: 40px; }
+      .sig-line { border-top: 1px solid #1D9E75; padding-top: 8px; }
+      .sig-name { font-size: 10pt; font-weight: 700; color: #085041; }
+      .sig-detail { font-size: 8pt; color: #888; margin-top: 2px; }
+      .footer { border-top: 1px solid #eee; padding: 8px 40px; display: flex; justify-content: space-between; align-items: center; }
+      .footer-clinic { font-size: 10pt; font-weight: 700; color: #1D9E75; }
+      .footer-sub { font-size: 8pt; color: #aaa; }
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style>
     </head><body>
-    <div class="doc-title">${titles[type]}</div>
-    <h1>${clinicSettings?.clinic_name || 'Clínica'}</h1>
-    <div class="sub">Fecha: ${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
-    <hr class="divider">
-    <div class="section">Datos del paciente</div>
-    <div class="two-col">
-      <div class="col-block"><div class="col-label">Nombre completo</div><div class="col-value">${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}</div></div>
-      <div class="col-block"><div class="col-label">Identificación</div><div class="col-value">${patient?.id_number||'—'}</div></div>
+    <div class="page">
+      <div class="header">
+        <div class="clinic-name">${clinicName}</div>
+        <div class="clinic-sub">${clinicAddress}${clinicPhone ? ' · ' + clinicPhone : ''}</div>
+        ${consecutive ? `<div class="consecutive">N° Consecutivo: ${consecutive}</div>` : ''}
+      </div>
+      <div class="doctor-bar">
+        <div>
+          <div class="doctor-name">${doctorName}</div>
+          <div class="doctor-detail">${profile?.specialty || ''}</div>
+        </div>
+        <div style="text-align:right">
+          ${profile?.medical_code ? `<div class="doctor-detail">Cédula Prof. ${profile.medical_code}</div>` : ''}
+          <div class="doctor-detail">${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="patient-box">
+          <div><div class="field-label">Paciente</div><div class="field-value">${pName}</div></div>
+          <div><div class="field-label">Identificación</div><div class="field-value">${patient?.id_number||'—'}</div></div>
+          <div><div class="field-label">Fecha de nacimiento</div><div class="field-value">${patient?.birth_date ? fmtDate(patient.birth_date) : '—'}</div></div>
+          <div><div class="field-label">Edad</div><div class="field-value">${patient?.birth_date ? age(patient.birth_date) + ' años' : '—'}</div></div>
+        </div>
+        <div class="section-title">${titles[type]}</div>
+        ${itemsHtml}
+        <div class="divider"></div>
+        <div class="sig-area">
+          <div class="sig-box">
+            <div class="sig-space"></div>
+            <div class="sig-line">
+              <div class="sig-name">${doctorName}</div>
+              ${profile?.medical_code ? `<div class="sig-detail">Cédula Prof. ${profile.medical_code}</div>` : ''}
+              <div class="sig-detail">Firma y sello</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div>
+          <div class="footer-clinic">${clinicName}.</div>
+          <div class="footer-sub">${clinicAddress}</div>
+        </div>
+        <div class="footer-sub">Documento generado por MedTrack</div>
+      </div>
     </div>
-    <div class="two-col">
-      <div class="col-block"><div class="col-label">Fecha de nacimiento</div><div class="col-value">${patient?.birth_date ? fmtDate(patient.birth_date) : '—'}</div></div>
-      <div class="col-block"><div class="col-label">Edad</div><div class="col-value">${patient?.birth_date ? age(patient.birth_date) + ' años' : '—'}</div></div>
-    </div>
-    <hr class="divider">
-    <div class="section">${titles[type]}</div>
-    <div class="two-col">
-      <div class="col-block"><div class="col-label">Prescrito / Solicitado por</div><div class="col-value">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</div></div>
-    </div>
-    <hr class="divider">
-    <div style="margin-top:16px;">${itemsHtml}</div>
-    <div class="sign"><div class="sign-line"></div><div class="sign-name">${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}</div><div style="font-size:10pt;color:#888;">Firma y sello</div></div>
-    <div class="footer">Documento generado por MedTrack. Información confidencial de uso médico exclusivo.</div>
     </body></html>`
     const w = window.open('', '_blank')
     w.document.write(html)
