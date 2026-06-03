@@ -421,7 +421,7 @@ export default function PatientDashboard() {
               {(() => {
                 const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
                 const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
-                const nextAppts = appts.filter(a => a.appointment_date >= new Date().toISOString().split('T')[0] && a.status !== 'cancelled').slice(0,1)
+                const nextAppts = nextAppt ? [nextAppt] : []
                 if (nextAppts.length === 0) return (
                   <div onClick={() => window.open('https://wa.me/50660464569?text=Hola,%20quisiera%20agendar%20una%20cita%20en%20Glow%20Clinic', '_blank')}
                     style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
