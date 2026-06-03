@@ -318,7 +318,7 @@ export default function PatientDashboard() {
           const hasModules = careModules.length > 0
           const sortedModules = hasModules ? [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type)) : []
           const items = [
-            { label:'Inicio', key:'inicio' },
+            { label:'Inicio', key:'inicio', icon:'ti-home' },
             ...sortedModules.map(m => ({
               label: MODULE_LABELS[m.module_type] || m.module_type,
               key: 'modulo_' + m.module_type,
@@ -458,20 +458,20 @@ export default function PatientDashboard() {
                   const lastMsg = msgs.filter(m => m.sender_id !== patient?.profile_id)[0]
                   return lastMsg ? (
                     <div onClick={() => setView('chat')} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', cursor:'pointer', borderLeft:`3px solid ${G}` }}>
-                      <div style={{ fontSize:11, color:'#999', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>Último mensaje</div>
+                      <div style={{ fontSize:11, color:'#999', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}><i className="ti ti-message" style={{ fontSize:13 }} aria-hidden="true"></i> Último mensaje</div>
                       <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{lastMsg.sender?.first_name} {lastMsg.sender?.last_name}</div>
                       <div style={{ fontSize:12, color:'#666', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lastMsg.content}</div>
                       <div style={{ fontSize:11, color:'#bbb', marginTop:4 }}>{new Date(lastMsg.created_at).toLocaleDateString('es-CR')}</div>
                     </div>
                   ) : (
                     <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', borderLeft:`3px solid ${G}` }}>
-                      <div style={{ fontSize:11, color:'#999', marginBottom:6 }}>Último mensaje</div>
+                      <div style={{ fontSize:11, color:'#999', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}><i className="ti ti-message" style={{ fontSize:13 }} aria-hidden="true"></i> Último mensaje</div>
                       <div style={{ fontSize:13, color:'#bbb' }}>Sin mensajes aún</div>
                     </div>
                   )
                 })()}
                 <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
-                  <div style={{ fontSize:11, color:'#999', marginBottom:6 }}>Documentos</div>
+                  <div style={{ fontSize:11, color:'#999', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}><i className="ti ti-files" style={{ fontSize:13 }} aria-hidden="true"></i> Documentos</div>
                   <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Expediente digital</div>
                   <div style={{ fontSize:12, color:'#666', marginTop:2 }}>Documentos y consentimientos</div>
                 </div>
@@ -931,7 +931,7 @@ export default function PatientDashboard() {
                 const sortedMods = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
 
                 const sections = [
-                  { label:'Inicio', key:'inicio' },
+                  { label:'Inicio', key:'inicio', icon:'ti-home' },
                   ...sortedMods.map(m => ({ label: MODULE_LABELS[m.module_type], key:'modulo_'+m.module_type, color: MODULE_COLORS[m.module_type] })),
                   { label:'Chat con mi médico', key:'chat' },
                 ]
