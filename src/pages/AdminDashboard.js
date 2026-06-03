@@ -1949,7 +1949,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose, initialDat
   const [form, setForm] = useState(initialData || { prefix:'', profession:'', firstName:'', lastName:'', email:'', password:'', specialty:'', medicalCode:'', doctorId:'', birthDate:'', height:'', sex:'', province:'', canton:'', idNumber:'', phone:'' })
   useEffect(() => { if (initialData) setForm(initialData) }, [initialData])
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
-  function handleSave() { console.log('onSave called', form); onSave(form) }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{initialData ? (type === 'doctor' ? 'Editar personal' : 'Editar paciente') : (type === 'doctor' ? 'Nuevo personal' : 'Nuevo paciente')}</div>
@@ -2089,7 +2089,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose, initialDat
       </div>
       <div style={{ display:'flex', gap:8 }}>
         <button style={s.btnCancel} onClick={onClose}>Cancelar</button>
-        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={handleSave}>{saving ? 'Guardando...' : initialData ? 'Guardar cambios' : 'Crear usuario'}</button>
+        <button style={{ ...s.btnPrimary, flex:1, opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : initialData ? 'Guardar cambios' : 'Crear usuario'}</button>
       </div>
     </>
   )
@@ -2140,7 +2140,7 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
     else if (mods.length === 0) setForm(p => ({ ...p, moduleType: '' }))
   }
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
-  function handleSave() { console.log('onSave called', form); onSave(form) }
+
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
   return (
     <>
@@ -2246,7 +2246,7 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
 function LibraryForm({ saving, onSave, onClose }) {
   const [form, setForm] = useState({ type:'task', name:'', category:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
-  function handleSave() { console.log('onSave called', form); onSave(form) }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nuevo item de biblioteca</div>
@@ -2468,7 +2468,7 @@ function MeasurementForm({ saving, onSave, onClose, measurement }) {
     visceral: measurement?.visceral_fat_pts || ''
   })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
-  function handleSave() { console.log('onSave called', form); onSave(form) }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>{measurement ? 'Editar medicion' : 'Registrar medicion'}</div>
@@ -2490,7 +2490,7 @@ function MeasurementForm({ saving, onSave, onClose, measurement }) {
 function GoalForm({ saving, onSave, onClose }) {
   const [form, setForm] = useState({ name:'', initial:'', target:'', deadline:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
-  function handleSave() { console.log('onSave called', form); onSave(form) }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Nuevo objetivo</div>
@@ -2553,7 +2553,7 @@ function TaskPickerForm({ library, saving, onSave, onClose }) {
 function TreatmentForm({ library, saving, onSave, onClose }) {
   const [form, setForm] = useState({ product:'', dose:'', zone:'', session:'', date: new Date().toISOString().split('T')[0], notes:'' })
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
-  function handleSave() { console.log('onSave called', form); onSave(form) }
+
   return (
     <>
       <div style={{ fontSize:15, fontWeight:500, marginBottom:16 }}>Registrar tratamiento</div>

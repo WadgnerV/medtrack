@@ -272,7 +272,7 @@ export default function SuperAdminDashboard() {
     setSaving(false)
   }
 
-  async function saveAdmin() { console.log("saveAdmin called", form)
+  async function saveAdmin() {
     setSaving(true)
     const { error: updateErr } = await supabase.from('profiles').update({
       first_name: form.first_name,
@@ -284,8 +284,7 @@ export default function SuperAdminDashboard() {
       is_active: form.is_active,
       is_health_professional: isHealthPro(form.profession),
     }).eq('id', form.id)
-    if (updateErr) { console.error('Update error:', updateErr); alert('Error: ' + updateErr.message); setSaving(false); return }
-    console.log('Update OK')
+    if (updateErr) { alert('Error: ' + updateErr.message); setSaving(false); return }
     // Actualizar sucursal si es branch_admin
     if ((form.role === 'branch_admin' || form.role === 'admin') && form.branch_id) {
       await supabase.from('branch_staff').upsert({ profile_id: form.id, branch_id: form.branch_id }, { onConflict: 'profile_id' })
@@ -981,7 +980,7 @@ export default function SuperAdminDashboard() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Nombre</label>
-                <input value={form.first_name||''} onChange={e => { console.log('first_name changed', e.target.value); f('first_name')(e) }} style={s.input} />
+                <input value={form.first_name||''} onChange={f('first_name')} style={s.input} />
               </div>
               <div>
                 <label style={s.fieldLabel}>Apellido</label>
@@ -1000,7 +999,7 @@ export default function SuperAdminDashboard() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
               <div>
                 <label style={s.fieldLabel}>Prefijo</label>
-                <select value={form.prefix||''} onChange={e => { console.log('prefix changed to', e.target.value); setForm(p=>({...p, prefix:e.target.value})) }} style={s.input}>
+                <select value={form.prefix||''} onChange={e => setForm(p=>({...p, prefix:e.target.value}))} style={s.input}>
                   <option value="">Sin prefijo</option>
                   <option value="Dr.">Dr.</option>
                   <option value="Dra.">Dra.</option>
