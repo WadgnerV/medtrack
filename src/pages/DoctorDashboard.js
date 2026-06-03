@@ -1010,26 +1010,37 @@ export default function DoctorDashboard() {
                         if (type === 'hr') { if (v > 120 || v < 50) return '🔴'; if (v > 100 || v < 60) return '⚠️' }
                         return null
                       }
+                      const [expanded, setExpanded] = React.useState(false)
+                      const hasAlerts = n.pas || n.spo2 || n.glucose || n.heart_rate
                       return (
-                        <div key={n.id} style={{ padding:'12px 0', borderBottom:'1px solid #ebebeb' }}>
-                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                            <div style={{ fontSize:14, color:'#999' }}>{n.note_date} · {n.visit_type}</div>
-                            <div style={{ display:'flex', gap:6 }}>
-                              <button style={{ fontSize:14, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
-                                onClick={() => { setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>
-                              <button style={{ fontSize:14, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
-                                onClick={() => { if (window.confirm('Eliminar esta nota clinica?')) deleteNote(n.id) }}>Eliminar</button>
+                        <div key={n.id} style={{ borderBottom:'1px solid #ebebeb' }}>
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', cursor:'pointer' }} onClick={() => setExpanded(x => !x)}>
+                            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                              <span style={{ fontSize:13, color:'#999' }}>{n.note_date}</span>
+                              {n.visit_type && <span style={{ fontSize:12, padding:'1px 8px', borderRadius:20, background:'#f0f0f0', color:'#666' }}>{n.visit_type}</span>}
+                              {hasAlerts && <span style={{ fontSize:12 }}>{noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || noteAlert('spo2',n.spo2) || noteAlert('glucose',n.glucose) || noteAlert('hr',n.heart_rate) || ''}</span>}
+                            </div>
+                            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                              <button style={{ fontSize:13, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                                onClick={e => { e.stopPropagation(); setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>
+                              <button style={{ fontSize:13, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                                onClick={e => { e.stopPropagation(); if (window.confirm('Eliminar esta nota clinica?')) deleteNote(n.id) }}>Eliminar</button>
+                              <span style={{ fontSize:12, color:'#bbb', marginLeft:4 }}>{expanded ? '▲' : '▼'}</span>
                             </div>
                           </div>
-                          {(n.pas || n.spo2 || n.glucose || n.heart_rate) && (
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                              {n.pas && n.pad && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''} {noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || ''}</span>}
-                              {n.spo2 && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'} {noteAlert('spo2',n.spo2) || ''}</span>}
-                              {n.glucose && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>Glicemia: {n.glucose} mg/dL {noteAlert('glucose',n.glucose) || ''}</span>}
-                              {n.heart_rate && <span style={{ fontSize:14, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>FC: {n.heart_rate} lpm {noteAlert('hr',n.heart_rate) || ''}</span>}
+                          {expanded && (
+                            <div style={{ paddingBottom:12 }}>
+                              {hasAlerts && (
+                                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                                  {n.pas && n.pad && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>TA: {n.pas}/{n.pad} mmHg{n.pam ? ' · PAM: ' + n.pam : ''} {noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || ''}</span>}
+                                  {n.spo2 && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>SpO2: {n.spo2}% {n.o2_device && n.o2_device !== 'aa' ? '(' + n.o2_device + (n.o2_flow ? ' ' + n.o2_flow + ' L/min' : '') + ')' : '(aa)'} {noteAlert('spo2',n.spo2) || ''}</span>}
+                                  {n.glucose && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>Glicemia: {n.glucose} mg/dL {noteAlert('glucose',n.glucose) || ''}</span>}
+                                  {n.heart_rate && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#444' }}>FC: {n.heart_rate} lpm {noteAlert('hr',n.heart_rate) || ''}</span>}
+                                </div>
+                              )}
+                              {n.content && <div style={{ fontSize:14, color:'#444', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{n.content}</div>}
                             </div>
                           )}
-                          {n.content && <div style={{ fontSize:14, color:'#444', lineHeight:1.6 }}>{n.content}</div>}
                         </div>
                       )
                     })}
