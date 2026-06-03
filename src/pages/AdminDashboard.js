@@ -1022,26 +1022,29 @@ export default function AdminDashboard() {
       )}
 
       {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
-        <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
+        <div style={{ padding:'14px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+          </div>
           <div>
-            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
-            
+            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
+            <div style={{ fontSize:10, color:'#999' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
           </div>
         </div>
 
         {[
-          { section:'Clinica', items:[{ icon:'C', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'R', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'S', label:'Sucursales', key:'sucursales' }] : [])] },
-          { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'P', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'P', label:'Pacientes', key:'pacientes', badge:patients.length }] },
-          ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'B', label:'Biblioteca', key:'biblioteca' }, { icon:'K', label:'Permisos', key:'permisos' }, { icon:'G', label:'Configuracion', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'G', label:'Configuracion', key:'config' }] }]),
+          { section:'Clínica', items:[{ icon:'ti-calendar', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'ti-chart-bar', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'ti-building', label:'Sucursales', key:'sucursales' }] : [])] },
+          { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'ti-users', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'ti-user-heart', label:'Pacientes', key:'pacientes', badge:patients.length }] },
+          ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'ti-books', label:'Biblioteca', key:'biblioteca' }, { icon:'ti-shield-check', label:'Permisos', key:'permisos' }, { icon:'ti-settings', label:'Configuración', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'ti-settings', label:'Configuración', key:'config' }] }]),
         ].map(group => (
           <div key={group.section}>
-            <div style={{ fontSize:14, fontWeight:500, color:'#bbb', letterSpacing:'0.08em', textTransform:'uppercase', padding:'10px 14px 4px' }}>{group.section}</div>
+            <div style={{ fontSize:10, color:'#bbb', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>
             {group.items.map(item => (
               <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
-                style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:14, borderLeft: view === item.key ? ('2px solid ' + G) : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? '#0F6E56' : '#666', fontWeight: view === item.key ? 500 : 400 }}>
+                style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#555', fontWeight: view === item.key ? 500 : 400 }}>
+                <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view === item.key ? G : '#999' }} aria-hidden="true"></i>
                 {item.label}
-                {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:14, background: item.badgeRed ? '#D85A30' : G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+                {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
               </div>
             ))}
           </div>
@@ -1057,24 +1060,52 @@ export default function AdminDashboard() {
           <div onClick={() => setShowDrawer(false)}
             style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200 }} />
           <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
-            <div style={{ padding:'16px 14px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a' }}>MedTrack</div>
-              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+            <div style={{ padding:'14px', borderBottom:'0.5px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:26, height:26, background:G, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:14 }} aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
+                  <div style={{ fontSize:10, color:'#999' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
+                </div>
+              </div>
+              <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>
             </div>
             <div style={{ flex:1, padding:'8px 0' }}>
+              <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 16px 3px' }}>Clínica</div>
               {[
-                { label:'Dashboard', key:'dashboard', icon:'📊' },
-                ...(clinicPlan !== 'basic' ? [{ label:'Personal', key:'medicos', icon:'👥' }] : []),
-                { label:'Pacientes', key:'pacientes', icon:'👥' },
-                { label:'Calendario', key:'calendario', icon:'📅' },
-                ...(clinicPlan !== 'basic' ? [{ label:'Reportes', key:'reportes', icon:'📈' }] : []),
-                ...(clinicPlan !== 'basic' ? [{ label:'Biblioteca', key:'biblioteca', icon:'📚' }] : []),
-                ...(clinicPlan !== 'basic' ? [{ label:'Permisos', key:'permisos', icon:'🔑' }] : []),
-                { label:'Configuración', key:'config', icon:'⚙️' },
+                { label:'Calendario', key:'calendario', icon:'ti-calendar' },
+                ...(clinicPlan !== 'basic' ? [{ label:'Reportes', key:'reportes', icon:'ti-chart-bar' }] : []),
+                ...(isClinicAdmin ? [{ label:'Sucursales', key:'sucursales', icon:'ti-building' }] : []),
               ].map(item => (
                 <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', cursor:'pointer', background: view === item.key ? '#E1F5EE' : 'transparent', borderLeft: view === item.key ? `3px solid ${G}` : '3px solid transparent', color: view === item.key ? G : '#444', fontWeight: view === item.key ? 600 : 400, fontSize:14 }}>
-                  <span>{item.icon}</span>{item.label}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
+                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
+                  {item.label}
+                </div>
+              ))}
+              <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 16px 3px' }}>Usuarios</div>
+              {[
+                ...(clinicPlan !== 'basic' ? [{ label:'Personal', key:'medicos', icon:'ti-users' }] : []),
+                { label:'Pacientes', key:'pacientes', icon:'ti-user-heart' },
+              ].map(item => (
+                <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
+                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
+                  {item.label}
+                </div>
+              ))}
+              <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 16px 3px' }}>Sistema</div>
+              {[
+                ...(clinicPlan !== 'basic' ? [{ label:'Biblioteca', key:'biblioteca', icon:'ti-books' }] : []),
+                ...(clinicPlan !== 'basic' ? [{ label:'Permisos', key:'permisos', icon:'ti-shield-check' }] : []),
+                { label:'Configuración', key:'config', icon:'ti-settings' },
+              ].map(item => (
+                <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
+                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
+                  {item.label}
                 </div>
               ))}
             </div>
