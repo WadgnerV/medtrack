@@ -65,6 +65,38 @@ function parseNoteText(text) {
   return form
 }
 
+function CollapsibleNote({ n, color, onEdit, onDelete }) {
+  const [expanded, setExpanded] = React.useState(false)
+  const dName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
+  const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+  return (
+    <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, marginBottom:8, overflow:'hidden' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', cursor:'pointer' }} onClick={() => setExpanded(x => !x)}>
+        <div>
+          <div style={{ fontSize:13, fontWeight:600, color: color }}>{dName}</div>
+          <div style={{ fontSize:11, color:'#aaa' }}>{fecha}</div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          <button onClick={e => { e.stopPropagation(); onEdit(n) }}
+            style={{ padding:'3px 10px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>
+            Editar
+          </button>
+          <button onClick={e => { e.stopPropagation(); onDelete(n.id) }}
+            style={{ padding:'3px 10px', border:'1px solid #D85A30', borderRadius:8, cursor:'pointer', fontSize:12, color:'#D85A30', background:'#fff' }}>
+            Eliminar
+          </button>
+          <span style={{ fontSize:12, color:'#bbb', marginLeft:2 }}>{expanded ? '▲' : '▼'}</span>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ fontSize:12, color:'#444', lineHeight:1.7, whiteSpace:'pre-wrap', background:'#f8f8f8', borderRadius:'0 0 12px 12px', padding:'10px 14px', borderTop:'0.5px solid #eee' }}>
+          {n.note_text}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ClinicalNoteForm({ patientId, moduleType, color, patient, profile }) {
   const [templates, setTemplates] = useState([])
   const [showTemplates, setShowTemplates] = useState(false)
@@ -450,33 +482,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
         <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
       ) : notes.length === 0 ? (
         <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas clínicas registradas.</div>
-      ) : notes.map(n => (
-        <div key={n.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:10 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-            <div>
-              <div style={{ fontSize:13, fontWeight:600, color: G }}>
-                {n.author ? `${n.author.first_name} ${n.author.last_name}` : 'Médico'}
-              </div>
-              <div style={{ fontSize:11, color:'#aaa' }}>
-                {new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:6 }}>
-              <button onClick={() => startEdit(n)}
-                style={{ padding:'4px 12px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>
-                Editar
-              </button>
-              <button onClick={() => deleteNote(n.id)}
-                style={{ padding:'4px 12px', border:'1px solid #D85A30', borderRadius:8, cursor:'pointer', fontSize:12, color:'#D85A30', background:'#fff' }}>
-                Eliminar
-              </button>
-            </div>
-          </div>
-          <div style={{ fontSize:11, color:'#444', lineHeight:1.7, whiteSpace:'pre-wrap', background:'#f8f8f8', borderRadius:8, padding:'10px 12px' }}>
-            {n.note_text}
-          </div>
-        </div>
-      ))}
+      ) : notes.map(n => <CollapsibleNote key={n.id} n={n} color={G} onEdit={startEdit} onDelete={deleteNote} />)}
     </div>
   )
 }
