@@ -336,24 +336,33 @@ export default function PatientDashboard() {
         })()}
 
         {/* Items PRO */}
-        {profile?.plan === 'pro' && [
-          { label:'Nutrición', key:'nutricion', pro: true },
-          { label:'Bienestar', key:'bienestar', pro: true },
-          ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem', pro: true }] : []),
-          ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc', pro: true }] : []),
-        ].map(item => (
-          <div key={item.key} onClick={() => setView(item.key)}
-            style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${G}` : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#666', fontWeight: view === item.key ? 500 : 400 }}>
-            {item.label}
-            <span style={{ fontSize:10, color:'#c8960c', marginLeft:'auto' }}>★</span>
-          </div>
-        ))}
+        {profile?.plan === 'pro' && <>
+          <div style={{ fontSize:10, color:'#bbb', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>PRO</div>
+          {[
+            { label:'Nutrición', key:'nutricion' },
+            { label:'Bienestar', key:'bienestar' },
+            ...(patient?.sex === 'female' ? [{ label:'Salud femenina', key:'saludfem' }] : []),
+            ...(patient?.sex === 'male' ? [{ label:'Salud masculina', key:'saludmasc' }] : []),
+          ].map(item => (
+            <div key={item.key} onClick={() => setView(item.key)}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', cursor:'pointer', fontSize:13, borderLeft: view === item.key ? `2px solid ${G}` : '2px solid transparent', background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#666', fontWeight: view === item.key ? 500 : 400 }}>
+              {item.label}
+              <span style={{ fontSize:10, color:'#c8960c', marginLeft:'auto' }}>★</span>
+            </div>
+          ))}
+        </>}
 
-        {/* Botón PRO */}
-        <div onClick={() => setView('pro')}
-          style={{ margin:'12px 10px', padding:'9px 14px', borderRadius:10, cursor:'pointer', background: view === 'pro' ? '#0F6E56' : 'linear-gradient(135deg, #0F6E56, #1D9E75)', color:'#fff', fontSize:13, fontWeight:600, textAlign:'center', boxShadow:'0 2px 8px rgba(15,110,86,0.3)' }}>
-          {profile?.plan === 'pro' ? '⭐ Mi Plan PRO' : '⚡ Activar PRO — $4.99/mes'}
-        </div>
+        {/* Badge PRO discreto */}
+        {profile?.plan === 'pro' && (
+          <div style={{ margin:'8px 12px', padding:'5px 10px', borderRadius:20, background:'#E1F5EE', display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>★ Plan PRO activo</span>
+          </div>
+        )}
+        {profile?.plan !== 'pro' && (
+          <div onClick={() => setView('pro')} style={{ margin:'8px 12px', padding:'5px 10px', borderRadius:20, background:'#E1F5EE', cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>⚡ Activar PRO</span>
+          </div>
+        )}
 
         <UserMenu />
       </div>}
@@ -396,37 +405,26 @@ export default function PatientDashboard() {
         <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
 
           {view === 'inicio' && (
-            <div>
-              {/* Citas próximas por módulo */}
+            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+              {/* Saludo */}
+              <div style={{ marginBottom:4 }}>
+                <div style={{ fontSize:17, fontWeight:500, color:'#1a1a1a' }}>
+                  Bienvenida, {patient?.profile?.first_name || 'paciente'}
+                </div>
+                <div style={{ fontSize:12, color:'#999', marginTop:2 }}>
+                  {new Date().toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })} · {'MedTrack'}
+                </div>
+              </div>
+
+              {/* Próxima cita */}
               {(() => {
-                const MODULE_COLORS = {
-                  integral:     '#1a5c8a',
-                  metabolica:   '#0F6E56',
-                  estetica:     '#8e44ad',
-                  fisioterapia: '#e67e22',
-                  enfermeria:   '#c0392b',
-                }
-                const MODULE_LABELS = {
-                  integral:     'Medicina integral',
-                  metabolica:   'Medicina metabólica',
-                  estetica:     'Medicina estética',
-                  fisioterapia: 'Fisioterapia',
-                  enfermeria:   'Enfermería',
-                }
-                // Mapear visit_type a module_type
-                function getModuleFromVisit(visitType) {
-                  if (!visitType) return null
-                  const v = visitType.toLowerCase()
-                  if (v.includes('integral') || v.includes('general') || v.includes('seguimiento') || v.includes('consulta')) return 'integral'
-                  if (v.includes('metab')) return 'metabolica'
-                  if (v.includes('estet') || v.includes('estét')) return 'estetica'
-                  if (v.includes('fisio')) return 'fisioterapia'
-                  if (v.includes('enferm')) return 'enfermeria'
-                  return null
-                }
+                const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
+                const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                const nextAppts = appts.filter(a => a.appointment_date >= new Date().toISOString().split('T')[0] && a.status !== 'cancelled').slice(0,1)
                 if (nextAppts.length === 0) return (
                   <div onClick={() => window.open('https://wa.me/50660464569?text=Hola,%20quisiera%20agendar%20una%20cita%20en%20Glow%20Clinic', '_blank')}
-                    style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    style={{ background:'#f8f8f8', borderRadius:12, padding:'14px 16px', cursor:'pointer', border:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                     <div>
                       <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Sin cita agendada</div>
                       <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Tocá para contactarnos por WhatsApp</div>
@@ -434,54 +432,69 @@ export default function PatientDashboard() {
                     <span style={{ fontSize:20 }}>💬</span>
                   </div>
                 )
+                const appt = nextAppts[0]
+                const apptDate = new Date(appt.appointment_date + 'T12:00:00')
+                const moduleType = appt.module_type
+                const color = MODULE_COLORS[moduleType] || G
+                const docPrefix = appt.doctor?.prefix || (appt.doctor?.sex === 'female' ? 'Dra.' : 'Dr.')
                 return (
-                  <div style={{ marginBottom:12 }}>
-                    <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Próximas citas</div>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                      {nextAppts.map((appt, i) => {
-                        const moduleType = appt.module_type || appt._resolvedModule || getModuleFromVisit(appt.visit_type)
-                        const color = MODULE_COLORS[moduleType] || G
-                        const modLabel = MODULE_LABELS[moduleType] || appt.visit_type
-                        const docTitle = appt.doctor?.sex === 'female' ? 'Dra.' : 'Dr.'
-                        return (
-                          <div key={i} style={{ background: color+'12', border:`1.5px solid ${color}30`, borderLeft:`4px solid ${color}`, borderRadius:12, padding:'12px 14px' }}>
-                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
-                              <div style={{ fontSize:12, fontWeight:700, color, textTransform:'uppercase', letterSpacing:'0.04em' }}>{modLabel}</div>
-                              <div style={{ fontSize:11, color:'#888' }}>{new Date(appt.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'short', day:'numeric', month:'short' })}</div>
-                            </div>
-                            <div style={{ fontSize:14, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>
-                              {appt.appointment_time?.substring(0,5)} hrs
-                            </div>
-                            {appt.doctor && (
-                              <div style={{ fontSize:12, color:'#666' }}>{docTitle} {appt.doctor.first_name} {appt.doctor.last_name}{appt.doctor.specialty ? ` · ${appt.doctor.specialty}` : ''}</div>
-                            )}
-                          </div>
-                        )
-                      })}
+                  <div style={{ background:'#E1F5EE', border:'0.5px solid #9FE1CB', borderRadius:12, padding:'14px 16px', display:'flex', alignItems:'center', gap:14 }}>
+                    <div style={{ textAlign:'center', background:'#fff', borderRadius:8, padding:'6px 10px', minWidth:48 }}>
+                      <div style={{ fontSize:22, fontWeight:500, color:'#0F6E56', lineHeight:1 }}>{apptDate.getDate()}</div>
+                      <div style={{ fontSize:10, color:'#0F6E56' }}>{apptDate.toLocaleDateString('es-CR',{month:'short'})}</div>
                     </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:13, fontWeight:500, color:'#085041' }}>Cita · {MODULE_LABELS[moduleType] || appt.visit_type}</div>
+                      {appt.doctor && <div style={{ fontSize:11, color:'#0F6E56', marginTop:2 }}>{docPrefix} {appt.doctor.first_name} {appt.doctor.last_name}</div>}
+                    </div>
+                    <div style={{ fontSize:13, fontWeight:500, color:'#085041' }}>{appt.appointment_time?.substring(0,5)} hrs</div>
                   </div>
                 )
               })()}
 
-              {/* Profesionales asignados */}
+              {/* Último mensaje + Documentos */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                {(() => {
+                  const lastMsg = msgs.filter(m => m.sender_id !== patient?.profile_id)[0]
+                  return lastMsg ? (
+                    <div onClick={() => setView('chat')} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', cursor:'pointer', borderLeft:`3px solid ${G}` }}>
+                      <div style={{ fontSize:11, color:'#999', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>Último mensaje</div>
+                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{lastMsg.sender?.first_name} {lastMsg.sender?.last_name}</div>
+                      <div style={{ fontSize:12, color:'#666', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lastMsg.content}</div>
+                      <div style={{ fontSize:11, color:'#bbb', marginTop:4 }}>{new Date(lastMsg.created_at).toLocaleDateString('es-CR')}</div>
+                    </div>
+                  ) : (
+                    <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', borderLeft:`3px solid ${G}` }}>
+                      <div style={{ fontSize:11, color:'#999', marginBottom:6 }}>Último mensaje</div>
+                      <div style={{ fontSize:13, color:'#bbb' }}>Sin mensajes aún</div>
+                    </div>
+                  )
+                })()}
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:11, color:'#999', marginBottom:6 }}>Documentos</div>
+                  <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Expediente digital</div>
+                  <div style={{ fontSize:12, color:'#666', marginTop:2 }}>Documentos y consentimientos</div>
+                </div>
+              </div>
+
+              {/* Mis profesionales */}
               {careModules.length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Mis profesionales</div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:12, fontWeight:500, color:'#888', marginBottom:10 }}>Mis profesionales</div>
+                  <div style={{ display:'flex', flexDirection:'column' }}>
                     {(() => {
                       const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
-                      const MODULE_LABELS = { integral:'Medicina integral', metabolica:'Medicina metabólica', estetica:'Medicina estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                      const MODULE_LABELS = { integral:'Integral', metabolica:'Metabólica', estetica:'Estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
                       const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
-                      return [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type)).map(mod => {
+                      return [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type)).map((mod, i, arr) => {
                         const color = MODULE_COLORS[mod.module_type] || G
+                        const docPrefix = mod.professional?.prefix || (mod.professional?.sex === 'female' ? 'Dra.' : 'Dr.')
                         return (
-                          <div key={mod.module_type} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            <div style={{ width:8, height:8, borderRadius:'50%', background:color, flexShrink:0 }} />
-                            <div style={{ fontSize:12, color:'#888', minWidth:130 }}>{MODULE_LABELS[mod.module_type]}</div>
+                          <div key={mod.module_type} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0', borderBottom: i < arr.length-1 ? '0.5px solid #f0f0f0' : 'none' }}>
+                            <div style={{ width:7, height:7, borderRadius:'50%', background:color, flexShrink:0 }} />
+                            <div style={{ fontSize:12, color:'#999', width:90, flexShrink:0 }}>{MODULE_LABELS[mod.module_type]}</div>
                             {mod.professional ? (
-                              <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>
-                                {mod.professional.sex === 'female' ? 'Dra.' : 'Dr.'} {mod.professional.first_name} {mod.professional.last_name}
-                              </div>
+                              <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{docPrefix} {mod.professional.first_name} {mod.professional.last_name}</div>
                             ) : (
                               <div style={{ fontSize:11, color:'#bbb' }}>Sin asignar</div>
                             )}
@@ -493,65 +506,37 @@ export default function PatientDashboard() {
                 </div>
               )}
 
-              {(() => {
-                const lastMsg = msgs.filter(m=>m.sender_id!==patient?.profile_id)[0]
-                return lastMsg ? (
-                  <div onClick={()=>setView('chat')} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, cursor:'pointer' }}>
-                    <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:8 }}>Último mensaje</div>
-                    <div style={{ fontSize:13, color:'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lastMsg.content}</div>
-                    <div style={{ fontSize:11, color:'#999', marginTop:4 }}>{new Date(lastMsg.created_at).toLocaleDateString('es-CR')}</div>
-                  </div>
-                ) : null
-              })()}
-              {/* Tareas pendientes */}
-              {tasks.filter(t=>!t.is_completed && t.status === 'pending').length > 0 && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Mis tareas pendientes</div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                    {tasks.filter(t=>t.status === 'pending').slice(0,4).map(t => (
-                      <div key={t.id} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <div style={{ width:7, height:7, borderRadius:'50%', background:G, flexShrink:0 }} />
-                        <div style={{ fontSize:13, color:'#333' }}>{t.title || t.description || 'Tarea'}</div>
+              {/* Tratamientos activos */}
+              {(treatments.length > 0 || aestheticProcedures.length > 0) && (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px' }}>
+                  <div style={{ fontSize:12, fontWeight:500, color:'#888', marginBottom:10 }}>Tratamientos activos</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    {(() => {
+                      const seen = new Set()
+                      return treatments.filter(t => {
+                        const key = (t.name || '').toLowerCase().trim()
+                        if (seen.has(key)) return false
+                        seen.add(key); return true
+                      }).slice(0,4).map(t => (
+                        <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                          <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:3 }}>{t.name || 'Tratamiento'}</div>
+                          {t.dosage && <div style={{ fontSize:11, color:'#666' }}>{t.dosage}</div>}
+                          {t.created_at && <div style={{ fontSize:11, color:'#999', marginTop:2 }}>{new Date(t.created_at).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
+                          <div style={{ display:'inline-block', fontSize:10, padding:'2px 7px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56', marginTop:4 }}>Médico</div>
+                        </div>
+                      ))
+                    })()}
+                    {aestheticProcedures.slice(0,2).map(t => (
+                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:10, padding:'10px 12px' }}>
+                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:3 }}>{t.product_name}</div>
+                        {t.appointment_date && <div style={{ fontSize:11, color:'#999' }}>{t.appointment_date}</div>}
+                        <div style={{ display:'inline-block', fontSize:10, padding:'2px 7px', borderRadius:20, background:'#EEEDFE', color:'#3C3489', marginTop:4 }}>Estética</div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Tratamientos activos + procedimientos estéticos */}
-              {(treatments.length > 0 || aestheticProcedures.length > 0) && (
-                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#555', marginBottom:10 }}>Tratamientos activos</div>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                    {(() => {
-                      // Solo el tratamiento más reciente por nombre
-                      const seen = new Set()
-                      const unique = treatments.filter(t => {
-                        const key = (t.name || '').toLowerCase().trim()
-                        if (seen.has(key)) return false
-                        seen.add(key); return true
-                      })
-                      return unique.slice(0,6)
-                    })().map(t => (
-                      <div key={t.id} style={{ background:'#f8f8f8', borderRadius:8, padding:'8px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>{t.name || 'Tratamiento'}</div>
-                        {t.dosage && <div style={{ fontSize:10, color:'#555', marginBottom:2 }}>{t.dosage}</div>}
-                        {t.created_at && <div style={{ fontSize:10, color:'#888' }}>{new Date(t.created_at).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
-                        <div style={{ fontSize:10, color:'#0F6E56', marginTop:2 }}>Médico</div>
-                        {t.doctor && <div style={{ fontSize:10, color:'#666' }}>{t.doctor.sex==='female'?'Dra.':'Dr.'} {t.doctor.first_name} {t.doctor.last_name}</div>}
-                      </div>
-                    ))}
-                    {aestheticProcedures.slice(0,6).map(p => (
-                      <div key={p.id} style={{ background:'#f0e8f8', borderRadius:8, padding:'8px 10px', flexBasis:'calc(33.33% - 6px)', minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:600, color:'#1a1a1a', marginBottom:3 }}>{p.procedure_name}</div>
-                        {p.procedure_date && <div style={{ fontSize:10, color:'#888' }}>{new Date(p.procedure_date+'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'})}</div>}
-                        <div style={{ fontSize:10, color:'#8e44ad', marginTop:1 }}>Estética</div>
-                        {p.doctor && <div style={{ fontSize:10, color:'#666' }}>{p.doctor.sex==='female'?'Dra.':'Dr.'} {p.doctor.first_name} {p.doctor.last_name}</div>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
