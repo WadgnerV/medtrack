@@ -1012,6 +1012,8 @@ export default function DoctorDashboard() {
                       }
                       const [expanded, setExpanded] = React.useState(false)
                       const hasAlerts = n.pas || n.spo2 || n.glucose || n.heart_rate
+                      const createdAt = n.created_at ? new Date(n.created_at) : new Date(n.note_date)
+                      const canEditNote = (Date.now() - createdAt.getTime()) < 24 * 60 * 60 * 1000
                       return (
                         <div key={n.id} style={{ borderBottom:'1px solid #ebebeb' }}>
                           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', cursor:'pointer' }} onClick={() => setExpanded(x => !x)}>
@@ -1021,10 +1023,11 @@ export default function DoctorDashboard() {
                               {hasAlerts && <span style={{ fontSize:12 }}>{noteAlert('pas',n.pas) || noteAlert('pad',n.pad) || noteAlert('spo2',n.spo2) || noteAlert('glucose',n.glucose) || noteAlert('hr',n.heart_rate) || ''}</span>}
                             </div>
                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                              <button style={{ fontSize:13, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
-                                onClick={e => { e.stopPropagation(); setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>
-                              <button style={{ fontSize:13, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
-                                onClick={e => { e.stopPropagation(); if (window.confirm('Eliminar esta nota clinica?')) deleteNote(n.id) }}>Eliminar</button>
+                              {canEditNote && <button style={{ fontSize:13, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                                onClick={e => { e.stopPropagation(); setModal('edit-note'); setModalData({ note:n }) }}>Editar</button>}
+                              {canEditNote && <button style={{ fontSize:13, padding:'2px 8px', borderRadius:6, border:'none', cursor:'pointer', background:'#FAECE7', color:'#D85A30' }}
+                                onClick={e => { e.stopPropagation(); if (window.confirm('Eliminar esta nota clinica?')) deleteNote(n.id) }}>Eliminar</button>}
+                              {!canEditNote && <span style={{ fontSize:11, color:'#bbb', fontStyle:'italic' }}>Bloqueada</span>}
                               <span style={{ fontSize:12, color:'#bbb', marginLeft:4 }}>{expanded ? '▲' : '▼'}</span>
                             </div>
                           </div>

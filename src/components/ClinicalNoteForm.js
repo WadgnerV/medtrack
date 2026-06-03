@@ -69,6 +69,8 @@ function CollapsibleNote({ n, color, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false)
   const dName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
   const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+  const createdAt = n.created_at ? new Date(n.created_at) : new Date(n.note_date)
+  const canEdit = (Date.now() - createdAt.getTime()) < 24 * 60 * 60 * 1000
   return (
     <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, marginBottom:8, overflow:'hidden' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', cursor:'pointer' }} onClick={() => setExpanded(x => !x)}>
@@ -77,14 +79,15 @@ function CollapsibleNote({ n, color, onEdit, onDelete }) {
           <div style={{ fontSize:11, color:'#aaa' }}>{fecha}</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-          <button onClick={e => { e.stopPropagation(); onEdit(n) }}
+          {canEdit && <button onClick={e => { e.stopPropagation(); onEdit(n) }}
             style={{ padding:'3px 10px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>
             Editar
-          </button>
-          <button onClick={e => { e.stopPropagation(); onDelete(n.id) }}
+          </button>}
+          {canEdit && <button onClick={e => { e.stopPropagation(); onDelete(n.id) }}
             style={{ padding:'3px 10px', border:'1px solid #D85A30', borderRadius:8, cursor:'pointer', fontSize:12, color:'#D85A30', background:'#fff' }}>
             Eliminar
-          </button>
+          </button>}
+          {!canEdit && <span style={{ fontSize:11, color:'#bbb', fontStyle:'italic' }}>Bloqueada</span>}
           <span style={{ fontSize:12, color:'#bbb', marginLeft:2 }}>{expanded ? '▲' : '▼'}</span>
         </div>
       </div>
