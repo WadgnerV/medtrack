@@ -71,6 +71,39 @@ function CollapsibleNote({ n, color, onEdit, onDelete }) {
   const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
   const createdAt = n.created_at ? new Date(n.created_at) : new Date(n.note_date)
   const canEdit = (Date.now() - createdAt.getTime()) < 24 * 60 * 60 * 1000
+  const parsed = parseNoteText(n.note_text || '')
+  function printFromNote(type) {
+    const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' }) : '—'
+    const age = dob => { if (!dob) return null; const d = new Date(dob), nw = new Date(); return nw.getFullYear() - d.getFullYear() - (nw < new Date(nw.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0) }
+    const titles = { receta: 'RECETA MÉDICA', imagenes: 'SOLICITUD DE IMÁGENES MÉDICAS', laboratorios: 'SOLICITUD DE EXÁMENES DE LABORATORIO' }
+    const content_map = { receta: parsed.tratamiento, imagenes: parsed.imagenes, laboratorios: parsed.laboratorios }
+    const body = content_map[type] || ''
+    const lines = body.split('\n').filter(Boolean)
+    const itemsHtml = lines.map(l => `<div style="margin-bottom:8px;font-size:14pt;">${l}</div>`).join('')
+    const authorName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titles[type]}</title>
+    <style>body{font-family:Arial,sans-serif;margin:20mm;color:#222;font-size:13pt;} .doc-title{font-size:22pt;font-weight:900;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:0.08em;border-bottom:3px solid #1a3a5c;padding-bottom:10px;margin-bottom:20px;} .sub{font-size:12pt;color:#666;margin-bottom:16px;} .divider{border:none;border-top:1px solid #e2e8f0;margin:16px 0;} .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:8px;} .col-label{font-size:10pt;color:#888;margin-bottom:2px;} .col-value{font-size:12pt;color:#222;font-weight:500;border-bottom:1px solid #e2e8f0;padding-bottom:3px;} .section{font-size:13pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #1a3a5c;padding-bottom:4px;margin:20px 0 12px;} .sign{margin-top:48px;text-align:center;} .sign-line{border-top:1px solid #1a3a5c;width:260px;margin:0 auto 6px;} .sign-name{font-size:13pt;font-weight:700;color:#1a3a5c;} .footer{margin-top:32px;font-size:10pt;color:#aaa;font-style:italic;border-top:1px solid #eee;padding-top:8px;}</style>
+    </head><body>
+    <div class="doc-title">${titles[type]}</div>
+    <div class="sub">Fecha: ${new Date(n.note_date + 'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    <hr class="divider">
+    <div class="section">Datos del paciente</div>
+    <div class="two-col">
+      <div><div class="col-label">Nombre completo</div><div class="col-value">${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}</div></div>
+      <div><div class="col-label">Identificación</div><div class="col-value">${patient?.id_number||'—'}</div></div>
+    </div>
+    <hr class="divider">
+    <div class="section">${titles[type]}</div>
+    <div class="two-col">
+      <div><div class="col-label">Prescrito por</div><div class="col-value">${authorName}</div></div>
+    </div>
+    <hr class="divider">
+    <div style="margin-top:16px;">${itemsHtml}</div>
+    <div class="sign"><div class="sign-line"></div><div class="sign-name">${authorName}</div><div style="font-size:10pt;color:#888;">Firma y sello</div></div>
+    <div class="footer">Documento generado por MedTrack.</div>
+    </body></html>`
+    const w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.focus(); setTimeout(() => { w.print(); w.close() }, 500)
+  }
   return (
     <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, marginBottom:8, overflow:'hidden' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', cursor:'pointer' }} onClick={() => setExpanded(x => !x)}>
@@ -92,8 +125,17 @@ function CollapsibleNote({ n, color, onEdit, onDelete }) {
         </div>
       </div>
       {expanded && (
-        <div style={{ fontSize:12, color:'#444', lineHeight:1.7, whiteSpace:'pre-wrap', background:'#f8f8f8', borderRadius:'0 0 12px 12px', padding:'10px 14px', borderTop:'0.5px solid #eee' }}>
-          {n.note_text}
+        <div style={{ background:'#f8f8f8', borderRadius:'0 0 12px 12px', borderTop:'0.5px solid #eee' }}>
+          <div style={{ fontSize:12, color:'#444', lineHeight:1.7, whiteSpace:'pre-wrap', padding:'10px 14px' }}>
+            {n.note_text}
+          </div>
+          {(parsed.tratamiento || parsed.imagenes || parsed.laboratorios) && (
+            <div style={{ display:'flex', gap:8, padding:'8px 14px 12px', flexWrap:'wrap' }}>
+              {parsed.tratamiento && <button onClick={() => printFromNote('receta')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>🖨️ Receta</button>}
+              {parsed.imagenes && <button onClick={() => printFromNote('imagenes')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>🖨️ Imágenes</button>}
+              {parsed.laboratorios && <button onClick={() => printFromNote('laboratorios')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>🖨️ Laboratorios</button>}
+            </div>
+          )}
         </div>
       )}
     </div>
