@@ -286,9 +286,9 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       .sig-line { border-top: 1px solid #1D9E75; padding-top: 8px; }
       .sig-name { font-size: 10pt; font-weight: 700; color: #085041; }
       .sig-detail { font-size: 8pt; color: #888; margin-top: 2px; }
-      .footer { border-top: 1px solid #eee; padding: 8px 40px; display: flex; justify-content: space-between; align-items: center; }
-      .footer-clinic { font-size: 10pt; font-weight: 700; color: #1D9E75; }
-      .footer-sub { font-size: 8pt; color: #aaa; }
+      .footer { background: #E1F5EE; border-top: 2px solid #1D9E75; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; }
+      .footer-clinic { font-size: 10pt; font-weight: 700; color: #085041; }
+      .footer-sub { font-size: 8pt; color: #0F6E56; }
       @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
     </style>
     </head><body>
