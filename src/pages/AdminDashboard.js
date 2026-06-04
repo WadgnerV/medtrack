@@ -154,6 +154,7 @@ export default function AdminDashboard() {
   const [inactivePatients, setInactivePatients] = useState([])
   const [showInactive, setShowInactive] = useState(false)
   const [newPatientId, setNewPatientId] = useState(null)
+  const [blockForm, setBlockForm] = useState({ doctor_id:'', date:'', start_time:'', end_time:'', reason:'' })
   const [moduleAssignments, setModuleAssignments] = useState({})
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
@@ -452,6 +453,29 @@ export default function AdminDashboard() {
       if (a.repeat_type === 'once' && a.specific_date === dateStr) return true
       return false
     })
+  }
+
+  async function saveBlock() {
+    if (!blockForm.date || !blockForm.start_time || !blockForm.end_time) { alert('Completá fecha y horario'); return }
+    const duration = (() => {
+      const [sh, sm] = blockForm.start_time.split(':').map(Number)
+      const [eh, em] = blockForm.end_time.split(':').map(Number)
+      return (eh * 60 + em) - (sh * 60 + sm)
+    })()
+    await supabase.from('appointments').insert({
+      clinic_id: profile.clinic_id,
+      doctor_id: blockForm.doctor_id || null,
+      appointment_date: blockForm.date,
+      appointment_time: blockForm.start_time,
+      duration_min: duration,
+      visit_type: 'bloqueo',
+      status: 'blocked',
+      notes: blockForm.reason || 'Agenda bloqueada',
+      created_by: profile.id,
+    })
+    await loadAppts()
+    setModal(null)
+    setBlockForm({ doctor_id:'', date:'', start_time:'', end_time:'', reason:'' })
   }
 
   async function moveAppt(apptId, newDate, newHour) {
@@ -1245,6 +1269,7 @@ export default function AdminDashboard() {
             {view === 'pacientes' && !showInactive && <button onClick={() => { loadInactivePatients(); setShowInactive(true) }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:11, color:'#bbb', textDecoration:'underline' }}>perfiles inactivos</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'calendario' && <button style={{ ...s.btnPrimary, background:'#1a3a5c' }} onClick={() => setModal('availability')}>Disponibilidad</button>}
+            {view === 'calendario' && <button style={{ ...s.btnPrimary, background:'#5F5E5A' }} onClick={() => setModal('block-agenda')}>Bloquear agenda</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
             <NotificationBell profile={profile} />
           </div>
@@ -1687,7 +1712,21 @@ export default function AdminDashboard() {
                                     style={{ position:'absolute', left: ai * 4, width:3, top:topPx, height:heightPx, background:color, borderRadius:2, opacity:0.25, zIndex:3, pointerEvents:'none' }} />
                                 )
                               })}
-                              {dayAppts.map(a => {
+                              {dayAppts.filter(a => a.status === 'blocked').map(a => {
+                                const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
+                                if (ah < HORA_INI || ah >= HORA_FIN) return null
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * (SLOT_H/2) * 2
+                                const height = Math.max((a.duration_min||60) / 60 * (SLOT_H/2) * 2 - 2, 20)
+                                return (
+                                  <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:'#F1EFE8', borderLeft:'3px solid #888780', borderRadius:4, padding:'3px 6px', overflow:'hidden', zIndex:4, cursor:'default' }}>
+                                    <div style={{ fontSize:10, fontWeight:500, color:'#5F5E5A', display:'flex', alignItems:'center', gap:3 }}>
+                                      <i className="ti ti-ban" style={{ fontSize:10 }} aria-hidden="true"></i> Agenda cerrada
+                                    </div>
+                                    {a.notes && a.notes !== 'Agenda bloqueada' && <div style={{ fontSize:9, color:'#888780', marginTop:1 }}>{a.notes}</div>}
+                                  </div>
+                                )
+                              })}
+                              {dayAppts.filter(a => a.status !== 'blocked').map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
                                 const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
@@ -2059,6 +2098,61 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {modal === 'block-agenda' && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
+              <div style={{ background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:460 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:18, paddingBottom:14, borderBottom:'0.5px solid #eee' }}>
+                  <div style={{ width:32, height:32, background:'#F1EFE8', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <i className="ti ti-ban" style={{ fontSize:18, color:'#5F5E5A' }} aria-hidden="true"></i>
+                  </div>
+                  <div>
+                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Bloquear agenda</div>
+                    <div style={{ fontSize:11, color:'#999' }}>El horario bloqueado aparecerá en el calendario</div>
+                  </div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  <div>
+                    <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:5 }}>Profesional</label>
+                    <select value={blockForm.doctor_id} onChange={e => setBlockForm(p=>({...p, doctor_id:e.target.value}))}
+                      style={{ width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                      <option value="">Todos / sin asignar</option>
+                      {doctors.filter(d => d.is_health_professional || d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:5 }}>Fecha *</label>
+                    <input type="date" value={blockForm.date} onChange={e => setBlockForm(p=>({...p, date:e.target.value}))}
+                      style={{ width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    <div>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:5 }}>Hora inicio *</label>
+                      <input type="time" value={blockForm.start_time} onChange={e => setBlockForm(p=>({...p, start_time:e.target.value}))}
+                        style={{ width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:5 }}>Hora fin *</label>
+                      <input type="time" value={blockForm.end_time} onChange={e => setBlockForm(p=>({...p, end_time:e.target.value}))}
+                        style={{ width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:5 }}>Motivo</label>
+                    <input value={blockForm.reason} onChange={e => setBlockForm(p=>({...p, reason:e.target.value}))}
+                      placeholder="Ej: Almuerzo, reunión, día libre..."
+                      style={{ width:'100%', padding:'9px 12px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                  </div>
+                </div>
+                <div style={{ display:'flex', gap:8, justifyContent:'flex-end', marginTop:20, paddingTop:14, borderTop:'0.5px solid #eee' }}>
+                  <button onClick={() => setModal(null)} style={{ padding:'8px 16px', border:'0.5px solid #ddd', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
+                  <button onClick={saveBlock} style={{ padding:'8px 18px', background:'#5F5E5A', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:5 }}>
+                    <i className="ti ti-ban" style={{ fontSize:13 }} aria-hidden="true"></i> Bloquear
+                  </button>
+                </div>
               </div>
             </div>
           )}
