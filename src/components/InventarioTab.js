@@ -8,16 +8,11 @@ const BLUE = '#1a3a5c'
 
 async function fetchExchangeRate() {
   try {
-    const res = await fetch('https://api.hacienda.go.cr/indicadores/tc')
+    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=CRC')
     const data = await res.json()
-    return data?.venta?.valor ? parseFloat(data.venta.valor) : null
+    if (data?.rates?.CRC) return parseFloat(data.rates.CRC)
   } catch {}
-  try {
-    const res2 = await fetch('https://open.er-api.com/v6/latest/USD')
-    const data2 = await res2.json()
-    return data2?.rates?.CRC ? data2.rates.CRC : null
-  } catch {}
-  return null
+  return 517
 }
 
 export default function InventarioTab({ profile, branches, isClinicAdmin }) {
@@ -55,7 +50,8 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   async function handleSave() {
     if (!form.name || !form.quantity) { alert('Nombre y cantidad son obligatorios'); return }
     setSaving(true)
-    const costInColones = form.cost ? (form.currency === 'USD' && exchangeRate ? parseFloat(form.cost) * exchangeRate : parseFloat(form.cost)) : null
+    const rate = exchangeRate || 517
+    const costInColones = form.cost ? (form.currency === 'USD' ? parseFloat(form.cost) * rate : parseFloat(form.cost)) : null
     const payload = {
       clinic_id: profile.clinic_id,
       branch_id: form.branch_id || null,
@@ -120,7 +116,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   return (
     <div>
       {/* Métricas */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:12, marginBottom:14 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
         <div style={{ ...s.card, marginBottom:0 }}>
           <div style={{ fontSize:11, color:'#999', marginBottom:4 }}>Total ítems</div>
           <div style={{ fontSize:20, fontWeight:500, color:'#1a1a1a' }}>{filtered.length}</div>
@@ -132,6 +128,11 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         <div style={{ ...s.card, marginBottom:0 }}>
           <div style={{ fontSize:11, color:'#999', marginBottom:4 }}>Valor total (₡)</div>
           <div style={{ fontSize:18, fontWeight:500, color:'#1a1a1a' }}>₡{totalValue.toLocaleString('es-CR', { maximumFractionDigits:0 })}</div>
+        </div>
+        <div style={{ ...s.card, marginBottom:0 }}>
+          <div style={{ fontSize:11, color:'#999', marginBottom:4 }}>Tipo de cambio</div>
+          <div style={{ fontSize:18, fontWeight:500, color:'#1a1a1a' }}>{exchangeRate ? `₡${exchangeRate.toLocaleString('es-CR', { maximumFractionDigits:0 })}` : 'Cargando...'}</div>
+          <div style={{ fontSize:11, color:'#999', marginTop:2 }}>por $1 · hoy</div>
         </div>
       </div>
 
