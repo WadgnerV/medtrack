@@ -2131,7 +2131,7 @@ export default function AdminDashboard() {
 
           {modal === 'block-agenda' && (
             <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
-              <div style={{ background:'#fff', borderRadius:14, padding:20, width:'100%', maxWidth:400 }}>
+              <div style={{ background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:480 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14, paddingBottom:12, borderBottom:'0.5px solid #eee' }}>
                   <div style={{ width:28, height:28, background:'#F1EFE8', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <i className="ti ti-ban" style={{ fontSize:15, color:'#5F5E5A' }} aria-hidden="true"></i>
