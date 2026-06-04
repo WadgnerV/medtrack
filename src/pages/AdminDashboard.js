@@ -535,6 +535,16 @@ export default function AdminDashboard() {
       }).eq('id', userId)
     }
 
+    // Abrir modal de módulos ANTES de restaurar sesión
+    let newPatientDbId = null
+    if (role === 'patient' && userId) {
+      for (let i = 0; i < 8; i++) {
+        await new Promise(r => setTimeout(r, 400))
+        const { data: np } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
+        if (np?.id) { newPatientDbId = np.id; break }
+      }
+    }
+
     // Restaurar sesión del admin
     if (currentSession) {
       await supabase.auth.setSession({
@@ -581,10 +591,7 @@ export default function AdminDashboard() {
       await loadPatients()
       setSelPatient(null)
       setViewPersist('pacientes')
-      setTimeout(async () => {
-        const { data: newPat } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
-        if (newPat?.id) { setNewPatientId(newPat.id); setModuleAssignments({}); setModal('assign-modules-new') } else { setModal(null) }
-      }, 800)
+      if (newPatientDbId) { setNewPatientId(newPatientDbId); setModuleAssignments({}); setModal('assign-modules-new') } else { setModal(null) }
     } else { setModal(null) }
     setSaving(false); setSelPatient(null)
   }
