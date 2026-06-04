@@ -510,8 +510,8 @@ export default function AdminDashboard() {
       })
     }
     if (role === 'doctor') await loadDoctors()
-    else { await loadPatients(); if (role === 'patient') { setViewPersist('pacientes'); setSelPatient(null) } }
-    setModal(null); setSaving(false)
+    else { await loadPatients(); if (role === 'patient') { setSelPatient(null); setViewPersist('pacientes') } }
+    setModal(null); setSaving(false); setSelPatient(null)
   }
 
   async function saveEditPatient(form) {
