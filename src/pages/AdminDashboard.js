@@ -1281,6 +1281,15 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {isMobile && view === 'calendario' && (
+          <div style={{ padding:'8px 12px', background:'#fff', borderBottom:'0.5px solid #eee', display:'flex', gap:6, flexWrap:'wrap' }}>
+            <button style={{ ...s.btnPrimary, fontSize:12, padding:'6px 10px' }} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>
+            <button style={{ ...s.btnPrimary, background:'#1a3a5c', fontSize:12, padding:'6px 10px' }} onClick={() => setModal('availability')}>Disponibilidad</button>
+            <button style={{ ...s.btnPrimary, background:'#5F5E5A', fontSize:12, padding:'6px 10px' }} onClick={() => setModal('block-agenda')}>Bloquear</button>
+            <NotificationBell profile={profile} />
+          </div>
+        )}
+
         <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding: isMobile ? '12px 12px 16px' : '16px 18px' }}>
 
 
