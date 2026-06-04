@@ -8,14 +8,14 @@ const BLUE = '#1a3a5c'
 
 async function fetchExchangeRate() {
   try {
-    const today = new Date()
-    const fmt = d => String(d).padStart(2, '0')
-    const dateStr = `${today.getFullYear()}${fmt(today.getMonth()+1)}${fmt(today.getDate())}`
-    const url = `https://gee.bccr.fi.cr/Indicadores/Suscripciones/WS/wsindicadoreseconomicos.asmx/ObtenerIndicadoresEconomicos?Indicador=318&FechaInicio=${dateStr}&FechaFinal=${dateStr}&Nombre=MedTrack&SubNiveles=N&CorreoElectronico=wadgner@outlook.com&Token=MEDTRACK`
-    const res = await fetch(url)
-    const text = await res.text()
-    const match = text.match(/<NUM_VALOR>([\d.,]+)<\/NUM_VALOR>/)
-    if (match) return parseFloat(match[1].replace(',', '.'))
+    const res = await fetch('https://api.hacienda.go.cr/indicadores/tc')
+    const data = await res.json()
+    return data?.venta?.valor ? parseFloat(data.venta.valor) : null
+  } catch {}
+  try {
+    const res2 = await fetch('https://open.er-api.com/v6/latest/USD')
+    const data2 = await res2.json()
+    return data2?.rates?.CRC ? data2.rates.CRC : null
   } catch {}
   return null
 }
