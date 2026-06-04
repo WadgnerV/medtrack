@@ -1669,7 +1669,7 @@ export default function AdminDashboard() {
                                 const color = doctorColor(a.doctor_id)
                                 return (
                                   <div key={a.id} title={`${a.doctor?.prefix ? a.doctor.prefix+' ' : ''}${a.doctor?.first_name} ${a.doctor?.last_name} · ${a.start_time?.substring(0,5)}-${a.end_time?.substring(0,5)}`}
-                                    style={{ position:'absolute', left: ai * 4, width:3, top:topPx, height:heightPx, background:color, borderRadius:2, opacity:0.7, zIndex:3, pointerEvents:'none' }} />
+                                    style={{ position:'absolute', left: ai * 4, width:3, top:topPx, height:heightPx, background:color, borderRadius:2, opacity:0.25, zIndex:3, pointerEvents:'none' }} />
                                 )
                               })}
                               {dayAppts.map(a => {
