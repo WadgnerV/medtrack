@@ -38,6 +38,8 @@ export default function PatientDashboard() {
   const [showProMenu, setShowProMenu] = useState(false)
   const [careModules, setCareModules] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+  const [privacyChecked, setPrivacyChecked] = useState(false)
   const [chatMsg, setChatMsg] = useState('')
   const [saving, setSaving] = useState(false)
   const [showMeasForm, setShowMeasForm] = useState(false)
@@ -263,8 +265,55 @@ export default function PatientDashboard() {
 
   if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:13, color:G, fontFamily:'system-ui' }}>Cargando MedTrack...</div>
 
+  const needsPrivacyAcceptance = profile?.role === 'patient' && !profile?.privacy_accepted_at
+
+  async function acceptPrivacy() {
+    await supabase.from('profiles').update({ privacy_accepted_at: new Date().toISOString() }).eq('id', profile.id)
+    setShowPrivacyModal(false)
+  }
+
   return (
     <div style={{ display:'flex', height:'100vh', fontFamily:"Inter, system-ui, sans-serif", background:'#f5f5f5', overflowX:'hidden', maxWidth:'100vw' }}>
+
+      {needsPrivacyAcceptance && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:9999, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+          <div style={{ background:'#fff', borderRadius:16, padding:28, width:'100%', maxWidth:520, maxHeight:'85vh', display:'flex', flexDirection:'column' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+              <div style={{ width:32, height:32, background:'#E1F5EE', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <i className="ti ti-shield-check" style={{ fontSize:18, color:'#1D9E75' }} aria-hidden="true"></i>
+              </div>
+              <div>
+                <div style={{ fontSize:15, fontWeight:500, color:'#1a1a1a' }}>Política de privacidad</div>
+                <div style={{ fontSize:11, color:'#999' }}>Por favor léela antes de continuar</div>
+              </div>
+            </div>
+            <div style={{ flex:1, overflowY:'auto', fontSize:12, color:'#444', lineHeight:1.7, background:'#f8f8f8', borderRadius:8, padding:'12px 14px', marginBottom:16, maxHeight:320 }}>
+              <p style={{ fontWeight:500, marginBottom:8 }}>Política de privacidad de MedTrack</p>
+              <p style={{ marginBottom:8 }}>MedTrack es una plataforma de gestión clínica que recopila y procesa datos personales y de salud con el único propósito de facilitar la atención médica entre usted y su clínica.</p>
+              <p style={{ fontWeight:500, marginBottom:4, marginTop:12 }}>Datos que recopilamos</p>
+              <p style={{ marginBottom:8 }}>Nombre completo, número de identificación, fecha de nacimiento, correo electrónico, teléfono, ubicación geográfica, y datos clínicos como notas médicas, diagnósticos, tratamientos y mediciones corporales.</p>
+              <p style={{ fontWeight:500, marginBottom:4, marginTop:12 }}>Uso de la información</p>
+              <p style={{ marginBottom:8 }}>Sus datos son utilizados exclusivamente para la prestación de servicios médicos por parte de su clínica. No vendemos ni compartimos su información con terceros sin su consentimiento expreso.</p>
+              <p style={{ fontWeight:500, marginBottom:4, marginTop:12 }}>Sus derechos</p>
+              <p style={{ marginBottom:8 }}>Conforme a la Ley N° 8968 de Protección de la Persona frente al tratamiento de sus datos personales de Costa Rica, usted tiene derecho a acceder, rectificar, cancelar u oponerse al tratamiento de sus datos personales.</p>
+              <p style={{ fontWeight:500, marginBottom:4, marginTop:12 }}>Seguridad</p>
+              <p style={{ marginBottom:8 }}>Sus datos son almacenados de forma segura con cifrado en tránsito y en reposo. Solo el personal autorizado de su clínica tiene acceso a su información clínica.</p>
+              <p style={{ marginBottom:8 }}>Para más información, consulte nuestra <a href="/privacidad" target="_blank" style={{ color:'#1D9E75' }}>política completa</a> y nuestros <a href="/terminos" target="_blank" style={{ color:'#1D9E75' }}>términos y condiciones</a>.</p>
+            </div>
+            <label style={{ display:'flex', alignItems:'flex-start', gap:10, cursor:'pointer', marginBottom:16 }}>
+              <input type="checkbox" checked={privacyChecked} onChange={e => setPrivacyChecked(e.target.checked)}
+                style={{ marginTop:2, accentColor:'#1D9E75', width:16, height:16, flexShrink:0 }} />
+              <span style={{ fontSize:12, color:'#333', lineHeight:1.5 }}>
+                He leído y acepto la <a href="/privacidad" target="_blank" style={{ color:'#1D9E75' }}>política de privacidad</a> y los <a href="/terminos" target="_blank" style={{ color:'#1D9E75' }}>términos y condiciones</a> de MedTrack.
+              </span>
+            </label>
+            <button onClick={acceptPrivacy} disabled={!privacyChecked}
+              style={{ width:'100%', background: privacyChecked ? '#1D9E75' : '#ccc', color:'#fff', border:'none', borderRadius:8, padding:'10px', fontSize:13, fontWeight:500, cursor: privacyChecked ? 'pointer' : 'not-allowed', transition:'background 0.2s' }}>
+              Continuar a MedTrack
+            </button>
+          </div>
+        </div>
+      )}
 
       {showMeasForm && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.42)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:40 }}
