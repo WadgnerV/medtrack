@@ -8,7 +8,7 @@ const sections = [
     title: '1. IDENTIDAD Y DATOS DEL RESPONSABLE DEL TRATAMIENTO',
     content: [
       { type: 'p', text: 'Responsable: MedTrack' },
-      { type: 'p', text: 'Plataforma: medtrack-gilt.vercel.app' },
+      { type: 'p', text: 'Plataforma: medtrackcr.com' },
       { type: 'p', text: 'Correo electrónico de contacto: wadgvargas@gmail.com' },
       { type: 'p', text: 'País de operación principal: Costa Rica' },
     ]

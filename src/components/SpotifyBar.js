@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 const CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID
-const REDIRECT_URI = 'https://medtrack-gilt.vercel.app/spotify-callback'
+const REDIRECT_URI = 'https://medtrackcr.com/spotify-callback'
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative streaming user-read-email user-read-private'
 
 function generateCodeVerifier() {

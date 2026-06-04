@@ -563,7 +563,7 @@ export default function AdminDashboard() {
           staff_name: `${form.firstName} ${form.lastName}`,
           staff_role: role,
           clinic_name: cs?.clinic_name || 'la clínica',
-          app_url: 'https://medtrack-gilt.vercel.app',
+          app_url: 'https://medtrackcr.com',
         }
       })
     }
@@ -2051,7 +2051,7 @@ export default function AdminDashboard() {
                         <select value={availForm.doctor_id} onChange={e => setAvailForm(p=>({...p, doctor_id:e.target.value}))}
                           style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
                           <option value="">Seleccionar profesional...</option>
-                          {doctors.filter(d => d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
+                          {doctors.filter(d => d.is_health_professional || d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
                         </select>
                       )}
                     </div>
