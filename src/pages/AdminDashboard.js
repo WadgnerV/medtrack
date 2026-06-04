@@ -497,6 +497,7 @@ export default function AdminDashboard() {
     setSaving(true); setFormError('')
 
     // Guardar sesión actual para restaurarla después
+    window.__skipAuthChange = true
     const { data: { session: currentSession } } = await supabase.auth.getSession()
 
     const { data: signUpData, error } = await supabase.auth.signUp({
@@ -552,6 +553,7 @@ export default function AdminDashboard() {
         refresh_token: currentSession.refresh_token,
       })
     }
+    window.__skipAuthChange = false
     // Para doctor, guardar campos extra en profiles
     if (role === 'doctor' && userId) {
       for (let i = 0; i < 10; i++) {

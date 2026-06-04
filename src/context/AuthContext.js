@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (window.__skipAuthChange) return
         setUser(session?.user ?? null)
         if (session?.user) fetchProfile(session.user.id)
         else { setProfile(null); setLoading(false) }
