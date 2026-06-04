@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import DocumentosTab from '../components/DocumentosTab'
+import InventarioTab from '../components/InventarioTab'
 import ConsentimientosTab from '../components/ConsentimientosTab'
 import IntegralModule from './IntegralModule'
 import ModuleChat from '../components/ModuleChat'
@@ -1034,7 +1035,7 @@ export default function AdminDashboard() {
         </div>
 
         {[
-          { section:'Clínica', items:[{ icon:'ti-calendar', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'ti-chart-bar', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'ti-building', label:'Sucursales', key:'sucursales' }] : [])] },
+          { section:'Clínica', items:[{ icon:'ti-calendar', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'ti-chart-bar', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'ti-building', label:'Sucursales', key:'sucursales' }] : []), { icon:'ti-package', label:'Inventario', key:'inventario' }] },
           { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'ti-users', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'ti-user-heart', label:'Pacientes', key:'pacientes', badge:patients.length }] },
           ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'ti-books', label:'Biblioteca', key:'biblioteca' }, { icon:'ti-shield-check', label:'Permisos', key:'permisos' }, { icon:'ti-settings', label:'Configuración', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'ti-settings', label:'Configuración', key:'config' }] }]),
         ].map(group => (
@@ -1126,7 +1127,7 @@ export default function AdminDashboard() {
           <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>
-                {{ dashboard:'Dashboard', medicos:'Personal', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuración' }[view]}
+                {{ dashboard:'Dashboard', medicos:'Personal', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuración', inventario:'Inventario' }[view]}
               </div>
               <div style={{ fontSize:13, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
@@ -1894,6 +1895,10 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
+          )}
+
+          {view === 'inventario' && (
+            <InventarioTab profile={profile} branches={branches} isClinicAdmin={isClinicAdmin} />
           )}
 
           {view === 'config' && clinicSettings && (
