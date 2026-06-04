@@ -153,6 +153,8 @@ export default function AdminDashboard() {
   const [searchDoc, setSearchDoc] = useState('')
   const [inactivePatients, setInactivePatients] = useState([])
   const [showInactive, setShowInactive] = useState(false)
+  const [newPatientId, setNewPatientId] = useState(null)
+  const [moduleAssignments, setModuleAssignments] = useState({})
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
@@ -572,8 +574,14 @@ export default function AdminDashboard() {
       })
     }
     if (role === 'doctor') await loadDoctors()
-    else { await loadPatients(); if (role === 'patient') { setSelPatient(null); setViewPersist('pacientes') } }
-    setModal(null); setSaving(false); setSelPatient(null)
+    else if (role === 'patient') {
+      await loadPatients()
+      setSelPatient(null)
+      setViewPersist('pacientes')
+      const { data: newPat } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
+      if (newPat?.id) { setNewPatientId(newPat.id); setModuleAssignments({}); setModal('assign-modules-new') } else { setModal(null) }
+    } else { setModal(null) }
+    setSaving(false); setSelPatient(null)
   }
 
   async function saveEditPatient(form) {
@@ -2199,6 +2207,86 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {modal === 'assign-modules-new' && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+              <div style={{ background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:500, maxHeight:'90vh', overflowY:'auto' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                  <div style={{ width:32, height:32, background:'#E1F5EE', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <i className="ti ti-layout-grid-add" style={{ fontSize:18, color:'#1D9E75' }} aria-hidden="true"></i>
+                  </div>
+                  <div>
+                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Asignar módulos</div>
+                    <div style={{ fontSize:11, color:'#999' }}>Paciente creado — asigná los módulos ahora o después</div>
+                  </div>
+                </div>
+                <div style={{ fontSize:12, color:'#888', marginBottom:16, padding:'8px 12px', background:'#f8fffe', borderRadius:8, border:'1px solid #E1F5EE' }}>
+                  <i className="ti ti-info-circle" style={{ fontSize:13, marginRight:4, color:'#1D9E75' }} aria-hidden="true"></i>
+                  Podés asignar módulos ahora o hacerlo más adelante desde el expediente del paciente.
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
+                  {(() => {
+                    const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                    const MODULE_ICONS = { integral:'ti-stethoscope', metabolica:'ti-activity', estetica:'ti-sparkles', fisioterapia:'ti-run', enfermeria:'ti-first-aid-kit' }
+                    const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
+                    return enabledModules.map(mod => {
+                      const assigned = moduleAssignments[mod]
+                      return (
+                        <div key={mod} style={{ border: assigned ? `1.5px solid ${MODULE_COLORS[mod]}` : '0.5px solid #eee', borderRadius:10, padding:'12px 14px', background: assigned ? MODULE_COLORS[mod]+'08' : '#fff' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom: assigned !== undefined ? 8 : 0 }}>
+                            <i className={`ti ${MODULE_ICONS[mod]}`} style={{ fontSize:16, color: MODULE_COLORS[mod] }} aria-hidden="true"></i>
+                            <div style={{ flex:1, fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{MODULE_LABELS[mod]}</div>
+                            <div onClick={() => setModuleAssignments(p => {
+                              if (p[mod] !== undefined) { const n = {...p}; delete n[mod]; return n }
+                              return {...p, [mod]: ''}
+                            })}
+                              style={{ width:20, height:20, borderRadius:4, border: assigned !== undefined ? `2px solid ${MODULE_COLORS[mod]}` : '2px solid #ccc', background: assigned !== undefined ? MODULE_COLORS[mod] : '#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                              {assigned !== undefined && <i className="ti ti-check" style={{ fontSize:11, color:'#fff' }} aria-hidden="true"></i>}
+                            </div>
+                          </div>
+                          {assigned !== undefined && (
+                            <select value={assigned} onChange={e => setModuleAssignments(p=>({...p, [mod]:e.target.value}))}
+                              style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                              <option value="">Sin profesional asignado</option>
+                              {doctors.filter(d => d.is_health_professional || d.role === 'doctor').map(d => (
+                                <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      )
+                    })
+                  })()}
+                </div>
+                <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                  <button onClick={() => { setModal(null); setNewPatientId(null) }}
+                    style={{ padding:'8px 16px', border:'0.5px solid #ddd', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
+                    Omitir por ahora
+                  </button>
+                  <button onClick={async () => {
+                    if (!newPatientId) return
+                    const assigns = Object.entries(moduleAssignments).filter(([,v]) => v !== undefined)
+                    if (assigns.length > 0) {
+                      await Promise.all(assigns.map(([mod, docId]) =>
+                        supabase.from('patient_care_modules').upsert({
+                          patient_id: newPatientId,
+                          module_type: mod,
+                          assigned_professional_id: docId || null,
+                          is_active: true,
+                          clinic_id: profile.clinic_id,
+                        }, { onConflict: 'patient_id,module_type' })
+                      ))
+                    }
+                    setModal(null); setNewPatientId(null)
+                  }}
+                    style={{ padding:'8px 18px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:5 }}>
+                    <i className="ti ti-check" style={{ fontSize:13 }} aria-hidden="true"></i>
+                    Guardar módulos
+                  </button>
+                </div>
               </div>
             </div>
           )}
