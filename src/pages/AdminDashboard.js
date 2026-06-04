@@ -172,7 +172,7 @@ export default function AdminDashboard() {
   const [calView, setCalView] = useState('semana')
   const [draggingAppt, setDraggingAppt] = useState(null)
   const [availability, setAvailability] = useState([])
-  const [availForm, setAvailForm] = useState({ doctor_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', day_of_week:'1', specific_date:'', repeat_until:'' })
+  const [availForm, setAvailForm] = useState({ doctor_id:'', branch_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', day_of_week:'1', specific_date:'', repeat_until:'' })
   const [popupAppt, setPopupAppt] = useState(null)
   const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -399,13 +399,14 @@ export default function AdminDashboard() {
     if (!availForm.doctor_id || !availForm.start_time || !availForm.end_time) { alert('Complete todos los campos obligatorios'); return }
     const payload = {
       clinic_id: profile.clinic_id,
-      doctor_id: availForm.doctor_id,
+      doctor_id: profile?.role === 'doctor' ? profile.id : availForm.doctor_id,
       start_time: availForm.start_time,
       end_time: availForm.end_time,
       repeat_type: availForm.repeat_type,
       day_of_week: availForm.repeat_type === 'weekly' ? parseInt(availForm.day_of_week) : null,
       specific_date: availForm.repeat_type === 'once' ? availForm.specific_date : null,
       repeat_until: availForm.repeat_until || null,
+      branch_id: isClinicAdmin ? (availForm.branch_id || null) : (myBranchId || null),
       created_by: profile.id,
       is_active: true,
     }
@@ -2039,14 +2040,45 @@ export default function AdminDashboard() {
                 <div style={{ background:'#f8f8f8', borderRadius:10, padding:16, marginBottom:16 }}>
                   <div style={{ fontSize:12, fontWeight:500, color:'#555', marginBottom:12 }}>{availForm.id ? 'Editar disponibilidad' : 'Agregar disponibilidad'}</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    {/* Profesional */}
                     <div style={{ gridColumn:'1/-1' }}>
-                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Profesional *</label>
-                      <select value={availForm.doctor_id} onChange={e => setAvailForm(p=>({...p, doctor_id:e.target.value}))}
-                        style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
-                        <option value="">Seleccionar profesional...</option>
-                        {doctors.filter(d => d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
-                      </select>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Profesional</label>
+                      {profile?.role === 'doctor' ? (
+                        <div style={{ padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, background:'#f0f0f0', color:'#666' }}>
+                          {profile?.prefix ? profile.prefix+' ' : ''}{profile?.first_name} {profile?.last_name}
+                        </div>
+                      ) : (
+                        <select value={availForm.doctor_id} onChange={e => setAvailForm(p=>({...p, doctor_id:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                          <option value="">Seleccionar profesional...</option>
+                          {doctors.filter(d => d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
+                        </select>
+                      )}
                     </div>
+                    {/* Clínica y sucursal — solo informativo */}
+                    <div>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Clínica</label>
+                      <div style={{ padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, background:'#f0f0f0', color:'#666' }}>
+                        {clinicSettings?.clinic_name || 'Glow Clinic'}
+                      </div>
+                    </div>
+                    {isClinicAdmin ? (
+                      <div>
+                        <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Sucursal</label>
+                        <select value={availForm.branch_id||''} onChange={e => setAvailForm(p=>({...p, branch_id:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                          <option value="">Sin sucursal específica</option>
+                          {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Sucursal</label>
+                        <div style={{ padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, background:'#f0f0f0', color:'#666' }}>
+                          {branches.find(b => b.id === myBranchId)?.name || '—'}
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Tipo de repetición</label>
                       <select value={availForm.repeat_type} onChange={e => setAvailForm(p=>({...p, repeat_type:e.target.value}))}
