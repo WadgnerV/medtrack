@@ -1664,8 +1664,8 @@ export default function AdminDashboard() {
                               {getDayAvailability(dateStr).map((a, ai) => {
                                 const [sh, sm] = (a.start_time||'00:00').split(':').map(Number)
                                 const [eh, em] = (a.end_time||'00:00').split(':').map(Number)
-                                const topPx = ((sh - HORA_INI) * 60 + sm) / 60 * (SLOT_H/2)
-                                const heightPx = ((eh - sh) * 60 + (em - sm)) / 60 * (SLOT_H/2)
+                                const topPx = ((sh - HORA_INI) * 60 + sm) / 60 * (SLOT_H/2) * 2
+                                const heightPx = ((eh - sh) * 60 + (em - sm)) / 60 * (SLOT_H/2) * 2
                                 const color = doctorColor(a.doctor_id)
                                 return (
                                   <div key={a.id} title={`${a.doctor?.prefix ? a.doctor.prefix+' ' : ''}${a.doctor?.first_name} ${a.doctor?.last_name} · ${a.start_time?.substring(0,5)}-${a.end_time?.substring(0,5)}`}
