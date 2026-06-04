@@ -398,16 +398,19 @@ export default function AdminDashboard() {
   }
 
   async function saveAvailability() {
-    if (!availForm.doctor_id || !availForm.start_time || !availForm.end_time) { alert('Complete todos los campos obligatorios'); return }
+    const doctorId = profile?.role === 'doctor' ? profile.id : availForm.doctor_id
+    if (!doctorId || !availForm.start_time || !availForm.end_time) { alert('Complete todos los campos obligatorios'); return }
+    if (availForm.repeat_type === 'weekly' && (!availForm.days_of_week || availForm.days_of_week.length === 0)) { alert('Seleccioná al menos un día de la semana'); return }
     const payload = {
       clinic_id: profile.clinic_id,
-      doctor_id: profile?.role === 'doctor' ? profile.id : availForm.doctor_id,
+      doctor_id: doctorId,
       start_time: availForm.start_time,
       end_time: availForm.end_time,
       repeat_type: availForm.repeat_type,
-      day_of_week: availForm.repeat_type === 'weekly' ? parseInt(availForm.day_of_week) : null,
-      specific_date: availForm.repeat_type === 'once' ? availForm.specific_date : null,
-      repeat_until: availForm.repeat_until || null,
+      days_of_week: availForm.repeat_type === 'weekly' ? availForm.days_of_week : null,
+      day_of_week: null,
+      specific_date: availForm.repeat_type === 'once' ? availForm.start_date : null,
+      repeat_until: availForm.end_type === 'date' ? availForm.repeat_until : null,
       branch_id: isClinicAdmin ? (availForm.branch_id || null) : (myBranchId || null),
       created_by: profile.id,
       is_active: true,
@@ -419,7 +422,7 @@ export default function AdminDashboard() {
     }
     await loadAvailability()
     setModal(null)
-    setAvailForm({ doctor_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', day_of_week:'1', specific_date:'', repeat_until:'' })
+    setAvailForm({ doctor_id:'', branch_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', days_of_week:[], start_date:'', end_type:'indefinite', repeat_until:'' })
   }
 
   async function deleteAvailability(id) {
@@ -2174,7 +2177,7 @@ export default function AdminDashboard() {
                     style={{ padding:'8px 16px', border:'1px solid #eee', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar edición</button>}
                   <button onClick={() => setModal(null)}
                     style={{ padding:'8px 16px', border:'0.5px solid #ddd', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cerrar</button>
-                  <button onClick={saveAvailability}
+                  <button onClick={() => { console.log("days_of_week:", availForm.days_of_week); saveAvailability() }}
                     style={{ padding:'8px 18px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:5 }}>
                     <i className="ti ti-check" style={{ fontSize:13 }} aria-hidden="true"></i>
                     {availForm.id ? 'Actualizar' : 'Guardar disponibilidad'}
