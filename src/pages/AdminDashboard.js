@@ -1577,16 +1577,15 @@ export default function AdminDashboard() {
                           const dayAppts = apptsByDate(dateStr)
                           return (
                             <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
-                              {hours.map(h => (
-                                <div key={h} style={{ height:SLOT_H, cursor:'pointer', position:'relative' }}
+                              {hours.map(h => [0, 30].map(min => (
+                                <div key={h+'-'+min} style={{ height:SLOT_H/2, cursor:'pointer', position:'relative' }}
                                   onDragOver={e => { e.preventDefault(); e.currentTarget.style.background='rgba(29,158,117,0.08)' }}
                                   onDragLeave={e => { e.currentTarget.style.background='' }}
-                                  onDrop={e => { e.preventDefault(); e.currentTarget.style.background=''; if (draggingAppt) { moveAppt(draggingAppt.id, dateStr, h); setDraggingAppt(null) } }}
-                                  onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                                  <div style={{ position:'absolute', top:0, left:0, right:0, borderTop:'1px solid #ebebeb', pointerEvents:'none' }} />
-                                  <div style={{ position:'absolute', top:'50%', left:0, right:0, borderTop:'1px dashed #e8e8e8', pointerEvents:'none' }} />
+                                  onDrop={e => { e.preventDefault(); e.currentTarget.style.background=''; if (draggingAppt) { const t = String(h).padStart(2,'0')+':'+String(min).padStart(2,'0'); supabase.from('appointments').update({ appointment_date: dateStr, appointment_time: t }).eq('id', draggingAppt.id).then(() => loadAppts()); setDraggingAppt(null) } }}
+                                  onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':'+String(min).padStart(2,'0') }) }}>
+                                  <div style={{ position:'absolute', top:0, left:0, right:0, borderTop: min===0 ? '1px solid #ebebeb' : '1px dashed #e8e8e8', pointerEvents:'none' }} />
                                 </div>
-                              ))}
+                              )))}
                               {isToday && nowOffsetPx >= 0 && (
                                 <div style={{ position:'absolute', left:0, right:0, top:nowOffsetPx, zIndex:10, display:'flex', alignItems:'center' }}>
                                   <div style={{ width:8, height:8, borderRadius:'50%', background:'#D85A30', flexShrink:0 }} />
