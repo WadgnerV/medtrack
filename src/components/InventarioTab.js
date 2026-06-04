@@ -8,11 +8,19 @@ const BLUE = '#1a3a5c'
 
 async function fetchExchangeRate() {
   try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=CRC')
+    const today = new Date()
+    const fmt = d => String(d).padStart(2, '0')
+    const fecha = `${today.getFullYear()}/${fmt(today.getMonth()+1)}/${fmt(today.getDate())}`
+    const res = await fetch(`https://apis.gometa.org/tdc/tdc.json`)
     const data = await res.json()
-    if (data?.rates?.CRC) return parseFloat(data.rates.CRC)
+    if (data?.venta) return parseFloat(data.venta)
   } catch {}
-  return 517
+  try {
+    const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD')
+    const data2 = await res2.json()
+    if (data2?.rates?.CRC) return parseFloat(data2.rates.CRC)
+  } catch {}
+  return 462
 }
 
 export default function InventarioTab({ profile, branches, isClinicAdmin }) {
