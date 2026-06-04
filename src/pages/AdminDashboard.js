@@ -2570,6 +2570,7 @@ function AssignForm({ patient, doctors, saving, onSave, onClose }) {
 }
 
 function ApptForm({ appt, patients, doctors, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin, onGoToExpediente, onCancelAppt }) {
+  const [patSearch, setPatSearch] = React.useState('')
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
   const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
@@ -2618,10 +2619,35 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
 
       <div style={{ marginBottom:12 }}>
         <label style={s.fieldLabel}>Paciente</label>
-        <select value={form.patientId} onChange={f('patientId')} style={s.fieldInput}>
-          <option value="">Selecciona un paciente...</option>
-          {patients.map(p => <option key={p.id} value={p.id}>{pn(p)}</option>)}
-        </select>
+        <div style={{ position:'relative' }}>
+          <input value={patSearch} onChange={e => { setPatSearch(e.target.value); if (!e.target.value) f('patientId')({ target: { value: '' } }) }}
+            placeholder="Buscar por nombre o cédula..."
+            style={{ ...s.fieldInput, marginBottom: patSearch ? 0 : undefined, borderRadius: patSearch ? '8px 8px 0 0' : 8 }} />
+          {patSearch && (
+            <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderTop:'none', borderRadius:'0 0 8px 8px', zIndex:20, maxHeight:180, overflowY:'auto', boxShadow:'0 4px 12px rgba(0,0,0,0.08)' }}>
+              {patients.filter(p => {
+                const q = patSearch.toLowerCase()
+                const name = pn(p).toLowerCase()
+                const id = (p.id_number||'').toLowerCase()
+                return name.includes(q) || id.includes(q)
+              }).slice(0,8).map(p => (
+                <div key={p.id} onClick={() => { f('patientId')({ target: { value: p.id } }); setPatSearch(pn(p)) }}
+                  style={{ padding:'8px 12px', cursor:'pointer', fontSize:13, color:'#1a1a1a', borderBottom:'0.5px solid #f0f0f0' }}
+                  onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'}
+                  onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                  <div style={{ fontWeight:500 }}>{pn(p)}</div>
+                  {p.id_number && <div style={{ fontSize:11, color:'#999' }}>ID: {p.id_number}</div>}
+                </div>
+              ))}
+              {patients.filter(p => { const q = patSearch.toLowerCase(); return pn(p).toLowerCase().includes(q) || (p.id_number||'').toLowerCase().includes(q) }).length === 0 && (
+                <div style={{ padding:'10px 12px', fontSize:12, color:'#bbb' }}>Sin resultados</div>
+              )}
+            </div>
+          )}
+        </div>
+        {form.patientId && !patSearch && (
+          <div style={{ fontSize:11, color:'#1D9E75', marginTop:4 }}>✓ {pn(patients.find(p => p.id === form.patientId) || {})}</div>
+        )}
       </div>
 
       <div style={{ marginBottom:12 }}>
