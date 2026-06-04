@@ -192,7 +192,7 @@ export default function AdminDashboard() {
         if (el) {
           const now = new Date()
           const SLOT_H = calView === 'semana' ? 80 : 88
-          const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * SLOT_H - 150
+          const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * (SLOT_H/2) * 2 - (el.clientHeight / 2)
           el.scrollTop = Math.max(0, offset)
         }
       }, 200)
