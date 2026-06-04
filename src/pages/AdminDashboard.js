@@ -1740,14 +1740,18 @@ export default function AdminDashboard() {
                                 return (
                                   <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:'#F1EFE8', borderLeft:'3px solid #888780', borderRadius:4, padding:'3px 6px', overflow:'hidden', zIndex:4, cursor:'pointer' }}
                                     onClick={e => { e.stopPropagation(); if (window.confirm('¿Eliminar este bloqueo de agenda?')) { supabase.from('appointments').delete().eq('id', a.id).then(() => loadAppts()) } }}>
-                                    <div style={{ fontSize:10, fontWeight:500, color:'#5F5E5A', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                                      <div style={{ display:'flex', alignItems:'center', gap:3 }}>
-                                        <i className="ti ti-ban" style={{ fontSize:10 }} aria-hidden="true"></i> Agenda cerrada
+                                    <div style={{ display:'flex', flexDirection:'column', height:'100%', justifyContent:'space-between' }}>
+                                      <div>
+                                        <div style={{ fontSize:10, fontWeight:500, color:'#5F5E5A', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                                          <div style={{ display:'flex', alignItems:'center', gap:3 }}>
+                                            <i className="ti ti-ban" style={{ fontSize:10 }} aria-hidden="true"></i> Agenda cerrada
+                                          </div>
+                                          <i className="ti ti-trash" style={{ fontSize:10, color:'#888780' }} aria-hidden="true"></i>
+                                        </div>
+                                        {a.notes && a.notes !== 'Agenda bloqueada' && <div style={{ fontSize:9, color:'#888780', marginTop:1 }}>{a.notes}</div>}
                                       </div>
-                                      <i className="ti ti-trash" style={{ fontSize:10, color:'#888780' }} aria-hidden="true"></i>
+                                      {a.doctor_id && <div style={{ fontSize:9, color:'#6B6B6B', fontWeight:500 }}>{(() => { const d = doctors.find(x => x.id === a.doctor_id); return d ? `${d.prefix ? d.prefix+' ' : ''}${d.first_name} ${d.last_name}` : '' })()} </div>}
                                     </div>
-                                    {a.doctor_id && <div style={{ fontSize:9, color:'#6B6B6B', marginTop:1, fontWeight:500 }}>{(() => { const d = doctors.find(x => x.id === a.doctor_id); return d ? `${d.prefix ? d.prefix+' ' : ''}${d.first_name} ${d.last_name}` : '' })()} </div>}
-                                    {a.notes && a.notes !== 'Agenda bloqueada' && <div style={{ fontSize:9, color:'#888780', marginTop:1 }}>{a.notes}</div>}
                                   </div>
                                 )
                               })}
