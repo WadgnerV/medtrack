@@ -489,7 +489,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       {!showForm && (
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
           {notes.length > 0 && (
-            <button onClick={() => setShowPrint(true)} style={{ background:'#f0f4f8', color:'#1a3a5c', border:'1px solid #e2e8f0', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, cursor:'pointer' }}>🖨 Imprimir notas</button>
+            <button onClick={() => setShowPrint(true)} style={{ background:'#f0f4f8', color:'#1a3a5c', border:'1px solid #e2e8f0', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imprimir notas</button>
           )}
           <button onClick={() => { setShowForm(true); setForm(emptyForm); setEditingId(null) }}
             style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
@@ -653,20 +653,20 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             </button>
             {form.tratamiento?.trim() && (
               <button onClick={() => printDoc('receta')}
-                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>
-                🖨️ Receta
+                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:5 }}>
+                <i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Receta
               </button>
             )}
             {form.imagenes?.trim() && (
               <button onClick={() => printDoc('imagenes')}
-                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>
-                🖨️ Imágenes
+                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:5 }}>
+                <i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imágenes
               </button>
             )}
             {form.laboratorios?.trim() && (
               <button onClick={() => printDoc('laboratorios')}
-                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff' }}>
-                🖨️ Laboratorios
+                style={{ padding:'8px 14px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:5 }}>
+                <i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Laboratorios
               </button>
             )}
             <button onClick={save} disabled={saving}
