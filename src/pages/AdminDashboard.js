@@ -154,7 +154,7 @@ export default function AdminDashboard() {
   const [inactivePatients, setInactivePatients] = useState([])
   const [showInactive, setShowInactive] = useState(false)
   const [newPatientId, setNewPatientId] = useState(null)
-  const [blockForm, setBlockForm] = useState({ doctor_id:'', date:'', start_time:'', end_time:'', reason:'' })
+  const [blockForm, setBlockForm] = useState({ doctor_id:'', date:'', end_date:'', start_time:'', end_time:'', reason:'' })
   const [moduleAssignments, setModuleAssignments] = useState({})
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
@@ -457,25 +457,31 @@ export default function AdminDashboard() {
 
   async function saveBlock() {
     if (!blockForm.date || !blockForm.start_time || !blockForm.end_time) { alert('Completá fecha y horario'); return }
-    const duration = (() => {
-      const [sh, sm] = blockForm.start_time.split(':').map(Number)
-      const [eh, em] = blockForm.end_time.split(':').map(Number)
-      return (eh * 60 + em) - (sh * 60 + sm)
-    })()
-    await supabase.from('appointments').insert({
+    const [sh, sm] = blockForm.start_time.split(':').map(Number)
+    const [eh, em] = blockForm.end_time.split(':').map(Number)
+    const duration = (eh * 60 + em) - (sh * 60 + sm)
+    const endDate = blockForm.end_date || blockForm.date
+    const dates = []
+    let cur = new Date(blockForm.date + 'T12:00:00')
+    const end = new Date(endDate + 'T12:00:00')
+    while (cur <= end) {
+      dates.push(cur.toISOString().split('T')[0])
+      cur.setDate(cur.getDate() + 1)
+    }
+    await supabase.from('appointments').insert(dates.map(d => ({
       clinic_id: profile.clinic_id,
       doctor_id: blockForm.doctor_id || null,
-      appointment_date: blockForm.date,
+      appointment_date: d,
       appointment_time: blockForm.start_time,
       duration_min: duration,
       visit_type: 'bloqueo',
       status: 'blocked',
       notes: blockForm.reason || 'Agenda bloqueada',
       created_by: profile.id,
-    })
+    })))
     await loadAppts()
     setModal(null)
-    setBlockForm({ doctor_id:'', date:'', start_time:'', end_time:'', reason:'' })
+    setBlockForm({ doctor_id:'', date:'', end_date:'', start_time:'', end_time:'', reason:'' })
   }
 
   async function moveAppt(apptId, newDate, newHour) {
@@ -2135,8 +2141,8 @@ export default function AdminDashboard() {
                     <div style={{ fontSize:11, color:'#999' }}>Aparecerá como franja gris en el calendario</div>
                   </div>
                 </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
-                  <div style={{ gridColumn:'1/-1' }}>
+                <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:10 }}>
+                  <div>
                     <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Profesional</label>
                     <select value={blockForm.doctor_id} onChange={e => setBlockForm(p=>({...p, doctor_id:e.target.value}))}
                       style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }}>
@@ -2144,22 +2150,29 @@ export default function AdminDashboard() {
                       {doctors.filter(d => d.is_health_professional || d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
                     </select>
                   </div>
-                  <div style={{ gridColumn:'1/-1' }}>
-                    <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Fecha *</label>
-                    <input type="date" value={blockForm.date} onChange={e => setBlockForm(p=>({...p, date:e.target.value}))}
-                      style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    <div>
+                      <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Fecha inicio *</label>
+                      <input type="date" value={blockForm.date} onChange={e => setBlockForm(p=>({...p, date:e.target.value}))}
+                        style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Fecha fin <span style={{ color:'#bbb' }}>(opcional)</span></label>
+                      <input type="date" value={blockForm.end_date} onChange={e => setBlockForm(p=>({...p, end_date:e.target.value}))}
+                        style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Hora inicio *</label>
+                      <input type="time" value={blockForm.start_time} onChange={e => setBlockForm(p=>({...p, start_time:e.target.value}))}
+                        style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Hora fin *</label>
+                      <input type="time" value={blockForm.end_time} onChange={e => setBlockForm(p=>({...p, end_time:e.target.value}))}
+                        style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
+                    </div>
                   </div>
                   <div>
-                    <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Hora inicio *</label>
-                    <input type="time" value={blockForm.start_time} onChange={e => setBlockForm(p=>({...p, start_time:e.target.value}))}
-                      style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Hora fin *</label>
-                    <input type="time" value={blockForm.end_time} onChange={e => setBlockForm(p=>({...p, end_time:e.target.value}))}
-                      style={{ width:'100%', padding:'7px 10px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:7, outline:'none', fontFamily:'inherit' }} />
-                  </div>
-                  <div style={{ gridColumn:'1/-1' }}>
                     <label style={{ fontSize:11, color:'#666', display:'block', marginBottom:4 }}>Motivo</label>
                     <input value={blockForm.reason} onChange={e => setBlockForm(p=>({...p, reason:e.target.value}))}
                       placeholder="Ej: Almuerzo, reunión, día libre..."
