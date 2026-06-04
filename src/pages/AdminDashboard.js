@@ -151,6 +151,8 @@ export default function AdminDashboard() {
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   const [searchPac, setSearchPac] = useState('')
   const [searchDoc, setSearchDoc] = useState('')
+  const [inactivePatients, setInactivePatients] = useState([])
+  const [showInactive, setShowInactive] = useState(false)
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
@@ -362,8 +364,24 @@ export default function AdminDashboard() {
     setDoctors(data || [])
   }
 
+  async function loadInactivePatients() {
+    const { data } = await supabase.from('patients')
+      .select('id, status, id_number, profile:profile_id(id, first_name, last_name, email, is_active)')
+      .eq('clinic_id', profile.clinic_id)
+      .eq('status', 'inactive')
+      .order('created_at', { ascending: false })
+    setInactivePatients(data || [])
+  }
+
+  async function reactivatePatient(p) {
+    await supabase.from('patients').update({ status: 'active' }).eq('id', p.id)
+    await supabase.from('profiles').update({ is_active: true }).eq('id', p.profile?.id)
+    await loadInactivePatients()
+    await loadPatients()
+  }
+
   async function loadPatients(branchId) {
-    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').eq('clinic_id', profile.clinic_id).order('created_at', { ascending: false })
+    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').eq('clinic_id', profile.clinic_id).neq('status', 'inactive').order('created_at', { ascending: false })
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
     setPatients(data || [])
@@ -1133,7 +1151,8 @@ export default function AdminDashboard() {
             </div>
             {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('doctor')) return; setFormError(''); setModal('new-doctor') }}>+ Nuevo personal</button>}
             {view === 'medicos' && isClinicAdmin && <button style={{ ...s.btnPrimary, background:'#1a3a5c' }} onClick={() => { setFormError(''); setModal('new-branch-admin') }}>+ Nuevo admin sucursal</button>}
-            {view === 'pacientes'  && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
+            {view === 'pacientes' && !showInactive && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
+            {view === 'pacientes' && !showInactive && <button onClick={() => { loadInactivePatients(); setShowInactive(true) }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:11, color:'#bbb', textDecoration:'underline' }}>perfiles inactivos</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
             <NotificationBell profile={profile} />
@@ -1262,7 +1281,49 @@ export default function AdminDashboard() {
             />
           )}
 
-          {view === 'pacientes' && (
+          {view === 'pacientes' && showInactive && (
+            <div>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                <button onClick={() => setShowInactive(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#1D9E75', display:'flex', alignItems:'center', gap:4 }}>
+                  <i className="ti ti-arrow-left" style={{ fontSize:13 }} aria-hidden="true"></i> Volver a pacientes
+                </button>
+                <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Perfiles inactivos</div>
+              </div>
+              {inactivePatients.length === 0 ? (
+                <div style={{ textAlign:'center', color:'#bbb', fontSize:13, padding:30 }}>No hay perfiles inactivos</div>
+              ) : (
+                <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign:'left', padding:'8px 14px', fontSize:11, fontWeight:500, color:'#888', borderBottom:'1px solid #eee', background:'#f8f8f8', textTransform:'uppercase', letterSpacing:'0.05em' }}>Nombre</th>
+                        <th style={{ textAlign:'left', padding:'8px 14px', fontSize:11, fontWeight:500, color:'#888', borderBottom:'1px solid #eee', background:'#f8f8f8', textTransform:'uppercase', letterSpacing:'0.05em' }}>Identificación</th>
+                        <th style={{ textAlign:'left', padding:'8px 14px', fontSize:11, fontWeight:500, color:'#888', borderBottom:'1px solid #eee', background:'#f8f8f8', textTransform:'uppercase', letterSpacing:'0.05em' }}>Correo</th>
+                        <th style={{ padding:'8px 14px', borderBottom:'1px solid #eee', background:'#f8f8f8' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inactivePatients.map(p => (
+                        <tr key={p.id}>
+                          <td style={{ padding:'10px 14px', fontSize:13, borderBottom:'0.5px solid #f0f0f0', color:'#1a1a1a' }}>{p.profile?.first_name} {p.profile?.last_name}</td>
+                          <td style={{ padding:'10px 14px', fontSize:13, borderBottom:'0.5px solid #f0f0f0', color:'#666' }}>{p.id_number || '—'}</td>
+                          <td style={{ padding:'10px 14px', fontSize:13, borderBottom:'0.5px solid #f0f0f0', color:'#666' }}>{p.profile?.email}</td>
+                          <td style={{ padding:'10px 14px', borderBottom:'0.5px solid #f0f0f0' }}>
+                            <button onClick={() => reactivatePatient(p)}
+                              style={{ background:'#1D9E75', color:'#fff', border:'none', borderRadius:6, padding:'4px 12px', fontSize:12, cursor:'pointer', fontWeight:500 }}>
+                              Reactivar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {view === 'pacientes' && !showInactive && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
           <div style={{ padding:'10px 12px', borderBottom:'1px solid #ebebeb', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:13, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
               {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:13, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
@@ -1739,6 +1800,7 @@ export default function AdminDashboard() {
               </div>{/* fin columna principal */}
             </div>
           )}
+
 
           {view === 'chat' && (
             <div style={{ display:'grid', gridTemplateColumns:'220px 1fr', height:'calc(100vh - 130px)', background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
