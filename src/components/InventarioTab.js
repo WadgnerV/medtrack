@@ -58,7 +58,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   async function handleSave() {
     if (!form.name || !form.quantity) { alert('Nombre y cantidad son obligatorios'); return }
     setSaving(true)
-    const rate = exchangeRate || 517
+    const rate = exchangeRate || 462
     const costInColones = form.cost ? (form.currency === 'USD' ? parseFloat(form.cost) * rate : parseFloat(form.cost)) : null
     const payload = {
       clinic_id: profile.clinic_id,
@@ -104,7 +104,13 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
     return true
   })
 
-  const totalValue = filtered.reduce((sum, i) => sum + (i.cost_in_colones || 0) * i.quantity, 0)
+  function getItemValueInColones(item) {
+    if (!item.cost) return 0
+    const rate = exchangeRate || 462
+    const costCRC = item.currency === 'USD' ? item.cost * rate : item.cost
+    return costCRC * item.quantity
+  }
+  const totalValue = filtered.reduce((sum, i) => sum + getItemValueInColones(i), 0)
   const lowStock = filtered.filter(i => i.min_quantity > 0 && i.quantity <= i.min_quantity).length
 
   const s = {
@@ -197,7 +203,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 <td style={s.td}><span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>{item.category}</span></td>
                 <td style={s.td}>{item.quantity} {item.unit}</td>
                 <td style={s.td}>{item.cost ? `${item.currency === 'USD' ? '$' : '₡'}${parseFloat(item.cost).toLocaleString('es-CR')}` : '—'}</td>
-                <td style={s.td}>{item.cost_in_colones ? `₡${(item.cost_in_colones * item.quantity).toLocaleString('es-CR', { maximumFractionDigits:0 })}` : '—'}</td>
+                <td style={s.td}>{item.cost ? `₡${getItemValueInColones(item).toLocaleString('es-CR', { maximumFractionDigits:0 })}` : '—'}</td>
                 <td style={s.td}>{new Date(item.updated_at).toLocaleDateString('es-CR')}</td>
                 <td style={s.td}>
                   <button style={s.btnSm} onClick={() => { loadHistory(item.id); setHistoryItem(item); setModal('history') }}>Historial</button>
