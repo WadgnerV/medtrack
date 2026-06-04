@@ -400,7 +400,7 @@ export default function AdminDashboard() {
   function initials(name) { return name.split(SP).map(n => n[0] || '').join('').substring(0,2).toUpperCase() }
 
   const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
-  const DAYS = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab']
+  const DAYS = ['Lun','Mar','Mie','Jue','Vie','Sab','Dom']
   const DAYS_FULL = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado']
 
   async function handleSignOut() { await signOut(); navigate('/login') }
@@ -682,7 +682,7 @@ export default function AdminDashboard() {
   function renderCalendar() {
     const today = new Date()
     const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0')
-    const firstDay = new Date(calYear, calMonth, 1).getDay()
+    const firstDay = (new Date(calYear, calMonth, 1).getDay() + 6) % 7
     const daysInMonth = new Date(calYear, calMonth+1, 0).getDate()
     const daysInPrev = new Date(calYear, calMonth, 0).getDate()
     const cells = []
