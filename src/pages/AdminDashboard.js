@@ -170,6 +170,7 @@ export default function AdminDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [calView, setCalView] = useState('semana')
+  const [draggingAppt, setDraggingAppt] = useState(null)
   const [popupAppt, setPopupAppt] = useState(null)
   const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -385,6 +386,12 @@ export default function AdminDashboard() {
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
     setPatients(data || [])
+  }
+
+  async function moveAppt(apptId, newDate, newHour) {
+    const timeStr = String(newHour).padStart(2,'0') + ':00'
+    await supabase.from('appointments').update({ appointment_date: newDate, appointment_time: timeStr }).eq('id', apptId)
+    await loadAppts()
   }
 
   async function loadAppts(branchId) {
@@ -1572,6 +1579,9 @@ export default function AdminDashboard() {
                             <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                               {hours.map(h => (
                                 <div key={h} style={{ height:SLOT_H, cursor:'pointer', position:'relative' }}
+                                  onDragOver={e => { e.preventDefault(); e.currentTarget.style.background='rgba(29,158,117,0.08)' }}
+                                  onDragLeave={e => { e.currentTarget.style.background='' }}
+                                  onDrop={e => { e.preventDefault(); e.currentTarget.style.background=''; if (draggingAppt) { moveAppt(draggingAppt.id, dateStr, h); setDraggingAppt(null) } }}
                                   onClick={() => { setSelDate(dateStr); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
                                   <div style={{ position:'absolute', top:0, left:0, right:0, borderTop:'1px solid #ebebeb', pointerEvents:'none' }} />
                                   <div style={{ position:'absolute', top:'50%', left:0, right:0, borderTop:'1px dashed #e8e8e8', pointerEvents:'none' }} />
@@ -1597,7 +1607,7 @@ export default function AdminDashboard() {
                                     const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
                                     const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                     return (
-                                      <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:2, right:2, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5 }}
                                         onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
