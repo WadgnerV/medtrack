@@ -576,13 +576,15 @@ export default function AdminDashboard() {
         }
       })
     }
-    if (role === 'doctor') await loadDoctors()
+    if (role === 'doctor') { await loadDoctors(); setModal(null) }
     else if (role === 'patient') {
       await loadPatients()
       setSelPatient(null)
       setViewPersist('pacientes')
-      const { data: newPat } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
-      if (newPat?.id) { setNewPatientId(newPat.id); setModuleAssignments({}); setModal('assign-modules-new') } else { setModal(null) }
+      setTimeout(async () => {
+        const { data: newPat } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
+        if (newPat?.id) { setNewPatientId(newPat.id); setModuleAssignments({}); setModal('assign-modules-new') } else { setModal(null) }
+      }, 800)
     } else { setModal(null) }
     setSaving(false); setSelPatient(null)
   }
