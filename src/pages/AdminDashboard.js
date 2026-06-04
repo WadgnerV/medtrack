@@ -184,20 +184,26 @@ export default function AdminDashboard() {
     return () => clearInterval(timer)
   }, [])
 
+  function scrollToNow(viewName) {
+    const id = viewName === 'semana' ? 'cal-semana-scroll' : 'cal-dia-scroll'
+    setTimeout(() => {
+      const el = document.getElementById(id)
+      if (el) {
+        const now = new Date()
+        const SLOT_H = viewName === 'semana' ? 80 : 88
+        const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * (SLOT_H/2) * 2 - (el.clientHeight / 2)
+        el.scrollTop = Math.max(0, offset)
+      }
+    }, 300)
+  }
+
   useEffect(() => {
-    if (calView === 'semana' || calView === 'dia') {
-      const id = calView === 'semana' ? 'cal-semana-scroll' : 'cal-dia-scroll'
-      setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) {
-          const now = new Date()
-          const SLOT_H = calView === 'semana' ? 80 : 88
-          const offset = (now.getHours() * 60 + now.getMinutes()) / 60 * (SLOT_H/2) * 2 - (el.clientHeight / 2)
-          el.scrollTop = Math.max(0, offset)
-        }
-      }, 200)
-    }
+    if (calView === 'semana' || calView === 'dia') scrollToNow(calView)
   }, [calView])
+
+  useEffect(() => {
+    if (view === 'calendario') scrollToNow(calView)
+  }, [view])
 
   const [weekStart, setWeekStart] = useState(() => {
     const today = new Date()
