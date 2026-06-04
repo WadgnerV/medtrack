@@ -2194,7 +2194,7 @@ export default function AdminDashboard() {
                     style={{ padding:'8px 16px', border:'1px solid #eee', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar edición</button>}
                   <button onClick={() => setModal(null)}
                     style={{ padding:'8px 16px', border:'0.5px solid #ddd', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cerrar</button>
-                  <button onClick={() => { console.log("days_of_week:", availForm.days_of_week); saveAvailability() }}
+                  <button onClick={saveAvailability}
                     style={{ padding:'8px 18px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:5 }}>
                     <i className="ti ti-check" style={{ fontSize:13 }} aria-hidden="true"></i>
                     {availForm.id ? 'Actualizar' : 'Guardar disponibilidad'}
