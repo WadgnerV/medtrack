@@ -171,6 +171,8 @@ export default function AdminDashboard() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [calView, setCalView] = useState('semana')
   const [draggingAppt, setDraggingAppt] = useState(null)
+  const [availability, setAvailability] = useState([])
+  const [availForm, setAvailForm] = useState({ doctor_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', day_of_week:'1', specific_date:'', repeat_until:'' })
   const [popupAppt, setPopupAppt] = useState(null)
   const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -258,7 +260,7 @@ export default function AdminDashboard() {
       const { data: bs } = await supabase.from('branch_staff').select('branch_id').eq('profile_id', profile.id).single()
       if (bs?.branch_id) { branchId = bs.branch_id; setMyBranchId(bs.branch_id) }
     }
-    await Promise.all([loadDoctors(), loadPatients(branchId), loadAppts(branchId), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches()])
+    await Promise.all([loadDoctors(), loadPatients(branchId), loadAppts(branchId), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches(), loadAvailability()])
     setLoading(false)
   }
 
@@ -386,6 +388,54 @@ export default function AdminDashboard() {
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
     setPatients(data || [])
+  }
+
+  async function loadAvailability() {
+    const { data } = await supabase.from('doctor_availability').select('*, doctor:doctor_id(id, first_name, last_name, prefix, sex)').eq('clinic_id', profile.clinic_id).eq('is_active', true)
+    setAvailability(data || [])
+  }
+
+  async function saveAvailability() {
+    if (!availForm.doctor_id || !availForm.start_time || !availForm.end_time) { alert('Complete todos los campos obligatorios'); return }
+    const payload = {
+      clinic_id: profile.clinic_id,
+      doctor_id: availForm.doctor_id,
+      start_time: availForm.start_time,
+      end_time: availForm.end_time,
+      repeat_type: availForm.repeat_type,
+      day_of_week: availForm.repeat_type === 'weekly' ? parseInt(availForm.day_of_week) : null,
+      specific_date: availForm.repeat_type === 'once' ? availForm.specific_date : null,
+      repeat_until: availForm.repeat_until || null,
+      created_by: profile.id,
+      is_active: true,
+    }
+    if (availForm.id) {
+      await supabase.from('doctor_availability').update(payload).eq('id', availForm.id)
+    } else {
+      await supabase.from('doctor_availability').insert(payload)
+    }
+    await loadAvailability()
+    setModal(null)
+    setAvailForm({ doctor_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', day_of_week:'1', specific_date:'', repeat_until:'' })
+  }
+
+  async function deleteAvailability(id) {
+    if (!window.confirm('¿Eliminar esta disponibilidad?')) return
+    await supabase.from('doctor_availability').update({ is_active: false }).eq('id', id)
+    await loadAvailability()
+  }
+
+  function getDayAvailability(dateStr) {
+    const date = new Date(dateStr + 'T12:00:00')
+    const dayOfWeek = date.getDay() === 0 ? 6 : date.getDay() - 1
+    return availability.filter(a => {
+      if (a.repeat_type === 'weekly' && a.day_of_week === dayOfWeek) {
+        if (a.repeat_until && dateStr > a.repeat_until) return false
+        return true
+      }
+      if (a.repeat_type === 'once' && a.specific_date === dateStr) return true
+      return false
+    })
   }
 
   async function moveAppt(apptId, newDate, newHour) {
@@ -1161,6 +1211,7 @@ export default function AdminDashboard() {
             {view === 'pacientes' && !showInactive && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('patient')) return; setFormError(''); setModal('new-patient') }}>+ Nuevo paciente</button>}
             {view === 'pacientes' && !showInactive && <button onClick={() => { loadInactivePatients(); setShowInactive(true) }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:11, color:'#bbb', textDecoration:'underline' }}>perfiles inactivos</button>}
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
+            {view === 'calendario' && <button style={{ ...s.btnPrimary, background:'#1a3a5c' }} onClick={() => setModal('availability')}>Disponibilidad</button>}
             {view === 'biblioteca' && <button style={s.btnPrimary} onClick={() => setModal('new-library')}>+ Nuevo item</button>}
             <NotificationBell profile={profile} />
           </div>
@@ -1592,6 +1643,17 @@ export default function AdminDashboard() {
                                   <div style={{ flex:1, height:1.5, background:'#D85A30' }} />
                                 </div>
                               )}
+                              {getDayAvailability(dateStr).map((a, ai) => {
+                                const [sh, sm] = (a.start_time||'00:00').split(':').map(Number)
+                                const [eh, em] = (a.end_time||'00:00').split(':').map(Number)
+                                const topPx = ((sh - HORA_INI) * 60 + sm) / 60 * (SLOT_H/2)
+                                const heightPx = ((eh - sh) * 60 + (em - sm)) / 60 * (SLOT_H/2)
+                                const color = doctorColor(a.doctor_id)
+                                return (
+                                  <div key={a.id} title={`${a.doctor?.prefix ? a.doctor.prefix+' ' : ''}${a.doctor?.first_name} ${a.doctor?.last_name} · ${a.start_time?.substring(0,5)}-${a.end_time?.substring(0,5)}`}
+                                    style={{ position:'absolute', left: ai * 4, width:3, top:topPx, height:heightPx, background:color, borderRadius:2, opacity:0.7, zIndex:3, pointerEvents:'none' }} />
+                                )
+                              })}
                               {dayAppts.map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                                 if (ah < HORA_INI || ah >= HORA_FIN) return null
@@ -1964,6 +2026,107 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {modal === 'availability' && (
+            <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
+              <div style={{ background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:560, maxHeight:'90vh', overflowY:'auto' }}>
+                <div style={{ fontSize:15, fontWeight:500, marginBottom:16, color:'#1a1a1a' }}>Gestión de disponibilidad</div>
+
+                {/* Formulario nueva disponibilidad */}
+                <div style={{ background:'#f8f8f8', borderRadius:10, padding:16, marginBottom:16 }}>
+                  <div style={{ fontSize:12, fontWeight:500, color:'#555', marginBottom:12 }}>{availForm.id ? 'Editar disponibilidad' : 'Agregar disponibilidad'}</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    <div style={{ gridColumn:'1/-1' }}>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Profesional *</label>
+                      <select value={availForm.doctor_id} onChange={e => setAvailForm(p=>({...p, doctor_id:e.target.value}))}
+                        style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                        <option value="">Seleccionar profesional...</option>
+                        {doctors.filter(d => d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Tipo de repetición</label>
+                      <select value={availForm.repeat_type} onChange={e => setAvailForm(p=>({...p, repeat_type:e.target.value}))}
+                        style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                        <option value="weekly">Semanal (día fijo)</option>
+                        <option value="once">Fecha específica</option>
+                      </select>
+                    </div>
+                    {availForm.repeat_type === 'weekly' ? (
+                      <div>
+                        <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Día de la semana</label>
+                        <select value={availForm.day_of_week} onChange={e => setAvailForm(p=>({...p, day_of_week:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }}>
+                          {['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((d,i) => <option key={i} value={i}>{d}</option>)}
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Fecha específica</label>
+                        <input type="date" value={availForm.specific_date} onChange={e => setAvailForm(p=>({...p, specific_date:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                      </div>
+                    )}
+                    <div>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Hora inicio</label>
+                      <input type="time" value={availForm.start_time} onChange={e => setAvailForm(p=>({...p, start_time:e.target.value}))}
+                        style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Hora fin</label>
+                      <input type="time" value={availForm.end_time} onChange={e => setAvailForm(p=>({...p, end_time:e.target.value}))}
+                        style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    {availForm.repeat_type === 'weekly' && (
+                      <div style={{ gridColumn:'1/-1' }}>
+                        <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Repetir hasta (opcional)</label>
+                        <input type="date" value={availForm.repeat_until} onChange={e => setAvailForm(p=>({...p, repeat_until:e.target.value}))}
+                          style={{ width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display:'flex', gap:8, marginTop:12, justifyContent:'flex-end' }}>
+                    {availForm.id && <button onClick={() => setAvailForm({ doctor_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', day_of_week:'1', specific_date:'', repeat_until:'' })}
+                      style={{ padding:'6px 14px', border:'1px solid #eee', borderRadius:8, cursor:'pointer', fontSize:12, color:'#666', background:'#fff' }}>Cancelar edición</button>}
+                    <button onClick={saveAvailability}
+                      style={{ padding:'6px 14px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>
+                      {availForm.id ? 'Actualizar' : 'Agregar'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Lista de disponibilidades */}
+                <div style={{ fontSize:12, fontWeight:500, color:'#555', marginBottom:8 }}>Disponibilidades registradas</div>
+                {availability.length === 0 ? (
+                  <div style={{ textAlign:'center', color:'#bbb', fontSize:12, padding:20 }}>No hay disponibilidades registradas</div>
+                ) : (
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {availability.map(a => {
+                      const dName = a.doctor ? `${a.doctor.prefix ? a.doctor.prefix+' ' : ''}${a.doctor.first_name} ${a.doctor.last_name}` : ''
+                      const color = doctorColor(a.doctor_id)
+                      const days = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']
+                      const dayLabel = a.repeat_type === 'weekly' ? days[a.day_of_week] : a.specific_date
+                      return (
+                        <div key={a.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', background:'#f8f8f8', borderRadius:8, borderLeft:`3px solid ${color}` }}>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>{dName}</div>
+                            <div style={{ fontSize:11, color:'#888' }}>{dayLabel} · {a.start_time?.substring(0,5)} – {a.end_time?.substring(0,5)}{a.repeat_until ? ` · hasta ${a.repeat_until}` : ''}</div>
+                          </div>
+                          <button onClick={() => setAvailForm({ ...a, day_of_week: String(a.day_of_week ?? '1'), specific_date: a.specific_date || '', repeat_until: a.repeat_until || '' })}
+                            style={{ padding:'3px 10px', border:'1px solid #eee', borderRadius:6, cursor:'pointer', fontSize:11, color:'#555', background:'#fff' }}>Editar</button>
+                          <button onClick={() => deleteAvailability(a.id)}
+                            style={{ padding:'3px 10px', border:'1px solid #fde0e0', borderRadius:6, cursor:'pointer', fontSize:11, color:'#d9534f', background:'#fff' }}>Eliminar</button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                <div style={{ display:'flex', justifyContent:'flex-end', marginTop:16 }}>
+                  <button onClick={() => setModal(null)} style={{ padding:'7px 16px', border:'1px solid #eee', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cerrar</button>
+                </div>
               </div>
             </div>
           )}
