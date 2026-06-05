@@ -155,6 +155,7 @@ export default function AdminDashboard() {
   const [showInactive, setShowInactive] = useState(false)
   const [newPatientId, setNewPatientId] = useState(null)
   const [blockForm, setBlockForm] = useState({ doctor_id:'', date:'', end_date:'', start_time:'', end_time:'', reason:'' })
+  const [apptTags, setApptTags] = useState([])
   const [moduleAssignments, setModuleAssignments] = useState({})
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
@@ -269,7 +270,7 @@ export default function AdminDashboard() {
       const { data: bs } = await supabase.from('branch_staff').select('branch_id').eq('profile_id', profile.id).single()
       if (bs?.branch_id) { branchId = bs.branch_id; setMyBranchId(bs.branch_id) }
     }
-    await Promise.all([loadDoctors(), loadPatients(branchId), loadAppts(branchId), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches(), loadAvailability()])
+    await Promise.all([loadDoctors(), loadPatients(branchId), loadAppts(branchId), loadMsgs(), loadLibrary(), loadPerms(), loadAllGoals(), loadAllDiagnoses(), loadClinicSettings(), loadBranches(), loadAvailability(), loadApptTags()])
     setLoading(false)
   }
 
@@ -491,10 +492,15 @@ export default function AdminDashboard() {
   }
 
   async function loadAppts(branchId) {
-    let query = supabase.from('appointments').select('*, patient:patient_id(id, phone, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name)').order('appointment_date').order('appointment_time')
+    let query = supabase.from('appointments').select('*, patient:patient_id(id, phone, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name), tags:appointment_tag_links(tag:tag_id(id, name, color))').order('appointment_date').order('appointment_time')
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
     setAppts(data || [])
+  }
+
+  async function loadApptTags() {
+    const { data } = await supabase.from('appointment_tags').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    setApptTags(data || [])
   }
 
   async function loadMsgs() {
@@ -709,7 +715,7 @@ export default function AdminDashboard() {
     }
   }
 
-  async function saveAppt(form) {
+  async function saveAppt(form, selectedTags = []) {
     const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id, clinic_id: profile?.clinic_id }
     const prevAppt = form.id ? appts.find(a => a.id === form.id) : null
     const prevStatus = prevAppt?.status || null
@@ -771,6 +777,18 @@ export default function AdminDashboard() {
           }
         })
       }
+    }
+    // Guardar etiquetas
+    if (form.id) {
+      await supabase.from('appointment_tag_links').delete().eq('appointment_id', form.id)
+    } else {
+      const { data: newAppt } = await supabase.from('appointments').select('id').eq('clinic_id', profile?.clinic_id).order('created_at', { ascending: false }).limit(1).single()
+      if (newAppt?.id && selectedTags.length > 0) {
+        await supabase.from('appointment_tag_links').insert(selectedTags.map(tagId => ({ appointment_id: newAppt.id, tag_id: tagId })))
+      }
+    }
+    if (form.id && selectedTags.length > 0) {
+      await supabase.from('appointment_tag_links').insert(selectedTags.map(tagId => ({ appointment_id: form.id, tag_id: tagId })))
     }
     await loadAppts(); setModal(null); setSaving(false)
   }
@@ -1139,7 +1157,7 @@ export default function AdminDashboard() {
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} doctors={doctors}
                 saving={saving} error={formError} defaultDate={selDate} defaultTime={modalData.defaultTime}
-                onSave={saveAppt} onClose={() => setModal(null)}
+                onSave={saveAppt} onClose={() => setModal(null)} tags={apptTags}
                 onCancelAppt={async (id) => {
                   if (!window.confirm('¿Estás seguro que querés cancelar esta cita?')) return
                   await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', id)
@@ -1788,8 +1806,12 @@ export default function AdminDashboard() {
                                           {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
                                         </div>
                                         <div style={{ fontSize:10, fontWeight:500, color:'#1a1a1a', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
-                                        {a.module_type && <div style={{ fontSize:9, color:'#555', lineHeight:1.3 }}>{ML[a.module_type]}</div>}
-                                        {a.visit_type && <div style={{ fontSize:9, color:'#777', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.visit_type}</div>}
+                                        {a.notes && <div style={{ fontSize:9, color:'#777', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.notes}</div>}
+                                        {a.tags?.length > 0 && (
+                                          <div style={{ position:'absolute', bottom:3, left:4, display:'flex', gap:2 }}>
+                                            {a.tags.map(t => <div key={t.tag?.id} style={{ width:10, height:10, borderRadius:2, background:t.tag?.color || '#ccc' }} title={t.tag?.name} />)}
+                                          </div>
+                                        )}
                                       </div>
                                     )
                                   })()}</>
@@ -2729,8 +2751,9 @@ function AssignForm({ patient, doctors, saving, onSave, onClose }) {
   )
 }
 
-function ApptForm({ appt, patients, doctors, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin, onGoToExpediente, onCancelAppt }) {
+function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin, onGoToExpediente, onCancelAppt }) {
   const [patSearch, setPatSearch] = React.useState('')
+  const [selectedTags, setSelectedTags] = React.useState(appt?.tags?.map(t => t.tag?.id).filter(Boolean) || [])
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
   const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
@@ -2862,6 +2885,21 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
         </select>
       </div>
 
+      {tags && tags.length > 0 && (
+        <div style={{ marginBottom:12 }}>
+          <label style={s.fieldLabel}>Etiquetas</label>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>
+            {tags.map(tag => (
+              <div key={tag.id} onClick={() => setSelectedTags(prev => prev.includes(tag.id) ? prev.filter(id => id !== tag.id) : [...prev, tag.id])}
+                style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, border: selectedTags.includes(tag.id) ? `1.5px solid ${tag.color}` : '1px solid #eee', background: selectedTags.includes(tag.id) ? tag.color+'18' : '#f8f8f8', color: selectedTags.includes(tag.id) ? tag.color : '#666', fontWeight: selectedTags.includes(tag.id) ? 500 : 400 }}>
+                <div style={{ width:8, height:8, borderRadius:2, background:tag.color, flexShrink:0 }} />
+                {tag.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom:18 }}>
         <label style={s.fieldLabel}>Notas</label>
         <textarea value={form.notes} onChange={f('notes')} rows={2} style={{ ...s.fieldInput, resize:'vertical' }} placeholder="Indicaciones u observaciones..." />
@@ -2873,7 +2911,7 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
           <button style={{ background:'#fff', border:'1px solid #D85A30', color:'#D85A30', fontSize:13, padding:'7px 12px', borderRadius:8, cursor:'pointer' }}
             onClick={() => onCancelAppt(appt.id)}>🗑 Cancelar cita</button>
         )}
-        <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
+        <button style={{ ...s.btnPrimary, flex:1, justifyContent:'center', opacity:saving?0.7:1 }} disabled={saving} onClick={() => onSave(form, selectedTags)}>{saving ? 'Guardando...' : appt ? 'Guardar cambios' : 'Agendar cita'}</button>
       </div>
     </>
   )
