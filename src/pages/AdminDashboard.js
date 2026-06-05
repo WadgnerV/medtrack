@@ -2791,7 +2791,7 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
                 const id = (p.id_number||'').toLowerCase()
                 return name.includes(q) || id.includes(q)
               }).slice(0,8).map(p => (
-                <div key={p.id} onClick={() => { f('patientId')({ target: { value: p.id } }); setPatSearch(pn(p)) }}
+                <div key={p.id} onClick={() => { f('patientId')({ target: { value: p.id } }); setPatSearch('') }}
                   style={{ padding:'8px 12px', cursor:'pointer', fontSize:13, color:'#1a1a1a', borderBottom:'0.5px solid #f0f0f0' }}
                   onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'}
                   onMouseLeave={e => e.currentTarget.style.background='transparent'}>
@@ -2805,7 +2805,7 @@ function ApptForm({ appt, patients, doctors, saving, error, defaultDate, default
             </div>
           )}
         </div>
-        {form.patientId && !patSearch && (
+        {form.patientId && (
           <div style={{ fontSize:11, color:'#1D9E75', marginTop:4 }}>✓ {pn(patients.find(p => p.id === form.patientId) || {})}</div>
         )}
       </div>
