@@ -1216,7 +1216,10 @@ export default function AdminDashboard() {
               <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
             </div>
           )}
-
+          <div onClick={() => setSidebarCollapsed(p => !p)}
+            style={{ position:'absolute', right:-11, top:16, width:22, height:22, background:'#fff', border:'0.5px solid #ddd', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'0 2px 6px rgba(0,0,0,0.1)' }}>
+            <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:11, color:'#888' }} aria-hidden="true"></i>
+          </div>
         </div>
 
         {[
@@ -1248,13 +1251,7 @@ export default function AdminDashboard() {
         )}
       </div>}
 
-      {/* Botón flotante de colapsar sidebar */}
-      {!isMobile && (
-        <div onClick={() => setSidebarCollapsed(p => !p)}
-          style={{ position:'fixed', left: sidebarCollapsed ? 40 : 198, top:22, width:22, height:22, background:'#fff', border:'0.5px solid #ddd', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'0 2px 8px rgba(0,0,0,0.12)', transition:'left 0.2s ease' }}>
-          <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:11, color:'#888' }} aria-hidden="true"></i>
-        </div>
-      )}
+
 
       {/* Overlay para cerrar menú en móvil */}}
       {/* Drawer móvil admin */}
