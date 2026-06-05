@@ -468,7 +468,8 @@ export default function UserMenu({ dropUp = true }) {
               <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30' }} aria-hidden="true"></i><span>Cerrar sesión</span>
             </div>
           </div>
-        )}
+        )
+        })()}
       </div>
     </>
   )
