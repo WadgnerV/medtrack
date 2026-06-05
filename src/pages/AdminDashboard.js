@@ -456,6 +456,17 @@ export default function AdminDashboard() {
     })
   }
 
+  async function createApptTag({ name, color }) {
+    const { data } = await supabase.from('appointment_tags').insert({ clinic_id: profile.clinic_id, name, color }).select().single()
+    await loadApptTags()
+    return { data }
+  }
+
+  async function deleteApptTag(id) {
+    await supabase.from('appointment_tags').delete().eq('id', id)
+    await loadApptTags()
+  }
+
   async function saveBlock() {
     if (!blockForm.date || !blockForm.start_time || !blockForm.end_time) { alert('Completá fecha y horario'); return }
     const [sh, sm] = blockForm.start_time.split(':').map(Number)
@@ -1157,7 +1168,7 @@ export default function AdminDashboard() {
             {(modal === 'new-appt' || modal === 'edit-appt') && (
               <ApptForm appt={modalData.appt} patients={patients} doctors={doctors}
                 saving={saving} error={formError} defaultDate={selDate} defaultTime={modalData.defaultTime}
-                onSave={saveAppt} onClose={() => setModal(null)} tags={apptTags}
+                onSave={saveAppt} onClose={() => setModal(null)} tags={apptTags} onCreateTag={createApptTag} onDeleteTag={deleteApptTag}
                 onCancelAppt={async (id) => {
                   if (!window.confirm('¿Estás seguro que querés cancelar esta cita?')) return
                   await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', id)
@@ -2751,9 +2762,12 @@ function AssignForm({ patient, doctors, saving, onSave, onClose }) {
   )
 }
 
-function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin, onGoToExpediente, onCancelAppt }) {
+function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, defaultTime, onSave, onClose, isAdmin, onGoToExpediente, onCancelAppt, onCreateTag, onDeleteTag }) {
   const [patSearch, setPatSearch] = React.useState('')
   const [selectedTags, setSelectedTags] = React.useState(appt?.tags?.map(t => t.tag?.id).filter(Boolean) || [])
+  const [showTagManager, setShowTagManager] = React.useState(false)
+  const [newTagName, setNewTagName] = React.useState('')
+  const [newTagColor, setNewTagColor] = React.useState('#1D9E75')
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
   const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
@@ -2885,20 +2899,47 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
         </select>
       </div>
 
-      {tags && tags.length > 0 && (
-        <div style={{ marginBottom:12 }}>
+      <div style={{ marginBottom:12 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
           <label style={s.fieldLabel}>Etiquetas</label>
-          <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:4 }}>
-            {tags.map(tag => (
-              <div key={tag.id} onClick={() => setSelectedTags(prev => prev.includes(tag.id) ? prev.filter(id => id !== tag.id) : [...prev, tag.id])}
-                style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, border: selectedTags.includes(tag.id) ? `1.5px solid ${tag.color}` : '1px solid #eee', background: selectedTags.includes(tag.id) ? tag.color+'18' : '#f8f8f8', color: selectedTags.includes(tag.id) ? tag.color : '#666', fontWeight: selectedTags.includes(tag.id) ? 500 : 400 }}>
-                <div style={{ width:8, height:8, borderRadius:2, background:tag.color, flexShrink:0 }} />
-                {tag.name}
-              </div>
-            ))}
-          </div>
+          <span onClick={() => setShowTagManager(p => !p)} style={{ fontSize:11, color:'#1D9E75', cursor:'pointer', textDecoration:'underline' }}>Gestionar etiquetas</span>
         </div>
-      )}
+        {showTagManager && (
+          <div style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, border:'0.5px solid #eee' }}>
+            <div style={{ fontSize:11, color:'#666', marginBottom:8 }}>Crear etiqueta</div>
+            <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
+              <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="Nombre..." style={{ flex:1, minWidth:100, padding:'5px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }} />
+              <input type="color" value={newTagColor} onChange={e => setNewTagColor(e.target.value)} style={{ width:32, height:28, border:'1px solid #e0e0e0', borderRadius:6, cursor:'pointer', padding:2 }} />
+              <button onClick={async () => {
+                if (!newTagName.trim()) return
+                const { data } = await onCreateTag({ name: newTagName.trim(), color: newTagColor })
+                setNewTagName(''); setNewTagColor('#1D9E75')
+              }} style={{ padding:'5px 10px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:12 }}>+ Agregar</button>
+            </div>
+            {tags && tags.length > 0 && (
+              <div style={{ marginTop:8, display:'flex', flexWrap:'wrap', gap:4 }}>
+                {tags.map(tag => (
+                  <div key={tag.id} style={{ display:'flex', alignItems:'center', gap:4, padding:'3px 8px', borderRadius:20, border:`1px solid ${tag.color}`, background:tag.color+'18', fontSize:11 }}>
+                    <div style={{ width:8, height:8, borderRadius:2, background:tag.color }} />
+                    <span style={{ color:tag.color, fontWeight:500 }}>{tag.name}</span>
+                    <span onClick={() => onDeleteTag(tag.id)} style={{ cursor:'pointer', color:'#999', marginLeft:2, fontSize:12, lineHeight:1 }}>×</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+          {tags && tags.map(tag => (
+            <div key={tag.id} onClick={() => setSelectedTags(prev => prev.includes(tag.id) ? prev.filter(id => id !== tag.id) : [...prev, tag.id])}
+              style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, border: selectedTags.includes(tag.id) ? `1.5px solid ${tag.color}` : '1px solid #eee', background: selectedTags.includes(tag.id) ? tag.color+'18' : '#f8f8f8', color: selectedTags.includes(tag.id) ? tag.color : '#666', fontWeight: selectedTags.includes(tag.id) ? 500 : 400 }}>
+              <div style={{ width:8, height:8, borderRadius:2, background:tag.color, flexShrink:0 }} />
+              {tag.name}
+            </div>
+          ))}
+          {(!tags || tags.length === 0) && <span style={{ fontSize:11, color:'#bbb' }}>Sin etiquetas — creá una arriba</span>}
+        </div>
+      </div>
 
       <div style={{ marginBottom:18 }}>
         <label style={s.fieldLabel}>Notas</label>
