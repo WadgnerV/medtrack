@@ -1216,10 +1216,9 @@ export default function AdminDashboard() {
               <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
             </div>
           )}
-          <div onClick={() => setSidebarCollapsed(p => !p)}
-            style={{ position:'absolute', right:-11, top:16, width:22, height:22, background:'#fff', border:'0.5px solid #ddd', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'0 2px 6px rgba(0,0,0,0.1)' }}>
-            <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:11, color:'#888' }} aria-hidden="true"></i>
-          </div>
+          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
+            <i className={`ti ${sidebarCollapsed ? 'ti-layout-sidebar-right' : 'ti-layout-sidebar'}`} style={{ fontSize:16 }} aria-hidden="true"></i>
+          </button>
         </div>
 
         {[
