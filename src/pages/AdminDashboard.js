@@ -1251,7 +1251,7 @@ export default function AdminDashboard() {
       {/* Botón flotante de colapsar sidebar */}
       {!isMobile && (
         <div onClick={() => setSidebarCollapsed(p => !p)}
-          style={{ position:'fixed', left: sidebarCollapsed ? 36 : 194, top:'50%', transform:'translateY(-50%)', width:22, height:22, background:'#fff', border:'0.5px solid #ddd', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'0 2px 8px rgba(0,0,0,0.12)', transition:'left 0.2s ease' }}>
+          style={{ position:'fixed', left: sidebarCollapsed ? 40 : 198, top:22, width:22, height:22, background:'#fff', border:'0.5px solid #ddd', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'0 2px 8px rgba(0,0,0,0.12)', transition:'left 0.2s ease' }}>
           <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:11, color:'#888' }} aria-hidden="true"></i>
         </div>
       )}
@@ -1328,7 +1328,7 @@ export default function AdminDashboard() {
           <div style={{ padding:'12px 18px', borderBottom:'0.5px solid #eee', background:'#fff', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>
-                {{ dashboard:'Dashboard', medicos:'Personal', pacientes:'Pacientes', calendario:'Calendario', reportes:'Reportes', biblioteca:'Biblioteca', permisos:'Permisos', config:'Configuración', inventario:'Inventario' }[view]}
+                {({'dashboard':'Dashboard','medicos':'Personal','pacientes':'Pacientes','calendario':'Calendario','reportes':'Reportes','biblioteca':'Biblioteca','permisos':'Permisos','config':'Configuración','inventario':'Inventario'})[view]}
               </div>
               <div style={{ fontSize:13, color:'#999', marginTop:1 }}>Glow Clinic</div>
             </div>
