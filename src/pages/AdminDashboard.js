@@ -1217,7 +1217,7 @@ export default function AdminDashboard() {
             </div>
           )}
           <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
-            <i className={`ti ${sidebarCollapsed ? 'ti-layout-sidebar-right' : 'ti-layout-sidebar'}`} style={{ fontSize:16 }} aria-hidden="true"></i>
+            <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:13 }} aria-hidden="true"></i>
           </button>
         </div>
 
