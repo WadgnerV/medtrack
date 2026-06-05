@@ -1576,6 +1576,16 @@ export default function AdminDashboard() {
               <div style={{ flex:1, display:'flex', flexDirection:'column', gap:12 }}>
               {/* Controles de vista */}
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+                {isMobile && <button onClick={() => {
+                    const today = new Date()
+                    const day = today.getDay()
+                    const diff = day === 0 ? -6 : 1 - day
+                    const mon = new Date(today)
+                    mon.setDate(today.getDate() + diff)
+                    setWeekStart(new Date(mon))
+                    setSelDate(today.toISOString().split('T')[0])
+                    scrollToNow(calView)
+                  }} style={{ padding:'5px 12px', background:'#f0f4f8', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', fontWeight:500 }}>Hoy</button>}
                 <div style={{ display:'flex', gap:6 }}>
                   {calView === 'mes' && <>
                     <button style={s.calNavBtn} onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y-1) } else setCalMonth(m => m-1) }}>{'<'}</button>
