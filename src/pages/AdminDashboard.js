@@ -2789,6 +2789,7 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
   const [patSearch, setPatSearch] = React.useState('')
   const [selectedTags, setSelectedTags] = React.useState(appt?.tags?.map(t => t.tag?.id).filter(Boolean) || [])
   const [showTagManager, setShowTagManager] = React.useState(false)
+  const [showTagDropdown, setShowTagDropdown] = React.useState(false)
   const [newTagName, setNewTagName] = React.useState('')
   const [newTagColor, setNewTagColor] = React.useState('#1D9E75')
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
@@ -2883,19 +2884,11 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
         <Field label="Hora" value={form.time} onChange={f('time')} type="time" />
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
-        <div>
-          <label style={s.fieldLabel}>Tipo de consulta</label>
-          <select value={form.visitType} onChange={f('visitType')} style={s.fieldInput}>
-            {['Consulta de seguimiento','Primera consulta','Procedimiento estético','Control de composición corporal','Aplicación de tratamiento','Control GLP-1'].map(v => <option key={v}>{v}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={s.fieldLabel}>Duración</label>
-          <select value={form.duration} onChange={f('duration')} style={s.fieldInput}>
-            {[15,30,45,60,75,90,105,120].map(v => <option key={v} value={v}>{v} min</option>)}
-          </select>
-        </div>
+      <div style={{ marginBottom:12 }}>
+        <label style={s.fieldLabel}>Duración</label>
+        <select value={form.duration} onChange={f('duration')} style={s.fieldInput}>
+          {[15,30,45,60,75,90,105,120].map(v => <option key={v} value={v}>{v} min</option>)}
+        </select>
       </div>
 
       {patientModules.length > 1 && (
@@ -2925,42 +2918,56 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
       <div style={{ marginBottom:12 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
           <label style={s.fieldLabel}>Etiquetas</label>
-          <span onClick={() => setShowTagManager(p => !p)} style={{ fontSize:11, color:'#1D9E75', cursor:'pointer', textDecoration:'underline' }}>Gestionar etiquetas</span>
+          <span onClick={() => setShowTagManager(p => !p)} style={{ fontSize:11, color:'#1D9E75', cursor:'pointer', textDecoration:'underline' }}>Gestionar</span>
         </div>
         {showTagManager && (
           <div style={{ background:'#f8f8f8', borderRadius:8, padding:10, marginBottom:8, border:'0.5px solid #eee' }}>
-            <div style={{ fontSize:11, color:'#666', marginBottom:8 }}>Crear etiqueta</div>
-            <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
-              <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="Nombre..." style={{ flex:1, minWidth:100, padding:'5px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }} />
+            <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap', marginBottom:8 }}>
+              <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="Nueva etiqueta..." style={{ flex:1, minWidth:100, padding:'5px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }} />
               <input type="color" value={newTagColor} onChange={e => setNewTagColor(e.target.value)} style={{ width:32, height:28, border:'1px solid #e0e0e0', borderRadius:6, cursor:'pointer', padding:2 }} />
-              <button onClick={async () => {
-                if (!newTagName.trim()) return
-                const { data } = await onCreateTag({ name: newTagName.trim(), color: newTagColor })
-                setNewTagName(''); setNewTagColor('#1D9E75')
-              }} style={{ padding:'5px 10px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:12 }}>+ Agregar</button>
+              <button onClick={async () => { if (!newTagName.trim()) return; await onCreateTag({ name: newTagName.trim(), color: newTagColor }); setNewTagName(''); setNewTagColor('#1D9E75') }}
+                style={{ padding:'5px 10px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:12 }}>+ Crear</button>
             </div>
             {tags && tags.length > 0 && (
-              <div style={{ marginTop:8, display:'flex', flexWrap:'wrap', gap:4 }}>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
                 {tags.map(tag => (
                   <div key={tag.id} style={{ display:'flex', alignItems:'center', gap:4, padding:'3px 8px', borderRadius:20, border:`1px solid ${tag.color}`, background:tag.color+'18', fontSize:11 }}>
                     <div style={{ width:8, height:8, borderRadius:2, background:tag.color }} />
                     <span style={{ color:tag.color, fontWeight:500 }}>{tag.name}</span>
-                    <span onClick={() => onDeleteTag(tag.id)} style={{ cursor:'pointer', color:'#999', marginLeft:2, fontSize:12, lineHeight:1 }}>×</span>
+                    <span onClick={() => onDeleteTag(tag.id)} style={{ cursor:'pointer', color:'#bbb', marginLeft:3, fontSize:13, lineHeight:1 }}>×</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
         )}
-        <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-          {tags && tags.map(tag => (
-            <div key={tag.id} onClick={() => setSelectedTags(prev => prev.includes(tag.id) ? prev.filter(id => id !== tag.id) : [...prev, tag.id])}
-              style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, border: selectedTags.includes(tag.id) ? `1.5px solid ${tag.color}` : '1px solid #eee', background: selectedTags.includes(tag.id) ? tag.color+'18' : '#f8f8f8', color: selectedTags.includes(tag.id) ? tag.color : '#666', fontWeight: selectedTags.includes(tag.id) ? 500 : 400 }}>
-              <div style={{ width:8, height:8, borderRadius:2, background:tag.color, flexShrink:0 }} />
-              {tag.name}
+        <div style={{ position:'relative' }}>
+          <div style={{ border:'1px solid #e0e0e0', borderRadius:8, padding:'6px 10px', minHeight:36, display:'flex', flexWrap:'wrap', gap:4, cursor:'pointer', background:'#fff' }}
+            onClick={() => setShowTagDropdown(p => !p)}>
+            {selectedTags.length === 0 && <span style={{ fontSize:12, color:'#bbb', lineHeight:'24px' }}>Seleccionar etiquetas...</span>}
+            {selectedTags.map(id => { const tag = tags?.find(t => t.id === id); return tag ? (
+              <div key={id} style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:20, background:tag.color+'18', border:`1px solid ${tag.color}`, fontSize:11 }}>
+                <div style={{ width:7, height:7, borderRadius:2, background:tag.color }} />
+                <span style={{ color:tag.color, fontWeight:500 }}>{tag.name}</span>
+                <span onClick={e => { e.stopPropagation(); setSelectedTags(p => p.filter(x => x !== id)) }} style={{ cursor:'pointer', color:'#bbb', marginLeft:2, fontSize:13, lineHeight:1 }}>×</span>
+              </div>
+            ) : null})}
+            <i className="ti ti-chevron-down" style={{ marginLeft:'auto', fontSize:13, color:'#bbb', alignSelf:'center' }} aria-hidden="true"></i>
+          </div>
+          {showTagDropdown && tags && tags.length > 0 && (
+            <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, background:'#fff', border:'1px solid #e0e0e0', borderRadius:8, zIndex:20, boxShadow:'0 4px 12px rgba(0,0,0,0.08)', overflow:'hidden' }}>
+              {tags.map(tag => (
+                <div key={tag.id} onClick={() => { setSelectedTags(p => p.includes(tag.id) ? p.filter(x => x !== tag.id) : [...p, tag.id]) }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', cursor:'pointer', background: selectedTags.includes(tag.id) ? tag.color+'10' : '#fff' }}
+                  onMouseEnter={e => e.currentTarget.style.background = tag.color+'10'}
+                  onMouseLeave={e => e.currentTarget.style.background = selectedTags.includes(tag.id) ? tag.color+'10' : '#fff'}>
+                  <div style={{ width:10, height:10, borderRadius:2, background:tag.color, flexShrink:0 }} />
+                  <span style={{ fontSize:12, flex:1, color:'#333' }}>{tag.name}</span>
+                  {selectedTags.includes(tag.id) && <i className="ti ti-check" style={{ fontSize:13, color:tag.color }} aria-hidden="true"></i>}
+                </div>
+              ))}
             </div>
-          ))}
-          {(!tags || tags.length === 0) && <span style={{ fontSize:11, color:'#bbb' }}>Sin etiquetas — creá una arriba</span>}
+          )}
         </div>
       </div>
 
