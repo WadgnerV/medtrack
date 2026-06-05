@@ -217,6 +217,7 @@ export default function AdminDashboard() {
     return mon
   })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [showDrawer, setShowDrawer] = useState(false)
 
   useEffect(() => {
@@ -1197,15 +1198,27 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
-        <div style={{ padding:'14px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
-          </div>
-          <div>
-            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
-            <div style={{ fontSize:10, color:'#999' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
-          </div>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', transition:'width 0.2s ease, min-width 0.2s ease', overflow:'hidden' }}>
+        <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
+          {!sidebarCollapsed && (
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+              </div>
+              <div>
+                <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
+                <div style={{ fontSize:10, color:'#999' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
+              </div>
+            </div>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+            </div>
+          )}
+          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center' }}>
+            <i className={`ti ${sidebarCollapsed ? 'ti-layout-sidebar-right' : 'ti-layout-sidebar'}`} style={{ fontSize:16 }} aria-hidden="true"></i>
+          </button>
         </div>
 
         {[
@@ -1214,13 +1227,14 @@ export default function AdminDashboard() {
           ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'ti-books', label:'Biblioteca', key:'biblioteca' }, { icon:'ti-shield-check', label:'Permisos', key:'permisos' }, { icon:'ti-settings', label:'Configuración', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'ti-settings', label:'Configuración', key:'config' }] }]),
         ].map(group => (
           <div key={group.section}>
-            <div style={{ fontSize:10, color:'#bbb', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>
+            {!sidebarCollapsed && <div style={{ fontSize:10, color:'#bbb', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>}
             {group.items.map(item => (
-              <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }}
-                style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#555', fontWeight: view === item.key ? 500 : 400 }}>
-                <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view === item.key ? G : '#999' }} aria-hidden="true"></i>
-                {item.label}
-                {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+              <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }} title={sidebarCollapsed ? item.label : ''}
+                style={{ display:'flex', alignItems:'center', gap:8, padding: sidebarCollapsed ? '9px 0' : '7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#555', fontWeight: view === item.key ? 500 : 400, justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
+                <i className={`ti ${item.icon}`} style={{ fontSize:16, color: view === item.key ? G : '#999', flexShrink:0 }} aria-hidden="true"></i>
+                {!sidebarCollapsed && item.label}
+                {!sidebarCollapsed && item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+                {sidebarCollapsed && item.badge > 0 && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:G }} />}
               </div>
             ))}
           </div>
