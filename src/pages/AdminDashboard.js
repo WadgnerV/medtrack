@@ -1964,19 +1964,7 @@ export default function AdminDashboard() {
                 )
               })()}
 
-              {/* Leyenda médicos */}
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 16px', display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
-                {doctors.map(d => (
-                  <div key={d.id} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#555' }}>
-                    <label style={{ position:'relative', cursor:'pointer', display:'flex', alignItems:'center' }} title="Cambiar color">
-                      <div style={{ width:10, height:10, borderRadius:3, background: doctorColor(d.id) }} />
-                      <input type="color" defaultValue={doctorColor(d.id)} onChange={e => updateDoctorColor(d.id, e.target.value)}
-                        style={{ position:'absolute', opacity:0, width:10, height:10, cursor:'pointer', left:0, top:0 }} />
-                    </label>
-                    {d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}
-                  </div>
-                ))}
-              </div>
+
 
               {/* POPUP DE CITA */}
               {popupAppt && (
