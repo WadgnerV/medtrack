@@ -1257,7 +1257,7 @@ export default function AdminDashboard() {
 
 
 
-      {/* Overlay para cerrar menú en móvil */}}
+      {/* Overlay para cerrar menú en móvil */}
       {/* Drawer móvil admin */}
       {isMobile && showDrawer && (
         <>
