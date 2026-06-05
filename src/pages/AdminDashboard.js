@@ -1217,7 +1217,7 @@ export default function AdminDashboard() {
             </div>
           )}
           <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center' }}>
-            <i className={`ti ${sidebarCollapsed ? 'ti-layout-sidebar-right' : 'ti-layout-sidebar'}`} style={{ fontSize:16 }} aria-hidden="true"></i>
+            <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:16 }} aria-hidden="true"></i>
           </button>
         </div>
 
@@ -1240,7 +1240,14 @@ export default function AdminDashboard() {
           </div>
         ))}
 
-        <UserMenu />
+        {!sidebarCollapsed && <UserMenu />}
+        {sidebarCollapsed && (
+          <div style={{ padding:'10px 0', borderTop:'0.5px solid #eee', display:'flex', justifyContent:'center' }}>
+            <div style={{ width:28, height:28, borderRadius:'50%', background:'#E1F5EE', color:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500 }}>
+              {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+            </div>
+          </div>
+        )}
       </div>}
 
       {/* Overlay para cerrar menú en móvil */}
@@ -1737,7 +1744,7 @@ export default function AdminDashboard() {
               {calView === 'semana' && (() => {
                 const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 80
+                const SLOT_H = 100
                 const now = currentTime
                 const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
                 const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
