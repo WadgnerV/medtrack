@@ -1216,8 +1216,13 @@ export default function AdminDashboard() {
               <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
             </div>
           )}
-          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, fontSize:14, lineHeight:1, marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
-            {sidebarCollapsed ? '›' : '‹'}
+          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {sidebarCollapsed
+                ? <path d="M5 3L9 7L5 11" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                : <path d="M9 3L5 7L9 11" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              }
+            </svg>
           </button>
         </div>
 
