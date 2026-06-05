@@ -1251,8 +1251,8 @@ export default function AdminDashboard() {
       {/* Botón flotante de colapsar sidebar */}
       {!isMobile && (
         <div onClick={() => setSidebarCollapsed(p => !p)}
-          style={{ position:'fixed', left: sidebarCollapsed ? 40 : 198, top:'50%', transform:'translateY(-50%)', width:20, height:36, background:'#fff', border:'0.5px solid #eee', borderRadius:'0 8px 8px 0', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'2px 0 6px rgba(0,0,0,0.06)', transition:'left 0.2s ease' }}>
-          <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:12, color:'#bbb' }} aria-hidden="true"></i>
+          style={{ position:'fixed', left: sidebarCollapsed ? 36 : 194, top:'50%', transform:'translateY(-50%)', width:22, height:22, background:'#fff', border:'0.5px solid #ddd', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'0 2px 8px rgba(0,0,0,0.12)', transition:'left 0.2s ease' }}>
+          <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:11, color:'#888' }} aria-hidden="true"></i>
         </div>
       )}
 
