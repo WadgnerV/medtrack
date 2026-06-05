@@ -842,9 +842,16 @@ export default function AdminDashboard() {
   }
 
   function doctorColor(doctorId) {
+    const doctor = doctors.find(d => d.id === doctorId)
+    if (doctor?.calendar_color) return doctor.calendar_color
     const colors = ['#0F6E56','#1a5c8a','#8e44ad','#e67e22','#c0392b','#2980b9','#16a085','#d35400']
     const idx = doctors.findIndex(d => d.id === doctorId)
     return colors[idx % colors.length] || '#1D9E75'
+  }
+
+  async function updateDoctorColor(doctorId, color) {
+    await supabase.from('profiles').update({ calendar_color: color }).eq('id', doctorId)
+    setDoctors(prev => prev.map(d => d.id === doctorId ? { ...d, calendar_color: color } : d))
   }
 
   function renderCalendar() {
@@ -1599,6 +1606,18 @@ export default function AdminDashboard() {
                   }} style={{ width:'100%', marginTop:12, padding:'6px', background:'#f0f4f8', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', fontWeight:500 }}>
                     Hoy
                   </button>
+                  <div style={{ marginTop:12, borderTop:'0.5px solid #eee', paddingTop:10, display:'flex', flexDirection:'column', gap:6 }}>
+                    {doctors.map(d => (
+                      <div key={d.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11, color:'#555' }}>
+                        <label style={{ position:'relative', cursor:'pointer', flexShrink:0 }} title="Cambiar color">
+                          <div style={{ width:10, height:10, borderRadius:3, background: doctorColor(d.id) }} />
+                          <input type="color" defaultValue={doctorColor(d.id)} onChange={e => updateDoctorColor(d.id, e.target.value)}
+                            style={{ position:'absolute', opacity:0, width:10, height:10, cursor:'pointer', left:0, top:0 }} />
+                        </label>
+                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               {/* Columna principal */}
@@ -1946,10 +1965,14 @@ export default function AdminDashboard() {
               })()}
 
               {/* Leyenda médicos */}
-              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 16px', display:'flex', gap:16, flexWrap:'wrap' }}>
+              <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'10px 16px', display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
                 {doctors.map(d => (
-                  <div key={d.id} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#555' }}>
-                    <div style={{ width:10, height:10, borderRadius:3, background: doctorColor(d.id) }} />
+                  <div key={d.id} style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#555' }}>
+                    <label style={{ position:'relative', cursor:'pointer', display:'flex', alignItems:'center' }} title="Cambiar color">
+                      <div style={{ width:10, height:10, borderRadius:3, background: doctorColor(d.id) }} />
+                      <input type="color" defaultValue={doctorColor(d.id)} onChange={e => updateDoctorColor(d.id, e.target.value)}
+                        style={{ position:'absolute', opacity:0, width:10, height:10, cursor:'pointer', left:0, top:0 }} />
+                    </label>
                     {d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}
                   </div>
                 ))}
