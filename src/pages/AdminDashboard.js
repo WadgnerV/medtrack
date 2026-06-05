@@ -1216,9 +1216,7 @@ export default function AdminDashboard() {
               <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
             </div>
           )}
-          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center' }}>
-            <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:16 }} aria-hidden="true"></i>
-          </button>
+
         </div>
 
         {[
@@ -1250,7 +1248,15 @@ export default function AdminDashboard() {
         )}
       </div>}
 
-      {/* Overlay para cerrar menú en móvil */}
+      {/* Botón flotante de colapsar sidebar */}
+      {!isMobile && (
+        <div onClick={() => setSidebarCollapsed(p => !p)}
+          style={{ position:'fixed', left: sidebarCollapsed ? 40 : 198, top:'50%', transform:'translateY(-50%)', width:20, height:36, background:'#fff', border:'0.5px solid #eee', borderRadius:'0 8px 8px 0', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', zIndex:50, boxShadow:'2px 0 6px rgba(0,0,0,0.06)', transition:'left 0.2s ease' }}>
+          <i className={`ti ${sidebarCollapsed ? 'ti-chevron-right' : 'ti-chevron-left'}`} style={{ fontSize:12, color:'#bbb' }} aria-hidden="true"></i>
+        </div>
+      )}
+
+      {/* Overlay para cerrar menú en móvil */}}
       {/* Drawer móvil admin */}
       {isMobile && showDrawer && (
         <>
@@ -1744,7 +1750,7 @@ export default function AdminDashboard() {
               {calView === 'semana' && (() => {
                 const HORA_INI = 0
                 const HORA_FIN = 24
-                const SLOT_H = 100
+                const SLOT_H = 110
                 const now = currentTime
                 const todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
                 const nowOffsetPx = HORA_INI <= now.getHours() && now.getHours() < HORA_FIN
