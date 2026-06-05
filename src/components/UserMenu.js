@@ -452,11 +452,11 @@ export default function UserMenu({ dropUp = true }) {
 
         {open && (() => {
           const rect = menuRef.current?.getBoundingClientRect()
-          const spaceBelow = rect ? window.innerHeight - rect.bottom : 999
-          const spaceAbove = rect ? rect.top : 999
-          const openUp = spaceBelow < 250 && spaceAbove > spaceBelow
+          const posStyle = dropUp
+            ? { bottom: window.innerHeight - (rect?.top || 0) + 4, right: 8 }
+            : { top: (rect?.bottom || 0) + 4, right: 8 }
           return (
-          <div style={{ position:'fixed', ...(openUp ? { bottom: window.innerHeight - (rect?.top || 0) + 4 } : { top: (rect?.bottom || 0) + 4 }), right: 8, minWidth:200, maxWidth:'calc(100vw - 16px)', background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
+          <div style={{ position:'fixed', ...posStyle, minWidth:200, maxWidth:'calc(100vw - 16px)', background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
             <div onClick={() => { setView('profile'); setOpen(false) }} style={s.menuItem}>
               <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i><span>Mi perfil</span>
             </div>
