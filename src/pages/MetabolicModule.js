@@ -174,6 +174,21 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
     setTimeout(() => setSaved(false), 3000)
   }
 
+  function calcDelta(data, key) {
+    const sorted = [...data].filter(m => m[key]).sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at))
+    if (sorted.length < 2) return null
+    const first = sorted[0][key]
+    const last = sorted[sorted.length - 1][key]
+    return +(last - first).toFixed(1)
+  }
+
+  function DeltaBadge({ delta, unit }) {
+    if (delta === null) return null
+    const color = delta < 0 ? '#0F6E56' : delta > 0 ? '#D85A30' : '#888'
+    const sign = delta > 0 ? '+' : ''
+    return <span style={{ fontSize:11, fontWeight:500, color, background: delta < 0 ? '#E1F5EE' : delta > 0 ? '#FAECE7' : '#f0f0f0', padding:'2px 7px', borderRadius:20 }}>Δ {sign}{delta} {unit}</span>
+  }
+
   function calcIMC() {
     if (!measurements.length || !patient?.height_cm) return null
     const last = measurements[0]
@@ -276,7 +291,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
                 {measurements.filter(m=>m.weight_kg).length > 0 && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
-                    <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Peso (kg)</div>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}><div style={{ fontSize:13, fontWeight:600 }}>Peso (kg)</div><DeltaBadge delta={calcDelta(measurements, 'weight_kg')} unit='kg' /></div>
                     <ResponsiveContainer width="100%" height={130}>
                       <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -290,7 +305,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                 )}
                 {measurements.filter(m=>m.body_fat_pct).length > 0 && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
-                    <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>% Grasa corporal</div>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}><div style={{ fontSize:13, fontWeight:600 }}>% Grasa corporal</div><DeltaBadge delta={calcDelta(measurements, 'body_fat_pct')} unit='%' /></div>
                     <ResponsiveContainer width="100%" height={130}>
                       <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -304,7 +319,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                 )}
                 {measurements.filter(m=>m.muscle_mass_kg).length > 0 && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
-                    <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Masa muscular (kg)</div>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}><div style={{ fontSize:13, fontWeight:600 }}>Masa muscular (kg)</div><DeltaBadge delta={calcDelta(measurements, 'muscle_mass_kg')} unit='kg' /></div>
                     <ResponsiveContainer width="100%" height={130}>
                       <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -318,7 +333,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                 )}
                 {measurements.filter(m=>m.visceral_fat_pts).length > 0 && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
-                    <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Grasa visceral (pts)</div>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}><div style={{ fontSize:13, fontWeight:600 }}>Grasa visceral (pts)</div><DeltaBadge delta={calcDelta(measurements, 'visceral_fat_pts')} unit='pts' /></div>
                     <ResponsiveContainer width="100%" height={130}>
                       <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
