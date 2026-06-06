@@ -1198,7 +1198,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#f0fdf9', borderRight:'0.5px solid #d4f0e8', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
         <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
           {!sidebarCollapsed && (
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
