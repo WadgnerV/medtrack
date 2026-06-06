@@ -1247,7 +1247,7 @@ export default function AdminDashboard() {
         ))}
 
         </div>
-        <div style={{ marginTop:'auto' }}>{!sidebarCollapsed && <UserMenu />}</div>
+        <div style={{ marginTop:'auto', paddingBottom:8 }}>{!sidebarCollapsed && <UserMenu />}</div>
         {sidebarCollapsed && (
           <div style={{ padding:'10px 0', borderTop:'0.5px solid #eee', display:'flex', justifyContent:'center' }}>
             <div style={{ width:28, height:28, borderRadius:'50%', background:'#E1F5EE', color:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500 }}>
