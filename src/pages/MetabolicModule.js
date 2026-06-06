@@ -339,7 +339,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div key={i} style={{ borderBottom:'0.5px solid #f5f5f5', paddingBottom:10, marginBottom:10 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                       <div style={{ fontSize:12, color:'#999' }}>
-                        {new Date(m.measured_at).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
+                        {new Date(m.measured_at + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
                       </div>
                       {(canEdit || canEditMeasurements) && <div style={{ display:'flex', gap:4 }}>
                         <button onClick={() => { setEditingMeasurement(m.id); setForm({ weight_kg: m.weight_kg||'', body_fat_pct: m.body_fat_pct||'', muscle_mass_kg: m.muscle_mass_kg||'', visceral_fat_pts: m.visceral_fat_pts||'', measured_at: m.measured_at?.substring(0,10) }); setShowForm(true) }}
