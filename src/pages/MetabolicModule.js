@@ -278,7 +278,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Peso (kg)</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at?.substring(0,10) + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -292,7 +292,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>% Grasa corporal</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at?.substring(0,10) + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -306,7 +306,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Masa muscular (kg)</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at?.substring(0,10) + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -320,7 +320,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Grasa visceral (pts)</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at?.substring(0,10) + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -342,7 +342,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                         {new Date(m.measured_at).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}
                       </div>
                       {(canEdit || canEditMeasurements) && <div style={{ display:'flex', gap:4 }}>
-                        <button onClick={() => { setEditingMeasurement(m.id); setForm({ weight_kg: m.weight_kg||'', body_fat_pct: m.body_fat_pct||'', muscle_mass_kg: m.muscle_mass_kg||'', visceral_fat_pts: m.visceral_fat_pts||'', measured_at: m.measured_at }); setShowForm(true) }}
+                        <button onClick={() => { setEditingMeasurement(m.id); setForm({ weight_kg: m.weight_kg||'', body_fat_pct: m.body_fat_pct||'', muscle_mass_kg: m.muscle_mass_kg||'', visceral_fat_pts: m.visceral_fat_pts||'', measured_at: m.measured_at?.substring(0,10) }); setShowForm(true) }}
                           style={{ background:'none', border:'1px solid #ddd', borderRadius:6, padding:'2px 7px', fontSize:12, cursor:'pointer', color:'#555' }}>✎</button>
                         <button onClick={() => deleteMeasurement(m.id)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#D85A30', padding:'2px 6px' }}>×</button>
                       </div>}
