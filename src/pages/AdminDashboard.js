@@ -1389,7 +1389,7 @@ export default function AdminDashboard() {
                       <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
                       <div style={{ fontSize:12, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
                     </div>
-                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
+                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: d.role === 'clinic_admin' || d.role === 'admin' ? '#E1F5EE' : d.role === 'branch_admin' ? '#FAEEDA' : '#E6F1FB', color: d.role === 'clinic_admin' || d.role === 'admin' ? '#0F6E56' : d.role === 'branch_admin' ? '#854F0B' : '#185FA5' }>{({ 'admin':'Admin', 'clinic_admin':'Admin clínica', 'branch_admin':'Admin sucursal', 'doctor':'Médico', 'receptionist':'Recepcionista' }[d.role] || 'Colaborador')}</span>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingLeft:44 }}>
                     <div style={{ fontSize:12, color:'#888' }}>{patients.filter(p => p.doctor?.id === d.id).length} pacientes · <span style={{ color:'#0F6E56' }}>activo</span></div>
@@ -1415,7 +1415,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div style={{ flex:'0 0 16%' }}>
-                    <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, fontWeight:500, background: d.role === 'admin' ? '#E1F5EE' : '#E6F1FB', color: d.role === 'admin' ? '#0F6E56' : '#185FA5' }}>{d.role === 'admin' ? 'Admin' : 'Colaborador'}</span>
+                    <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, fontWeight:500, background: d.role === 'clinic_admin' || d.role === 'admin' ? '#E1F5EE' : d.role === 'branch_admin' ? '#FAEEDA' : '#E6F1FB', color: d.role === 'clinic_admin' || d.role === 'admin' ? '#0F6E56' : d.role === 'branch_admin' ? '#854F0B' : '#185FA5' }>{({ 'admin':'Admin', 'clinic_admin':'Admin clínica', 'branch_admin':'Admin sucursal', 'doctor':'Médico', 'receptionist':'Recepcionista' }[d.role] || 'Colaborador')}</span>
                   </div>
                   <div style={{ flex:'0 0 14%', fontSize:13, color:'#666' }}>{patients.filter(p => p.doctor?.id === d.id).length}</div>
                   <div style={{ flex:'0 0 14%' }}>
