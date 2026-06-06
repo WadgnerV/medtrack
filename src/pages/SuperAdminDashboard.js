@@ -379,7 +379,7 @@ export default function SuperAdminDashboard() {
             <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
           </div>
           <div>
-            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
+            <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
             <div style={{ fontSize:10, color:'#999' }}>Super Admin</div>
           </div>
         </div>

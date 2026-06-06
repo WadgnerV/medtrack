@@ -566,14 +566,14 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', overflowY:'auto' }}>
-        <div style={{ padding:'14px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
+      {!isMobile && <div style={{ width:210, minWidth:210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden' }}>
+        <div style={{ padding:'14px 14px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center' }}>
             <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
           </div>
           <div>
-            <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
-            <div style={{ fontSize:10, color:'#999' }}>Glow Clinic</div>
+            <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
+            <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>Glow Clinic</div>
           </div>
         </div>
 
@@ -582,22 +582,22 @@ export default function DoctorDashboard() {
           { section:'Principal', items:[{ label:'Mis pacientes', key:'pacientes', icon:'ti-users', badge:patients.length }, { label:'Dashboard', key:'dashboard', icon:'ti-layout-dashboard' }] },
         ].map(group => (
           <div key={group.section}>
-            <div style={{ fontSize:10, color:'#bbb', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>
+            <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>
             {group.items.map(item => {
               const active = view === item.key || (item.key === 'pacientes' && view === 'perfil')
               return (
                 <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null); if(isMobile) setMobileMenuOpen(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:13, background: active ? '#E1F5EE' : 'transparent', color: active ? G : '#555', fontWeight: active ? 500 : 400 }}>
-                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: active ? G : '#999' }} aria-hidden="true"></i>
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', cursor:'pointer', fontSize:13, background: active ? 'rgba(255,255,255,0.15)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: active ? 500 : 400, borderRadius:6, margin:'1px 8px' }}>
+                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }} aria-hidden="true"></i>
                   {item.label}
-                  {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+                  {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:'rgba(255,255,255,0.9)', color:'#085041', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
                 </div>
               )
             })}
           </div>
         ))}
 
-        <UserMenu />
+        <div style={{ marginTop:'auto', paddingBottom:8 }}><UserMenu /></div>
       </div>}
 
       {/* Drawer móvil doctor */}
@@ -613,7 +613,7 @@ export default function DoctorDashboard() {
                 </div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
-                  <div style={{ fontSize:10, color:'#999' }}>Glow Clinic</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>Glow Clinic</div>
                 </div>
               </div>
               <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>

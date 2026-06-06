@@ -327,7 +327,7 @@ export default function ReceptionistDashboard() {
                 const dayAppts = apptsByDate(currentDate)
                 return (
                   <div>
-                    <div style={{ padding:'8px 16px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
+                    <div style={{ padding:'8px 16px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', gap:8 }}>
                       <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate()-1); setSelDate(d.toISOString().split('T')[0]) }} style={{ background:'none', border:'1px solid #eee', borderRadius:6, padding:'3px 8px', cursor:'pointer' }}>‹</button>
                       <span style={{ fontSize:14, fontWeight:500 }}>{new Date(currentDate+'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long' })}</span>
                       <button onClick={() => { const d = new Date(currentDate); d.setDate(d.getDate()+1); setSelDate(d.toISOString().split('T')[0]) }} style={{ background:'none', border:'1px solid #eee', borderRadius:6, padding:'3px 8px', cursor:'pointer' }}>›</button>
