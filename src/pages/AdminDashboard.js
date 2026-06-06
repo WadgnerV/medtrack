@@ -374,7 +374,7 @@ export default function AdminDashboard() {
   }
 
   async function loadDoctors() {
-    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin']).eq('is_active', true).eq('clinic_id', profile?.clinic_id).eq('is_health_professional', true).order('first_name')
+    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist']).eq('is_active', true).eq('clinic_id', profile?.clinic_id).order('first_name')
     setDoctors(data || [])
   }
 
