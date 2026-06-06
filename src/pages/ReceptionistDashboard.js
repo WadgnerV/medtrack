@@ -9,7 +9,7 @@ const G = '#1D9E75'
 
 const s = {
   wrap: { display:'flex', height:'100vh', fontFamily:'"Inter", system-ui, sans-serif', background:'#f5f5f5' },
-  sidebar: { width:220, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column', flexShrink:0 },
+  sidebar: (collapsed) => ({ width: collapsed ? 52 : 220, minWidth: collapsed ? 52 : 220, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', flexShrink:0, transition:'width 0.2s ease, min-width 0.2s ease', overflowX:'hidden' }),
   sideHeader: { padding:'20px 20px 16px', borderBottom:'0.5px solid #f0f0f0' },
   logoWrap: { display:'flex', alignItems:'center', gap:10, marginBottom:2 },
   logoIcon: { width:30, height:30, borderRadius:8, background:G, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:14 },
@@ -45,6 +45,8 @@ export default function ReceptionistDashboard() {
   const [appts, setAppts] = useState([])
   const [enabledModules, setEnabledModules] = useState([])
   const [loading, setLoading] = useState(true)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [collapsedMenuOpen, setCollapsedMenuOpen] = useState(false)
   const [modal, setModal] = useState(null)
   const [modalData, setModalData] = useState({})
   const [saving, setSaving] = useState(false)
@@ -184,28 +186,61 @@ export default function ReceptionistDashboard() {
   return (
     <div style={s.wrap}>
       {/* Sidebar */}
-      <div style={s.sidebar}>
-        <div style={s.sideHeader}>
-          <div style={s.logoWrap}>
-            <div style={s.logoIcon}>M</div>
-            <div>
-              <div style={s.logoTitle}>MedTrack</div>
-              <div style={s.logoSub}>Recepción</div>
+      <div style={s.sidebar(sidebarCollapsed)}>
+        <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
+          {!sidebarCollapsed && (
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:14, flexShrink:0 }}>M</div>
+              <div>
+                <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>Recepción</div>
+              </div>
             </div>
-          </div>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:14 }}>M</div>
+          )}
+          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.6)', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {sidebarCollapsed ? <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/> : <path d="M9 3L5 7L9 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
+            </svg>
+          </button>
         </div>
         <div style={{ flex:1, padding:'8px 0' }}>
           {menuItems.map(item => (
-            <div key={item.key} onClick={() => setViewPersist(item.key)}
-              style={{ ...s.menuItem, background: view===item.key ? '#f0fdf9' : 'transparent', color: view===item.key ? G : '#555', fontWeight: view===item.key ? 600 : 400 }}>
-              <span>{item.icon}</span>{item.label}
+            <div key={item.key} onClick={() => setViewPersist(item.key)} title={item.label}
+              style={{ ...s.menuItem, padding: sidebarCollapsed ? '9px 0' : '9px 12px', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', background: view===item.key ? 'rgba(255,255,255,0.15)' : 'transparent', color: view===item.key ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: view===item.key ? 500 : 400, margin:'1px 8px' }}>
+              <span style={{ fontSize:16 }}>{item.icon}</span>{!sidebarCollapsed && item.label}
             </div>
           ))}
         </div>
-        <div style={{ padding:'16px 20px', borderTop:'0.5px solid #f0f0f0' }}>
-          <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', marginBottom:2 }}>{profile?.first_name} {profile?.last_name}</div>
-          <div style={{ fontSize:11, color:'#999', marginBottom:8 }}>Recepcionista</div>
-          <button onClick={signOut} style={{ fontSize:12, color:'#D85A30', background:'none', border:'none', cursor:'pointer', padding:0 }}>Cerrar sesión</button>
+        <div style={{ marginTop:'auto', paddingBottom:8 }}>
+          {!sidebarCollapsed && (
+            <div style={{ padding:'12px 20px', borderTop:'0.5px solid rgba(255,255,255,0.15)' }}>
+              <div style={{ fontSize:13, fontWeight:500, color:'#fff', marginBottom:2 }}>{profile?.first_name} {profile?.last_name}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginBottom:8 }}>Recepcionista</div>
+              <button onClick={signOut} style={{ fontSize:12, color:'rgba(255,255,255,0.8)', background:'none', border:'none', cursor:'pointer', padding:0 }}>Cerrar sesión</button>
+            </div>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ padding:'10px 0', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', justifyContent:'center', position:'relative' }}>
+              <div onClick={() => setCollapsedMenuOpen(p => !p)} title={`${profile?.first_name} ${profile?.last_name}`}
+                style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, cursor:'pointer' }}>
+                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+              </div>
+              {collapsedMenuOpen && (
+                <div style={{ position:'fixed', left:58, bottom:16, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300, minWidth:180 }}>
+                  <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', fontSize:12 }}>
+                    <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
+                    <div style={{ color:'#999', fontSize:11 }}>Recepcionista</div>
+                  </div>
+                  <div onClick={async () => { setCollapsedMenuOpen(false); await supabase.auth.signOut() }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#D85A30', display:'flex', alignItems:'center', gap:8 }}>
+                    <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30' }} aria-hidden="true"></i> Cerrar sesión
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

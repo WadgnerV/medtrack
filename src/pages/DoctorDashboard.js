@@ -82,6 +82,8 @@ export default function DoctorDashboard() {
     return mon
   })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [collapsedMenuOpen, setCollapsedMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
 
@@ -566,15 +568,31 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width:210, minWidth:210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden' }}>
-        <div style={{ padding:'14px 14px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
-          </div>
-          <div>
-            <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>Glow Clinic</div>
-          </div>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
+        <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
+          {!sidebarCollapsed && (
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+              </div>
+              <div>
+                <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>Glow Clinic</div>
+              </div>
+            </div>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+            </div>
+          )}
+          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.6)', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {sidebarCollapsed
+                ? <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                : <path d="M9 3L5 7L9 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
+            </svg>
+          </button>
         </div>
 
         {[
@@ -582,7 +600,7 @@ export default function DoctorDashboard() {
           { section:'Principal', items:[{ label:'Mis pacientes', key:'pacientes', icon:'ti-users', badge:patients.length }, { label:'Dashboard', key:'dashboard', icon:'ti-layout-dashboard' }] },
         ].map(group => (
           <div key={group.section}>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>
+            {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>}
             {group.items.map(item => {
               const active = view === item.key || (item.key === 'pacientes' && view === 'perfil')
               return (
@@ -597,7 +615,34 @@ export default function DoctorDashboard() {
           </div>
         ))}
 
-        <div style={{ marginTop:'auto', paddingBottom:8 }}><UserMenu /></div>
+        <div style={{ marginTop:'auto', paddingBottom:8 }}>
+          {!sidebarCollapsed && <UserMenu />}
+          {sidebarCollapsed && (
+            <div style={{ padding:'10px 0', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', justifyContent:'center', position:'relative' }}>
+              <div onClick={() => setCollapsedMenuOpen(p => !p)} title={`${profile?.first_name} ${profile?.last_name}`}
+                style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, cursor:'pointer' }}>
+                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+              </div>
+              {collapsedMenuOpen && (
+                <div style={{ position:'fixed', left:58, bottom:16, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300, minWidth:180 }}>
+                  <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', fontSize:12 }}>
+                    <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
+                    <div style={{ color:'#999', fontSize:11, marginTop:2 }}>{profile?.email}</div>
+                  </div>
+                  <div onClick={() => setCollapsedMenuOpen(false)} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                    onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                    <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Mi perfil
+                  </div>
+                  <div style={{ height:'0.5px', background:'#f0f0f0' }} />
+                  <div onClick={async () => { setCollapsedMenuOpen(false); await supabase.auth.signOut() }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#D85A30', display:'flex', alignItems:'center', gap:8 }}
+                    onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                    <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30' }} aria-hidden="true"></i> Cerrar sesión
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>}
 
       {/* Drawer móvil doctor */}
