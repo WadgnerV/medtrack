@@ -1226,7 +1226,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <div style={{ flex:1, overflowY:'auto' }}>
+        <div style={{ flex:1, overflowY:'auto', paddingBottom:8 }}>
         {[
           { section:'Clínica', items:[{ icon:'ti-calendar', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'ti-chart-bar', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'ti-building', label:'Sucursales', key:'sucursales' }] : []), { icon:'ti-package', label:'Inventario', key:'inventario' }] },
           { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'ti-users', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'ti-user-heart', label:'Pacientes', key:'pacientes', badge:patients.length }] },
@@ -2081,7 +2081,7 @@ export default function AdminDashboard() {
                   Conversaciones
                   {pendingCount > 0 && <span style={{ marginLeft:8, background:'#D85A30', color:'#fff', borderRadius:10, padding:'1px 7px', fontSize:13, fontWeight:500 }}>{pendingCount}</span>}
                 </div>
-                <div style={{ flex:1, overflowY:'auto' }}>
+                <div style={{ flex:1, overflowY:'auto', paddingBottom:8 }}>
                   {pendingChats().map(c => {
                     const last = c.msgs[0]
                     const unread = c.msgs.filter(m => !m.is_read && m.sender_role === 'patient').length
