@@ -166,7 +166,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
       body_fat_pct: form.body_fat_pct ? parseFloat(form.body_fat_pct) : null,
       muscle_mass_kg: form.muscle_mass_kg ? parseFloat(form.muscle_mass_kg) : null,
       visceral_fat_pts: form.visceral_fat_pts ? parseFloat(form.visceral_fat_pts) : null,
-      measured_at: form.measured_at ? form.measured_at + 'T12:00:00' : new Date().toISOString(),
+      measured_at: form.measured_at ? form.measured_at + 'T12:00:00.000Z' : new Date().toISOString(),
     })
     await loadMeasurements()
     setForm({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'', measured_at: new Date().toISOString().split('T')[0] })
