@@ -452,12 +452,12 @@ export default function UserMenu({ dropUp = true }) {
 
       <div ref={menuRef} style={{ position:'relative' }}>
         <div onClick={() => setOpen(o => !o)}
-          style={{ padding:'10px 14px', borderTop:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8, cursor:'pointer', background: open ? '#f8f8f8' : 'transparent' }}>
+          style={{ padding:'10px 14px', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', gap:8, cursor:'pointer', background: open ? 'rgba(255,255,255,0.1)' : 'transparent' }}>
           <div style={{ width:28, height:28, borderRadius:'50%', background:'#E1F5EE', color:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, flexShrink:0 }}>
             {initials()}
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:11, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{profile?.first_name} {profile?.last_name}</div>
+            <div style={{ fontSize:11, fontWeight:500, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{profile?.first_name} {profile?.last_name}</div>
             <div style={{ fontSize:10, color:'#999' }}>{
               profile?.role === 'clinic_admin' ? 'Admin de clínica' :
               profile?.role === 'branch_admin' ? 'Admin de sucursal' :
@@ -465,7 +465,7 @@ export default function UserMenu({ dropUp = true }) {
               profile?.role === 'doctor' ? 'Médico colaborador' : 'Paciente'
             }</div>
           </div>
-          <span style={{ fontSize:10, color:'#bbb' }}>{open ? '▲' : '▼'}</span>
+          <span style={{ fontSize:10, color:'rgba(255,255,255,0.5)' }}>{open ? '▲' : '▼'}</span>
         </div>
 
         {open && <MenuDropdown dropUp={dropUp} menuRef={menuRef} onProfile={() => { setView('profile'); setOpen(false) }} onPassword={() => { setView('password'); setOpen(false) }} onSignOut={handleSignOut} menuItemStyle={s.menuItem} />}
