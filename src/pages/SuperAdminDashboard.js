@@ -413,8 +413,10 @@ export default function SuperAdminDashboard() {
                 <div style={s.title}>Clínicas</div>
                 <div style={s.sub}>Gestión de clínicas registradas en MedTrack</div>
               </div>
-              <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true }); setModal('clinic') }}>+ Nueva clínica</button>
-          <NotificationBell profile={profile} />
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true }); setModal('clinic') }}>+ Nueva clínica</button>
+                <NotificationBell profile={profile} />
+              </div>
             </div>
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 16px', marginBottom:16, display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
               <div style={{ position:'relative', flex:1, minWidth:180 }}>
