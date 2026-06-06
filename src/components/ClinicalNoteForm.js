@@ -39,7 +39,8 @@ function buildNoteText(form) {
 const emptyForm = {
   motivo: '', padecimiento: '', examen: '', procedimiento: '', tratamiento: '',
   imagenes: '', laboratorios: '',
-  planOpciones: [], planOtroChecked: false, planOtro: ''
+  planOpciones: [], planOtroChecked: false, planOtro: '',
+  note_date: new Date().toISOString().split('T')[0]
 }
 
 function parseNoteText(text) {
@@ -434,7 +435,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     const { data: { user } } = await supabase.auth.getUser()
     const payload = {
       patient_id: patientId, module_type: moduleType,
-      note_text: text, note_date: new Date().toISOString().split('T')[0],
+      note_text: text, note_date: form.note_date || new Date().toISOString().split('T')[0],
       recorded_by: user.id,
     }
     if (editingId) await supabase.from('clinical_notes').update(payload).eq('id', editingId)
@@ -508,6 +509,12 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
           </div>
 
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            {/* Fecha */}
+            <div>
+              <label style={label}>Fecha de la nota</label>
+              <input type="date" style={inp1} value={form.note_date} onChange={e => setForm(p => ({ ...p, note_date: e.target.value }))} />
+            </div>
+
             {/* Motivo */}
             <div>
               <label style={label}>Motivo de consulta</label>

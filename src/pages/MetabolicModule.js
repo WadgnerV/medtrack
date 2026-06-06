@@ -33,7 +33,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
   const [editingMeasurement, setEditingMeasurement] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [form, setForm] = useState({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'' })
+  const [form, setForm] = useState({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'', measured_at: new Date().toISOString().split('T')[0] })
 
   useEffect(() => { localStorage.setItem('metabolicTab', tab) }, [tab])
   useEffect(() => { if (patient?.id) { loadMeasurements(); loadTreatments(); loadTasks(); loadDiagnoses(); loadNotes() } }, [patient])
@@ -169,7 +169,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
       measured_at: new Date().toISOString(),
     })
     await loadMeasurements()
-    setForm({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'' })
+    setForm({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'', measured_at: new Date().toISOString().split('T')[0] })
     setSaving(false); setSaved(true); setShowForm(false)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -222,6 +222,10 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
           {showForm && (
             <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12, maxWidth:480 }}>
               <div style={{ fontSize:13, fontWeight:500, marginBottom:12 }}>{editingMeasurement ? 'Editar medición' : 'Nueva medición'}</div>
+              <div style={{ marginBottom:10 }}>
+                <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Fecha de medición</label>
+                <input type="date" style={inp} value={form.measured_at} onChange={e => setForm(p => ({ ...p, measured_at: e.target.value }))} />
+              </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
                 <div>
                   <label style={{ fontSize:12, color:'#666', display:'block', marginBottom:4 }}>Peso (kg)</label>
