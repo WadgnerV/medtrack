@@ -45,6 +45,8 @@ export default function PatientDashboard() {
   const [showMeasForm, setShowMeasForm] = useState(false)
   const [measForm, setMeasForm] = useState({ date: new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:'', visceral:'' })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [collapsedMenuOpen, setCollapsedMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 640)
@@ -339,13 +341,22 @@ export default function PatientDashboard() {
       )}
 
       {/* Sidebar desktop */}
-      {!isMobile && <div style={{ width:210, minWidth:210, background:'#fff', borderRight:'0.5px solid #eee', display:'flex', flexDirection:'column' }}>
-        <div style={{ padding:'16px 14px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', gap:8 }}>
-          <div style={{ width:28, height:28, borderRadius:7, background:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>+</div>
-          <div>
-            <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', letterSpacing:'0.03em' }}>MEDTRACK</div>
-            
-          </div>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
+        <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
+          {!sidebarCollapsed && (
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:28, height:28, borderRadius:7, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff', fontWeight:700, flexShrink:0 }}>+</div>
+              <div style={{ fontSize:13, fontWeight:600, color:'#fff', letterSpacing:'0.03em' }}>MEDTRACK</div>
+            </div>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ width:28, height:28, borderRadius:7, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#fff', fontWeight:700 }}>+</div>
+          )}
+          <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.6)', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {sidebarCollapsed ? <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/> : <path d="M9 3L5 7L9 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
+            </svg>
+          </button>
         </div>
 
         {(() => {
@@ -355,10 +366,10 @@ export default function PatientDashboard() {
           const sortedModules = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
 
           const navItem = (key, label, icon) => (
-            <div key={key} onClick={() => setView(key)}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', cursor:'pointer', fontSize:13, background: view === key ? '#E1F5EE' : 'transparent', color: view === key ? G : '#555', fontWeight: view === key ? 500 : 400, borderRadius: 0 }}>
-              <i className={`ti ${icon}`} style={{ fontSize:15, color: view === key ? G : '#999' }} aria-hidden="true"></i>
-              {label}
+            <div key={key} onClick={() => setView(key)} title={label}
+              style={{ display:'flex', alignItems:'center', gap:8, padding: sidebarCollapsed ? '9px 0' : '7px 10px', cursor:'pointer', fontSize:13, background: view === key ? 'rgba(255,255,255,0.15)' : 'transparent', color: view === key ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: view === key ? 500 : 400, borderRadius:6, margin:'1px 8px', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
+              <i className={`ti ${icon}`} style={{ fontSize:16, color: view === key ? '#fff' : 'rgba(255,255,255,0.6)', flexShrink:0 }} aria-hidden="true"></i>
+              {!sidebarCollapsed && label}
             </div>
           )
 
@@ -366,14 +377,14 @@ export default function PatientDashboard() {
             {navItem('inicio', 'Inicio', 'ti-home')}
 
             {sortedModules.length > 0 && (
-              <div style={{ fontSize:10, color:'#bbb', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>Mis módulos</div>
+              {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>Mis módulos</div>}
             )}
             {sortedModules.map(m => navItem('modulo_' + m.module_type, MODULE_LABELS[m.module_type] || m.module_type, MODULE_ICONS[m.module_type] || 'ti-circle'))}
 
             {navItem('chat', 'Chat con mi médico', 'ti-message-circle')}
 
             {profile?.plan === 'pro' && <>
-              <div style={{ fontSize:10, color:'#bbb', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>PRO</div>
+              {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>PRO</div>}
               {navItem('nutricion', 'Nutrición', 'ti-salad')}
               {navItem('bienestar', 'Bienestar', 'ti-brain')}
               {patient?.sex === 'female' && navItem('saludfem', 'Salud femenina', 'ti-gender-female')}
@@ -382,26 +393,49 @@ export default function PatientDashboard() {
           </>
         })()}
 
-        {/* Badge PRO */}
-        <div style={{ marginTop:'auto', padding:'12px 14px', borderTop:'0.5px solid #eee' }}>
-          {profile?.plan === 'pro' ? (
-            <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:'#E1F5EE' }}>
-              <i className="ti ti-star" style={{ fontSize:12, color:'#0F6E56' }} aria-hidden="true"></i>
-              <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>Plan PRO activo</span>
-            </div>
-          ) : (
-            <div onClick={() => setView('pro')} style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:'#E1F5EE', cursor:'pointer' }}>
-              <i className="ti ti-bolt" style={{ fontSize:12, color:'#0F6E56' }} aria-hidden="true"></i>
-              <span style={{ fontSize:11, color:'#0F6E56', fontWeight:500 }}>Activar PRO</span>
+        <div style={{ marginTop:'auto', paddingBottom:8 }}>
+          {!sidebarCollapsed && (
+            <>
+              <div style={{ padding:'10px 14px', borderTop:'0.5px solid rgba(255,255,255,0.15)' }}>
+                {profile?.plan === 'pro' ? (
+                  <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:'rgba(255,255,255,0.15)' }}>
+                    <i className="ti ti-star" style={{ fontSize:12, color:'#fff' }} aria-hidden="true"></i>
+                    <span style={{ fontSize:11, color:'#fff', fontWeight:500 }}>Plan PRO activo</span>
+                  </div>
+                ) : (
+                  <div onClick={() => setView('pro')} style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:'rgba(255,255,255,0.15)', cursor:'pointer' }}>
+                    <i className="ti ti-bolt" style={{ fontSize:12, color:'#fff' }} aria-hidden="true"></i>
+                    <span style={{ fontSize:11, color:'#fff', fontWeight:500 }}>Activar PRO</span>
+                  </div>
+                )}
+              </div>
+              <div style={{ padding:'6px 14px 4px', borderTop:'0.5px solid rgba(255,255,255,0.1)' }}>
+                <a href="/privacidad" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'rgba(255,255,255,0.5)', textDecoration:'none', display:'block', marginBottom:2 }}>Política de privacidad</a>
+                <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'rgba(255,255,255,0.5)', textDecoration:'none' }}>Términos y condiciones</a>
+              </div>
+              <UserMenu dropUp={true} />
+            </>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ padding:'10px 0', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', justifyContent:'center', position:'relative' }}>
+              <div onClick={() => setCollapsedMenuOpen(p => !p)} title={`${profile?.first_name} ${profile?.last_name}`}
+                style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, cursor:'pointer' }}>
+                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+              </div>
+              {collapsedMenuOpen && (
+                <div style={{ position:'fixed', left:58, bottom:16, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300, minWidth:180 }}>
+                  <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', fontSize:12 }}>
+                    <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
+                    <div style={{ color:'#999', fontSize:11 }}>Paciente</div>
+                  </div>
+                  <div onClick={async () => { setCollapsedMenuOpen(false); await supabase.auth.signOut() }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#D85A30', display:'flex', alignItems:'center', gap:8 }}>
+                    <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30' }} aria-hidden="true"></i> Cerrar sesión
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
-
-        <div style={{ padding:'8px 14px 4px', borderTop:'0.5px solid #f0f0f0' }}>
-          <a href="/privacidad" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'#bbb', textDecoration:'none', display:'block', marginBottom:2 }}>Política de privacidad</a>
-          <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ fontSize:10, color:'#bbb', textDecoration:'none' }}>Términos y condiciones</a>
-        </div>
-        <UserMenu dropUp={true} />
       </div>}
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
