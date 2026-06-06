@@ -1238,7 +1238,7 @@ export default function AdminDashboard() {
                 style={{ display:'flex', alignItems:'center', gap:8, padding: sidebarCollapsed ? '9px 0' : '7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? 'rgba(255,255,255,0.15)' : 'transparent', color: view === item.key ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: view === item.key ? 500 : 400, justifyContent: sidebarCollapsed ? 'center' : 'flex-start', borderRadius:6, margin: sidebarCollapsed ? '1px 6px' : '1px 8px' }}>
                 <i className={`ti ${item.icon}`} style={{ fontSize:16, color: view === item.key ? '#fff' : 'rgba(255,255,255,0.6)', flexShrink:0 }} aria-hidden="true"></i>
                 {!sidebarCollapsed && item.label}
-                {!sidebarCollapsed && item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+                {!sidebarCollapsed && item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:'rgba(255,255,255,0.9)', color:'#085041', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
                 {sidebarCollapsed && item.badge > 0 && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:G }} />}
               </div>
             ))}
