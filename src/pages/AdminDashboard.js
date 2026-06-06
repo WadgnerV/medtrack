@@ -658,7 +658,7 @@ export default function AdminDashboard() {
     const patientId = editPatientForm.patientId
     if (!profileId || !patientId) { alert('Error: IDs no encontrados'); setSaving(false); return }
     const { error: e1 } = await supabase.from('profiles').update({
-      first_name: form.firstName, last_name: form.lastName,
+      first_name: form.firstName, last_name: form.lastName, email: form.email || undefined,
     }).eq('id', profileId)
     if (e1) { alert('Error perfil: ' + e1.message); setSaving(false); return }
     const { data: patData, error: e2 } = await supabase.from('patients').update({
@@ -1556,7 +1556,7 @@ export default function AdminDashboard() {
                       {allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}
                     </div>
                     <div style={{ display:'flex', gap:4, flexShrink:0, marginLeft:8 }}>
-                      <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
+                      <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', email: p.profile?.email||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                       <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                     </div>
                   </div>
@@ -1575,7 +1575,7 @@ export default function AdminDashboard() {
                     <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
                   </div>
                   <div style={{ flex:'0 0 12%', display:'flex', justifyContent:'flex-end', gap:4 }}>
-                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
+                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', email: p.profile?.email||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
                     <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
                   </div>
                 </div>
@@ -2665,7 +2665,7 @@ function NewUserForm({ type, doctors, saving, error, onSave, onClose, initialDat
         )}
         <Field label="Nombre" value={form.firstName} onChange={f('firstName')} placeholder="Maria" />
         <Field label="Apellido" value={form.lastName} onChange={f('lastName')} placeholder="Rodriguez" />
-        {!initialData && <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>}
+        <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>
         {!initialData && <div style={{ gridColumn:'1/-1' }}><Field label="Contrasena temporal" value={form.password} onChange={f('password')} type="password" placeholder="Minimo 6 caracteres" /></div>}
         {type === 'doctor' && <>
           <div style={{ gridColumn:'1/-1' }}>
