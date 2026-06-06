@@ -320,11 +320,14 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                         <Line type="monotone" dataKey="grasa" stroke="#1D9E75" strokeWidth={2} dot={{ r:2 }} />
                       </LineChart>
                     </ResponsiveContainer>
+                    </div></div>
                   </div>
                 )}
                 {measurements.filter(m=>m.muscle_mass_kg).length > 0 && (
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}><div style={{ fontSize:13, fontWeight:600 }}>Masa muscular (kg)</div><DeltaBadge delta={calcDelta(measurements, 'muscle_mass_kg')} unit='kg' /></div>
+                    <div style={{ overflowX:'auto' }}>
+                    <div style={{ minWidth: Math.max(300, measurements.filter(m=>m.muscle_mass_kg).length * 60) }}>
                     <ResponsiveContainer width="100%" height={130}>
                       <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at + 'T12:00:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -334,6 +337,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                         <Line type="monotone" dataKey="muscular" stroke="#2a8a70" strokeWidth={2} dot={{ r:2 }} />
                       </LineChart>
                     </ResponsiveContainer>
+                    </div></div>
                   </div>
                 )}
                 {measurements.filter(m=>m.visceral_fat_pts).length > 0 && (
@@ -350,6 +354,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                         <Line type="monotone" dataKey="visceral" stroke="#3a9a80" strokeWidth={2} dot={{ r:2 }} />
                       </LineChart>
                     </ResponsiveContainer>
+                    </div></div>
                   </div>
                 )}
               </div>
