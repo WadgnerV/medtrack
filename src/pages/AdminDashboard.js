@@ -218,6 +218,7 @@ export default function AdminDashboard() {
   })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 640)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
+  const [collapsedMenuOpen, setCollapsedMenuOpen] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
 
   useEffect(() => {
@@ -1235,7 +1236,7 @@ export default function AdminDashboard() {
           <div key={group.section}>
             {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>}
             {group.items.map(item => (
-              <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }} title={sidebarCollapsed ? item.label : ''}
+              <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }} title={item.label}
                 style={{ display:'flex', alignItems:'center', gap:8, padding: sidebarCollapsed ? '9px 0' : '7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? 'rgba(255,255,255,0.15)' : 'transparent', color: view === item.key ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: view === item.key ? 500 : 400, justifyContent: sidebarCollapsed ? 'center' : 'flex-start', borderRadius:6, margin: sidebarCollapsed ? '1px 6px' : '1px 8px' }}>
                 <i className={`ti ${item.icon}`} style={{ fontSize:16, color: view === item.key ? '#fff' : 'rgba(255,255,255,0.6)', flexShrink:0 }} aria-hidden="true"></i>
                 {!sidebarCollapsed && item.label}
@@ -1250,10 +1251,32 @@ export default function AdminDashboard() {
         <div style={{ marginTop:'auto', paddingBottom:8 }}>
           {!sidebarCollapsed && <UserMenu />}
           {sidebarCollapsed && (
-            <div style={{ padding:'10px 0', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', justifyContent:'center' }}>
-              <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500 }}>
+            <div style={{ padding:'10px 0', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', justifyContent:'center', position:'relative' }}>
+              <div onClick={() => setCollapsedMenuOpen(p => !p)} title={`${profile?.first_name} ${profile?.last_name}`}
+                style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500, cursor:'pointer' }}>
                 {profile?.first_name?.[0]}{profile?.last_name?.[0]}
               </div>
+              {collapsedMenuOpen && (
+                <div style={{ position:'fixed', left:58, bottom:16, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300, minWidth:180 }}>
+                  <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee', fontSize:12 }}>
+                    <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
+                    <div style={{ color:'#999', fontSize:11, marginTop:2 }}>{profile?.email}</div>
+                  </div>
+                  <div onClick={() => { setCollapsedMenuOpen(false); }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                    onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                    <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Mi perfil
+                  </div>
+                  <div onClick={() => { setCollapsedMenuOpen(false); }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                    onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                    <i className="ti ti-lock" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Cambiar contraseña
+                  </div>
+                  <div style={{ height:'0.5px', background:'#f0f0f0' }} />
+                  <div onClick={async () => { setCollapsedMenuOpen(false); await supabase.auth.signOut() }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#D85A30', display:'flex', alignItems:'center', gap:8 }}
+                    onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                    <i className="ti ti-logout" style={{ fontSize:15, color:'#D85A30' }} aria-hidden="true"></i> Cerrar sesión
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
