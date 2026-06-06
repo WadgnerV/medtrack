@@ -376,9 +376,7 @@ export default function PatientDashboard() {
           return <>
             {navItem('inicio', 'Inicio', 'ti-home')}
 
-            {sortedModules.length > 0 && (
-              {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>Mis módulos</div>}
-            )}
+            {sortedModules.length > 0 && !sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', padding:'10px 14px 4px', textTransform:'uppercase', letterSpacing:'0.05em' }}>Mis módulos</div>}
             {sortedModules.map(m => navItem('modulo_' + m.module_type, MODULE_LABELS[m.module_type] || m.module_type, MODULE_ICONS[m.module_type] || 'ti-circle'))}
 
             {navItem('chat', 'Chat con mi médico', 'ti-message-circle')}
