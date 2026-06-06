@@ -1198,16 +1198,16 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#f0fdf9', borderRight:'0.5px solid #d4f0e8', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
-        <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #eee', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
+        <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
           {!sidebarCollapsed && (
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
               </div>
               <div>
-                <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
-                <div style={{ fontSize:10, color:'#999' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
+                <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
               </div>
             </div>
           )}
@@ -1219,8 +1219,8 @@ export default function AdminDashboard() {
           <button onClick={() => setSidebarCollapsed(p => !p)} style={{ background:'none', border:'none', cursor:'pointer', color:'#bbb', padding:4, display:'flex', alignItems:'center', marginLeft: sidebarCollapsed ? 0 : 'auto' }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
               {sidebarCollapsed
-                ? <path d="M5 3L9 7L5 11" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                : <path d="M9 3L5 7L9 11" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                ? <path d="M5 3L9 7L5 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                : <path d="M9 3L5 7L9 11" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               }
             </svg>
           </button>
@@ -1232,11 +1232,11 @@ export default function AdminDashboard() {
           ...(clinicPlan !== 'basic' ? [{ section:'Sistema', items:[{ icon:'ti-books', label:'Biblioteca', key:'biblioteca' }, { icon:'ti-shield-check', label:'Permisos', key:'permisos' }, { icon:'ti-settings', label:'Configuración', key:'config' }] }] : [{ section:'Sistema', items:[{ icon:'ti-settings', label:'Configuración', key:'config' }] }]),
         ].map(group => (
           <div key={group.section}>
-            {!sidebarCollapsed && <div style={{ fontSize:10, color:'#bbb', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>}
+            {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>}
             {group.items.map(item => (
               <div key={item.key} onClick={() => { setViewPersist(item.key); setShowDrawer(false) }} title={sidebarCollapsed ? item.label : ''}
-                style={{ display:'flex', alignItems:'center', gap:8, padding: sidebarCollapsed ? '9px 0' : '7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? '#E1F5EE' : 'transparent', color: view === item.key ? G : '#555', fontWeight: view === item.key ? 500 : 400, justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
-                <i className={`ti ${item.icon}`} style={{ fontSize:16, color: view === item.key ? G : '#999', flexShrink:0 }} aria-hidden="true"></i>
+                style={{ display:'flex', alignItems:'center', gap:8, padding: sidebarCollapsed ? '9px 0' : '7px 14px', cursor:'pointer', fontSize:13, background: view === item.key ? 'rgba(255,255,255,0.15)' : 'transparent', color: view === item.key ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: view === item.key ? 500 : 400, justifyContent: sidebarCollapsed ? 'center' : 'flex-start', borderRadius:6, margin: sidebarCollapsed ? '1px 6px' : '1px 8px' }}>
+                <i className={`ti ${item.icon}`} style={{ fontSize:16, color: view === item.key ? '#fff' : 'rgba(255,255,255,0.6)', flexShrink:0 }} aria-hidden="true"></i>
                 {!sidebarCollapsed && item.label}
                 {!sidebarCollapsed && item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:G, color:'#fff', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
                 {sidebarCollapsed && item.badge > 0 && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:G }} />}
@@ -1271,7 +1271,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
-                  <div style={{ fontSize:10, color:'#999' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || 'Glow Clinic'}</div>
                 </div>
               </div>
               <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>
