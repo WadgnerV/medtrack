@@ -166,7 +166,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
       body_fat_pct: form.body_fat_pct ? parseFloat(form.body_fat_pct) : null,
       muscle_mass_kg: form.muscle_mass_kg ? parseFloat(form.muscle_mass_kg) : null,
       visceral_fat_pts: form.visceral_fat_pts ? parseFloat(form.visceral_fat_pts) : null,
-      measured_at: new Date().toISOString(),
+      measured_at: form.measured_at ? form.measured_at + 'T12:00:00' : new Date().toISOString(),
     })
     await loadMeasurements()
     setForm({ weight_kg:'', body_fat_pct:'', muscle_mass_kg:'', visceral_fat_pts:'', measured_at: new Date().toISOString().split('T')[0] })
@@ -278,7 +278,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Peso (kg)</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), peso: m.weight_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -292,7 +292,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>% Grasa corporal</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), grasa: m.body_fat_pct }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -306,7 +306,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Masa muscular (kg)</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), muscular: m.muscle_mass_kg }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
@@ -320,7 +320,7 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
                   <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px' }}>
                     <div style={{ fontSize:13, fontWeight:600, marginBottom:8 }}>Grasa visceral (pts)</div>
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={[...measurements].reverse().map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
+                      <LineChart data={[...measurements].sort((a,b) => new Date(a.measured_at) - new Date(b.measured_at)).map(m=>({ fecha: new Date(m.measured_at).toLocaleDateString('es-CR',{day:'numeric',month:'short'}), visceral: m.visceral_fat_pts }))} margin={{ top:5, right:5, left:-25, bottom:0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="fecha" tick={{ fontSize:10, fill:'#999' }} />
                         <YAxis tick={{ fontSize:10, fill:'#999' }} />
