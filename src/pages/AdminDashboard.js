@@ -1247,14 +1247,16 @@ export default function AdminDashboard() {
         ))}
 
         </div>
-        <div style={{ marginTop:'auto', paddingBottom:8 }}>{!sidebarCollapsed && <UserMenu />}</div>
-        {sidebarCollapsed && (
-          <div style={{ padding:'10px 0', borderTop:'0.5px solid #eee', display:'flex', justifyContent:'center' }}>
-            <div style={{ width:28, height:28, borderRadius:'50%', background:'#E1F5EE', color:G, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500 }}>
-              {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+        <div style={{ marginTop:'auto', paddingBottom:8 }}>
+          {!sidebarCollapsed && <UserMenu />}
+          {sidebarCollapsed && (
+            <div style={{ padding:'10px 0', borderTop:'0.5px solid rgba(255,255,255,0.15)', display:'flex', justifyContent:'center' }}>
+              <div style={{ width:28, height:28, borderRadius:'50%', background:'rgba(255,255,255,0.2)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:500 }}>
+                {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>}
 
 
