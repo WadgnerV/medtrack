@@ -333,7 +333,7 @@ export default function UserMenu({ dropUp = true }) {
                     {doctorForm && (
                       <div style={{ marginBottom:16 }}>
                         <div style={{ background:'#f0fdf9', borderRadius:10, padding:'8px 14px', fontSize:12, marginBottom:12, color:'#0F6E56', border:'1px solid #c8e6da' }}>
-                          <span style={{ fontWeight:500 }}>Rol: </span>{profile?.role === 'admin' ? 'Administrador' : 'Médico colaborador'}
+                          <span style={{ fontWeight:500 }}>Rol: </span>{({'admin':'Administrador','clinic_admin':'Admin de clínica','branch_admin':'Admin de sucursal','doctor':'Médico colaborador','receptionist':'Recepcionista'})[profile?.role] || profile?.role}
                         </div>
                         <div style={{ fontSize:12, fontWeight:600, color:'#555', marginBottom:10, textTransform:'uppercase', letterSpacing:'0.05em' }}>Información personal</div>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
