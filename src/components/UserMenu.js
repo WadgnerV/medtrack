@@ -23,12 +23,8 @@ function calcAge(dob) {
 
 
 function MenuDropdown({ dropUp, menuRef, onProfile, onPassword, onSignOut, menuItemStyle }) {
-  const rect = menuRef.current?.getBoundingClientRect()
-  const posStyle = dropUp
-    ? { bottom: window.innerHeight - (rect?.top || 0) + 4, right: 8 }
-    : { top: (rect?.bottom || 0) + 4, right: 8 }
   return (
-    <div style={{ position:'fixed', ...posStyle, minWidth:200, maxWidth:'calc(100vw - 16px)', background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
+    <div style={{ position:'absolute', ...(dropUp ? { bottom:'calc(100% + 4px)' } : { top:'calc(100% + 4px)' }), left:0, minWidth:200, background:'#fff', border:'0.5px solid #eee', borderRadius:10, boxShadow:'0 4px 20px rgba(0,0,0,0.12)', overflow:'hidden', zIndex:300 }}>
       <div onClick={onProfile} style={menuItemStyle}>
         <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i><span>Mi perfil</span>
       </div>
