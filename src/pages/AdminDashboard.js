@@ -1226,6 +1226,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
+        <div style={{ flex:1, overflowY:'auto' }}>
         {[
           { section:'Clínica', items:[{ icon:'ti-calendar', label:'Calendario', key:'calendario', badge:appts.filter(a => a.status === 'scheduled' && a.appointment_date === new Date().toISOString().split('T')[0]).length }, ...(clinicPlan !== 'basic' ? [{ icon:'ti-chart-bar', label:'Reportes', key:'reportes' }] : []), ...(isClinicAdmin ? [{ icon:'ti-building', label:'Sucursales', key:'sucursales' }] : []), { icon:'ti-package', label:'Inventario', key:'inventario' }] },
           { section:'Usuarios', items:[...(clinicPlan !== 'basic' ? [{ icon:'ti-users', label:'Personal', key:'medicos', badge:doctors.length }] : []), { icon:'ti-user-heart', label:'Pacientes', key:'pacientes', badge:patients.length }] },
@@ -1245,6 +1246,7 @@ export default function AdminDashboard() {
           </div>
         ))}
 
+        </div>
         {!sidebarCollapsed && <UserMenu />}
         {sidebarCollapsed && (
           <div style={{ padding:'10px 0', borderTop:'0.5px solid #eee', display:'flex', justifyContent:'center' }}>
