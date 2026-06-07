@@ -2617,6 +2617,7 @@ export default function AdminDashboard() {
           )}
 
         </div>
+      </div>
       <ChatBubble profile={profile} />
       <SpotifyBar returnTo='/admin' />
     </div>
