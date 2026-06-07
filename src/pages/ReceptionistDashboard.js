@@ -419,36 +419,52 @@ export default function ReceptionistDashboard() {
 
           {/* Vista Pacientes */}
           {!loading && view === 'pacientes' && (
-            <div style={s.card}>
-              <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative', display:'flex', alignItems:'center' }}>
-                <span style={{ position:'absolute', left:24, fontSize:14, color:'#bbb' }}>🔍</span>
+            <div>
+              <div style={{ marginBottom:12, position:'relative', display:'flex', alignItems:'center' }}>
+                <span style={{ position:'absolute', left:12, fontSize:14, color:'#bbb' }}>🔍</span>
                 <input type="text" placeholder="Buscar por nombre o email..." value={search} onChange={e=>setSearch(e.target.value)}
-                  style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:14, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
+                  style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:13, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
               </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
               {patients.filter(p => {
                 if (p.profile?.role === 'admin' || p.profile?.role === 'doctor' || p.profile?.role === 'receptionist') return false
                 const q = search.toLowerCase()
                 if (!q) return true
                 return `${p.profile?.first_name} ${p.profile?.last_name}`.toLowerCase().includes(q) || p.profile?.email?.toLowerCase().includes(q)
-              }).map(p => (
-                <div key={p.id} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', gap:10 }}>
-                  <div style={{ width:34, height:34, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, flexShrink:0 }}>
-                    {initials(pName(p))}
+              }).map(p => {
+                const ACOLORS = [['#E1F5EE','#085041'],['#E6F1FB','#0C447C'],['#FBEAF0','#72243E'],['#FAEEDA','#633806'],['#EEEDFE','#3C3489'],['#F1EFE8','#444441']]
+                const aci = Math.abs((pName(p)||'').split('').reduce((h,c)=>((h<<5)-h)+c.charCodeAt(0),0)) % ACOLORS.length
+                const [abg, acolor] = ACOLORS[aci]
+                return (
+                  <div key={p.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor='#ccc'} onMouseLeave={e=>e.currentTarget.style.borderColor='#eee'}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <div style={{ width:36, height:36, borderRadius:'50%', background:abg, color:acolor, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
+                        <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{age(p.birth_date)} años</div>
+                      </div>
+                    </div>
+                    <div style={{ height:'0.5px', background:'#f0f0f0' }} />
+                    <div style={{ fontSize:11, color:'#888' }}>{p.profile?.email || ''}{p.phone ? ` · ${p.phone}` : ''}</div>
+                    <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status==='active'?'#E1F5EE':'#f5f5f5', color: p.status==='active'?'#0F6E56':'#999' }}>{p.status==='active' ? 'activo' : 'inactivo'}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'flex-end', gap:6 }}>
+                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                        onClick={() => { setModal('edit-patient'); setModalData({patient:p}) }}>
+                        <i className="ti ti-edit" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
+                      </button>
+                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #FAECE7', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                        onClick={() => deletePatient(p.id, p.profile?.id)}>
+                        <i className="ti ti-trash" style={{ fontSize:13, color:'#D85A30' }} aria-hidden="true"></i>
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>{pName(p)}</div>
-                    <div style={{ fontSize:12, color:'#999' }}>{p.profile?.email} · {age(p.birth_date)} años</div>
-                  </div>
-                  <span style={{ ...s.badge, background: p.status==='active'?'#E1F5EE':'#f5f5f5', color: p.status==='active'?'#0F6E56':'#999', flexShrink:0 }}>
-                    {p.status === 'active' ? 'activo' : 'inactivo'}
-                  </span>
-                  <div style={{ display:'flex', gap:4, flexShrink:0 }}>
-                    <button style={s.btnEdit} onClick={() => { setModal('edit-patient'); setModalData({patient:p}) }}>Editar</button>
-                    <button style={s.btnDanger} onClick={() => deletePatient(p.id, p.profile?.id)}>X</button>
-                  </div>
-                </div>
-              ))}
-              {patients.length === 0 && <div style={{ padding:30, textAlign:'center', fontSize:14, color:'#999' }}>No hay pacientes registrados</div>}
+                )
+              })}
+              {patients.length === 0 && <div style={{ padding:30, textAlign:'center', fontSize:13, color:'#999', gridColumn:'1/-1' }}>No hay pacientes registrados</div>}
+              </div>
             </div>
           )}
         </div>
