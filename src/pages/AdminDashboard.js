@@ -1386,76 +1386,65 @@ export default function AdminDashboard() {
 
     
       {view === 'medicos' && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-              <div style={{ padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', position:'relative' }}>
-                <i className="ti ti-search" style={{ position:'absolute', left:22, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'#bbb' }} aria-hidden="true"></i>
+            <div>
+              <div style={{ marginBottom:12, position:'relative' }}>
+                <i className="ti ti-search" style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'#bbb' }} aria-hidden="true"></i>
                 <input value={searchDoc} onChange={e => setSearchDoc(e.target.value)} placeholder="Buscar por nombre o email..."
-                  style={{ width:'100%', padding:'7px 10px 7px 30px', fontSize:13, border:'0.5px solid #eee', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
+                  style={{ width:'100%', padding:'7px 10px 7px 30px', fontSize:13, border:'0.5px solid #eee', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', background:'#f9f9f9' }} />
               </div>
-              {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:13, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex:'0 0 40%' }}>Medico</div>
-                <div style={{ flex:'0 0 16%' }}>Rol</div>
-                <div style={{ flex:'0 0 14%' }}>Pac.</div>
-                <div style={{ flex:'0 0 14%' }}>Estado</div>
-                <div style={{ flex:'0 0 16%', textAlign:'right' }}>Acciones</div>
-              </div>}
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap:10 }}>
               {[...doctors].filter(d => { if (!searchDoc) return true; const q = searchDoc.toLowerCase(); return (d.first_name||'').toLowerCase().includes(q) || (d.last_name||'').toLowerCase().includes(q) || (d.email||'').toLowerCase().includes(q) }).sort((a,b) => {
                 const la = (a.last_name||'').toLowerCase()
                 const lb = (b.last_name||'').toLowerCase()
                 if (la !== lb) return la.localeCompare(lb)
                 return (a.first_name||'').toLowerCase().localeCompare((b.first_name||'').toLowerCase())
-              }).map(d => isMobile ? (
-                <div key={d.id} style={{ padding:'12px 14px', borderTop:'0.5px solid #f0f0f0' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                    <div style={{ width:34, height:34, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
-                      <div style={{ fontSize:12, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
+              }).map(d => {
+                const ACOLORS = [['#E1F5EE','#085041'],['#E6F1FB','#0C447C'],['#FBEAF0','#72243E'],['#FAEEDA','#633806'],['#EEEDFE','#3C3489'],['#F1EFE8','#444441']]
+                const aci = Math.abs(((d.first_name||'')+(d.last_name||'')).split('').reduce((h,c)=>((h<<5)-h)+c.charCodeAt(0),0)) % ACOLORS.length
+                const [abg, acolor] = ACOLORS[aci]
+                const roleLabel = ({'admin':'Admin','clinic_admin':'Admin clínica','branch_admin':'Admin sucursal','doctor':'Médico','receptionist':'Recepcionista'})[d.role] || 'Colaborador'
+                const roleBg = d.role==='clinic_admin'||d.role==='admin' ? '#E1F5EE' : d.role==='branch_admin' ? '#FAEEDA' : '#E6F1FB'
+                const roleColor = d.role==='clinic_admin'||d.role==='admin' ? '#0F6E56' : d.role==='branch_admin' ? '#854F0B' : '#185FA5'
+                return (
+                  <div key={d.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor='#ccc'} onMouseLeave={e=>e.currentTarget.style.borderColor='#eee'}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <div style={{ width:36, height:36, borderRadius:'50%', background:abg, color:acolor, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
+                        <div style={{ fontSize:11, color:'#999', marginTop:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
+                      </div>
                     </div>
-                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: d.role === 'clinic_admin' || d.role === 'admin' ? '#E1F5EE' : d.role === 'branch_admin' ? '#FAEEDA' : '#E6F1FB', color: d.role === 'clinic_admin' || d.role === 'admin' ? '#0F6E56' : d.role === 'branch_admin' ? '#854F0B' : '#185FA5' }}>{ ({'admin':'Admin','clinic_admin':'Admin clínica','branch_admin':'Admin sucursal','doctor':'Médico','receptionist':'Recepcionista'})[d.role] || 'Colaborador'}</span>
-                  </div>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingLeft:44 }}>
-                    <div style={{ fontSize:12, color:'#888' }}>{patients.filter(p => p.doctor?.id === d.id).length} pacientes · <span style={{ color:'#0F6E56' }}>activo</span></div>
-                    <div style={{ display:'flex', gap:4 }}>
-                      {d.role !== 'admin' && (
-                        <>
-                          <button style={s.iconBtn} onClick={() => setViewPersist('permisos')}>P</button>
-                          <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
-                          <button style={s.iconBtnDel} onClick={() => openDeleteDoctor(d)}>X</button>
-                        </>
+                    <div style={{ height:'0.5px', background:'#f0f0f0' }} />
+                    <div style={{ fontSize:11, color:'#888' }}>{d.phone || ''}{d.specialty ? (d.phone ? ` · ${d.specialty}` : d.specialty) : ''}</div>
+                    <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background:roleBg, color:roleColor }}>{roleLabel}</span>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>activo</span>
+                      <span style={{ fontSize:11, color:'#999' }}>{patients.filter(p=>p.doctor?.id===d.id).length} pac.</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'flex-end', gap:6 }}>
+                      {d.role !== 'admin' && d.role !== 'clinic_admin' && (
+                        <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                          onClick={() => setViewPersist('permisos')} title="Permisos">
+                          <i className="ti ti-shield-check" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
+                        </button>
                       )}
-                      {d.role === 'admin' && <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>}
+                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                        onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }} title="Editar">
+                        <i className="ti ti-edit" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
+                      </button>
+                      {d.role !== 'admin' && d.role !== 'clinic_admin' && (
+                        <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #FAECE7', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                          onClick={() => openDeleteDoctor(d)} title="Eliminar">
+                          <i className="ti ti-trash" style={{ fontSize:13, color:'#D85A30' }} aria-hidden="true"></i>
+                        </button>
+                      )}
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div key={d.id} style={{ display:'flex', padding:'11px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center' }}>
-                  <div style={{ flex:'0 0 40%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                    <div style={{ width:30, height:30, borderRadius:'50%', background:'#E1F5EE', color:'#0F6E56', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, flexShrink:0 }}>{initials(d.first_name + SP + d.last_name)}</div>
-                    <div style={{ minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.prefix ? d.prefix+' ' : ''}{d.last_name} {d.first_name}</div>
-                      <div style={{ fontSize:13, color:'#999', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.email}</div>
-                    </div>
-                  </div>
-                  <div style={{ flex:'0 0 16%' }}>
-                    <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, fontWeight:500, background: d.role === 'clinic_admin' || d.role === 'admin' ? '#E1F5EE' : d.role === 'branch_admin' ? '#FAEEDA' : '#E6F1FB', color: d.role === 'clinic_admin' || d.role === 'admin' ? '#0F6E56' : d.role === 'branch_admin' ? '#854F0B' : '#185FA5' }}>{ ({'admin':'Admin','clinic_admin':'Admin clínica','branch_admin':'Admin sucursal','doctor':'Médico','receptionist':'Recepcionista'})[d.role] || 'Colaborador'}</span>
-                  </div>
-                  <div style={{ flex:'0 0 14%', fontSize:13, color:'#666' }}>{patients.filter(p => p.doctor?.id === d.id).length}</div>
-                  <div style={{ flex:'0 0 14%' }}>
-                    <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, fontWeight:500, background:'#E1F5EE', color:'#0F6E56' }}>activo</span>
-                  </div>
-                  <div style={{ flex:'0 0 16%', display:'flex', justifyContent:'flex-end', gap:4 }}>
-                    {d.role !== 'admin' && (
-                      <>
-                        <button style={s.iconBtn} onClick={() => setViewPersist('permisos')}>P</button>
-                        <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>
-                        <button style={s.iconBtnDel} onClick={() => openDeleteDoctor(d)}>X</button>
-                      </>
-                    )}
-                    {d.role === 'admin' && <button style={s.iconBtn} onClick={() => { setModal('edit-doctor'); setModalData({ doctor:d }) }}>E</button>}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
+              {doctors.length === 0 && <div style={{ padding:30, textAlign:'center', fontSize:13, color:'#999', gridColumn:'1/-1' }}>No hay personal registrado</div>}
+              </div>
             </div>
           )}
 
