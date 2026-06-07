@@ -1417,8 +1417,6 @@ export default function AdminDashboard() {
                 const roleBg = d.role === 'clinic_admin' || d.role === 'admin' ? '#E1F5EE' : d.role === 'branch_admin' ? '#FAEEDA' : '#E6F1FB'
                 const roleColor = d.role === 'clinic_admin' || d.role === 'admin' ? '#0F6E56' : d.role === 'branch_admin' ? '#854F0B' : '#185FA5'
                 return (
-                <div key={d.id} style={{ display:'none' }} />
-              ) : (
                 <div key={d.id}
                     style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}
                     onMouseEnter={e => e.currentTarget.style.borderColor='#ccc'}
