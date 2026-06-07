@@ -1546,15 +1546,12 @@ export default function AdminDashboard() {
           )}
 
           {view === 'pacientes' && !showInactive && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
-          <div style={{ padding:'10px 12px', borderBottom:'1px solid #ebebeb', position:'relative', display:'flex', alignItems:'center' }}><span style={{ position:'absolute', left:24, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span><input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:13, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} /></div>
-              {!isMobile && <div style={{ display:'flex', padding:'9px 14px', background:'#f8f8f8', fontSize:13, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <div style={{ flex:'0 0 36%' }}>Paciente</div>
-                <div style={{ flex:'0 0 8%' }}>Edad</div>
-                <div style={{ flex:'0 0 22%', fontSize:13, fontWeight:500, color:'#999', textTransform:'uppercase', letterSpacing:'0.06em' }}>Diagnóstico</div>
-                <div style={{ flex:'0 0 14%' }}>Estado</div>
-                <div style={{ flex:'0 0 12%', textAlign:'right' }}>Acciones</div>
-              </div>}
+            <div>
+              <div style={{ marginBottom:12, position:'relative', display:'flex', alignItems:'center' }}>
+                <span style={{ position:'absolute', left:12, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span>
+                <input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:13, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:10 }}>
               {patients.filter(p => {
                 if (p.profile?.role === 'admin' || p.profile?.role === 'superadmin' || p.profile?.role === 'doctor') return false
                 const q = searchPac.toLowerCase()
@@ -1568,46 +1565,44 @@ export default function AdminDashboard() {
                 const lb = (b.profile?.last_name||'').toLowerCase()
                 if (la !== lb) return la.localeCompare(lb)
                 return (a.profile?.first_name||'').toLowerCase().localeCompare((b.profile?.first_name||'').toLowerCase())
-              }).map(p => isMobile ? (
-                <div key={p.id} onClick={() => openPatient(p)} style={{ padding:'12px 14px', borderTop:'0.5px solid #f0f0f0', cursor:'pointer' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-                    <div style={{ width:34, height:34, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
-                      <div style={{ fontSize:12, color:'#999' }}>{age(p.birth_date)} años</div>
+              }).map(p => {
+                const ACOLORS = [['#E1F5EE','#085041'],['#E6F1FB','#0C447C'],['#FBEAF0','#72243E'],['#FAEEDA','#633806'],['#EEEDFE','#3C3489'],['#F1EFE8','#444441']]
+                const aci = Math.abs((pName(p)||'').split('').reduce((h,c)=>((h<<5)-h)+c.charCodeAt(0),0)) % ACOLORS.length
+                const [abg, acolor] = ACOLORS[aci]
+                const diag = allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description
+                return (
+                  <div key={p.id} onClick={() => openPatient(p)} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:8 }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor='#ccc'} onMouseLeave={e=>e.currentTarget.style.borderColor='#eee'}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <div style={{ width:36, height:36, borderRadius:'50%', background:abg, color:acolor, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
+                        <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{age(p.birth_date)} años{p.province ? ` · ${p.province}` : ''}</div>
+                      </div>
                     </div>
-                    <span style={{ fontSize:12, padding:'2px 8px', borderRadius:20, fontWeight:500, flexShrink:0, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
-                  </div>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingLeft:44 }}>
-                    <div style={{ fontSize:12, color:'#888', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
-                      {allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}
+                    <div style={{ height:'0.5px', background:'#f0f0f0' }} />
+                    <div style={{ fontSize:11, color:'#888' }}>
+                      {p.profile?.email || ''}{p.phone ? ` · ${p.phone}` : ''}
                     </div>
-                    <div style={{ display:'flex', gap:4, flexShrink:0, marginLeft:8 }}>
-                      <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', email: p.profile?.email||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
-                      <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
+                    <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f5f5f5', color: diag ? '#555' : '#bbb' }}>{diag || 'Sin diagnóstico'}</span>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status==='active' ? '#E1F5EE' : '#FAEEDA', color: p.status==='active' ? '#0F6E56' : '#854F0B' }}>{p.status==='active' ? 'activo' : 'pendiente'}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'flex-end', gap:6 }}>
+                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                        onClick={e=>{ e.stopPropagation(); setEditPatientForm({ profileId:p.profile?.id, patientId:p.id, firstName:p.profile?.first_name||'', lastName:p.profile?.last_name||'', email:p.profile?.email||'', idNumber:p.id_number||'', phone:p.phone||'', birthDate:p.birth_date||'', sex:p.sex||'', province:p.province||'', canton:p.canton||'', height:p.height_cm||'' }); setModal('edit-patient') }}>
+                        <i className="ti ti-edit" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
+                      </button>
+                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #FAECE7', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                        onClick={e=>{ e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>
+                        <i className="ti ti-trash" style={{ fontSize:13, color:'#D85A30' }} aria-hidden="true"></i>
+                      </button>
                     </div>
                   </div>
-                </div>
-              ) : (
-                  <div key={p.id} onClick={() => openPatient(p)} style={{ display:'flex', padding:'10px 14px', borderTop:'0.5px solid #f0f0f0', alignItems:'center', cursor:'pointer' }}>
-                  <div style={{ flex:'0 0 36%', display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                    <div style={{ width:30, height:30, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
-                    <div style={{ minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
-                    </div>
-                  </div>
-                  <div style={{ flex:'0 0 8%', fontSize:13, color:'#666' }}>{age(p.birth_date)}</div>
-                <div style={{ flex:'0 0 22%', fontSize:13, color:'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description || '—'}</div>
-                  <div style={{ flex:'0 0 14%' }}>
-                    <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status === 'active' ? '#E1F5EE' : '#FAEEDA', color: p.status === 'active' ? '#0F6E56' : '#854F0B' }}>{p.status === 'active' ? 'activo' : 'pendiente'}</span>
-                  </div>
-                  <div style={{ flex:'0 0 12%', display:'flex', justifyContent:'flex-end', gap:4 }}>
-                    <button style={s.iconBtn} title="Editar" onClick={e => { e.stopPropagation(); setEditPatientForm({ profileId: p.profile?.id, patientId: p.id, firstName: p.profile?.first_name||'', lastName: p.profile?.last_name||'', email: p.profile?.email||'', idNumber: p.id_number||'', phone: p.phone||'', birthDate: p.birth_date||'', sex: p.sex||'', province: p.province||'', canton: p.canton||'', height: p.height_cm||'' }); setModal('edit-patient') }}>E</button>
-                    <button style={s.iconBtnDel} onClick={e => { e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>X</button>
-                  </div>
-                </div>
-              ))}
-              {patients.length === 0 && <div style={{ padding:30, textAlign:'center', fontSize:13, color:'#999' }}>No hay pacientes registrados</div>}
+                )
+              })}
+              {patients.length === 0 && <div style={{ padding:30, textAlign:'center', fontSize:13, color:'#999', gridColumn:'1/-1' }}>No hay pacientes registrados</div>}
+              </div>
             </div>
           )}
 
