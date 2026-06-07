@@ -2215,24 +2215,35 @@ export default function AdminDashboard() {
           )}
 
           {view === 'sucursales' && isClinicAdmin && (
-            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'20px 24px' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-                <div style={{ fontSize:15, fontWeight:600, color:'#1a1a1a' }}>Sucursales de la clínica</div>
+            <div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Sucursales de la clínica</div>
                 <button style={s.btnPrimary} onClick={() => { setBranchForm({ clinic_id: profile?.clinic_id, name:'', is_active:true }); setModal('branch') }}>+ Nueva sucursal</button>
               </div>
               {branches.length === 0 && <div style={{ textAlign:'center', padding:40, color:'#999', fontSize:13 }}>No hay sucursales registradas</div>}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap:10 }}>
                 {branches.map(branch => (
-                  <div key={branch.id} style={{ border:'0.5px solid #eee', borderRadius:10, padding:'14px 16px' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
-                      <div>
-                        <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>{branch.name}</div>
-                        {(branch.canton || branch.province) && <div style={{ fontSize:12, color:'#999' }}>{[branch.canton, branch.province].filter(Boolean).join(', ')}</div>}
+                  <div key={branch.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor='#ccc'} onMouseLeave={e=>e.currentTarget.style.borderColor='#eee'}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      <div style={{ width:36, height:36, borderRadius:8, background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                        <i className="ti ti-building" style={{ fontSize:16, color:'#0F6E56' }} aria-hidden="true"></i>
                       </div>
-                      <span style={{ fontSize:11, color: branch.is_active ? '#0F6E56' : '#999', background: branch.is_active ? '#e6f7f3' : '#f5f5f5', padding:'2px 8px', borderRadius:10 }}>{branch.is_active ? 'Activa' : 'Inactiva'}</span>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{branch.name}</div>
+                        {(branch.canton || branch.province) && <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{[branch.canton, branch.province].filter(Boolean).join(', ')}</div>}
+                      </div>
                     </div>
-                    <div style={{ display:'flex', gap:6 }}>
-                      <button style={s.btnEdit} onClick={() => { setBranchForm({ ...branch }); setModal('branch') }}>Editar</button>
+                    <div style={{ height:'0.5px', background:'#f0f0f0' }} />
+                    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background: branch.is_active ? '#E1F5EE' : '#f5f5f5', color: branch.is_active ? '#0F6E56' : '#999' }}>{branch.is_active ? 'Activa' : 'Inactiva'}</span>
+                      {branch.address && <span style={{ fontSize:11, color:'#bbb', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{branch.address}</span>}
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'flex-end', gap:6 }}>
+                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                        onClick={() => { setBranchForm({ ...branch }); setModal('branch') }} title="Editar">
+                        <i className="ti ti-edit" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
+                      </button>
                     </div>
                   </div>
                 ))}
