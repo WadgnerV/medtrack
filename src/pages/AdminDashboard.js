@@ -1551,7 +1551,7 @@ export default function AdminDashboard() {
                 <span style={{ position:'absolute', left:12, fontSize:13, color:'#bbb', pointerEvents:'none' }}>🔍</span>
                 <input type="text" placeholder="Buscar por nombre, email o diagnóstico..." value={searchPac} onChange={e=>setSearchPac(e.target.value)} style={{ width:'100%', padding:'8px 12px 8px 34px', border:'0.5px solid #eee', borderRadius:8, fontSize:13, outline:'none', background:'#f9f9f9', boxSizing:'border-box' }} />
               </div>
-              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:10 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap:10 }}>
               {patients.filter(p => {
                 if (p.profile?.role === 'admin' || p.profile?.role === 'superadmin' || p.profile?.role === 'doctor') return false
                 const q = searchPac.toLowerCase()
