@@ -195,6 +195,57 @@ function BedModal({ bed, service, onClose, onSave }) {
   )
 }
 
+
+function NewPatientModal({ onClose, onSave }) {
+  const [form, setForm] = useState({ firstName:'', lastName:'', email:'', password:'', idNumber:'', phone:'', birthDate:'', sex:'' })
+  const [saving, setSaving] = useState(false)
+  const f = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+  const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+  const lbl = { fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:5, display:'block' }
+
+  async function save() {
+    if (!form.firstName || !form.lastName || !form.email || !form.password) return
+    setSaving(true)
+    await onSave(form)
+    setSaving(false)
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={e => { if(e.target===e.currentTarget) onClose() }}>
+      <div style={{ background:'#fff', borderRadius:16, padding:24, width:480, maxWidth:'95vw', maxHeight:'90vh', overflowY:'auto' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:'#1a3a5c' }}>Nuevo paciente</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+          <div><label style={lbl}>Nombre</label><input style={inp} value={form.firstName} onChange={f('firstName')} placeholder="Nombre..." /></div>
+          <div><label style={lbl}>Apellidos</label><input style={inp} value={form.lastName} onChange={f('lastName')} placeholder="Apellidos..." /></div>
+          <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Correo electrónico</label><input type="email" style={inp} value={form.email} onChange={f('email')} placeholder="correo@ejemplo.com" /></div>
+          <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Contraseña temporal</label><input type="password" style={inp} value={form.password} onChange={f('password')} placeholder="Mínimo 6 caracteres" /></div>
+          <div><label style={lbl}>Cédula</label><input style={inp} value={form.idNumber} onChange={f('idNumber')} placeholder="1-1234-5678" /></div>
+          <div><label style={lbl}>Teléfono</label><input style={inp} value={form.phone} onChange={f('phone')} placeholder="+506 8888-8888" /></div>
+          <div><label style={lbl}>Fecha de nacimiento</label><input type="date" style={inp} value={form.birthDate} onChange={f('birthDate')} /></div>
+          <div><label style={lbl}>Sexo</label>
+            <select style={inp} value={form.sex} onChange={f('sex')}>
+              <option value="">Seleccionar...</option>
+              <option value="male">Masculino</option>
+              <option value="female">Femenino</option>
+              <option value="other">Otro</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:8, justifyContent:'flex-end', marginTop:18 }}>
+          <button onClick={onClose} style={{ padding:'8px 16px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
+          <button onClick={save} disabled={saving||!form.firstName||!form.lastName||!form.email||!form.password}
+            style={{ padding:'8px 22px', background:'#185FA5', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:(!form.firstName||!form.lastName||!form.email||!form.password)?0.5:1 }}>
+            {saving?'Creando...':'Crear paciente'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function HospitalizacionDashboard() {
   const { profile, setActiveContext } = useAuth()
   const navigate = useNavigate()
@@ -221,6 +272,17 @@ export default function HospitalizacionDashboard() {
     setLoading(true)
     await Promise.all([loadServices(), loadPatients(), loadDoctors(), loadStaffAssignment(), loadStaff()])
     setLoading(false)
+  }
+
+  async function createPatient(form) {
+    const { data, error } = await supabase.auth.admin ? null : await supabase.functions.invoke('create-user', {
+      body: { email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName,
+        role: 'patient', idNumber: form.idNumber, phone: form.phone, birthDate: form.birthDate,
+        sex: form.sex, clinicId: profile.clinic_id }
+    })
+    if (error) { alert('Error al crear paciente: ' + error.message); return }
+    await loadPatients()
+    setModal(null)
   }
 
   async function loadStaffAssignment() {
@@ -646,6 +708,24 @@ export default function HospitalizacionDashboard() {
       </main>
 
       {/* Modales */}
+      {modal==='new-patient' && <NewPatientModal onClose={() => setModal(null)} onSave={async form => {
+        const { supabase: sb } = await import('../lib/supabase')
+        const { data, error } = await supabase.auth.signUp({ email: form.email, password: form.password,
+          options: { data: { first_name: form.firstName, last_name: form.lastName, role: 'patient',
+            id_number: form.idNumber||'', phone: form.phone||'', birth_date: form.birthDate||'', sex: form.sex||'' }}})
+        if (error) { alert('Error: ' + error.message); return }
+        for (let i=0; i<10; i++) {
+          await new Promise(r => setTimeout(r, 600))
+          const { data: pd } = await supabase.from('profiles').select('id').eq('id', data.user?.id).single()
+          if (pd?.id) break
+        }
+        await supabase.from('profiles').update({ clinic_id: profile.clinic_id }).eq('id', data.user?.id)
+        await supabase.from('patients').upsert({ profile_id: data.user?.id, status:'active',
+          id_number: form.idNumber||null, phone: form.phone||null, birth_date: form.birthDate||null,
+          sex: form.sex||null, clinic_id: profile.clinic_id }, { onConflict:'profile_id' })
+        await loadPatients()
+        setModal(null)
+      }} />}
       {modal==='admit' && <AdmitModal bed={modalData.bed} patients={patients} doctors={doctors} onClose={() => setModal(null)} onSave={admitPatient} />}
       {modal==='service' && <ServiceModal service={modalData.service} onClose={() => setModal(null)} onSave={saveService} />}
       {modal==='bed' && <BedModal bed={modalData.bed} service={modalData.service} onClose={() => setModal(null)} onSave={saveBed} />}
