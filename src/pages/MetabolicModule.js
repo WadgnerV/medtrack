@@ -6,12 +6,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const COLOR = '#0F6E56'
 
-export default function MetabolicModule({ patient, careModule, canEdit, canEditMeasurements, profile }) {
+export default function MetabolicModule({ patient, careModule, canEdit, canEditMeasurements, profile, defaultTab })  {
   const [measurements, setMeasurements] = useState([])
   const [treatments, setTreatments] = useState([])
   const [tasks, setTasks] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
-  const [tab, setTab] = useState(canEdit ? 'notas' : 'composicion')
+  const [tab, setTab] = useState(defaultTab || (canEdit ? 'notas' : 'composicion'))
+  useEffect(() => { if (defaultTab) setTab(defaultTab) }, [defaultTab])
   const [notes, setNotes] = useState([])
   const [noteForm, setNoteForm] = useState('')
   const [savingNote, setSavingNote] = useState(false)
@@ -209,14 +210,14 @@ export default function MetabolicModule({ patient, careModule, canEdit, canEditM
 
   return (
     <div>
-      <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
+      {!defaultTab && <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? COLOR : '#f0f0f0', color: tab === t.key ? '#fff' : '#666' }}>
             {t.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {tab === 'notas' && (
         <ClinicalNoteForm patientId={patient?.id} moduleType='metabolica' color='#0F6E56' patient={patient} profile={profile} />

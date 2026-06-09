@@ -248,7 +248,7 @@ function BodyDiagram({ view, zones, procedures, selectedZone, onSelect }) {
   )
 }
 
-export default function AestheticModule({ patient, canEdit, profile }) {
+export default function AestheticModule({ patient, canEdit, profile, defaultTab })  {
   const [procedures, setProcedures] = useState([])
   const [program, setProgram] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
@@ -270,6 +270,7 @@ export default function AestheticModule({ patient, canEdit, profile }) {
 
   useEffect(() => { localStorage.setItem('aestheticTab', tab) }, [tab])
   useEffect(() => { if (patient?.id) { loadProcedures(); loadProgram(); loadDiagnoses(); loadNotes() } }, [patient])
+  useEffect(() => { if (defaultTab) { const map = { notas:'notas', procedimientos:'diagrama', diagnosticos:'diagnosticos' }; setTab(map[defaultTab] || defaultTab) } }, [defaultTab])
 
   async function loadNotes() {
     const { data } = await supabase.from('clinical_notes')
@@ -389,14 +390,14 @@ export default function AestheticModule({ patient, canEdit, profile }) {
 
   return (
     <div>
-      <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
+      {!defaultTab && <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? COLOR : '#f0f0f0', color: tab === t.key ? '#fff' : '#666' }}>
             {t.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {tab === 'notas' && (
         <ClinicalNoteForm patientId={patient?.id} moduleType='estetica' color='#8e44ad' patient={patient} profile={profile} />

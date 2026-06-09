@@ -5,8 +5,9 @@ import { TRATAMIENTOS_PREDEFINIDOS } from '../components/ListasPredefinidas'
 
 const COLOR = '#c0392b'
 
-export default function EnfermeriaModule({ patient, careModule, canEdit, profile }) {
-  const [tab, setTab] = useState(canEdit ? 'notas' : 'tratamientos')
+export default function EnfermeriaModule({ patient, careModule, canEdit, profile, defaultTab })  {
+  const [tab, setTab] = useState(defaultTab || (canEdit ? 'notas' : 'tratamientos'))
+  useEffect(() => { if (defaultTab) setTab(defaultTab) }, [defaultTab])
   const [treatments, setTreatments] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
   const [showTratForm, setShowTratForm] = useState(false)
@@ -83,14 +84,14 @@ export default function EnfermeriaModule({ patient, careModule, canEdit, profile
 
   return (
     <div>
-      <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
+      {!defaultTab && <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? COLOR : '#f0f0f0', color: tab === t.key ? '#fff' : '#666' }}>
             {t.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {tab === 'notas' && (
         <ClinicalNoteForm patientId={patient?.id} moduleType="enfermeria" color={COLOR} patient={patient} profile={profile} />

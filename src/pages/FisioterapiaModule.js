@@ -11,8 +11,9 @@ function getYouTubeId(url) {
   return match ? match[1] : null
 }
 
-export default function FisioterapiaModule({ patient, careModule, canEdit, profile }) {
-  const [tab, setTab] = useState(canEdit ? 'notas' : 'ejercicios')
+export default function FisioterapiaModule({ patient, careModule, canEdit, profile, defaultTab })  {
+  const [tab, setTab] = useState(defaultTab || (canEdit ? 'notas' : 'ejercicios'))
+  useEffect(() => { if (defaultTab) setTab(defaultTab) }, [defaultTab])
   const [exercises, setExercises] = useState([])
   const [diagnoses, setDiagnoses] = useState([])
   const [showExForm, setShowExForm] = useState(false)
@@ -108,14 +109,14 @@ export default function FisioterapiaModule({ patient, careModule, canEdit, profi
 
   return (
     <div>
-      <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
+      {!defaultTab && <div style={{ display:'flex', gap:6, marginBottom:14, flexWrap:'wrap' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500, background: tab === t.key ? COLOR : '#f0f0f0', color: tab === t.key ? '#fff' : '#666' }}>
             {t.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       {tab === 'notas' && (
         <ClinicalNoteForm patientId={patient?.id} moduleType="fisioterapia" color={COLOR} patient={patient} profile={profile} />

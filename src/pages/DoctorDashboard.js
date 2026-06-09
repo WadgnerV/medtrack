@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import IntegralModule from './IntegralModule'
+import PatientExpediente from '../components/PatientExpediente'
 import ModuleChat from '../components/ModuleChat'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
@@ -861,6 +862,15 @@ export default function DoctorDashboard() {
       )}
 
           {view === 'perfil' && selPatient && (
+            <PatientExpediente
+              patient={selPatient}
+              profile={profile}
+              onBack={() => setSelPatient(null)}
+              canEdit={true}
+              senderRole='doctor'
+            />
+          )}
+          {false && selPatient && (
             <div>
               <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:14, display:'flex', alignItems:'center', gap:14 }}>
                 <div style={{ width:48, height:48, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:500, flexShrink:0 }}>{initials(pName(selPatient))}</div>

@@ -6,6 +6,7 @@ import DocumentosTab from '../components/DocumentosTab'
 import InventarioTab from '../components/InventarioTab'
 import ConsentimientosTab from '../components/ConsentimientosTab'
 import IntegralModule from './IntegralModule'
+import PatientExpediente from '../components/PatientExpediente'
 import ModuleChat from '../components/ModuleChat'
 import MetabolicModule from './MetabolicModule'
 import AestheticModule from './AestheticModule'
@@ -1449,46 +1450,15 @@ export default function AdminDashboard() {
           )}
 
           {view === 'perfil-paciente' && selPatient && (
-            <PatientProfileAdmin
+            <PatientExpediente
               patient={selPatient}
-              patients={patients}
-              doctors={doctors}
               profile={profile}
-              measurements={measurements}
-              goals={goals}
-              tasks={patientTasks}
-              treatments={treatments}
-              notes={notes}
-              library={library}
-              tab={patientTab}
-              setTab={setPatientTab}
-              saving={saving}
-              modal={modal}
-              modalData={modalData}
-              setModal={setModal}
-              setModalData={setModalData}
-              onSaveMeasurement={adminSaveMeasurement}
-              onEditMeasurement={adminEditMeasurement}
-              onDeleteMeasurement={adminDeleteMeasurement}
-              onSaveGoal={adminSaveGoal}
-              onDeleteGoal={adminDeleteGoal}
-              onAssignTasks={adminAssignTasks}
-              onDeleteTask={adminDeleteTask}
-              onSaveTreatment={adminSaveTreatment}
-              onSaveNote={adminSaveNote}
-              onEditNote={adminEditNote}
-              onDeleteNote={adminDeleteNote}
-              diagnoses={diagnoses}
-              onAddDiagnosis={adminAddDiagnosis}
-              onDeleteDiagnosis={adminDeleteDiagnosis}
-              cie10Search={cie10Search}
-              setCie10Search={setCie10Search}
-              cie10Results={cie10Results}
-              onSearchCie10={searchCie10}
-              onBack={() => { setViewPersist('pacientes'); setSelPatient(null) }}
-              isMobile={isMobile}
+              onBack={() => { setSelPatient(null); setViewPersist('pacientes') }}
+              canEdit={true}
+              senderRole='admin'
               enabledModules={enabledModules}
               clinicPlan={clinicPlan}
+              doctors={doctors}
             />
           )}
 
