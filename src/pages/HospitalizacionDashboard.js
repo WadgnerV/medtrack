@@ -417,12 +417,7 @@ export default function HospitalizacionDashboard() {
                 <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:DARK }}>Panel de camas</h2>
                 <div style={{ fontSize:12, color:'#8aab9a', marginTop:2 }}>{new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
               </div>
-              {isAdmin && (
-                <button onClick={() => { setModalData({}); setModal('service') }}
-                  style={{ padding:'8px 16px', background:BLUE, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:6 }}>
-                  <i className="ti ti-plus" style={{ fontSize:14 }} aria-hidden="true"></i> Nuevo servicio
-                </button>
-              )}
+
             </div>
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))', gap:12, marginBottom:24 }}>
@@ -605,6 +600,12 @@ export default function HospitalizacionDashboard() {
                               style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:12, padding:0, display:'flex', alignItems:'center' }}>
                               <i className="ti ti-edit" style={{ fontSize:11 }} aria-hidden="true"></i>
                             </button>
+                            {bed.status !== 'occupied' && (
+                              <button onClick={async () => { if(window.confirm('¿Eliminar esta cama?')) { await supabase.from('hospital_beds').delete().eq('id', bed.id); await loadServices() } }}
+                                style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:12, padding:0, display:'flex', alignItems:'center' }}>
+                                <i className="ti ti-trash" style={{ fontSize:11 }} aria-hidden="true"></i>
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
