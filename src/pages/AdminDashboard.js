@@ -1910,9 +1910,8 @@ export default function AdminDashboard() {
                         </div>
                         <div style={{ position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
                           {hours.map(h => (
-                            <div key={h} style={{ height:SLOT_H, borderLeft:'1px solid #ebebeb', cursor:'pointer', position:'relative', backgroundImage: 'linear-gradient(to bottom, #ebebeb 0px, transparent 1px, transparent 50%, #e0e0e0 50%, transparent calc(50% + 1px), transparent 100%)', backgroundSize: `100% ${SLOT_H}px` }}
+                            <div key={h} style={{ height:SLOT_H, borderLeft:'1px solid #ebebeb', cursor:'pointer', backgroundImage: 'linear-gradient(to bottom, #ebebeb 0px, transparent 1px, transparent 50%, #e0e0e0 50%, transparent calc(50% + 1px), transparent 100%)', backgroundSize: `100% ${SLOT_H}px` }}
                               onClick={() => { setSelDate(currentDate); setModal('new-appt'); setModalData({ defaultTime: String(h).padStart(2,'0')+':00' }) }}>
-                              <div style={{ position:'absolute', top:SLOT_H/2, left:0, right:0, borderBottom:'1px dashed #e0e0e0', pointerEvents:'none' }} />
                             </div>
                           ))}
                           {isToday && nowOffsetPx >= 0 && (
