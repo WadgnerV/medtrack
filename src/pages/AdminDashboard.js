@@ -244,6 +244,7 @@ export default function AdminDashboard() {
   const isClinicAdmin = profile?.role === 'clinic_admin'
   const isBranchAdmin = profile?.role === 'branch_admin' || profile?.role === 'admin'
   const [selBranch, setSelBranch] = useState('')
+  const [filterDoctorId, setFilterDoctorId] = useState('')
   const [myBranchId, setMyBranchId] = useState(null)
 
   // Filtros automáticos para branch_admin
@@ -841,7 +842,7 @@ export default function AdminDashboard() {
   }
 
   function apptsByDate(dateStr) {
-    return appts.filter(a => a.appointment_date === dateStr && a.status !== 'cancelled' && (!selBranch || a.branch_id === selBranch)).sort((a,b) => a.appointment_time.localeCompare(b.appointment_time))
+    return appts.filter(a => a.appointment_date === dateStr && a.status !== 'cancelled' && (!selBranch || a.branch_id === selBranch) && (!filterDoctorId || a.doctor_id === filterDoctorId)).sort((a,b) => a.appointment_time.localeCompare(b.appointment_time))
   }
 
   function doctorColor(doctorId) {
@@ -1669,6 +1670,17 @@ export default function AdminDashboard() {
                     style={{ padding:'5px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:12, outline:'none', color: selBranch ? '#1a3a5c' : '#888' }}>
                     <option value="">Todas las sucursales</option>
                     {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                )}
+                {filteredDoctors.length > 0 && (
+                  <select value={filterDoctorId} onChange={e => setFilterDoctorId(e.target.value)}
+                    style={{ padding:'5px 10px', border:'1px solid #e2e8f0', borderRadius:8, fontSize:12, outline:'none', color: filterDoctorId ? '#1a3a5c' : '#888' }}>
+                    <option value="">Todos los profesionales</option>
+                    {filteredDoctors.map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}
+                      </option>
+                    ))}
                   </select>
                 )}
                 <div style={{ display:'flex', background:'#f5f5f5', borderRadius:8, padding:3, gap:2 }}>
