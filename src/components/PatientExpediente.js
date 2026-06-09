@@ -5,6 +5,8 @@ import MetabolicModule from '../pages/MetabolicModule'
 import AestheticModule from '../pages/AestheticModule'
 import FisioterapiaModule from '../pages/FisioterapiaModule'
 import EnfermeriaModule from '../pages/EnfermeriaModule'
+import OdontologiaModule from '../pages/OdontologiaModule'
+import CareModulesAdmin from './CareModulesAdmin'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
 import ModuleChat from './ModuleChat'
@@ -13,7 +15,7 @@ import {
   Settings, Phone, Mail, CreditCard, Calendar,
   ChevronRight, ChevronDown, ChevronLeft,
   FileText, Activity, Clipboard, Dumbbell, Heart, Scale, Syringe,
-  CheckSquare, MessageSquare
+  CheckSquare, MessageSquare, Smile
 } from 'lucide-react'
 
 const G = '#1D9E75'
@@ -65,9 +67,16 @@ const MODULE_CONFIG = {
       { id: 'diagnosticos', label: 'Diagnósticos',   icon: Clipboard },
     ],
   },
+  odontologia: {
+    label: 'Odontología', icon: Smile,
+    subsecciones: [
+      { id: 'notas',       label: 'Notas clínicas', icon: FileText },
+      { id: 'odontograma', label: 'Odontograma',    icon: Smile    },
+    ],
+  },
 }
 
-const MODULE_ORDER = ['integral', 'metabolica', 'estetica', 'fisioterapia', 'enfermeria']
+const MODULE_ORDER = ['integral', 'metabolica', 'estetica', 'fisioterapia', 'enfermeria', 'odontologia']
 
 function pName(patient) {
   return `${patient?.profile?.first_name || patient?.first_name || ''} ${patient?.profile?.last_name || patient?.last_name || ''}`.trim()
@@ -94,6 +103,7 @@ function ModuleRenderer({ moduleType, sub, patient, careModule, canEdit, profile
   if (moduleType === 'estetica')     return <AestheticModule {...props} defaultTab={sub} />
   if (moduleType === 'fisioterapia') return <FisioterapiaModule {...props} defaultTab={sub} />
   if (moduleType === 'enfermeria')   return <EnfermeriaModule {...props} defaultTab={sub} />
+  if (moduleType === 'odontologia')  return <OdontologiaModule {...props} defaultTab={sub} />
   return null
 }
 
@@ -106,7 +116,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (patient?.id) loadCareModules()
   }, [patient?.id])
 
-  async function loadCareModules() {
+  async function loadCareModules(preserveSeccion = false) {
     const { data } = await supabase
       .from('patient_care_modules')
       .select('*, professional:assigned_professional_id(id, first_name, last_name)')
@@ -114,6 +124,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       .eq('is_active', true)
     const mods = data || []
     setCareModules(mods)
+    if (preserveSeccion) return
     const ordered = MODULE_ORDER.filter(mt => mods.some(m => m.module_type === mt))
     if (ordered.length > 0) {
       const first = ordered[0]
@@ -175,10 +186,13 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
       if (key === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
       if (key === 'asignacion') return (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2ede9', padding: 20 }}>
-          <div style={{ fontWeight: 700, color: BLUE, fontSize: 14, marginBottom: 8 }}>Asignación de módulos</div>
-          <div style={{ color: '#8aab9a', fontSize: 13 }}>Módulos activos para este paciente.</div>
-        </div>
+        <CareModulesAdmin
+          patient={patient}
+          doctors={doctors || []}
+          onModulesUpdated={() => loadCareModules(true)}
+          enabledModules={enabledModules}
+          clinicPlan={clinicPlan}
+        />
       )
     }
     if (seccion.type === 'modulo') {

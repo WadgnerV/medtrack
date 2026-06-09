@@ -258,7 +258,7 @@ export default function AdminDashboard() {
     : appts
   const [branchForm, setBranchForm] = useState({})
   const [branches, setBranches] = useState([])
-  const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria'])
+  const [enabledModules, setEnabledModules] = useState(['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia'])
   const [savingSettings, setSavingSettings] = useState(false)
 
   useEffect(() => { if (profile?.id) loadAll() }, [profile?.id])
@@ -1830,7 +1830,7 @@ export default function AdminDashboard() {
                                 const color = doctorColor(a.doctor_id)
                                 return (
                                   <>{(() => {
-                                    const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                                    const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
                                     const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
                                     const endMin = ah2*60 + am2 + (a.duration_min||30)
                                     const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
@@ -1934,7 +1934,7 @@ export default function AdminDashboard() {
                             const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#854F0B' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }
                             const st = statusConfig[a.status] || statusConfig.scheduled
                             {(() => {
-                                const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                                const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
                                 const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
                                 const endMin = ah2*60 + am2 + (a.duration_min||30)
                                 const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
@@ -2467,9 +2467,9 @@ export default function AdminDashboard() {
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
                   {(() => {
-                    const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
-                    const MODULE_ICONS = { integral:'ti-stethoscope', metabolica:'ti-activity', estetica:'ti-sparkles', fisioterapia:'ti-run', enfermeria:'ti-first-aid-kit' }
-                    const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b' }
+                    const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
+                    const MODULE_ICONS = { integral:'ti-stethoscope', metabolica:'ti-activity', estetica:'ti-sparkles', fisioterapia:'ti-run', enfermeria:'ti-first-aid-kit', odontologia:'ti-tooth' }
+                    const MODULE_COLORS = { integral:'#1a5c8a', metabolica:'#0F6E56', estetica:'#8e44ad', fisioterapia:'#e67e22', enfermeria:'#c0392b', odontologia:'#0e4d8a' }
                     return enabledModules.map(mod => {
                       const assigned = moduleAssignments[mod]
                       return (
@@ -2802,7 +2802,7 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
   const [newTagColor, setNewTagColor] = React.useState('#1D9E75')
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', doctorId:appt?.doctor_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
   const [patientModules, setPatientModules] = useState([])
-  const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+  const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
 
   useEffect(() => {
     if (form.patientId && form.doctorId) loadModules(form.patientId, form.doctorId)
@@ -3115,7 +3115,7 @@ function PatientProfileAdmin({ patient, doctors, profile, measurements, goals, t
             fisioterapia: '#e67e22',
             enfermeria:   '#c0392b',
           }
-          const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+          const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia']
           const sorted = [...careModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
           const tabs = [
             ...sorted.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
@@ -3476,7 +3476,7 @@ const sa = {
 }
 
 
-function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules = ['integral','metabolica','estetica','fisioterapia','enfermeria'], clinicPlan = 'basic' }) {
+function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules = ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia'], clinicPlan = 'basic' }) {
   const G = '#0F6E56'
   const [modules, setModules] = useState([])
   const [saving, setSaving] = useState(null)
@@ -3488,6 +3488,7 @@ function CareModulesAdmin({ patient, doctors, onModulesUpdated, enabledModules =
     { key:'estetica', label:'Atención médica estética' },
     { key:'fisioterapia', label:'Atención de fisioterapia' },
     { key:'enfermeria', label:'Atención de enfermería' },
+    { key:'odontologia', label:'Odontología' },
   ].filter(m => enabledModules.includes(m.key))
 
   useEffect(() => { if (patient?.id) loadModules() }, [patient])

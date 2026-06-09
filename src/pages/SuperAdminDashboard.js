@@ -166,7 +166,7 @@ export default function SuperAdminDashboard() {
       plan: form.plan||'basic', contract_ref: form.contract_ref||null,
       municipal_permit: form.municipal_permit||'no', health_permit: form.health_permit||'no',
       operational: form.operational||'no', send_welcome_email: form.send_welcome_email!==false,
-      enabled_modules: ['enterprise_plus','enterprise'].includes(form.plan) ? ['integral','metabolica','estetica','fisioterapia','enfermeria'] : (form.enabled_modules||[]),
+      enabled_modules: ['enterprise_plus','enterprise'].includes(form.plan) ? ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia'] : (form.enabled_modules||[]),
     }
     if (form.id) {
       const { error: updateErr } = await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
@@ -782,7 +782,7 @@ export default function SuperAdminDashboard() {
                   ...p,
                   plan: newPlan,
                   enabled_modules: newPlan === 'enterprise' 
-                    ? ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                    ? ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia']
                     : (p.enabled_modules||[]).slice(0, newPlan === 'basic' ? 2 : 5)
                 }))
               }} style={s.input}>
@@ -813,14 +813,14 @@ export default function SuperAdminDashboard() {
                 {{'basic':'Sin módulos clínicos','starter':'Seleccioná hasta 2 módulos','gold':'Seleccioná hasta 4 módulos','gold_plus':'Seleccioná hasta 6 módulos','enterprise':'Seleccioná hasta 10 módulos','enterprise_plus':'Todos los módulos disponibles'}[form.plan||'basic']}
               </div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                {[['integral','Atención Integral'],['metabolica','Atención Metabólica'],['estetica','Atención Estética'],['fisioterapia','Fisioterapia'],['enfermeria','Enfermería']].map(([key, label]) => {
+                {[['integral','Atención Integral'],['metabolica','Atención Metabólica'],['estetica','Atención Estética'],['fisioterapia','Fisioterapia'],['enfermeria','Enfermería'],['odontologia','Odontología']].map(([key, label]) => {
                   const selected = (form.enabled_modules||[]).includes(key)
                   const maxModules = {'basic':0,'starter':2,'gold':4,'gold_plus':6,'enterprise':10,'enterprise_plus':99}[form.plan||'basic']
                   const atMax = (form.enabled_modules||[]).length >= maxModules && !selected
                   return (
                     <div key={key} onClick={() => {
                       if (form.plan === 'enterprise') {
-                        const all = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                        const all = ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia']
                         setForm(p => ({...p, enabled_modules: all}))
                         return
                       }

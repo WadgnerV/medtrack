@@ -901,7 +901,7 @@ export default function DoctorDashboard() {
                     fisioterapia: '#e67e22',
                     enfermeria:   '#c0392b',
                   }
-                  const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria']
+                  const MODULE_ORDER = ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia']
                   const sortedModules = [...patientCareModules].sort((a,b) => MODULE_ORDER.indexOf(a.module_type) - MODULE_ORDER.indexOf(b.module_type))
                   const tabs = [
                     ...sortedModules.map(m => ({ key:'modulo_'+m.module_type, label: MODULE_LABELS[m.module_type], color: MODULE_COLORS[m.module_type] })),
@@ -1341,7 +1341,7 @@ export default function DoctorDashboard() {
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 4, 18)
                                 return (
                                   <>{(() => {
-                                    const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                                    const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
                                     const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
                                     const endMin = ah2*60 + am2 + (a.duration_min||30)
                                     const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
@@ -1423,7 +1423,7 @@ export default function DoctorDashboard() {
                             const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
                             {(() => {
-                                const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+                                const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
                                 const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
                                 const endMin = ah2*60 + am2 + (a.duration_min||30)
                                 const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
@@ -1847,7 +1847,7 @@ function NoteForm({ saving, onSave, onClose }) {
   )
 }
 
-const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería' }
+const MODULE_LABELS = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología' }
 
 function ApptForm({ appt, patients, saving, defaultDate, defaultTime, doctorId, onSave, onClose, onGoToExpediente, onCancelAppt }) {
   const [form, setForm] = useState({ id:appt?.id||null, patientId:appt?.patient_id||'', date:appt?.appointment_date||defaultDate||'', time:appt?.appointment_time?.substring(0,5)||defaultTime||'09:00', visitType:appt?.visit_type||'Consulta de seguimiento', duration:appt?.duration_min||30, notes:appt?.notes||'', moduleType:appt?.module_type||'', status:appt?.status||'pending_confirmation' })
