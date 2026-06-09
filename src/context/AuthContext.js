@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [activeContext, setActiveContext] = useState(localStorage.getItem('medtrack_context') || 'outpatient')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -100,10 +101,17 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     await supabase.auth.signOut()
+    localStorage.removeItem('medtrack_context')
+    setActiveContext('outpatient')
+  }
+
+  function setActiveContextPersist(ctx) {
+    localStorage.setItem('medtrack_context', ctx)
+    setActiveContext(ctx)
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, activeContext, setActiveContext: setActiveContextPersist, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   )

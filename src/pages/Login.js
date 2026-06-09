@@ -7,7 +7,7 @@ const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 
 export default function Login() {
-  const { signIn } = useAuth()
+  const { signIn, profile: authProfile } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
