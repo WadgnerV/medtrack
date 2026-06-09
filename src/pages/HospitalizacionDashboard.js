@@ -314,8 +314,17 @@ export default function HospitalizacionDashboard() {
   async function saveBed(data) {
     const bed = modalData.bed
     const svc = modalData.service
-    if (bed && !bed.active_hospitalization) await supabase.from('hospital_beds').update(data).eq('id', bed.id)
-    else await supabase.from('hospital_beds').insert({ ...data, clinic_id: profile.clinic_id, service_id: svc.id })
+    if (bed && !bed.active_hospitalization) {
+      await supabase.from('hospital_beds').update(data).eq('id', bed.id)
+    } else {
+      // Verificar que no exista ya ese número en el servicio
+      const exists = beds.some(b => b.service_id === svc.id && b.bed_number === data.bed_number)
+      if (exists) {
+        alert(`Ya existe una cama con el número "${data.bed_number}" en este servicio.`)
+        return
+      }
+      await supabase.from('hospital_beds').insert({ ...data, clinic_id: profile.clinic_id, service_id: svc.id })
+    }
     setModal(null); await loadServices()
   }
 
