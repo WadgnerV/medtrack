@@ -1923,11 +1923,9 @@ export default function AdminDashboard() {
                           )}
                           {dayAppts.filter(a => a.status === 'blocked').map(a => {
                                 const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
-                                const HORA_INI2 = 0
-                                const SLOT_H2 = 88
-                                if (ah < HORA_INI2) return null
-                                const top = ((ah - HORA_INI2) * 60 + am) / 60 * (SLOT_H2/2) * 2
-                                const height = Math.max((a.duration_min||60) / 60 * (SLOT_H2/2) * 2 - 2, 20)
+                                if (ah < HORA_INI) return null
+                                const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
+                                const height = Math.max((a.duration_min||60) / 60 * SLOT_H - 2, 20)
                                 return (
                                   <div key={a.id} style={{ position:'absolute', left:2, right:2, top, height, background:'#F1EFE8', borderLeft:'3px solid #888780', borderRadius:4, padding:'3px 6px', overflow:'hidden', zIndex:4 }}>
                                     <div style={{ fontSize:10, fontWeight:500, color:'#5F5E5A', display:'flex', alignItems:'center', gap:3 }}>
