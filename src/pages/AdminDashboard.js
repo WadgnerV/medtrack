@@ -1938,6 +1938,7 @@ export default function AdminDashboard() {
                                 )
                               })}
                           {dayAppts.filter(a => a.status !== 'blocked').map(a => {
+                            const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología', nutricion:'Nutrición' }
                             const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
                             if (ah < HORA_INI || ah >= HORA_FIN) return null
                             const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
@@ -1945,35 +1946,31 @@ export default function AdminDashboard() {
                             const color = doctorColor(a.doctor_id)
                             const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#854F0B' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }
                             const st = statusConfig[a.status] || statusConfig.scheduled
-                            {(() => {
-                                const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología', nutricion:'Nutrición' }
-                                const [ah2, am2] = (a.appointment_time||'00:00').split(':').map(Number)
-                                const endMin = ah2*60 + am2 + (a.duration_min||30)
-                                const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
-                                const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
-                                return (
-                                  <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
-                                    onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
-                                    <div style={{ fontSize:11, fontWeight:700, color, display:'flex', justifyContent:'space-between', marginBottom:2 }}>
-                                      <span>{timeStr}</span>
-                                      <span style={{ fontSize:10, padding:'0 5px', borderRadius:10, background:st.bg, color:st.color }}>{st.label}</span>
-                                    </div>
-                                    <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a', marginBottom:1 }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
-                                    {a.module_type && <div style={{ fontSize:10, color:'#555', marginBottom:1 }}>{ML[a.module_type]}</div>}
-                                    {a.visit_type && <div style={{ fontSize:10, color:'#777', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{a.visit_type}</div>}
-                                    <div style={{ display:'flex', gap:4 }}>
-                                      {a.status !== 'confirmed_doctor' && a.status !== 'no_show' && (
-                                        <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
-                                          onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'confirmed_doctor') }}>✅ Confirmar</button>
-                                      )}
-                                      {a.status !== 'no_show' && (
-                                        <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#FAEEDA', color:'#854F0B' }}
-                                          onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'no_show', a) }}>No asistió</button>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              })()}
+                            const endMin = ah*60 + am + (a.duration_min||30)
+                            const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
+                            const timeStr = fmt(ah,am)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
+                            return (
+                              <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                                onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
+                                <div style={{ fontSize:11, fontWeight:700, color, display:'flex', justifyContent:'space-between', marginBottom:2 }}>
+                                  <span>{timeStr}</span>
+                                  <span style={{ fontSize:10, padding:'0 5px', borderRadius:10, background:st.bg, color:st.color }}>{st.label}</span>
+                                </div>
+                                <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a', marginBottom:1 }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
+                                {a.module_type && <div style={{ fontSize:10, color:'#555', marginBottom:1 }}>{ML[a.module_type]}</div>}
+                                {a.visit_type && <div style={{ fontSize:10, color:'#777', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{a.visit_type}</div>}
+                                <div style={{ display:'flex', gap:4 }}>
+                                  {a.status !== 'confirmed_doctor' && a.status !== 'no_show' && (
+                                    <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
+                                      onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'confirmed_doctor') }}>✅ Confirmar</button>
+                                  )}
+                                  {a.status !== 'no_show' && (
+                                    <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#FAEEDA', color:'#854F0B' }}
+                                      onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'no_show', a) }}>No asistió</button>
+                                  )}
+                                </div>
+                              </div>
+                            )
                           })}
                           {dayAppts.length === 0 && (
                             <div style={{ position:'absolute', top:'40%', left:0, right:0, textAlign:'center', fontSize:13, color:'#bbb' }}>Sin citas para este día</div>
