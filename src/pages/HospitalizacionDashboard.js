@@ -484,36 +484,61 @@ export default function HospitalizacionDashboard() {
         {/* Vista: Pacientes hospitalizados */}
         {view === 'pacientes' && (
           <div>
-            <h2 style={{ margin:'0 0 20px', fontSize:18, fontWeight:700, color:DARK }}>Pacientes hospitalizados</h2>
-            <div style={{ background:'#fff', border:'0.5px solid #e2ede9', borderRadius:12, overflow:'hidden' }}>
-              <div style={{ padding:'12px 16px', borderBottom:'0.5px solid #e2ede9', fontSize:13, color:'#8aab9a' }}>
-                {beds.filter(b=>b.status==='occupied').length} pacientes activos
-              </div>
-              {beds.filter(b=>b.status==='occupied' && b.active_hospitalization).map((bed,i) => {
-                const h = bed.active_hospitalization
-                const p = h?.patient
-                const d = h?.doctor
-                return (
-                  <div key={bed.id} style={{ padding:'12px 16px', borderBottom: i<beds.filter(b=>b.status==='occupied').length-1?'0.5px solid #f0f5f3':'none', display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' }}
-                    onClick={() => navigate(`/hospitalizacion/expediente/${h.id}`)}>
-                    <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                      <div style={{ width:36, height:36, borderRadius:'50%', background:BLUE_L, color:BLUE, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700 }}>
-                        {(p?.first_name||'?')[0]}{(p?.last_name||'?')[0]}
-                      </div>
-                      <div>
-                        <div style={{ fontSize:13, fontWeight:600, color:DARK }}>{p?.last_name} {p?.first_name}</div>
-                        <div style={{ fontSize:11, color:'#8aab9a' }}>
-                          Cama {bed.bed_number} · {services.find(s=>s.id===bed.service_id)?.name||''}
-                          {d ? ` · ${d.prefix?d.prefix+' ':''}${d.first_name} ${d.last_name}` : ''}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+              <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:DARK }}>Pacientes</h2>
+              {isAdmin && (
+                <button onClick={() => setModal('new-patient')}
+                  style={{ padding:'8px 16px', background:BLUE, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:6 }}>
+                  <i className="ti ti-plus" style={{ fontSize:14 }} aria-hidden="true"></i> Nuevo paciente
+                </button>
+              )}
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <input value={patientSearch} onChange={e => setPatientSearch(e.target.value)}
+                placeholder="Buscar por nombre o cédula..."
+                style={{ width:'100%', padding:'8px 12px', fontSize:13, border:'0.5px solid #e2ede9', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', background:'#fff' }} />
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px,1fr))', gap:12 }}>
+              {patients
+                .filter(p => {
+                  const name = `${p.profile?.first_name||''} ${p.profile?.last_name||''}`.toLowerCase()
+                  const id = (p.id_number||'').toLowerCase()
+                  return name.includes(patientSearch.toLowerCase()) || id.includes(patientSearch.toLowerCase())
+                })
+                .map(p => {
+                  const hospBed = beds.find(b => b.active_hospitalization?.patient_id === p.profile?.id)
+                  const isHosp = !!hospBed
+                  const ini = `${(p.profile?.first_name||'?')[0]}${(p.profile?.last_name||'?')[0]}`.toUpperCase()
+                  const ageVal = p.birth_date ? Math.floor((Date.now()-new Date(p.birth_date))/(1000*60*60*24*365.25)) : null
+                  return (
+                    <div key={p.id} style={{ background:'#fff', border:`0.5px solid ${isHosp?BLUE:'#e2ede9'}`, borderRadius:12, padding:'14px 16px', display:'flex', flexDirection:'column', gap:8 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:38, height:38, borderRadius:'50%', background:isHosp?BLUE_L:'#f4f7f6', color:isHosp?BLUE:'#6b8f7e', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, flexShrink:0 }}>{ini}</div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:13, fontWeight:600, color:DARK, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.profile?.last_name} {p.profile?.first_name}</div>
+                          <div style={{ fontSize:11, color:'#8aab9a', marginTop:1 }}>{p.id_number||'Sin cédula'}</div>
                         </div>
                       </div>
+                      <div style={{ fontSize:11, color:'#8aab9a' }}>
+                        {ageVal ? `${ageVal} años` : ''}
+                        {p.sex ? ` · ${p.sex==='male'?'Masculino':p.sex==='female'?'Femenino':'Otro'}` : ''}
+                      </div>
+                      {isHosp ? (
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                          <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:BLUE_L, color:'#0C447C', fontWeight:500 }}>Cama {hospBed.bed_number}</span>
+                          <button onClick={() => navigate(`/hospitalizacion/expediente/${hospBed.active_hospitalization.id}`)}
+                            style={{ fontSize:11, padding:'3px 8px', background:BLUE, color:'#fff', border:'none', borderRadius:6, cursor:'pointer' }}>
+                            Ver expediente
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f4f7f6', color:'#6b8f7e', fontWeight:500, alignSelf:'flex-start' }}>No hospitalizado</span>
+                      )}
                     </div>
-                    <i className="ti ti-chevron-right" style={{ fontSize:16, color:'#ccc' }} aria-hidden="true"></i>
-                  </div>
-                )
-              })}
-              {beds.filter(b=>b.status==='occupied').length === 0 && (
-                <div style={{ padding:40, textAlign:'center', fontSize:13, color:'#bbb' }}>Sin pacientes hospitalizados actualmente</div>
+                  )
+                })}
+              {patients.length === 0 && (
+                <div style={{ gridColumn:'1/-1', textAlign:'center', padding:40, fontSize:13, color:'#bbb' }}>Sin pacientes registrados</div>
               )}
             </div>
           </div>
