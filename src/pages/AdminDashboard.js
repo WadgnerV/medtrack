@@ -174,7 +174,7 @@ export default function AdminDashboard() {
   const [chatMsg, setChatMsg] = useState('')
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
-  const [calView, setCalView] = useState('semana')
+  const [calView, setCalView] = useState(window.innerWidth <= 640 ? 'dia' : 'semana')
   const [draggingAppt, setDraggingAppt] = useState(null)
   const [availability, setAvailability] = useState([])
   const [availForm, setAvailForm] = useState({ doctor_id:'', branch_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', days_of_week:[], start_date:'', end_type:'indefinite', repeat_until:'' })

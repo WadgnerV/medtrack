@@ -47,7 +47,7 @@ export default function DoctorDashboard() {
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [selDate, setSelDate] = useState(null)
-  const [calView, setCalView] = useState('semana')
+  const [calView, setCalView] = useState(window.innerWidth <= 640 ? 'dia' : 'semana')
   const [popupAppt, setPopupAppt] = useState(null)
   const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [editPatientForm, setEditPatientForm] = useState({})
