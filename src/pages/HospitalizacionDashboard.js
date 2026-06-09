@@ -239,13 +239,18 @@ export default function HospitalizacionDashboard() {
       .select('*').eq('clinic_id', profile.clinic_id).eq('is_active', true).order('order_index')
     if (!svcs) return setServices([])
 
-    const { data: bedsWithHosp } = await supabase.from('hospital_beds')
-      .select('*, hospitalizations(id, admission_date, status, patient:patient_id(id, first_name, last_name, birth_date), doctor:attending_doctor_id(id, first_name, last_name, prefix))')
+    const { data: allBeds } = await supabase.from('hospital_beds')
+      .select('*')
       .eq('clinic_id', profile.clinic_id)
 
-    const bedsProcessed = (bedsWithHosp || []).map(bed => {
-      const activeHosp = (bed.hospitalizations || []).find(h => h.status === 'active')
-      return { ...bed, active_hospitalization: activeHosp || null, hospitalizations: undefined }
+    const { data: activeHosps } = await supabase.from('hospitalizations')
+      .select('id, admission_date, status, bed_id, patient_id, attending_doctor_id, patient:patient_id(id, first_name, last_name, birth_date), doctor:attending_doctor_id(id, first_name, last_name, prefix)')
+      .eq('clinic_id', profile.clinic_id)
+      .eq('status', 'active')
+
+    const bedsProcessed = (allBeds || []).map(bed => {
+      const activeHosp = (activeHosps || []).find(h => h.bed_id === bed.id)
+      return { ...bed, active_hospitalization: activeHosp || null }
     })
 
     setBeds(bedsProcessed)
