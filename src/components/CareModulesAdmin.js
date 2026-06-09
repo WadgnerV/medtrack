@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function CareModulesAdmin({ patient, doctors = [], onModulesUpdated, enabledModules = ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia'], clinicPlan = 'basic' }) {
+export default function CareModulesAdmin({ patient, doctors = [], onModulesUpdated, enabledModules = ['integral','metabolica','estetica','fisioterapia','enfermeria','odontologia','nutricion'], clinicPlan = 'basic' }) {
   const G = '#0F6E56'
   const [modules, setModules] = useState([])
   const [saving, setSaving] = useState(null)
@@ -14,6 +14,7 @@ export default function CareModulesAdmin({ patient, doctors = [], onModulesUpdat
     { key:'fisioterapia',label:'Atención de fisioterapia'    },
     { key:'enfermeria',  label:'Atención de enfermería'      },
     { key:'odontologia', label:'Odontología'                 },
+    { key:'nutricion',   label:'Nutrición'                   },
   ].filter(m => enabledModules.includes(m.key))
 
   useEffect(() => { if (patient?.id) loadModules() }, [patient])

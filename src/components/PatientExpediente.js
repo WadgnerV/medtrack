@@ -6,6 +6,7 @@ import AestheticModule from '../pages/AestheticModule'
 import FisioterapiaModule from '../pages/FisioterapiaModule'
 import EnfermeriaModule from '../pages/EnfermeriaModule'
 import OdontologiaModule from '../pages/OdontologiaModule'
+import NutricionModule from '../pages/NutricionModule'
 import CareModulesAdmin from './CareModulesAdmin'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
@@ -15,7 +16,7 @@ import {
   Settings, Phone, Mail, CreditCard, Calendar,
   ChevronRight, ChevronDown, ChevronLeft,
   FileText, Activity, Clipboard, Dumbbell, Heart, Scale, Syringe,
-  CheckSquare, MessageSquare, Smile
+  CheckSquare, MessageSquare, Smile, Salad
 } from 'lucide-react'
 
 const G = '#1D9E75'
@@ -74,9 +75,18 @@ const MODULE_CONFIG = {
       { id: 'odontograma', label: 'Odontograma',    icon: Smile    },
     ],
   },
+  nutricion: {
+    label: 'Nutrición', icon: Salad,
+    subsecciones: [
+      { id: 'notas',          label: 'Notas clínicas',  icon: FileText  },
+      { id: 'plan',           label: 'Plan nutricional', icon: Salad     },
+      { id: 'antropometria',  label: 'Antropometría',   icon: Scale     },
+      { id: 'diagnosticos',   label: 'Diagnósticos',    icon: Clipboard },
+    ],
+  },
 }
 
-const MODULE_ORDER = ['integral', 'metabolica', 'estetica', 'fisioterapia', 'enfermeria', 'odontologia']
+const MODULE_ORDER = ['integral', 'metabolica', 'estetica', 'fisioterapia', 'enfermeria', 'odontologia', 'nutricion']
 
 function pName(patient) {
   return `${patient?.profile?.first_name || patient?.first_name || ''} ${patient?.profile?.last_name || patient?.last_name || ''}`.trim()
@@ -104,6 +114,7 @@ function ModuleRenderer({ moduleType, sub, patient, careModule, canEdit, profile
   if (moduleType === 'fisioterapia') return <FisioterapiaModule {...props} defaultTab={sub} />
   if (moduleType === 'enfermeria')   return <EnfermeriaModule {...props} defaultTab={sub} />
   if (moduleType === 'odontologia')  return <OdontologiaModule {...props} defaultTab={sub} />
+  if (moduleType === 'nutricion')    return <NutricionModule {...props} defaultTab={sub} />
   return null
 }
 
