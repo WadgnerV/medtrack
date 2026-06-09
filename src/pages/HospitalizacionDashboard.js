@@ -209,6 +209,7 @@ export default function HospitalizacionDashboard() {
   const [modal, setModal] = useState(null)
   const [modalData, setModalData] = useState({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [patientSearch, setPatientSearch] = useState('')
 
   const isAdmin = ['clinic_admin','superadmin'].includes(profile?.role) ||
     staffAssignment?.hospital_role === 'hospitalization_admin'
