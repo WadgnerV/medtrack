@@ -1834,12 +1834,36 @@ export default function AdminDashboard() {
                                   </div>
                                 )
                               })}
-                              {dayAppts.filter(a => a.status !== 'blocked').map(a => {
-                                const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
-                                if (ah < HORA_INI || ah >= HORA_FIN) return null
+                              {(() => {
+                                const visible = dayAppts.filter(a => a.status !== 'blocked').map(a => {
+                                  const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
+                                  const startMin = ah*60+am
+                                  const endMin = startMin + (a.duration_min||30)
+                                  return { a, ah, am, startMin, endMin }
+                                }).filter(x => x.ah >= HORA_INI && x.ah < HORA_FIN)
+
+                                // Calcular columnas para citas que se solapan
+                                const withCols = visible.map(item => ({ ...item, col:0, cols:1 }))
+                                for (let i = 0; i < withCols.length; i++) {
+                                  const overlapping = withCols.filter((other, j) => j !== i &&
+                                    other.startMin < withCols[i].endMin && other.endMin > withCols[i].startMin)
+                                  if (overlapping.length > 0) {
+                                    const group = [withCols[i], ...overlapping].sort((x,y) => x.startMin - y.startMin || x.a.id.localeCompare(y.a.id))
+                                    const totalCols = group.length
+                                    group.forEach((g, idx) => {
+                                      const target = withCols.find(w => w.a.id === g.a.id)
+                                      target.col = idx
+                                      target.cols = totalCols
+                                    })
+                                  }
+                                }
+
+                                return withCols.map(({ a, ah, am, col, cols }) => {
                                 const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                                 const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 4, 18)
                                 const color = doctorColor(a.doctor_id)
+                                const widthPct = 100 / cols
+                                const leftPct = widthPct * col
                                 return (
                                   <>{(() => {
                                     const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología', nutricion:'Nutrición' }
@@ -1848,7 +1872,7 @@ export default function AdminDashboard() {
                                     const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
                                     const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                     return (
-                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:2, right:2, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5 }}
+                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:`calc(${leftPct}% + 1px)`, width:`calc(${widthPct}% - 2px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5 }}
                                         onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
@@ -1867,7 +1891,8 @@ export default function AdminDashboard() {
                                     )
                                   })()}</>
                                 )
-                              })}
+                              })
+                              })()}
                             </div>
                           )
                         })}
@@ -1934,10 +1959,31 @@ export default function AdminDashboard() {
                                   </div>
                                 )
                               })}
-                          {dayAppts.filter(a => a.status !== 'blocked').map(a => {
+                          {(() => {
+                            const visible = dayAppts.filter(a => a.status !== 'blocked').map(a => {
+                              const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
+                              const startMin = ah*60+am
+                              const endMin = startMin + (a.duration_min||30)
+                              return { a, ah, am, startMin, endMin }
+                            }).filter(x => x.ah >= HORA_INI && x.ah < HORA_FIN)
+
+                            const withCols = visible.map(item => ({ ...item, col:0, cols:1 }))
+                            for (let i = 0; i < withCols.length; i++) {
+                              const overlapping = withCols.filter((other, j) => j !== i &&
+                                other.startMin < withCols[i].endMin && other.endMin > withCols[i].startMin)
+                              if (overlapping.length > 0) {
+                                const group = [withCols[i], ...overlapping].sort((x,y) => x.startMin - y.startMin || x.a.id.localeCompare(y.a.id))
+                                const totalCols = group.length
+                                group.forEach((g, idx) => {
+                                  const target = withCols.find(w => w.a.id === g.a.id)
+                                  target.col = idx
+                                  target.cols = totalCols
+                                })
+                              }
+                            }
+
+                            return withCols.map(({ a, ah, am, col, cols }) => {
                             const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología', nutricion:'Nutrición' }
-                            const [ah, am] = (a.appointment_time||'00:00').split(':').map(Number)
-                            if (ah < HORA_INI || ah >= HORA_FIN) return null
                             const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
                             const color = doctorColor(a.doctor_id)
@@ -1946,8 +1992,10 @@ export default function AdminDashboard() {
                             const endMin = ah*60 + am + (a.duration_min||30)
                             const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
                             const timeStr = fmt(ah,am)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
+                            const widthPct = 100 / cols
+                            const leftPct = widthPct * col
                             return (
-                              <div key={a.id} style={{ position:'absolute', left:4, right:4, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                              <div key={a.id} style={{ position:'absolute', left:`calc(${leftPct}% + 4px)`, width:`calc(${widthPct}% - 8px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
                                 onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
                                 <div style={{ fontSize:11, fontWeight:700, color, display:'flex', justifyContent:'space-between', marginBottom:2 }}>
                                   <span>{timeStr}</span>
@@ -1968,7 +2016,8 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
                             )
-                          })}
+                          })
+                          })()}
                           {dayAppts.length === 0 && (
                             <div style={{ position:'absolute', top:'40%', left:0, right:0, textAlign:'center', fontSize:13, color:'#bbb' }}>Sin citas para este día</div>
                           )}
