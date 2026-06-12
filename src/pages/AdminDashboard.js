@@ -1784,7 +1784,7 @@ export default function AdminDashboard() {
                         {weekDays.map(({dateStr, isToday}) => {
                           const dayAppts = apptsByDate(dateStr)
                           return (
-                            <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff' }}>
+                            <div key={dateStr} style={{ borderLeft:'1px solid #ebebeb', position:'relative', background: isToday ? '#fafffe' : '#fff', overflow:'hidden' }}>
                               {hours.map(h => [0, 30].map(min => (
                                 <div key={h+'-'+min} style={{ height:SLOT_H/2, cursor:'pointer', position:'relative' }}
                                   onDragOver={e => { e.preventDefault(); e.currentTarget.style.background='rgba(29,158,117,0.08)' }}
