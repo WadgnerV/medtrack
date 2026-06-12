@@ -1872,7 +1872,7 @@ export default function AdminDashboard() {
                                     const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
                                     const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                     return (
-                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:`calc(${leftPct}% + 1px)`, width:`calc(${widthPct}% - 2px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5 }}
+                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:`calc(${leftPct}% + 1px)`, width:`calc(${widthPct}% - 2px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5, boxSizing:'border-box' }}
                                         onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
@@ -1995,7 +1995,7 @@ export default function AdminDashboard() {
                             const widthPct = 100 / cols
                             const leftPct = widthPct * col
                             return (
-                              <div key={a.id} style={{ position:'absolute', left:`calc(${leftPct}% + 4px)`, width:`calc(${widthPct}% - 8px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5 }}
+                              <div key={a.id} style={{ position:'absolute', left:`calc(${leftPct}% + 4px)`, width:`calc(${widthPct}% - 8px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5, boxSizing:'border-box' }}
                                 onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
                                 <div style={{ fontSize:11, fontWeight:700, color, display:'flex', justifyContent:'space-between', marginBottom:2 }}>
                                   <span>{timeStr}</span>
