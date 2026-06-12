@@ -1860,7 +1860,7 @@ export default function AdminDashboard() {
 
                                 return withCols.map(({ a, ah, am, col, cols }) => {
                                 const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
-                                const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 4, 18)
+                                const height = Math.max((a.duration_min||30) / 60 * SLOT_H, 18)
                                 const color = doctorColor(a.doctor_id)
                                 const widthPct = 100 / cols
                                 const leftPct = widthPct * col
@@ -1985,7 +1985,7 @@ export default function AdminDashboard() {
                             return withCols.map(({ a, ah, am, col, cols }) => {
                             const ML = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología', nutricion:'Nutrición' }
                             const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
-                            const height = Math.max((a.duration_min||30) / 60 * SLOT_H - 2, 28)
+                            const height = Math.max((a.duration_min||30) / 60 * SLOT_H, 28)
                             const color = doctorColor(a.doctor_id)
                             const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#854F0B' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }
                             const st = statusConfig[a.status] || statusConfig.scheduled
