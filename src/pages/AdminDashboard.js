@@ -179,6 +179,49 @@ export default function AdminDashboard() {
   const [availability, setAvailability] = useState([])
   const [availForm, setAvailForm] = useState({ doctor_id:'', branch_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', days_of_week:[], start_date:'', end_type:'indefinite', repeat_until:'' })
   const [popupAppt, setPopupAppt] = useState(null)
+  const [comprobanteAppt, setComprobanteAppt] = useState(null)
+  const [comprobanteHoraIngreso, setComprobanteHoraIngreso] = useState('')
+  const [comprobanteHoraSalida, setComprobanteHoraSalida] = useState('')
+
+  useEffect(() => {
+    if (!comprobanteAppt) return
+    setTimeout(() => {
+      const canvas = document.getElementById('firma-canvas')
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      ctx.strokeStyle = '#1a3a5c'
+      ctx.lineWidth = 2
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      let drawing = false
+      let lastX = 0, lastY = 0
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect()
+        const scaleX = canvas.width / rect.width
+        const scaleY = canvas.height / rect.height
+        if (e.touches) return [(e.touches[0].clientX - rect.left)*scaleX, (e.touches[0].clientY - rect.top)*scaleY]
+        return [(e.clientX - rect.left)*scaleX, (e.clientY - rect.top)*scaleY]
+      }
+      canvas.addEventListener('mousedown', e => { drawing = true; ;[lastX, lastY] = getPos(e) })
+      canvas.addEventListener('mousemove', e => {
+        if (!drawing) return
+        const [x, y] = getPos(e)
+        ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke()
+        lastX = x; lastY = y
+      })
+      canvas.addEventListener('mouseup', () => drawing = false)
+      canvas.addEventListener('mouseleave', () => drawing = false)
+      canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; ;[lastX, lastY] = getPos(e) }, { passive: false })
+      canvas.addEventListener('touchmove', e => {
+        e.preventDefault()
+        if (!drawing) return
+        const [x, y] = getPos(e)
+        ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke()
+        lastX = x; lastY = y
+      }, { passive: false })
+      canvas.addEventListener('touchend', () => drawing = false)
+    }, 100)
+  }, [comprobanteAppt])
   const [popupPos, setPopupPos] = useState({ x:0, y:0 })
   const [currentTime, setCurrentTime] = useState(new Date())
 
@@ -2086,7 +2129,7 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Acciones */}
-                    <div style={{ padding:'10px 14px', display:'flex', gap:6 }}>
+                    <div style={{ padding:'10px 14px', display:'flex', gap:6, flexWrap:'wrap' }}>
                       <button onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); openPatient(p) } }}
                         style={{ flex:1, padding:'6px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:500 }}>
                         Ver expediente
@@ -2100,12 +2143,130 @@ export default function AdminDashboard() {
                         Cancelar
                       </button>
                     </div>
+                    <div style={{ padding:'0 14px 10px' }}>
+                      <button onClick={() => { setComprobanteAppt(popupAppt); setComprobanteHoraIngreso(''); setComprobanteHoraSalida(''); setPopupAppt(null) }}
+                        style={{ width:'100%', padding:'6px', background:'#fff', color:'#0F6E56', border:'1px solid #0F6E56', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:500 }}>
+                        Generar comprobante de asistencia
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
               </div>{/* fin columna principal */}
             </div>
           )}
+
+          {/* Modal comprobante */}
+          {comprobanteAppt && (() => {
+            const G = '#0F6E56'
+            const patient = patients.find(p => p.id === comprobanteAppt.patient_id)
+            const doctor = doctors.find(d => d.id === comprobanteAppt.doctor_id)
+            const patientName = `${comprobanteAppt.patient?.profile?.first_name||patient?.profile?.first_name||''} ${comprobanteAppt.patient?.profile?.last_name||patient?.profile?.last_name||''}`.trim()
+            const idNumber = patient?.id_number || ''
+            const dateFormatted = new Date(comprobanteAppt.appointment_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+            const doctorName = doctor ? `${doctor.prefix?doctor.prefix+' ':''}${doctor.first_name} ${doctor.last_name}` : ''
+            const doctorCode = doctor?.medical_code || ''
+
+            function generatePDF() {
+              const canvas = document.getElementById('firma-canvas')
+              const firmaDataUrl = canvas ? canvas.toDataURL('image/png') : ''
+              const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: 'Inter', sans-serif; color: #1a1a1a; background: #fff; }
+                .page { max-width: 680px; margin: 0 auto; padding: 48px 56px; min-height: 50vh; }
+                .header { text-align: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid #e0e0e0; }
+                .clinic { font-size: 20pt; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+                .subtitle { font-size: 10pt; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
+                .intro { font-size: 11pt; color: #555; line-height: 1.7; margin-bottom: 24px; }
+                .field { display: flex; gap: 8px; margin-bottom: 12px; font-size: 11pt; }
+                .label { color: #666; min-width: 220px; }
+                .value { font-weight: 500; color: #1a1a1a; }
+                .sig-section { margin-top: 32px; text-align: center; }
+                .sig-label { font-size: 10pt; color: #888; margin-bottom: 10px; }
+                .sig-img { max-width: 300px; height: 90px; border: 1px solid #e0e0e0; border-radius: 8px; display: block; margin: 0 auto; }
+                @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+              </style></head><body>
+              <div class="page">
+                <div class="header">
+                  <div class="clinic">${clinicName||'Glow Clinic'}</div>
+                  <div class="subtitle">Comprobante de asistencia a cita médica</div>
+                </div>
+                <p class="intro">El presente comprobante se extiende para confirmar la asistencia a cita médica de:</p>
+                <div class="field"><span class="label">Nombre del paciente:</span><span class="value">${patientName}</span></div>
+                <div class="field"><span class="label">Número de identificación:</span><span class="value">${idNumber}</span></div>
+                <div class="field"><span class="label">Fecha de la cita:</span><span class="value">${dateFormatted}</span></div>
+                <div class="field"><span class="label">Hora de ingreso:</span><span class="value">${comprobanteHoraIngreso||'—'}</span></div>
+                <div class="field"><span class="label">Hora de salida:</span><span class="value">${comprobanteHoraSalida||'—'}</span></div>
+                <div class="field"><span class="label">Atención médica brindada por:</span><span class="value">${doctorName}${doctorCode?' - '+doctorCode:''}</span></div>
+                <div class="sig-section">
+                  <div class="sig-label">Firma del centro de atención</div>
+                  ${firmaDataUrl ? `<img src="${firmaDataUrl}" class="sig-img" />` : '<div style="width:300px;height:90px;border:1px solid #e0e0e0;border-radius:8px;margin:0 auto;"></div>'}
+                </div>
+              </div>
+              </body></html>`
+              const w = window.open('','_blank')
+              w.document.write(html); w.document.close(); w.focus()
+              setTimeout(() => { w.print(); w.close() }, 600)
+            }
+
+            return (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:300 }}
+                onClick={e => { if(e.target===e.currentTarget) setComprobanteAppt(null) }}>
+                <div style={{ background:'#fff', borderRadius:16, padding:28, width:520, maxWidth:'95vw', maxHeight:'90vh', overflowY:'auto' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+                    <div style={{ fontSize:15, fontWeight:600, color:'#1a3a5c' }}>Comprobante de asistencia</div>
+                    <button onClick={() => setComprobanteAppt(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+                  </div>
+
+                  <div style={{ fontSize:12, color:'#555', lineHeight:1.7, marginBottom:16 }}>
+                    El presente comprobante se extiende para confirmar la asistencia a cita médica de:
+                  </div>
+
+                  <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20, fontSize:13 }}>
+                    <div style={{ display:'flex', gap:8 }}><span style={{ color:'#888', minWidth:180 }}>Nombre del paciente:</span><span style={{ fontWeight:500 }}>{patientName}</span></div>
+                    <div style={{ display:'flex', gap:8 }}><span style={{ color:'#888', minWidth:180 }}>Número de identificación:</span><span style={{ fontWeight:500 }}>{idNumber||'—'}</span></div>
+                    <div style={{ display:'flex', gap:8 }}><span style={{ color:'#888', minWidth:180 }}>Fecha de la cita:</span><span style={{ fontWeight:500 }}>{dateFormatted}</span></div>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{ color:'#888', minWidth:180 }}>Hora de ingreso:</span>
+                      <input type="time" value={comprobanteHoraIngreso} onChange={e => setComprobanteHoraIngreso(e.target.value)}
+                        style={{ fontSize:13, padding:'4px 8px', border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{ color:'#888', minWidth:180 }}>Hora de salida:</span>
+                      <input type="time" value={comprobanteHoraSalida} onChange={e => setComprobanteHoraSalida(e.target.value)}
+                        style={{ fontSize:13, padding:'4px 8px', border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
+                    </div>
+                    <div style={{ display:'flex', gap:8 }}><span style={{ color:'#888', minWidth:180 }}>Atención brindada por:</span><span style={{ fontWeight:500 }}>{doctorName}{doctorCode?' - '+doctorCode:''}</span></div>
+                  </div>
+
+                  <div style={{ marginBottom:16 }}>
+                    <div style={{ fontSize:12, color:'#888', textAlign:'center', marginBottom:8 }}>Firma del centro de atención</div>
+                    <canvas id="firma-canvas" width="464" height="110"
+                      style={{ display:'block', width:'100%', height:110, border:'1px solid #e0e0e0', borderRadius:8, background:'#fafafa', cursor:'crosshair', touchAction:'none' }} />
+                    <div style={{ display:'flex', justifyContent:'flex-end', marginTop:6 }}>
+                      <button onClick={() => { const c=document.getElementById('firma-canvas'); c.getContext('2d').clearRect(0,0,c.width,c.height) }}
+                        style={{ fontSize:11, color:'#888', background:'none', border:'0.5px solid #e0e0e0', borderRadius:6, padding:'3px 8px', cursor:'pointer' }}>
+                        Limpiar firma
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                    <button onClick={() => setComprobanteAppt(null)}
+                      style={{ padding:'8px 16px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
+                      Cancelar
+                    </button>
+                    <button onClick={generatePDF}
+                      style={{ padding:'8px 20px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+                      Generar PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
 
           {view === 'chat' && (

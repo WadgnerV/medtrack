@@ -27,7 +27,7 @@ serve(async (req) => {
       .from('appointments')
       .select(`
         id, appointment_date, appointment_time, status,
-        patient:patient_id(id, profile:id(first_name, last_name, email)),
+        patient:patient_id(id, profile:profile_id(first_name, last_name, email)),
         doctor:doctor_id(first_name, last_name)
       `)
       .eq('appointment_date', tomorrowStr)
