@@ -2191,9 +2191,9 @@ export default function AdminDashboard() {
                 .sig-line { border-top: 1.5px solid #2e7d32; width: 220px; margin-bottom: 6px; }
                 .sig-label { font-size: 10pt; color: #2e7d32; font-weight: 600; text-align: right; }
                 .sig-sub { font-size: 9pt; color: #888; text-align: right; margin-top: 2px; }
-                .sig-img { width: 220px; height: 80px; border: 1px solid #e0e0e0; border-radius: 8px; object-fit: contain; margin-bottom: 6px; }
-                .footer { background: #f9f9f9; border-top: 1px solid #eee; padding: 10px 36px; display: flex; justify-content: space-between; }
-                .footer-text { font-size: 9pt; color: #aaa; }
+                 .sig-img { width: 220px; height: 80px; border: none; object-fit: contain; margin-bottom: 0; }
+                 .footer { display: none; }
+                 .footer-text { display: none; }
                 @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
               </style></head><body>
               <div class="page">
