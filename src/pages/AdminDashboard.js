@@ -2173,43 +2173,57 @@ export default function AdminDashboard() {
               const firmaDataUrl = canvas ? canvas.toDataURL('image/png') : ''
               const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
               <style>
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { font-family: 'Inter', sans-serif; color: #1a1a1a; background: #fff; }
-                .page { max-width: 680px; margin: 0 auto; padding: 48px 56px; min-height: 50vh; }
-                .header { text-align: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid #e0e0e0; }
-                .clinic { font-size: 20pt; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
-                .subtitle { font-size: 10pt; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
-                .intro { font-size: 11pt; color: #555; line-height: 1.7; margin-bottom: 24px; }
-                .field { display: flex; gap: 8px; margin-bottom: 12px; font-size: 11pt; }
-                .label { color: #666; min-width: 220px; }
-                .value { font-weight: 500; color: #1a1a1a; }
-                .sig-section { margin-top: 32px; text-align: center; }
-                .sig-label { font-size: 10pt; color: #888; margin-bottom: 10px; }
-                .sig-img { max-width: 300px; height: 90px; border: 1px solid #e0e0e0; border-radius: 8px; display: block; margin: 0 auto; }
+                .page { max-width: 680px; margin: 0 auto; position: relative; }
+                .header { background: linear-gradient(135deg,#1b5e20,#2e7d32,#43a047); padding: 28px 36px 22px; color: #fff; }
+                .clinic-name { font-size: 20pt; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; }
+                .clinic-sub { font-size: 10pt; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
+                .meta-bar { background: #f1f8e9; border-bottom: 2px solid #c8e6c9; padding: 10px 36px; font-size: 10pt; color: #2e7d32; font-weight: 500; }
+                .body { padding: 28px 36px 36px; position: relative; }
+                .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-30deg); font-size: 13pt; font-weight: 700; color: rgba(15,110,86,0.08); text-align: center; pointer-events: none; white-space: nowrap; line-height: 1.6; }
+                .intro { font-size: 11pt; color: #555; line-height: 1.7; margin-bottom: 20px; }
+                .field { display: flex; gap: 8px; margin-bottom: 11px; font-size: 11pt; padding-bottom: 11px; border-bottom: 1px solid #f0f0f0; }
+                .label { color: #6b8f7e; min-width: 220px; font-size: 10pt; }
+                .value { font-weight: 600; color: #1a1a1a; }
+                .sig-section { margin-top: 28px; display: flex; flex-direction: column; align-items: flex-end; }
+                .sig-line { border-top: 1.5px solid #2e7d32; width: 220px; margin-bottom: 6px; }
+                .sig-label { font-size: 10pt; color: #2e7d32; font-weight: 600; text-align: right; }
+                .sig-sub { font-size: 9pt; color: #888; text-align: right; margin-top: 2px; }
+                .sig-img { width: 220px; height: 80px; border: 1px solid #e0e0e0; border-radius: 8px; object-fit: contain; margin-bottom: 6px; }
+                .footer { background: #f9f9f9; border-top: 1px solid #eee; padding: 10px 36px; display: flex; justify-content: space-between; }
+                .footer-text { font-size: 9pt; color: #aaa; }
                 @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
               </style></head><body>
               <div class="page">
                 <div class="header">
-                  <div class="clinic">${clinicName||'Glow Clinic'}</div>
-                  <div class="subtitle">Comprobante de asistencia a cita médica</div>
+                  <div class="clinic-name">${clinicName||'Glow Clinic'}</div>
+                  <div class="clinic-sub">Comprobante de asistencia a cita médica</div>
                 </div>
-                <p class="intro">El presente comprobante se extiende para confirmar la asistencia a cita médica de:</p>
-                <div class="field"><span class="label">Nombre del paciente:</span><span class="value">${patientName}</span></div>
-                <div class="field"><span class="label">Número de identificación:</span><span class="value">${idNumber}</span></div>
-                <div class="field"><span class="label">Fecha de la cita:</span><span class="value">${dateFormatted}</span></div>
-                <div class="field"><span class="label">Hora de ingreso:</span><span class="value">${comprobanteHoraIngreso||'—'}</span></div>
-                <div class="field"><span class="label">Hora de salida:</span><span class="value">${comprobanteHoraSalida||'—'}</span></div>
-                <div class="field"><span class="label">Atención médica brindada por:</span><span class="value">${doctorName}${doctorCode?' - '+doctorCode:''}</span></div>
-                <div class="sig-section">
-                  <div class="sig-label">Firma del centro de atención</div>
-                  ${firmaDataUrl ? `<img src="${firmaDataUrl}" class="sig-img" />` : '<div style="width:300px;height:90px;border:1px solid #e0e0e0;border-radius:8px;margin:0 auto;"></div>'}
+                <div class="meta-bar">Documento oficial · Generado el ${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+                <div class="body">
+                  <div class="watermark">Este comprobante es verificado<br/>por el centro de atención</div>
+                  <p class="intro">El presente comprobante se extiende para confirmar la asistencia a cita médica de:</p>
+                  <div class="field"><span class="label">Nombre del paciente</span><span class="value">${patientName}</span></div>
+                  <div class="field"><span class="label">Número de identificación</span><span class="value">${idNumber||'—'}</span></div>
+                  <div class="field"><span class="label">Fecha de la cita</span><span class="value">${dateFormatted}</span></div>
+                  <div class="field"><span class="label">Hora de ingreso</span><span class="value">${comprobanteHoraIngreso||'—'}</span></div>
+                  <div class="field"><span class="label">Hora de salida</span><span class="value">${comprobanteHoraSalida||'—'}</span></div>
+                  <div class="field"><span class="label">Atención médica brindada por</span><span class="value">${doctorName}${doctorCode?' — '+doctorCode:''}</span></div>
+                  <div class="sig-section">
+                    ${firmaDataUrl ? `<img src="${firmaDataUrl}" class="sig-img" />` : '<div class="sig-img"></div>'}
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Firma del médico tratante</div>
+                    <div class="sig-sub">${doctorName}</div>
+                  </div>
+                </div>
+                <div class="footer">
+                  <span class="footer-text">${clinicName||'Glow Clinic'}</span>
+                  <span class="footer-text">MedTrack · ${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</span>
                 </div>
               </div>
               </body></html>`
-              const w = window.open('','_blank')
-              w.document.write(html); w.document.close(); w.focus()
-              setTimeout(() => { w.print(); w.close() }, 600)
             }
 
             return (
