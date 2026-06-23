@@ -2243,7 +2243,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <div style={{ marginBottom:16 }}>
-                    <div style={{ fontSize:12, color:'#888', textAlign:'center', marginBottom:8 }}>Firma del centro de atención</div>
+                    <div style={{ fontSize:12, color:'#888', textAlign:'center', marginBottom:8 }}>Firma del médico tratante</div>
                     <canvas id="firma-canvas" width="464" height="110"
                       style={{ display:'block', width:'100%', height:110, border:'1px solid #e0e0e0', borderRadius:8, background:'#fafafa', cursor:'crosshair', touchAction:'none' }} />
                     <div style={{ display:'flex', justifyContent:'flex-end', marginTop:6 }}>
