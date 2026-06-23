@@ -2166,6 +2166,7 @@ export default function AdminDashboard() {
             const dateFormatted = new Date(comprobanteAppt.appointment_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
             const doctorName = doctor ? `${doctor.prefix?doctor.prefix+' ':''}${doctor.first_name} ${doctor.last_name}` : ''
             const doctorCode = doctor?.medical_code || ''
+            const clinicName = profile?.clinic_name || 'Glow Clinic'
 
             function generatePDF() {
               const canvas = document.getElementById('firma-canvas')
