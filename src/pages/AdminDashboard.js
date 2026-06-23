@@ -2224,6 +2224,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
               </body></html>`
+              const w = window.open('','_blank')
+              w.document.write(html); w.document.close(); w.focus()
+              setTimeout(() => { w.print(); w.close() }, 600)
             }
 
             return (
