@@ -246,6 +246,159 @@ function NewPatientModal({ onClose, onSave }) {
   )
 }
 
+
+function StaffModal({ existingProfiles, staffSearch, setStaffSearch, staffList, services, clinicId, onClose, onSave }) {
+  const [tab, setTab] = useState('existing')
+  const [selectedProfile, setSelectedProfile] = useState(null)
+  const [hospitalRole, setHospitalRole] = useState('hospital_doctor')
+  const [selectedServices, setSelectedServices] = useState([])
+  const [saving, setSaving] = useState(false)
+  const [newForm, setNewForm] = useState({ firstName:'', lastName:'', email:'', password:'', role:'doctor', specialty:'' })
+
+  const assignedIds = staffList.map(s => s.profile_id)
+  const filtered = existingProfiles.filter(p => {
+    if (assignedIds.includes(p.id)) return false
+    const name = `${p.first_name||''} ${p.last_name||''}`.toLowerCase()
+    return name.includes(staffSearch.toLowerCase()) || (p.email||'').toLowerCase().includes(staffSearch.toLowerCase())
+  })
+
+  const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+  const lbl = { fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:5, display:'block' }
+
+  function toggleService(id) {
+    setSelectedServices(p => p.includes(id) ? p.filter(s => s !== id) : [...p, id])
+  }
+
+  async function saveExisting() {
+    if (!selectedProfile) return
+    setSaving(true)
+    await supabase.from('hospital_staff_assignments').insert({
+      clinic_id: clinicId,
+      profile_id: selectedProfile.id,
+      hospital_role: hospitalRole,
+      service_ids: selectedServices,
+      is_active: true,
+    })
+    await onSave()
+    setSaving(false)
+  }
+
+  async function saveNew() {
+    if (!newForm.firstName || !newForm.lastName || !newForm.email || !newForm.password) return
+    setSaving(true)
+    const { data, error } = await supabase.auth.signUp({
+      email: newForm.email, password: newForm.password,
+      options: { data: { first_name: newForm.firstName, last_name: newForm.lastName, role: newForm.role, specialty: newForm.specialty } }
+    })
+    if (error) { alert('Error: ' + error.message); setSaving(false); return }
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 600))
+      const { data: pd } = await supabase.from('profiles').select('id').eq('id', data.user?.id).single()
+      if (pd?.id) break
+    }
+    await supabase.from('profiles').update({ clinic_id: clinicId }).eq('id', data.user?.id)
+    await supabase.from('hospital_staff_assignments').insert({
+      clinic_id: clinicId, profile_id: data.user?.id,
+      hospital_role: hospitalRole, service_ids: selectedServices, is_active: true,
+    })
+    await onSave()
+    setSaving(false)
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }}
+      onClick={e => { if(e.target===e.currentTarget) onClose() }}>
+      <div style={{ background:'#fff', borderRadius:16, padding:24, width:480, maxWidth:'95vw', maxHeight:'90vh', overflowY:'auto' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:'#1a3a5c' }}>Agregar personal</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, color:'#aaa' }}>×</button>
+        </div>
+
+        <div style={{ display:'flex', gap:6, marginBottom:16, background:'#f4f7f6', borderRadius:8, padding:4 }}>
+          {[{key:'existing',label:'Perfil existente'},{key:'new',label:'Nuevo perfil'}].map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              style={{ flex:1, padding:'6px 12px', borderRadius:6, border:'none', cursor:'pointer', fontSize:13,
+                background: tab===t.key ? '#fff' : 'transparent', color: tab===t.key ? '#1a3a5c' : '#888',
+                fontWeight: tab===t.key ? 600 : 400, fontFamily:'inherit' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'existing' && (
+          <div>
+            <div style={{ marginBottom:12 }}>
+              <input style={inp} value={staffSearch} onChange={e => setStaffSearch(e.target.value)} placeholder="Buscar por nombre o correo..." />
+            </div>
+            <div style={{ maxHeight:180, overflowY:'auto', border:'1px solid #e0e0e0', borderRadius:8, marginBottom:14 }}>
+              {filtered.length === 0 ? (
+                <div style={{ padding:20, textAlign:'center', fontSize:13, color:'#bbb' }}>Sin perfiles disponibles</div>
+              ) : filtered.map(p => (
+                <div key={p.id} onClick={() => setSelectedProfile(p)}
+                  style={{ padding:'10px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:10,
+                    background: selectedProfile?.id === p.id ? '#E6F1FB' : '#fff',
+                    borderBottom:'0.5px solid #f0f0f0' }}>
+                  <div style={{ width:32, height:32, borderRadius:'50%', background:'#E6F1FB', color:'#185FA5', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0 }}>
+                    {(p.first_name||'?')[0]}{(p.last_name||'?')[0]}
+                  </div>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:500, color:'#1a3a5c' }}>{p.first_name} {p.last_name}</div>
+                    <div style={{ fontSize:11, color:'#888' }}>{p.email}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab === 'new' && (
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
+            <div><label style={lbl}>Nombre</label><input style={inp} value={newForm.firstName} onChange={e => setNewForm(p=>({...p,firstName:e.target.value}))} placeholder="Nombre..." /></div>
+            <div><label style={lbl}>Apellidos</label><input style={inp} value={newForm.lastName} onChange={e => setNewForm(p=>({...p,lastName:e.target.value}))} placeholder="Apellidos..." /></div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Correo</label><input type="email" style={inp} value={newForm.email} onChange={e => setNewForm(p=>({...p,email:e.target.value}))} placeholder="correo@ejemplo.com" /></div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Contraseña temporal</label><input type="password" style={inp} value={newForm.password} onChange={e => setNewForm(p=>({...p,password:e.target.value}))} placeholder="Mínimo 6 caracteres" /></div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Especialidad</label><input style={inp} value={newForm.specialty} onChange={e => setNewForm(p=>({...p,specialty:e.target.value}))} placeholder="Ej: Medicina interna" /></div>
+          </div>
+        )}
+
+        <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:16 }}>
+          <div>
+            <label style={lbl}>Rol en hospitalización</label>
+            <select style={inp} value={hospitalRole} onChange={e => setHospitalRole(e.target.value)}>
+              <option value="hospital_doctor">Médico</option>
+              <option value="hospital_nurse">Enfermería</option>
+              <option value="hospitalization_admin">Admin hospitalización</option>
+            </select>
+          </div>
+          <div>
+            <label style={lbl}>Servicios asignados</label>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+              {services.map(s => (
+                <div key={s.id} onClick={() => toggleService(s.id)}
+                  style={{ padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:selectedServices.includes(s.id)?600:400,
+                    border: selectedServices.includes(s.id) ? '2px solid #185FA5' : '1px solid #e0e0e0',
+                    background: selectedServices.includes(s.id) ? '#E6F1FB' : '#fff',
+                    color: selectedServices.includes(s.id) ? '#185FA5' : '#666' }}>
+                  {s.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+          <button onClick={onClose} style={{ padding:'8px 16px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>Cancelar</button>
+          <button onClick={tab==='existing'?saveExisting:saveNew} disabled={saving||(tab==='existing'&&!selectedProfile)||(tab==='new'&&(!newForm.firstName||!newForm.email||!newForm.password))}
+            style={{ padding:'8px 22px', background:'#185FA5', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600,
+              opacity:(saving||(tab==='existing'&&!selectedProfile)||(tab==='new'&&(!newForm.firstName||!newForm.email||!newForm.password)))?0.5:1 }}>
+            {saving?'Guardando...':'Agregar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function HospitalizacionDashboard() {
   const { profile, setActiveContext } = useAuth()
   const navigate = useNavigate()
@@ -261,6 +414,8 @@ export default function HospitalizacionDashboard() {
   const [modalData, setModalData] = useState({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [patientSearch, setPatientSearch] = useState('')
+  const [staffSearch, setStaffSearch] = useState('')
+  const [existingProfiles, setExistingProfiles] = useState([])
 
   const isAdmin = ['clinic_admin','superadmin'].includes(profile?.role) ||
     staffAssignment?.hospital_role === 'hospitalization_admin'
@@ -283,6 +438,14 @@ export default function HospitalizacionDashboard() {
     if (error) { alert('Error al crear paciente: ' + error.message); return }
     await loadPatients()
     setModal(null)
+  }
+
+  async function loadExistingProfiles() {
+    const { data } = await supabase.from('profiles')
+      .select('id, first_name, last_name, email, role, prefix, specialty')
+      .eq('clinic_id', profile.clinic_id)
+      .neq('role', 'patient')
+    setExistingProfiles(data || [])
   }
 
   async function loadStaffAssignment() {
@@ -611,7 +774,7 @@ export default function HospitalizacionDashboard() {
           <div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
               <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:DARK }}>Personal de hospitalización</h2>
-              <button onClick={() => setModal('new-staff')}
+              <button onClick={() => { loadExistingProfiles(); setModal('new-staff') }}
                 style={{ padding:'8px 16px', background:BLUE, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:6 }}>
                 <i className="ti ti-plus" style={{ fontSize:14 }} aria-hidden="true"></i> Agregar personal
               </button>
@@ -726,6 +889,16 @@ export default function HospitalizacionDashboard() {
         await loadPatients()
         setModal(null)
       }} />}
+      {modal==='new-staff' && <StaffModal
+        existingProfiles={existingProfiles}
+        staffSearch={staffSearch}
+        setStaffSearch={setStaffSearch}
+        staffList={staffList}
+        services={services}
+        clinicId={profile.clinic_id}
+        onClose={() => { setModal(null); setStaffSearch('') }}
+        onSave={async () => { await loadStaff(); setModal(null); setStaffSearch('') }}
+      />}
       {modal==='admit' && <AdmitModal bed={modalData.bed} patients={patients} doctors={doctors} onClose={() => setModal(null)} onSave={admitPatient} />}
       {modal==='service' && <ServiceModal service={modalData.service} onClose={() => setModal(null)} onSave={saveService} />}
       {modal==='bed' && <BedModal bed={modalData.bed} service={modalData.service} onClose={() => setModal(null)} onSave={saveBed} />}
