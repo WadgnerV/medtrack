@@ -688,13 +688,19 @@ export default function AdminDashboard() {
         }
       })
     }
-    if (role === 'doctor') { await loadDoctors(); setModal(null) }
+    if (role === 'doctor' || role === 'receptionist') {
+      await supabase.from('profiles').update({ clinic_id: profile?.clinic_id || null }).eq('id', userId)
+      await loadDoctors(); setModal(null)
+    }
     else if (role === 'patient') {
       await loadPatients()
       setSelPatient(null)
       setViewPersist('pacientes')
       if (newPatientDbId) { setNewPatientId(newPatientDbId); setModuleAssignments({}); setModal('assign-modules-new') } else { setModal(null) }
-    } else { setModal(null) }
+    } else {
+      if (userId) await supabase.from('profiles').update({ clinic_id: profile?.clinic_id || null }).eq('id', userId)
+      await loadDoctors(); setModal(null)
+    }
     setSaving(false); setSelPatient(null)
   }
 
