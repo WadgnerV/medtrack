@@ -2207,7 +2207,7 @@ export default function AdminDashboard() {
                   <div class="clinic-name">${clinicName||'Glow Clinic'}</div>
                   <div class="clinic-sub">Comprobante de asistencia a cita médica</div>
                 </div>
-                <div class="meta-bar">Documento oficial · Generado el ${new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+                 <div class="meta-bar">Documento oficial</div>
                 <div class="body">
                   <div class="watermark">Este comprobante es verificado<br/>por el centro de atención</div>
                   <p class="intro">El presente comprobante se extiende para confirmar la asistencia a cita médica de:</p>
