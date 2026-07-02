@@ -222,7 +222,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       .sig-page { padding: 20px 40px 40px; }
       .sig-row { display: flex; justify-content: space-around; margin-top: 60px; gap: 40px; }
       .sig-box { flex: 1; text-align: center; }
-      .sig-box img { max-width: 200px; height: 80px; display: block; margin: 0 auto 6px; object-fit: contain; }
+      .sig-box img { max-width: 260px; height: 110px; display: block; margin: 0 auto 6px; object-fit: contain; }
       .sig-line { border-top: 1px solid #1a3a5c; padding-top: 8px; margin-top: 4px; }
       .sig-box p { font-size: 11pt; margin: 2px 0; }
         .page-footer { position: fixed; bottom: 10px; right: 20px; display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; z-index: 100; background: white; padding: 4px 8px; border-top: 0.5px solid #ddd; }
