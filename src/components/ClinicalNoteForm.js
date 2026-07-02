@@ -555,7 +555,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                             {t.creator?.prefix ? t.creator.prefix + ' ' : ''}{t.creator?.first_name} {t.creator?.last_name}
                           </div>
                         </div>
-                        {t.created_by === profile?.id && (
+                        {(t.created_by === profile?.id || ['admin','clinic_admin','branch_admin'].includes(profile?.role)) && (
                           <button onClick={() => deleteTemplate(t.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:13, flexShrink:0 }}>×</button>
                         )}
                       </div>
