@@ -187,7 +187,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
   }
 
   function handlePrint(c) {
-    const fechaContrato = new Date(c.signed_at + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' })
+    const fechaContrato = new Date(c.signed_at).toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' })
     const prefix = c.doctor?.prefix ? c.doctor.prefix + ' ' : ''
     const dName = c.doctor ? `${prefix}${c.doctor.first_name} ${c.doctor.last_name}` : doctorName
     const dCode = c.doctor?.medical_code || doctorCode
@@ -225,14 +225,13 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       .sig-box img { max-width: 200px; height: 80px; display: block; margin: 0 auto 6px; object-fit: contain; }
       .sig-line { border-top: 1px solid #1a3a5c; padding-top: 8px; margin-top: 4px; }
       .sig-box p { font-size: 11pt; margin: 2px 0; }
-      .page-footer { position: fixed; bottom: 8px; right: 16px; display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; z-index: 100; background: white; padding: 4px 8px; border-top: 0.5px solid #ddd; }
+      .page-footer { display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; justify-content: flex-end; margin-top: 16px; padding-top: 6px; border-top: 0.5px solid #ddd; }
       .mini-sig { text-align: center; }
       .mini-sig img { height: 28px; display: block; margin: 0 auto 1px; background: transparent; }
       .mini-sig-line { border-top: 0.5px solid #555; padding-top: 1px; font-size: 6pt; color: #555; }
       @media print {
         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .page-footer { position: fixed; bottom: 8px; right: 16px; }
-        .page { padding-bottom: 60px; }
+        .page-footer { display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; justify-content: flex-end; margin-top: 16px; padding-top: 6px; border-top: 0.5px solid #ddd; }
       }
     </style></head><body>
     <div class="page">
@@ -262,9 +261,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       </div>
     </div>
     <div class="sig-page">
-      <p style="font-size:12pt;margin-bottom:24px;"><strong>DÉCIMA-PRIMERA: FIRMA DE LAS PARTES</strong></p>
-      <p>El Paciente declara que ha leído, entendido y aceptado todas las condiciones contenidas en este contrato y lo firma en señal de su conformidad.</p>
-      <p style="margin-top:12px;">Fecha: <strong>${fechaContrato}</strong></p>
+      <p style="margin-bottom:24px;font-size:10pt;color:#555;">Fecha de firma: <strong>${fechaContrato}</strong></p>
       <div class="sig-row">
         <div class="sig-box">
           ${c.patient_signature ? `<img src="${c.patient_signature}" style="max-width:200px;height:80px;display:block;margin:0 auto;object-fit:contain;">` : '<div style="height:80px;"></div>'}
