@@ -303,6 +303,8 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
     td: { padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', color:'#333', verticalAlign:'middle' },
   }
 
+  if (profile?.clinic_id !== 'c49f2d94-a599-423a-b0d4-5f57f77cd95f') return null
+
   return (
     <div style={{ marginTop:28, paddingTop:20, borderTop:'0.5px solid #e2ede9' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
