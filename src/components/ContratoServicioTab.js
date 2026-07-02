@@ -148,7 +148,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
     setLoading(true)
     const { data } = await supabase.from('service_contracts')
       .select('*, doctor:signed_by(first_name, last_name, prefix, medical_code)')
-      .eq('patient_id', patient.id)
+      .eq('patient_id', patient.profile?.id || patient.id)
       .order('created_at', { ascending: false })
     setContratos(data || [])
     setLoading(false)
@@ -164,7 +164,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
     if (!patientSig || !doctorSig) { alert('Se requieren ambas firmas.'); return }
     setSaving(true)
     await supabase.from('service_contracts').insert({
-      patient_id: patient.id,
+      patient_id: patient.profile?.id || patient.id,
       clinic_id: profile.clinic_id,
       contract_type: 'perdida_peso',
       patient_name: pName,
