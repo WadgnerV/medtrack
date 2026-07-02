@@ -32,7 +32,7 @@ function SigPad({ label, value, onChange }) {
     <div style={{ marginBottom:16 }}>
       <div style={{ fontSize:13, fontWeight:500, marginBottom:6, color:'#333' }}>{label}</div>
       <canvas ref={ref}
-        style={{ width:'100%', height:120, border:'1px solid #ddd', borderRadius:8, cursor:'crosshair', touchAction:'none', background:'#fafafa' }}
+        style={{ width:'100%', height:120, border:'0.5px solid #e0e0e0', borderRadius:8, cursor:'crosshair', touchAction:'none', background:'transparent' }}
         onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
         onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
       <button type="button" onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
@@ -195,11 +195,11 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
     const miniSigs = `
       <div style="position:fixed;bottom:12px;right:16px;display:flex;gap:24px;align-items:flex-end;font-size:9pt;">
         <div style="text-align:center;">
-          ${c.patient_signature ? `<img src="${c.patient_signature}" style="height:36px;display:block;margin:0 auto 2px;">` : '<div style="height:36px;"></div>'}
+          ${c.patient_signature ? `<img src="${c.patient_signature}" style="height:36px;display:block;margin:0 auto 2px;background:transparent;">` : '<div style="height:36px;"></div>'}
           <div style="border-top:0.5px solid #555;padding-top:2px;font-size:8pt;">Paciente</div>
         </div>
         <div style="text-align:center;">
-          ${c.doctor_signature ? `<img src="${c.doctor_signature}" style="height:36px;display:block;margin:0 auto 2px;">` : '<div style="height:36px;"></div>'}
+          ${c.doctor_signature ? `<img src="${c.doctor_signature}" style="height:36px;display:block;margin:0 auto 2px;background:transparent;">` : '<div style="height:36px;"></div>'}
           <div style="border-top:0.5px solid #555;padding-top:2px;font-size:8pt;">Médico</div>
         </div>
       </div>`
@@ -266,7 +266,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       <p style="margin-top:12px;">Fecha: <strong>${fechaContrato}</strong></p>
       <div class="sig-row">
         <div class="sig-box">
-          ${c.patient_signature ? `<img src="${c.patient_signature}">` : '<div style="height:80px;border:1px solid #eee;border-radius:4px;"></div>'}
+          ${c.patient_signature ? `<img src="${c.patient_signature}" style="max-width:200px;height:80px;display:block;margin:0 auto;object-fit:contain;">` : '<div style="height:80px;"></div>'}
           <div class="sig-line">
             <p><strong>${c.patient_name || pName}</strong></p>
             ${c.patient_id_number ? `<p>Cédula: ${c.patient_id_number}</p>` : ''}
@@ -274,7 +274,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
           </div>
         </div>
         <div class="sig-box">
-          ${c.doctor_signature ? `<img src="${c.doctor_signature}">` : '<div style="height:80px;border:1px solid #eee;border-radius:4px;"></div>'}
+          ${c.doctor_signature ? `<img src="${c.doctor_signature}" style="max-width:200px;height:80px;display:block;margin:0 auto;object-fit:contain;">` : '<div style="height:80px;"></div>'}
           <div class="sig-line">
             <p><strong>${dName}</strong></p>
             ${dCode ? `<p>Cód. MED: ${dCode}</p>` : ''}
