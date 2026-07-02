@@ -94,12 +94,12 @@ function pName(patient) {
 
 function calcularEdad(dob) {
   if (!dob) return '--'
-  return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+  return Math.floor((Date.now() - new Date(dob + 'T12:00:00').getTime()) / (1000 * 60 * 60 * 24 * 365.25))
 }
 
 function formatFecha(f) {
   if (!f) return '--'
-  return new Date(f).toLocaleDateString('es-CR', { day: '2-digit', month: 'long', year: 'numeric' })
+  return new Date(f + 'T12:00:00').toLocaleDateString('es-CR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 function initiales(name) {
