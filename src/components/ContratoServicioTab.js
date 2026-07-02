@@ -219,19 +219,20 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       .doc-title { font-size: 14pt; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 16px; border-top: 1px solid #1a3a5c; border-bottom: 1px solid #1a3a5c; padding: 8px 0; color: #1a3a5c; }
       p { margin-bottom: 10px; }
       .section-title { font-weight: 700; text-transform: uppercase; margin-top: 16px; margin-bottom: 6px; color: #1a3a5c; border-bottom: 1px solid #e0e0e0; padding-bottom: 3px; }
-      .sig-page { page-break-before: always; padding: 40px; }
+      .sig-page { padding: 20px 40px 40px; }
       .sig-row { display: flex; justify-content: space-around; margin-top: 60px; gap: 40px; }
       .sig-box { flex: 1; text-align: center; }
       .sig-box img { max-width: 200px; height: 80px; display: block; margin: 0 auto 6px; object-fit: contain; }
       .sig-line { border-top: 1px solid #1a3a5c; padding-top: 8px; margin-top: 4px; }
       .sig-box p { font-size: 11pt; margin: 2px 0; }
-      .page-footer { position: fixed; bottom: 12px; right: 16px; display: flex; gap: 24px; align-items: flex-end; font-size: 8pt; }
+      .page-footer { position: fixed; bottom: 8px; right: 16px; display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; z-index: 100; background: white; padding: 4px 8px; border-top: 0.5px solid #ddd; }
       .mini-sig { text-align: center; }
-      .mini-sig img { height: 32px; display: block; margin: 0 auto 2px; }
-      .mini-sig-line { border-top: 0.5px solid #555; padding-top: 1px; font-size: 7pt; color: #555; }
+      .mini-sig img { height: 28px; display: block; margin: 0 auto 1px; background: transparent; }
+      .mini-sig-line { border-top: 0.5px solid #555; padding-top: 1px; font-size: 6pt; color: #555; }
       @media print {
         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .page-footer { position: fixed; bottom: 12px; right: 16px; }
+        .page-footer { position: fixed; bottom: 8px; right: 16px; }
+        .page { padding-bottom: 60px; }
       }
     </style></head><body>
     <div class="page">
