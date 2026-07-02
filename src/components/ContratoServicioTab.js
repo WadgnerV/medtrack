@@ -212,7 +212,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: 'Inter', sans-serif; font-size: 11pt; color: #1a1a1a; line-height: 1.7; }
-      .page { max-width: 760px; margin: 0 auto; padding: 28px 40px 70px; position: relative; }
+      .page { max-width: 760px; margin: 0 auto; padding: 28px 40px 90px; position: relative; }
       .header { text-align: center; border-bottom: 2px solid #1a3a5c; padding-bottom: 14px; margin-bottom: 20px; }
       .clinic-name { font-size: 16pt; font-weight: 700; color: #1a3a5c; }
       .clinic-sub { font-size: 10pt; color: #666; margin-top: 2px; }
