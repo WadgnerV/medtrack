@@ -225,13 +225,13 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
       .sig-box img { max-width: 200px; height: 80px; display: block; margin: 0 auto 6px; object-fit: contain; }
       .sig-line { border-top: 1px solid #1a3a5c; padding-top: 8px; margin-top: 4px; }
       .sig-box p { font-size: 11pt; margin: 2px 0; }
-      .page-footer { display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; justify-content: flex-end; margin-top: 16px; padding-top: 6px; border-top: 0.5px solid #ddd; }
+        .page-footer { position: fixed; bottom: 10px; right: 20px; display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; z-index: 100; background: white; padding: 4px 8px; border-top: 0.5px solid #ddd; }
       .mini-sig { text-align: center; }
       .mini-sig img { height: 28px; display: block; margin: 0 auto 1px; background: transparent; }
       .mini-sig-line { border-top: 0.5px solid #555; padding-top: 1px; font-size: 6pt; color: #555; }
       @media print {
         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .page-footer { display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; justify-content: flex-end; margin-top: 16px; padding-top: 6px; border-top: 0.5px solid #ddd; }
+        .page-footer { position: fixed; bottom: 10px; right: 20px; display: flex; gap: 20px; align-items: flex-end; font-size: 7pt; z-index: 100; background: white; padding: 4px 8px; border-top: 0.5px solid #ddd; }
       }
     </style></head><body>
     <div class="page">
