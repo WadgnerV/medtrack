@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import ContratoServicioTab from './ContratoServicioTab'
 
 function SigPad({ label, value, onChange }) {
   const ref = useRef()
@@ -37,6 +38,7 @@ function SigPad({ label, value, onChange }) {
         onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
       <button type="button" onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
       {value && <div style={{ fontSize:11, color:'#1D9E75', marginTop:2 }}>✓ Firma registrada</div>}
+      <ContratoServicioTab patient={patient} profile={profile} clinic={clinic} />
     </div>
   )
 }
