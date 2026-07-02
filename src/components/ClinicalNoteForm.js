@@ -189,6 +189,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const label = { fontSize:12, fontWeight:600, color:'#555', marginBottom:4, display:'block' }
 
   useEffect(() => { if (patientId) load() }, [patientId])
+  useEffect(() => { if (profile?.clinic_id && moduleType) loadTemplates() }, [profile?.clinic_id, moduleType])
 
   async function load() {
     const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }, { data: treatData }, { data: diagData }] = await Promise.all([
