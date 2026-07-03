@@ -793,16 +793,25 @@ export default function AdminDashboard() {
         prevAppt.appointment_time?.substring(0,5) !== form.time?.substring(0,5) ||
         prevAppt.doctor_id !== form.doctorId
       )
-      if (wasRescheduled && patient?.profile?.email) {
-        await supabase.functions.invoke('appointment-rescheduled', {
-          body: {
-            patient_email: patient.profile.email,
-            patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
-            doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
-            appointment_date: form.date,
-            appointment_time: form.time,
-          }
-        })
+      if (wasRescheduled) {
+        let reschedEmail = patient?.profile?.email
+        let reschedName = `${patient?.profile?.first_name||''} ${patient?.profile?.last_name||''}`.trim()
+        if (!reschedEmail) {
+          const { data: pr } = await supabase.from('patients').select('profile:profile_id(first_name, last_name, email)').eq('id', form.patientId).single()
+          reschedEmail = pr?.profile?.email
+          reschedName = `${pr?.profile?.first_name||''} ${pr?.profile?.last_name||''}`.trim()
+        }
+        if (reschedEmail) {
+          await supabase.functions.invoke('appointment-rescheduled', {
+            body: {
+              patient_email: reschedEmail,
+              patient_name: reschedName,
+              doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
+              appointment_date: form.date,
+              appointment_time: form.time,
+            }
+          })
+        }
       }
       // Si cambió a no_show, disparar correo
       if (form.status === 'no_show' && prevStatus !== 'no_show') {
