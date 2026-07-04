@@ -43,6 +43,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
   const [loading, setLoading] = useState(false)
   const [citasFilter, setCitasFilter] = useState({ statuses:[], doctorIds:[] })
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
   const [citasDateRange, setCitasDateRange] = useState({ from:'', to:'' })
 
   useEffect(() => { loadAll() }, [])
@@ -290,34 +291,45 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
               <div style={{ fontSize:14, fontWeight:600, color:BLUE, marginBottom:16 }}>Citas por doctor</div>
 
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
-                <div style={{ gridColumn:'1/-1' }}>
+                <div style={{ position:'relative' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Estado de citas</label>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {Object.entries(STATUS_LABELS).map(([k,v]) => {
-                      const isAll = k === 'all'
-                      const allSelected = citasFilter.statuses.length === 0 || citasFilter.statuses.includes('all')
-                      const sel = isAll ? allSelected : (!allSelected && citasFilter.statuses.includes(k))
-                      return (
-                        <div key={k} onClick={() => {
-                          if (isAll) { setCitasFilter(p=>({...p, statuses:[]})); return }
-                          setCitasFilter(p => {
-                            const prev = p.statuses.filter(x => x !== 'all')
-                            const next = prev.includes(k) ? prev.filter(x=>x!==k) : [...prev, k]
-                            return { ...p, statuses: next }
-                          })
-                        }}
-                          style={{ padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:sel?600:400,
-                            border: sel?`2px solid ${BLUE}`:'1px solid #e0e0e0',
-                            background: sel?'#E6F1FB':'#fff', color: sel?BLUE:'#666' }}>
-                          {v}
-                        </div>
-                      )
-                    })}
+                  <div onClick={() => setStatusDropdownOpen(p=>!p)}
+                    style={{ ...inp, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', userSelect:'none' }}>
+                    <span style={{ fontSize:13, color:'#555' }}>
+                      {citasFilter.statuses.length === 0 ? 'Todas' : citasFilter.statuses.length === 1 ? STATUS_LABELS[citasFilter.statuses[0]] : `${citasFilter.statuses.length} estados`}
+                    </span>
+                    <span style={{ fontSize:10, color:'#aaa' }}>{statusDropdownOpen ? '▲' : '▼'}</span>
                   </div>
+                  {statusDropdownOpen && (
+                    <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'0.5px solid #e2ede9', borderRadius:8, zIndex:50, boxShadow:'0 4px 12px rgba(0,0,0,0.08)', marginTop:4 }}>
+                      {Object.entries(STATUS_LABELS).map(([k,v]) => {
+                        const isAll = k === 'all'
+                        const allSel = citasFilter.statuses.length === 0
+                        const sel = isAll ? allSel : citasFilter.statuses.includes(k)
+                        return (
+                          <div key={k} onClick={() => {
+                            if (isAll) { setCitasFilter(p=>({...p, statuses:[]})); setStatusDropdownOpen(false); return }
+                            setCitasFilter(p => {
+                              const next = p.statuses.includes(k) ? p.statuses.filter(x=>x!==k) : [...p.statuses, k]
+                              return { ...p, statuses: next }
+                            })
+                          }}
+                            style={{ padding:'9px 12px', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', gap:8,
+                              background: sel?'#E6F1FB':'#fff', color: sel?BLUE:'#555',
+                              borderBottom:'0.5px solid #f0f5f3', fontWeight: sel?600:400 }}>
+                            <div style={{ width:14, height:14, borderRadius:3, border:`1.5px solid ${sel?BLUE:'#ccc'}`, background:sel?BLUE:'#fff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                              {sel && <div style={{ width:8, height:8, background:'#fff', borderRadius:1 }} />}
+                            </div>
+                            {v}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Desde (mes/año)</label>
-                  <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value ? e.target.value+'-01' : ''}))} />
+                  <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from ? citasDateRange.from.substring(0,7) : ''} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value ? e.target.value+'-01' : ''}))} />
                 </div>
                 <div>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Hasta (mes/año)</label>
