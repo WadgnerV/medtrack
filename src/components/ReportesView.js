@@ -291,7 +291,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
               <div style={{ fontSize:14, fontWeight:600, color:BLUE, marginBottom:16 }}>Citas por doctor</div>
 
               <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:16, alignItems:'flex-start' }}>
-                <div style={{ position:'relative', minWidth:180, flex:'1 1 180px' }}>
+                <div style={{ position:'relative', width:200 }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Estado de citas</label>
                   <div onClick={() => setStatusDropdownOpen(p=>!p)}
                     style={{ ...inp, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', userSelect:'none' }}>
@@ -328,7 +328,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                   )}
                 </div>
 
-                <div style={{ position:'relative', minWidth:180, flex:'1 1 180px' }}>
+                <div style={{ position:'relative', width:220 }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Profesionales</label>
                   <div onClick={() => setDropdownOpen(p=>!p)}
                     style={{ ...inp, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', userSelect:'none' }}>
