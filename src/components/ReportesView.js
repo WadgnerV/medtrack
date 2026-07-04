@@ -290,8 +290,8 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
             <div style={{ background:'#fff', border:'0.5px solid #e2ede9', borderRadius:12, padding:'18px 20px' }}>
               <div style={{ fontSize:14, fontWeight:600, color:BLUE, marginBottom:16 }}>Citas por doctor</div>
 
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16, alignItems:'start' }}>
-                <div style={{ position:'relative' }}>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:16, alignItems:'flex-start' }}>
+                <div style={{ position:'relative', minWidth:180, flex:'1 1 180px' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Estado de citas</label>
                   <div onClick={() => setStatusDropdownOpen(p=>!p)}
                     style={{ ...inp, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', userSelect:'none' }}>
@@ -328,7 +328,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                   )}
                 </div>
 
-                <div style={{ position:'relative' }}>
+                <div style={{ position:'relative', minWidth:180, flex:'1 1 180px' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Profesionales</label>
                   <div onClick={() => setDropdownOpen(p=>!p)}
                     style={{ ...inp, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', userSelect:'none' }}>
@@ -366,11 +366,11 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                     </div>
                   )}
                 </div>
-                <div>
+                <div style={{ minWidth:160, flex:'0 0 auto' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Desde (mes/año)</label>
                   <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from ? citasDateRange.from.substring(0,7) : ''} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value ? e.target.value+'-01' : ''}))} />
                 </div>
-                <div>
+                <div style={{ minWidth:160, flex:'0 0 auto' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Hasta (mes/año)</label>
                   <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.to ? citasDateRange.to.substring(0,7) : ''} onChange={e => {
                     if (e.target.value) {
