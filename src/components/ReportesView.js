@@ -42,6 +42,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
   const [allModules, setAllModules] = useState([])
   const [loading, setLoading] = useState(false)
   const [citasFilter, setCitasFilter] = useState({ statuses:[], doctorIds:[] })
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [citasDateRange, setCitasDateRange] = useState({ from:'', to:'' })
 
   useEffect(() => { loadAll() }, [])
@@ -328,32 +329,43 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                     } else { setCitasDateRange(p=>({...p, to:''})) }
                   }} />
                 </div>
-                <div>
+                <div style={{ position:'relative' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Profesionales</label>
-                  <div style={{ border:'0.5px solid #e2ede9', borderRadius:8, overflow:'hidden', maxHeight:160, overflowY:'auto' }}>
-                    {[{ id:'all', first_name:'Todos', last_name:'' }, ...[...doctors].sort((a,b) => a.first_name.localeCompare(b.first_name))].map(d => {
-                      const isAll = d.id === 'all'
-                      const allSel = citasFilter.doctorIds.length === 0
-                      const sel = isAll ? allSel : citasFilter.doctorIds.includes(d.id)
-                      return (
-                        <div key={d.id} onClick={() => {
-                          if (isAll) { setCitasFilter(p=>({...p, doctorIds:[]})); return }
-                          setCitasFilter(p => {
-                            const next = p.doctorIds.includes(d.id) ? p.doctorIds.filter(x=>x!==d.id) : [...p.doctorIds, d.id]
-                            return { ...p, doctorIds: next }
-                          })
-                        }}
-                          style={{ padding:'8px 12px', cursor:'pointer', fontSize:12, display:'flex', alignItems:'center', gap:8,
-                            background: sel?'#E6F1FB':'#fff', color: sel?BLUE:'#555',
-                            borderBottom:'0.5px solid #f0f0f0', fontWeight: sel?600:400 }}>
-                          <div style={{ width:14, height:14, borderRadius:3, border:`1.5px solid ${sel?BLUE:'#ccc'}`, background:sel?BLUE:'#fff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            {sel && <div style={{ width:8, height:8, background:'#fff', borderRadius:1 }} />}
-                          </div>
-                          {isAll ? 'Todos' : `${d.prefix?d.prefix+' ':''}${d.first_name} ${d.last_name}`}
-                        </div>
-                      )
-                    })}
+                  <div onClick={() => setDropdownOpen(p=>!p)}
+                    style={{ ...inp, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', background:'#fff', userSelect:'none' }}>
+                    <span style={{ fontSize:13, color:'#555' }}>
+                      {citasFilter.doctorIds.length === 0 ? 'Todos' : citasFilter.doctorIds.length === 1
+                        ? (() => { const d = doctors.find(x=>x.id===citasFilter.doctorIds[0]); return d ? `${d.prefix?d.prefix+' ':''}${d.first_name} ${d.last_name}` : '' })()
+                        : `${citasFilter.doctorIds.length} profesionales`}
+                    </span>
+                    <span style={{ fontSize:10, color:'#aaa' }}>{dropdownOpen ? '▲' : '▼'}</span>
                   </div>
+                  {dropdownOpen && (
+                    <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'0.5px solid #e2ede9', borderRadius:8, zIndex:50, boxShadow:'0 4px 12px rgba(0,0,0,0.08)', maxHeight:200, overflowY:'auto', marginTop:4 }}>
+                      {[{ id:'all', first_name:'Todos', last_name:'', prefix:'' }, ...[...doctors].sort((a,b) => a.first_name.localeCompare(b.first_name))].map(d => {
+                        const isAll = d.id === 'all'
+                        const allSel = citasFilter.doctorIds.length === 0
+                        const sel = isAll ? allSel : citasFilter.doctorIds.includes(d.id)
+                        return (
+                          <div key={d.id} onClick={() => {
+                            if (isAll) { setCitasFilter(p=>({...p, doctorIds:[]})); setDropdownOpen(false); return }
+                            setCitasFilter(p => {
+                              const next = p.doctorIds.includes(d.id) ? p.doctorIds.filter(x=>x!==d.id) : [...p.doctorIds, d.id]
+                              return { ...p, doctorIds: next }
+                            })
+                          }}
+                            style={{ padding:'9px 12px', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', gap:8,
+                              background: sel?'#E6F1FB':'#fff', color: sel?BLUE:'#555',
+                              borderBottom:'0.5px solid #f0f5f3', fontWeight: sel?600:400 }}>
+                            <div style={{ width:14, height:14, borderRadius:3, border:`1.5px solid ${sel?BLUE:'#ccc'}`, background:sel?BLUE:'#fff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                              {sel && <div style={{ width:8, height:8, background:'#fff', borderRadius:1 }} />}
+                            </div>
+                            {isAll ? 'Todos' : `${d.prefix?d.prefix+' ':''}${d.first_name} ${d.last_name}`}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
