@@ -41,7 +41,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
   const [allPatients, setAllPatients] = useState([])
   const [allModules, setAllModules] = useState([])
   const [loading, setLoading] = useState(false)
-  const [citasFilter, setCitasFilter] = useState({ status:'all', doctorIds:[] })
+  const [citasFilter, setCitasFilter] = useState({ statuses:[], doctorIds:[] })
   const [citasDateRange, setCitasDateRange] = useState({ from:'', to:'' })
 
   useEffect(() => { loadAll() }, [])
@@ -127,7 +127,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
   // ── REPORTE 1: CITAS POR DOCTOR ──────────────────────────────────────────
   function exportCitasDoctor() {
     let filtered = allAppts
-    if (citasFilter.status !== 'all') filtered = filtered.filter(a => a.status === citasFilter.status)
+    if (citasFilter.statuses.length > 0 && !citasFilter.statuses.includes('all')) filtered = filtered.filter(a => citasFilter.statuses.includes(a.status))
     if (citasFilter.doctorIds.length > 0) filtered = filtered.filter(a => citasFilter.doctorIds.includes(a.doctor_id))
     if (citasDateRange.from) filtered = filtered.filter(a => a.appointment_date >= citasDateRange.from)
     if (citasDateRange.to) filtered = filtered.filter(a => a.appointment_date <= citasDateRange.to)
@@ -289,29 +289,67 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
               <div style={{ fontSize:14, fontWeight:600, color:BLUE, marginBottom:16 }}>Citas por doctor</div>
 
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
-                <div>
+                <div style={{ gridColumn:'1/-1' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Estado de citas</label>
-                  <select style={{ ...inp, width:'100%' }} value={citasFilter.status} onChange={e => setCitasFilter(p=>({...p, status:e.target.value}))}>
-                    {Object.entries(STATUS_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
-                  </select>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                    {Object.entries(STATUS_LABELS).map(([k,v]) => {
+                      const isAll = k === 'all'
+                      const allSelected = citasFilter.statuses.length === 0 || citasFilter.statuses.includes('all')
+                      const sel = isAll ? allSelected : (!allSelected && citasFilter.statuses.includes(k))
+                      return (
+                        <div key={k} onClick={() => {
+                          if (isAll) { setCitasFilter(p=>({...p, statuses:[]})); return }
+                          setCitasFilter(p => {
+                            const prev = p.statuses.filter(x => x !== 'all')
+                            const next = prev.includes(k) ? prev.filter(x=>x!==k) : [...prev, k]
+                            return { ...p, statuses: next }
+                          })
+                        }}
+                          style={{ padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:sel?600:400,
+                            border: sel?`2px solid ${BLUE}`:'1px solid #e0e0e0',
+                            background: sel?'#E6F1FB':'#fff', color: sel?BLUE:'#666' }}>
+                          {v}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Desde</label>
-                  <input type="date" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value}))} />
+                  <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Desde (mes/año)</label>
+                  <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value ? e.target.value+'-01' : ''}))} />
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Hasta</label>
-                  <input type="date" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.to} onChange={e => setCitasDateRange(p=>({...p, to:e.target.value}))} />
+                  <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Hasta (mes/año)</label>
+                  <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.to ? citasDateRange.to.substring(0,7) : ''} onChange={e => {
+                    if (e.target.value) {
+                      const [y,m] = e.target.value.split('-')
+                      const lastDay = new Date(parseInt(y), parseInt(m), 0).getDate()
+                      setCitasDateRange(p=>({...p, to:`${e.target.value}-${lastDay}`}))
+                    } else { setCitasDateRange(p=>({...p, to:''})) }
+                  }} />
                 </div>
                 <div>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Profesionales</label>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {doctors.map(d => {
-                      const sel = citasFilter.doctorIds.includes(d.id)
+                  <div style={{ border:'0.5px solid #e2ede9', borderRadius:8, overflow:'hidden', maxHeight:160, overflowY:'auto' }}>
+                    {[{ id:'all', first_name:'Todos', last_name:'' }, ...[...doctors].sort((a,b) => a.first_name.localeCompare(b.first_name))].map(d => {
+                      const isAll = d.id === 'all'
+                      const allSel = citasFilter.doctorIds.length === 0
+                      const sel = isAll ? allSel : citasFilter.doctorIds.includes(d.id)
                       return (
-                        <div key={d.id} onClick={() => setCitasFilter(p => ({ ...p, doctorIds: sel ? p.doctorIds.filter(x=>x!==d.id) : [...p.doctorIds, d.id] }))}
-                          style={{ padding:'4px 10px', borderRadius:20, cursor:'pointer', fontSize:12, border: sel?`2px solid ${BLUE}`:'1px solid #e0e0e0', background:sel?'#E6F1FB':'#fff', color:sel?BLUE:'#666', fontWeight:sel?600:400 }}>
-                          {d.first_name} {d.last_name}
+                        <div key={d.id} onClick={() => {
+                          if (isAll) { setCitasFilter(p=>({...p, doctorIds:[]})); return }
+                          setCitasFilter(p => {
+                            const next = p.doctorIds.includes(d.id) ? p.doctorIds.filter(x=>x!==d.id) : [...p.doctorIds, d.id]
+                            return { ...p, doctorIds: next }
+                          })
+                        }}
+                          style={{ padding:'8px 12px', cursor:'pointer', fontSize:12, display:'flex', alignItems:'center', gap:8,
+                            background: sel?'#E6F1FB':'#fff', color: sel?BLUE:'#555',
+                            borderBottom:'0.5px solid #f0f0f0', fontWeight: sel?600:400 }}>
+                          <div style={{ width:14, height:14, borderRadius:3, border:`1.5px solid ${sel?BLUE:'#ccc'}`, background:sel?BLUE:'#fff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            {sel && <div style={{ width:8, height:8, background:'#fff', borderRadius:1 }} />}
+                          </div>
+                          {isAll ? 'Todos' : `${d.prefix?d.prefix+' ':''}${d.first_name} ${d.last_name}`}
                         </div>
                       )
                     })}
@@ -322,7 +360,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
               {/* Preview */}
               {(() => {
                 let filtered = allAppts
-                if (citasFilter.status !== 'all') filtered = filtered.filter(a => a.status === citasFilter.status)
+                if (citasFilter.statuses.length > 0 && !citasFilter.statuses.includes('all')) filtered = filtered.filter(a => citasFilter.statuses.includes(a.status))
                 if (citasFilter.doctorIds.length > 0) filtered = filtered.filter(a => citasFilter.doctorIds.includes(a.doctor_id))
                 if (citasDateRange.from) filtered = filtered.filter(a => a.appointment_date >= citasDateRange.from)
                 if (citasDateRange.to) filtered = filtered.filter(a => a.appointment_date <= citasDateRange.to)
