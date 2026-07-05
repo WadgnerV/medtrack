@@ -194,6 +194,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (!seccion) return <div style={{ color: '#8aab9a', fontSize: 14 }}>Seleccioná una sección.</div>
     if (seccion.type === 'extra') {
       const { key } = seccion
+      if (key === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} appointment={null} />
       if (key === 'chat') return <ModuleChat patient={patient} careModules={careModules} profile={profile} senderRole={senderRole} />
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
       if (key === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
@@ -216,6 +217,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
   }
 
   const menuExtras = [
+    { key: 'preconsulta',     label: 'Pre-consulta',        Icon: Stethoscope   },
     { key: 'chat',            label: 'Chat',                  Icon: MessageSquare },
     { key: 'documentos',      label: 'Documentos',            Icon: Paperclip     },
     { key: 'consentimientos', label: 'Consentimientos',       Icon: ClipboardList },
