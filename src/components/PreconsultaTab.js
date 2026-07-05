@@ -56,6 +56,24 @@ const emptyForm = {
   nota_enfermeria: '',
 }
 
+function WarnIcon({ show }) {
+  if (!show) return null
+  return <span title="Valor fuera de rango" style={{ fontSize:12, color:'#F59E0B', marginLeft:4 }}>⚠</span>
+}
+
+function isOutOfRange(key, val) {
+  const v = parseFloat(val)
+  if (isNaN(v)) return false
+  const ranges = {
+    pas: [90, 140], pad: [60, 90], spo2: [95, 100],
+    glicemia: [70, 140], frecuencia_cardiaca: [60, 100],
+    frecuencia_respiratoria: [12, 20], grasa_pct: [5, 50],
+    fcf_lpm: [110, 160],
+  }
+  if (!ranges[key]) return false
+  return v < ranges[key][0] || v > ranges[key][1]
+}
+
 function PAM({ pas, pad }) {
   const p = parseFloat(pas)
   const d = parseFloat(pad)
@@ -66,6 +84,7 @@ function PAM({ pas, pad }) {
     <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:4 }}>
       <span style={{ fontSize:11, color:'#888' }}>PAM calculada:</span>
       <span style={{ fontSize:13, fontWeight:600, color }}>{pam} mmHg</span>
+      {(parseFloat(pam) < 60 || parseFloat(pam) > 100) && <WarnIcon show={true} />}
     </div>
   )
 }
@@ -306,38 +325,38 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:8 }}>
             <div>
               <label style={lbl}>PAS (mmHg)</label>
-              <input type="number" style={inp} value={form.pas} onChange={f('pas')} placeholder="120" />
+              <input type="number" style={inp} value={form.pas} onChange={f('pas')} />
             </div>
             <div>
               <label style={lbl}>PAD (mmHg)</label>
-              <input type="number" style={inp} value={form.pad} onChange={f('pad')} placeholder="80" />
+              <input type="number" style={inp} value={form.pad} onChange={f('pad')} />
             </div>
             <div style={{ gridColumn:'span 2' }}>
               <PAM pas={form.pas} pad={form.pad} />
             </div>
             <div>
               <label style={lbl}>SpO2 (%)</label>
-              <input type="number" style={inp} value={form.spo2} onChange={f('spo2')} placeholder="98" />
+              <input type="number" style={inp} value={form.spo2} onChange={f('spo2')} />
             </div>
             <div>
               <label style={lbl}>Glicemia (mg/dL)</label>
-              <input type="number" style={inp} value={form.glicemia} onChange={f('glicemia')} placeholder="90" />
+              <input type="number" style={inp} value={form.glicemia} onChange={f('glicemia')} />
             </div>
             <div>
               <label style={lbl}>FC (lpm)</label>
-              <input type="number" style={inp} value={form.frecuencia_cardiaca} onChange={f('frecuencia_cardiaca')} placeholder="72" />
+              <input type="number" style={inp} value={form.frecuencia_cardiaca} onChange={f('frecuencia_cardiaca')} />
             </div>
             <div>
               <label style={lbl}>FR (rpm)</label>
-              <input type="number" style={inp} value={form.frecuencia_respiratoria} onChange={f('frecuencia_respiratoria')} placeholder="16" />
+              <input type="number" style={inp} value={form.frecuencia_respiratoria} onChange={f('frecuencia_respiratoria')} />
             </div>
             <div>
               <label style={lbl}>Peso (kg)</label>
-              <input type="number" style={inp} value={form.peso_kg} onChange={f('peso_kg')} placeholder="68.5" />
+              <input type="number" style={inp} value={form.peso_kg} onChange={f('peso_kg')} />
             </div>
             <div>
               <label style={lbl}>Estatura (cm)</label>
-              <input type="number" style={inp} value={form.estatura_cm} onChange={f('estatura_cm')} placeholder="165" />
+              <input type="number" style={inp} value={form.estatura_cm} onChange={f('estatura_cm')} />
             </div>
           </div>
 
@@ -346,12 +365,12 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
             <>
               <div style={sec}>Signos vitales constitucionales</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:8 }}>
-                <div><label style={lbl}>Grasa corporal (%)</label><input type="number" style={inp} value={form.grasa_pct} onChange={f('grasa_pct')} placeholder="28.3" /></div>
-                <div><label style={lbl}>Masa muscular (kg)</label><input type="number" style={inp} value={form.masa_muscular_kg} onChange={f('masa_muscular_kg')} placeholder="42.1" /></div>
-                <div><label style={lbl}>Grasa visceral (pt)</label><input type="number" style={inp} value={form.grasa_visceral_pt} onChange={f('grasa_visceral_pt')} placeholder="8" /></div>
-                <div><label style={lbl}>Ancho de pecho (cm)</label><input type="number" style={inp} value={form.ancho_pecho_cm} onChange={f('ancho_pecho_cm')} placeholder="90" /></div>
-                <div><label style={lbl}>Ancho de cintura (cm)</label><input type="number" style={inp} value={form.ancho_cintura_cm} onChange={f('ancho_cintura_cm')} placeholder="82" /></div>
-                <div><label style={lbl}>Ancho de muslo (cm)</label><input type="number" style={inp} value={form.ancho_muslo_cm} onChange={f('ancho_muslo_cm')} placeholder="55" /></div>
+                <div><label style={lbl}>Grasa corporal (%)</label><input type="number" style={inp} value={form.grasa_pct} onChange={f('grasa_pct')} /></div>
+                <div><label style={lbl}>Masa muscular (kg)</label><input type="number" style={inp} value={form.masa_muscular_kg} onChange={f('masa_muscular_kg')} /></div>
+                <div><label style={lbl}>Grasa visceral (pt)</label><input type="number" style={inp} value={form.grasa_visceral_pt} onChange={f('grasa_visceral_pt')} /></div>
+                <div><label style={lbl}>Ancho de pecho (cm)</label><input type="number" style={inp} value={form.ancho_pecho_cm} onChange={f('ancho_pecho_cm')} /></div>
+                <div><label style={lbl}>Ancho de cintura (cm)</label><input type="number" style={inp} value={form.ancho_cintura_cm} onChange={f('ancho_cintura_cm')} /></div>
+                <div><label style={lbl}>Ancho de muslo (cm)</label><input type="number" style={inp} value={form.ancho_muslo_cm} onChange={f('ancho_muslo_cm')} /></div>
               </div>
             </>
           )}
@@ -361,7 +380,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
             <>
               <div style={sec}>Signos vitales obstétricos</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:8 }}>
-                <div><label style={lbl}>Altura uterina (cm)</label><input type="number" style={inp} value={form.altura_uterina_cm} onChange={f('altura_uterina_cm')} placeholder="28" /></div>
+                <div><label style={lbl}>Altura uterina (cm)</label><input type="number" style={inp} value={form.altura_uterina_cm} onChange={f('altura_uterina_cm')} /></div>
                 <div>
                   <label style={lbl}>Tono uterino</label>
                   <select style={inp} value={form.tono_uterino} onChange={f('tono_uterino')}>
@@ -369,7 +388,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
                     {TONO_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
-                <div><label style={lbl}>FCF (lpm)</label><input type="number" style={inp} value={form.fcf_lpm} onChange={f('fcf_lpm')} placeholder="140" /></div>
+                <div><label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>FCF (lpm)<WarnIcon show={isOutOfRange('fcf_lpm', form.fcf_lpm)} /></label><input type="number" style={{ ...inp, borderColor: isOutOfRange('fcf_lpm', form.fcf_lpm) ? '#F59E0B' : '#e0e0e0' }} value={form.fcf_lpm} onChange={f('fcf_lpm')} /></div>
               </div>
             </>
           )}
