@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import AntecedentesTab from './AntecedentesTab'
 
 const G = '#0F6E56'
 const BLUE = '#1a3a5c'
@@ -24,14 +25,7 @@ const TONO_OPTIONS = [
   { value: 'francas', label: 'Contracciones francas' },
 ]
 
-const ANTECEDENTES = [
-  { key: 'antecedentes_patologicos', label: 'Patológicos' },
-  { key: 'antecedentes_quirurgicos', label: 'Quirúrgicos' },
-  { key: 'antecedentes_alergias', label: 'Alergias' },
-  { key: 'antecedentes_medicamentos', label: 'Medicamentos actuales' },
-  { key: 'antecedentes_familiares', label: 'Familiares' },
-  { key: 'antecedentes_habitos', label: 'Hábitos' },
-]
+
 
 const RANGES = {
   pas: [90, 140], pad: [60, 90], spo2: [95, 100],
@@ -60,9 +54,7 @@ function showObstetricos(type) {
 
 const emptyForm = {
   consultation_type: '',
-  antecedentes_patologicos: '', antecedentes_quirurgicos: '',
-  antecedentes_alergias: '', antecedentes_medicamentos: '',
-  antecedentes_familiares: '', antecedentes_habitos: '',
+
   motivo_consulta: '',
   pas: '', pad: '', spo2: '', spo2_method: 'aa', spo2_litros: '',
   glicemia: '', frecuencia_cardiaca: '', frecuencia_respiratoria: '',
@@ -98,19 +90,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
 
   function startNew() {
     const lastRecord = records[0]
-    if (lastRecord) {
-      setForm({
-        ...emptyForm,
-        antecedentes_patologicos: lastRecord.antecedentes_patologicos || '',
-        antecedentes_quirurgicos: lastRecord.antecedentes_quirurgicos || '',
-        antecedentes_alergias: lastRecord.antecedentes_alergias || '',
-        antecedentes_medicamentos: lastRecord.antecedentes_medicamentos || '',
-        antecedentes_familiares: lastRecord.antecedentes_familiares || '',
-        antecedentes_habitos: lastRecord.antecedentes_habitos || '',
-      })
-    } else {
-      setForm(emptyForm)
-    }
+    setForm(emptyForm)
     setEditingId(null)
     setShowForm(true)
   }
@@ -118,12 +98,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
   function startEdit(r) {
     setForm({
       consultation_type: r.consultation_type || '',
-      antecedentes_patologicos: r.antecedentes_patologicos || '',
-      antecedentes_quirurgicos: r.antecedentes_quirurgicos || '',
-      antecedentes_alergias: r.antecedentes_alergias || '',
-      antecedentes_medicamentos: r.antecedentes_medicamentos || '',
-      antecedentes_familiares: r.antecedentes_familiares || '',
-      antecedentes_habitos: r.antecedentes_habitos || '',
+
       motivo_consulta: r.motivo_consulta || '',
       pas: r.pas || '', pad: r.pad || '',
       spo2: r.spo2 || '', spo2_method: r.spo2_method || 'aa', spo2_litros: r.spo2_litros || '',
@@ -343,14 +318,8 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
           </div>
 
           <div style={sec}>Antecedentes</div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:8 }}>
-            {ANTECEDENTES.map(a => (
-              <div key={a.key}>
-                <label style={lbl}>{a.label}</label>
-                <textarea style={{ ...inp, minHeight:60, resize:'vertical' }} value={form[a.key]} onChange={f(a.key)} />
-              </div>
-            ))}
-          </div>
+          <AntecedentesTab patient={patient} profile={profile} />
+          <div style={{ height:1, background:'#e2ede9', margin:'20px 0' }} />
 
           <div style={sec}>Motivo de consulta</div>
           <textarea style={{ ...inp, minHeight:70, resize:'vertical', marginBottom:8 }} value={form.motivo_consulta} onChange={f('motivo_consulta')} />
