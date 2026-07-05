@@ -47,7 +47,7 @@ const emptyForm = {
   antecedentes_alergias: '', antecedentes_medicamentos: '',
   antecedentes_familiares: '', antecedentes_habitos: '',
   motivo_consulta: '',
-  pas: '', pad: '', spo2: '', glicemia: '',
+  pas: '', pad: '', spo2: '', spo2_method: 'aa', spo2_litros: '', glicemia: '',
   frecuencia_cardiaca: '', frecuencia_respiratoria: '',
   peso_kg: '', estatura_cm: '',
   grasa_pct: '', masa_muscular_kg: '', grasa_visceral_pt: '',
@@ -128,7 +128,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
       antecedentes_familiares: r.antecedentes_familiares || '',
       antecedentes_habitos: r.antecedentes_habitos || '',
       motivo_consulta: r.motivo_consulta || '',
-      pas: r.pas || '', pad: r.pad || '', spo2: r.spo2 || '',
+      pas: r.pas || '', pad: r.pad || '', spo2: r.spo2 || '', spo2_method: r.spo2_method || 'aa', spo2_litros: r.spo2_litros || '',
       glicemia: r.glicemia || '', frecuencia_cardiaca: r.frecuencia_cardiaca || '',
       frecuencia_respiratoria: r.frecuencia_respiratoria || '',
       peso_kg: r.peso_kg || '', estatura_cm: r.estatura_cm || '',
@@ -334,9 +334,28 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
             <div style={{ gridColumn:'span 2' }}>
               <PAM pas={form.pas} pad={form.pad} />
             </div>
-            <div>
-              <label style={lbl}>SpO2 (%)</label>
-              <input type="number" style={inp} value={form.spo2} onChange={f('spo2')} />
+            <div style={{ gridColumn:'span 2' }}>
+              <label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>
+                SpO2 (%) <WarnIcon show={isOutOfRange('spo2', form.spo2)} />
+              </label>
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+                <input type="number" style={{ ...inp, width:90, borderColor: isOutOfRange('spo2', form.spo2) ? '#F59E0B' : '#e0e0e0' }} value={form.spo2} onChange={f('spo2')} />
+                <select style={{ ...inp, flex:1 }} value={form.spo2_method} onChange={f('spo2_method')}>
+                  <option value="aa">Aire ambiente (AA)</option>
+                  <option value="nasocánula">Nasocánula</option>
+                  <option value="venturi">Mascarilla Venturi</option>
+                  <option value="reservorio">Mascarilla con reservorio</option>
+                  <option value="cipap">CIPAP</option>
+                  <option value="bipap">BIPAP</option>
+                  <option value="tet">Tubo endotraqueal (TET)</option>
+                </select>
+                {form.spo2_method !== 'aa' && (
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <input type="number" style={{ ...inp, width:70 }} value={form.spo2_litros} onChange={f('spo2_litros')} />
+                    <span style={{ fontSize:11, color:'#888', whiteSpace:'nowrap' }}>L/min</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label style={lbl}>Glicemia (mg/dL)</label>
