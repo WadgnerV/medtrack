@@ -174,13 +174,15 @@ export default function AntecedentesTab({ patient, profile, saveRef }) {
     upd(key, arr)
   }
 
-  async function save() {
-    const payload = { ...data, patient_id: patientId, clinic_id: profile.clinic_id, updated_by: profile.id, updated_at: new Date().toISOString() }
-    delete payload.id; delete payload.created_at
-    await supabase.from('patient_antecedentes').upsert(payload, { onConflict: 'patient_id,clinic_id' })
-  }
-
-  useEffect(() => { if (saveRef) saveRef.current = save }, [data])
+  useEffect(() => {
+    if (!saveRef) return
+    saveRef.current = async () => {
+      const payload = { ...data, patient_id: patientId, clinic_id: profile.clinic_id, updated_by: profile.id, updated_at: new Date().toISOString() }
+      delete payload.id; delete payload.created_at
+      const { error } = await supabase.from('patient_antecedentes').upsert(payload, { onConflict: 'patient_id,clinic_id' })
+      if (error) console.error('Error guardando antecedentes:', error)
+    }
+  }, [data, patientId, profile])
 
   const estadoCivil = base => {
     const fem = { 'Soltero':'Soltera','Casado':'Casada','Divorciado':'Divorciada','Unión libre':'Unión libre','Viudo':'Viuda' }
