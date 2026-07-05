@@ -96,7 +96,24 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
     setLoading(false)
   }
 
-  function startNew() { setForm(emptyForm); setEditingId(null); setShowForm(true) }
+  function startNew() {
+    const lastRecord = records[0]
+    if (lastRecord) {
+      setForm({
+        ...emptyForm,
+        antecedentes_patologicos: lastRecord.antecedentes_patologicos || '',
+        antecedentes_quirurgicos: lastRecord.antecedentes_quirurgicos || '',
+        antecedentes_alergias: lastRecord.antecedentes_alergias || '',
+        antecedentes_medicamentos: lastRecord.antecedentes_medicamentos || '',
+        antecedentes_familiares: lastRecord.antecedentes_familiares || '',
+        antecedentes_habitos: lastRecord.antecedentes_habitos || '',
+      })
+    } else {
+      setForm(emptyForm)
+    }
+    setEditingId(null)
+    setShowForm(true)
+  }
 
   function startEdit(r) {
     setForm({
