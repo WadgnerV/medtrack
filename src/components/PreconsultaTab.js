@@ -318,8 +318,8 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
           </div>
 
           <div style={{ marginBottom:16 }}>
-            <label style={lbl}>Ingresa a consulta de</label>
-            <select style={inp} value={form.consultation_type} onChange={f('consultation_type')}>
+            <label style={lbl}>Ingresa a consulta de <span style={{ color:'#D85A30' }}>*</span></label>
+            <select style={{ ...inp, borderColor: !form.consultation_type ? '#D85A30' : '#e0e0e0' }} value={form.consultation_type} onChange={f('consultation_type')}>
               <option value="">Seleccionar tipo...</option>
               {CONSULTATION_TYPES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
@@ -428,11 +428,11 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
               style={{ padding:'8px 16px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
               Cancelar
             </button>
-            <button onClick={() => handleSave(false)} disabled={saving}
+            <button onClick={() => handleSave(false)} disabled={saving || !form.consultation_type}
               style={{ padding:'8px 18px', background:'#f0f4f8', color:BLUE, border:'1px solid #c5d5e8', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>
               {saving ? 'Guardando...' : 'Guardar borrador'}
             </button>
-            <button onClick={() => handleSave(true)} disabled={saving}
+            <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type}
               style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
               {saving ? 'Guardando...' : 'Guardar y trasladar paciente'}
             </button>
