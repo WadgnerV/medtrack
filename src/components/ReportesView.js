@@ -368,17 +368,11 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                 </div>
                 <div style={{ minWidth:160, flex:'0 0 auto' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Desde (mes/año)</label>
-                  <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from ? citasDateRange.from.substring(0,7) : ''} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value ? e.target.value+'-01' : ''}))} />
+                  <input type="date" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.from} onChange={e => setCitasDateRange(p=>({...p, from:e.target.value}))} />
                 </div>
                 <div style={{ minWidth:160, flex:'0 0 auto' }}>
                   <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', display:'block', marginBottom:5 }}>Hasta (mes/año)</label>
-                  <input type="month" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.to ? citasDateRange.to.substring(0,7) : ''} onChange={e => {
-                    if (e.target.value) {
-                      const [y,m] = e.target.value.split('-')
-                      const lastDay = new Date(parseInt(y), parseInt(m), 0).getDate()
-                      setCitasDateRange(p=>({...p, to:`${e.target.value}-${lastDay}`}))
-                    } else { setCitasDateRange(p=>({...p, to:''})) }
-                  }} />
+                  <input type="date" style={{ ...inp, width:'100%', boxSizing:'border-box' }} value={citasDateRange.to} onChange={e => setCitasDateRange(p=>({...p, to:e.target.value}))} />
                 </div>
               </div>
 
@@ -402,7 +396,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                         <thead style={{ position:'sticky', top:0 }}>
                           <tr style={{ background:'#f4f7f6' }}>
-                            {['Doctor','Fecha','Paciente','Estado','Etiquetas'].map(h => (
+                            {['Doctor','Fecha','Paciente','Módulo','Estado','Etiquetas'].map(h => (
                               <th key={h} style={{ padding:'8px 10px', textAlign:'left', fontWeight:600, fontSize:11, color:'#6b8f7e', textTransform:'uppercase', letterSpacing:'0.5px', whiteSpace:'nowrap' }}>{h}</th>
                             ))}
                           </tr>
@@ -416,6 +410,7 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
                                 <td style={{ padding:'7px 10px', color:'#1a3a5c' }}>{d?`${d.prefix?d.prefix+' ':''}${d.first_name} ${d.last_name}`:'-'}</td>
                                 <td style={{ padding:'7px 10px', color:'#555', whiteSpace:'nowrap' }}>{a.appointment_date}</td>
                                 <td style={{ padding:'7px 10px', color:'#333' }}>{a.patient?.profile?.first_name} {a.patient?.profile?.last_name}</td>
+                                <td style={{ padding:'7px 10px', color:'#888', fontSize:11 }}>{a.module_type ? ({integral:'Integral',metabolica:'Metabólica',estetica:'Estética',fisioterapia:'Fisioterapia',enfermeria:'Enfermería',odontologia:'Odontología',nutricion:'Nutrición'})[a.module_type] || a.module_type : '-'}</td>
                                 <td style={{ padding:'7px 10px' }}>
                                   <span style={{ fontSize:11, padding:'2px 7px', borderRadius:20, background: a.status==='no_show'?'#FAECE7':a.status.includes('confirmed')?'#E1F5EE':'#f4f7f6', color: a.status==='no_show'?'#D85A30':a.status.includes('confirmed')?'#0F6E56':'#555' }}>
                                     {STATUS_LABELS[a.status]||a.status}
