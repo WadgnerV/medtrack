@@ -8,6 +8,7 @@ import EnfermeriaModule from '../pages/EnfermeriaModule'
 import OdontologiaModule from '../pages/OdontologiaModule'
 import NutricionModule from '../pages/NutricionModule'
 import CareModulesAdmin from './CareModulesAdmin'
+import PreconsultaTab from './PreconsultaTab'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
 import ModuleChat from './ModuleChat'
@@ -16,7 +17,7 @@ import {
   Settings, Phone, Mail, CreditCard, Calendar,
   ChevronRight, ChevronDown, ChevronLeft,
   FileText, Activity, Clipboard, Dumbbell, Heart, Scale, Syringe,
-  CheckSquare, MessageSquare, Smile, Salad
+  CheckSquare, MessageSquare, Smile, Salad, Stethoscope
 } from 'lucide-react'
 
 const G = '#1D9E75'
