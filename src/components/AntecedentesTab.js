@@ -75,7 +75,8 @@ export default function AntecedentesTab({ patient, profile }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [activeSection, setActiveSection] = useState('apnp')
+  const [expanded, setExpanded] = useState(new Set(['apnp']))
+  const toggleSection = k => setExpanded(p => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n })
 
   const patientId = patient.profile?.id || patient.id
   const birthDate = patient.birth_date || patient.profile?.birth_date
@@ -168,19 +169,38 @@ export default function AntecedentesTab({ patient, profile }) {
         </button>
       </div>
 
-      <div style={{ display:'flex', gap:6, marginBottom:20, flexWrap:'wrap' }}>
-        {SECTIONS.map(s => (
-          <button key={s.key} onClick={() => setActiveSection(s.key)}
-            style={{ padding:'6px 14px', borderRadius:8, border:'none', cursor:'pointer', fontSize:13, fontWeight:500,
-              background: activeSection===s.key ? BLUE : '#f0f4f8', color: activeSection===s.key ? '#fff' : '#555', fontFamily:'inherit' }}>
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:0, marginBottom:20, border:'0.5px solid #e2ede9', borderRadius:12, overflow:'hidden' }}>
+        {SECTIONS.map((s, i) => (
+          <div key={s.key}>
+            {i > 0 && <div style={{ height:'0.5px', background:'#e2ede9' }} />}
+            <div onClick={() => toggleSection(s.key)}
+              style={{ padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer',
+                background: expanded.has(s.key) ? '#E6F1FB' : '#fff' }}>
+              <span style={{ fontSize:13, fontWeight:600, color: expanded.has(s.key) ? BLUE : '#555' }}>{s.label}</span>
+              <span style={{ fontSize:12, color:'#aaa' }}>{expanded.has(s.key) ? '▲' : '▼'}</span>
+            </div>
+            {expanded.has(s.key) && (
+              <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
 
-      {/* APnP */}
-      {activeSection === 'apnp' && (
-        <div>
+      {SECTIONS.map(s => {
+        const isOpen = expanded.has(s.key)
+        const LABELS = {
+          apnp:'Antecedentes personales no patológicos (APnP)',
+          app:'Antecedentes personales patológicos (APP)',
+          aqx:'Antecedentes quirúrgicos (AQx)',
+          ahf:'Antecedentes heredo-familiares (AHF)',
+          ago:'Antecedentes gineco-obstétricos (AGO)',
+          aped:'Antecedentes pediátricos (APed)',
+          ager:'Antecedentes geriátricos (AGer)',
+        }
+        return (
+          <div key={s.key} style={{ border:'0.5px solid #e2ede9', borderRadius:10, marginBottom:8, overflow:'hidden' }}>
+            <div onClick={() => toggleSection(s.key)}
+              style={{ padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer', background: isOpen ? '#E6F1FB' : '#fff' }}>
+              <span style={{ fontSize:13, fontWeight:600, color: isOpen ? BLUE : '#555' }}>{LABELS[s.key]}</span>
+              <span style={{ fontSize:12, color:'#aaa' }}>{isOpen ? '▲' : '▼'}</span>
+            </div>
+            {isOpen && s.key === 'apnp' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <div style={row2}>
             <div>
               <label style={lbl}>Nivel de educación</label>
@@ -332,11 +352,9 @@ export default function AntecedentesTab({ patient, profile }) {
             </ListaItems>
           </div>
         </div>
-      )}
 
-      {/* APP */}
-      {activeSection === 'app' && (
-        <div>
+            </div>}
+            {isOpen && s.key === 'app' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <ListaItems items={data.app_patologias} addLabel="Agregar patología"
             onAdd={() => upd('app_patologias', [...data.app_patologias, { patologia:'', otra:'', año:'', tratamiento:'', observaciones:'' }])}
             onRemove={i => upd('app_patologias', data.app_patologias.filter((_,j)=>j!==i))}>
@@ -363,11 +381,9 @@ export default function AntecedentesTab({ patient, profile }) {
             }}
           </ListaItems>
         </div>
-      )}
 
-      {/* AQx */}
-      {activeSection === 'aqx' && (
-        <div>
+            </div>}
+            {isOpen && s.key === 'aqx' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <ListaItems items={data.aqx_procedimientos} addLabel="Agregar antecedente quirúrgico"
             onAdd={() => upd('aqx_procedimientos', [...data.aqx_procedimientos, { procedimiento:'', año:'', complicaciones:'', observaciones:'' }])}
             onRemove={i => upd('aqx_procedimientos', data.aqx_procedimientos.filter((_,j)=>j!==i))}>
@@ -387,11 +403,9 @@ export default function AntecedentesTab({ patient, profile }) {
             }}
           </ListaItems>
         </div>
-      )}
 
-      {/* AHF */}
-      {activeSection === 'ahf' && (
-        <div>
+            </div>}
+            {isOpen && s.key === 'ahf' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <ListaItems items={data.ahf_familiares} addLabel="Agregar antecedente familiar"
             onAdd={() => upd('ahf_familiares', [...data.ahf_familiares, { patologia:'', otra:'', parentesco:'', observaciones:'' }])}
             onRemove={i => upd('ahf_familiares', data.ahf_familiares.filter((_,j)=>j!==i))}>
@@ -423,11 +437,9 @@ export default function AntecedentesTab({ patient, profile }) {
             }}
           </ListaItems>
         </div>
-      )}
 
-      {/* AGO */}
-      {activeSection === 'ago' && showAGO && (
-        <div>
+            </div>}
+            {isOpen && s.key === 'ago' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <div style={row2}>
             <div><label style={lbl}>Fecha última menstruación (FUM)</label><input type="date" style={inp} value={data.ago_fum} onChange={f('ago_fum')} /></div>
             <div>
@@ -522,11 +534,9 @@ export default function AntecedentesTab({ patient, profile }) {
             </div>
           </div>
         </div>
-      )}
 
-      {/* APed */}
-      {activeSection === 'aped' && showAPed && (
-        <div>
+            </div>}
+            {isOpen && s.key === 'aped' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <div style={row2}>
             <div>
               <label style={lbl}>Resultado del embarazo</label>
@@ -590,11 +600,9 @@ export default function AntecedentesTab({ patient, profile }) {
             )}
           </div>
         </div>
-      )}
 
-      {/* AGer */}
-      {activeSection === 'ager' && showAGer && (
-        <div>
+            </div>}
+            {isOpen && s.key === 'ager' && <div style={{ padding:'16px', background:'#fafdfb', borderTop:'0.5px solid #e2ede9' }}>
           <div style={{ marginBottom:12 }}>
             <label style={lbl}>Estado basal</label>
             <select style={inp} value={data.ager_estado_basal} onChange={f('ager_estado_basal')}>
@@ -632,8 +640,11 @@ export default function AntecedentesTab({ patient, profile }) {
             </div>
           </div>
         </div>
-      )}
 
+            </div>}
+          </div>
+        )
+      })}
       <div style={{ display:'flex', justifyContent:'flex-end', marginTop:24 }}>
         <button onClick={save} disabled={saving}
           style={{ padding:'8px 22px', background: saved?G:BLUE, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>
