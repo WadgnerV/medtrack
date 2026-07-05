@@ -14,10 +14,10 @@ const RESULTADO_EMBARAZO = ['RNP-PEG','RNP-AEG','RNP-GEG','RNT-PEG','RNT-AEG','R
 const ESTADO_BASAL = ['IABVD','IAIVD','DPABVD','DTABVD']
 const MPF_OPTIONS = ['Anticonceptivos orales','Anticonceptivo intramuscular','Método barrera','Dispositivo intrauterino','Método del calendario','Implante subdérmico','Histerectomía']
 
-const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+const inp = { width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
 const lbl = { fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:5, display:'block' }
-const row2 = { display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }
-const row3 = { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }
+const row2 = { display:'flex', flexWrap:'wrap', gap:12, marginBottom:12 }
+const row3 = { display:'flex', flexWrap:'wrap', gap:12, marginBottom:12 }
 
 function WarnIcon() {
   return <span title="Valor fuera de rango" style={{ fontSize:11, color:'#F59E0B', marginLeft:4 }}>⚠</span>
@@ -192,14 +192,14 @@ export default function AntecedentesTab({ patient, profile }) {
 
       <Accordion title="Antecedentes personales no patológicos (APnP)" sectionKey="apnp" expanded={expanded} onToggle={toggle}>
         <div style={row2}>
-          <div>
+          <div style={{ flex:'1 1 220px' }}>
             <label style={lbl}>Nivel de educación</label>
             <select style={inp} value={data.apnp_educacion} onChange={f('apnp_educacion')}>
               <option value="">Seleccionar...</option>
               {EDUCACION.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
           </div>
-          <div>
+          <div style={{ flex:'1 1 180px' }}>
             <label style={lbl}>Estado civil</label>
             <select style={inp} value={data.apnp_estado_civil} onChange={f('apnp_estado_civil')}>
               <option value="">Seleccionar...</option>
@@ -226,7 +226,7 @@ export default function AntecedentesTab({ patient, profile }) {
           { key:'apnp_drogas', label:'Consumo de drogas', opts:['negativo','activo','suspendido'] },
           { key:'apnp_actividad_fisica', label:'Actividad física', opts:['sedentario','en proceso','activo'] },
         ].map(hab => (
-          <div key={hab.key} style={{ marginBottom:12, padding:12, background:'#f0f4f8', borderRadius:10, border:'0.5px solid #e2ede9' }}>
+          <div key={hab.key} style={{ marginBottom:10, padding:'10px 12px', background:'#f0f4f8', borderRadius:10, border:'0.5px solid #e2ede9' }}>
             <label style={lbl}>{hab.label}</label>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
               {hab.opts.map(v => (
