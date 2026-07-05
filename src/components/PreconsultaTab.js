@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import AntecedentesTab from './AntecedentesTab'
 
@@ -75,6 +75,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
   const [expandedId, setExpandedId] = useState(null)
 
   const canEdit = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
+  const antecedentesRef = useRef(null)
 
   useEffect(() => { if (patient?.id) loadRecords() }, [patient?.id])
 
@@ -119,6 +120,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
 
   async function handleSave(ready = false) {
     setSaving(true)
+    if (antecedentesRef.current) await antecedentesRef.current()
     const payload = {
       patient_id: patient.profile?.id || patient.id,
       clinic_id: profile.clinic_id,
@@ -318,7 +320,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
           </div>
 
           <div style={sec}>Antecedentes</div>
-          <AntecedentesTab patient={patient} profile={profile} />
+          <AntecedentesTab patient={patient} profile={profile} saveRef={antecedentesRef} />
           <div style={{ height:1, background:'#e2ede9', margin:'20px 0' }} />
 
           <div style={sec}>Motivo de consulta</div>
