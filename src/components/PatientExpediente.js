@@ -17,7 +17,7 @@ import {
   Settings, Phone, Mail, CreditCard, Calendar,
   ChevronRight, ChevronDown, ChevronLeft,
   FileText, Activity, Clipboard, Dumbbell, Heart, Scale, Syringe,
-  CheckSquare, MessageSquare, Smile, Salad, Stethoscope
+  CheckSquare, MessageSquare, Smile, Salad
 } from 'lucide-react'
 
 const G = '#1D9E75'
