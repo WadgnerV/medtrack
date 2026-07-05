@@ -150,7 +150,7 @@ export default function AntecedentesTab({ patient, profile, saveRef }) {
   async function load() {
     setLoading(true)
     const { data: d } = await supabase.from('patient_antecedentes')
-      .select('*').eq('patient_id', patientId).eq('clinic_id', profile.clinic_id).single()
+      .select('*').eq('patient_id', patientId).eq('clinic_id', profile.clinic_id).maybeSingle()
     if (d) {
       setData({ ...emptyData, ...d,
         app_patologias: d.app_patologias || [],
