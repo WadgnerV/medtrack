@@ -324,12 +324,13 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
           <div style={sec}>Signos vitales generales</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:8 }}>
             <div>
-              <label style={lbl}>PAS (mmHg)</label>
-              <input type="number" style={inp} value={form.pas} onChange={f('pas')} />
+            <div>
+              <label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>PAS (mmHg) <WarnIcon show={isOutOfRange('pas', form.pas)} /></label>
+              <input type="number" style={{ ...inp, borderColor: isOutOfRange('pas', form.pas) ? '#F59E0B' : '#e0e0e0' }} value={form.pas} onChange={f('pas')} />
             </div>
             <div>
-              <label style={lbl}>PAD (mmHg)</label>
-              <input type="number" style={inp} value={form.pad} onChange={f('pad')} />
+              <label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>PAD (mmHg) <WarnIcon show={isOutOfRange('pad', form.pad)} /></label>
+              <input type="number" style={{ ...inp, borderColor: isOutOfRange('pad', form.pad) ? '#F59E0B' : '#e0e0e0' }} value={form.pad} onChange={f('pad')} />
             </div>
             <div style={{ gridColumn:'span 2' }}>
               <PAM pas={form.pas} pad={form.pad} />
@@ -358,16 +359,16 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
               </div>
             </div>
             <div>
-              <label style={lbl}>Glicemia (mg/dL)</label>
-              <input type="number" style={inp} value={form.glicemia} onChange={f('glicemia')} />
+              <label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>Glicemia (mg/dL) <WarnIcon show={isOutOfRange('glicemia', form.glicemia)} /></label>
+              <input type="number" style={{ ...inp, borderColor: isOutOfRange('glicemia', form.glicemia) ? '#F59E0B' : '#e0e0e0' }} value={form.glicemia} onChange={f('glicemia')} />
             </div>
             <div>
-              <label style={lbl}>FC (lpm)</label>
-              <input type="number" style={inp} value={form.frecuencia_cardiaca} onChange={f('frecuencia_cardiaca')} />
+              <label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>FC (lpm) <WarnIcon show={isOutOfRange('frecuencia_cardiaca', form.frecuencia_cardiaca)} /></label>
+              <input type="number" style={{ ...inp, borderColor: isOutOfRange('frecuencia_cardiaca', form.frecuencia_cardiaca) ? '#F59E0B' : '#e0e0e0' }} value={form.frecuencia_cardiaca} onChange={f('frecuencia_cardiaca')} />
             </div>
             <div>
-              <label style={lbl}>FR (rpm)</label>
-              <input type="number" style={inp} value={form.frecuencia_respiratoria} onChange={f('frecuencia_respiratoria')} />
+              <label style={{ ...lbl, display:'flex', alignItems:'center', gap:4 }}>FR (rpm) <WarnIcon show={isOutOfRange('frecuencia_respiratoria', form.frecuencia_respiratoria)} /></label>
+              <input type="number" style={{ ...inp, borderColor: isOutOfRange('frecuencia_respiratoria', form.frecuencia_respiratoria) ? '#F59E0B' : '#e0e0e0' }} value={form.frecuencia_respiratoria} onChange={f('frecuencia_respiratoria')} />
             </div>
             <div>
               <label style={lbl}>Peso (kg)</label>
@@ -377,6 +378,21 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
               <label style={lbl}>Estatura (cm)</label>
               <input type="number" style={inp} value={form.estatura_cm} onChange={f('estatura_cm')} />
             </div>
+            {form.peso_kg && form.estatura_cm && (() => {
+              const imc = (parseFloat(form.peso_kg) / Math.pow(parseFloat(form.estatura_cm)/100, 2)).toFixed(1)
+              const n = parseFloat(imc)
+              const cat = n < 18.5 ? { label:'Desnutrición', color:'#185FA5', bg:'#E6F1FB' }
+                : n < 25 ? { label:'IMC normal', color:'#0F6E56', bg:'#E1F5EE' }
+                : n < 30 ? { label:'Sobrepeso', color:'#BA7517', bg:'#FAEEDA' }
+                : { label:'Obesidad', color:'#D85A30', bg:'#FAECE7' }
+              return (
+                <div style={{ gridColumn:'span 2', display:'flex', alignItems:'center', gap:10, marginTop:4 }}>
+                  <span style={{ fontSize:12, color:'#888' }}>IMC calculado:</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:cat.color }}>{imc}</span>
+                  <span style={{ fontSize:11, fontWeight:500, padding:'2px 8px', borderRadius:20, background:cat.bg, color:cat.color }}>{cat.label}</span>
+                </div>
+              )
+            })()}
           </div>
 
           {/* Signos vitales constitucionales */}
