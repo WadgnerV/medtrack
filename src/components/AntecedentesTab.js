@@ -207,12 +207,8 @@ export default function AntecedentesTab({ patient, profile }) {
 
   return (
     <div>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+      <div style={{ marginBottom:12 }}>
         <div style={{ fontSize:13, fontWeight:700, color:BLUE }}>Antecedentes del paciente</div>
-        <button onClick={save} disabled={saving}
-          style={{ padding:'6px 16px', background: saved?G:BLUE, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>
-          {saving?'Guardando...':saved?'Guardado':'Guardar cambios'}
-        </button>
       </div>
 
       <Accordion title="Antecedentes personales no patológicos (APnP)" sectionKey="apnp" expanded={expanded} onToggle={toggle}>
@@ -494,12 +490,7 @@ export default function AntecedentesTab({ patient, profile }) {
         </Accordion>
       )}
 
-      <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
-        <button onClick={save} disabled={saving}
-          style={{ padding:'7px 20px', background: saved?G:BLUE, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:12, fontWeight:500 }}>
-          {saving?'Guardando...':saved?'Guardado':'Guardar cambios'}
-        </button>
-      </div>
+
     </div>
   )
 }
