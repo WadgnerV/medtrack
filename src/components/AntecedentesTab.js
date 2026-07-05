@@ -14,8 +14,8 @@ const RESULTADO_EMBARAZO = ['RNP-PEG','RNP-AEG','RNP-GEG','RNT-PEG','RNT-AEG','R
 const ESTADO_BASAL = ['IABVD','IAIVD','DPABVD','DTABVD']
 const MPF_OPTIONS = ['Anticonceptivos orales','Anticonceptivo intramuscular','Método barrera','Dispositivo intrauterino','Método del calendario','Implante subdérmico','Histerectomía']
 
-const inp = { width:'100%', padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
-const lbl = { fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:5, display:'block' }
+const inp = { width:'100%', padding:'6px 9px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+const lbl = { fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:5, display:'block' }
 const row2 = { display:'flex', flexWrap:'wrap', gap:12, marginBottom:12 }
 const row3 = { display:'flex', flexWrap:'wrap', gap:12, marginBottom:12 }
 
@@ -191,33 +191,33 @@ export default function AntecedentesTab({ patient, profile }) {
       </div>
 
       <Accordion title="Antecedentes personales no patológicos (APnP)" sectionKey="apnp" expanded={expanded} onToggle={toggle}>
-        <div style={row2}>
-          <div style={{ flex:'1 1 220px' }}>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:10 }}>
+          <div style={{ flex:'1 1 200px' }}>
             <label style={lbl}>Nivel de educación</label>
             <select style={inp} value={data.apnp_educacion} onChange={f('apnp_educacion')}>
               <option value="">Seleccionar...</option>
               {EDUCACION.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
           </div>
-          <div style={{ flex:'1 1 180px' }}>
+          <div style={{ flex:'1 1 140px' }}>
             <label style={lbl}>Estado civil</label>
             <select style={inp} value={data.apnp_estado_civil} onChange={f('apnp_estado_civil')}>
               <option value="">Seleccionar...</option>
               {['Soltero','Casado','Divorciado','Unión libre','Viudo'].map(e => <option key={e} value={e}>{estadoCivil(e)}</option>)}
             </select>
           </div>
-        </div>
-        <div style={{ marginBottom:12 }}>
-          <label style={lbl}>Religión</label>
-          <select style={inp} value={data.apnp_religion} onChange={f('apnp_religion')}>
-            <option value="">Seleccionar...</option>
-            {RELIGION.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <div style={{ flex:'1 1 160px' }}>
+            <label style={lbl}>Religión</label>
+            <select style={inp} value={data.apnp_religion} onChange={f('apnp_religion')}>
+              <option value="">Seleccionar...</option>
+              {RELIGION.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
           {data.apnp_religion === 'Testigo de Jehová' && (
             <div style={{ marginTop:6, padding:'8px 12px', background:'#FFF8E1', border:'1px solid #F59E0B', borderRadius:8, fontSize:12, color:'#854F0B' }}>
               Esta religión prohíbe la transfusión sanguínea.
             </div>
           )}
+          </div>
         </div>
         <div style={{ fontWeight:600, fontSize:12, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:10, marginTop:8 }}>Hábitos</div>
         {[
@@ -226,9 +226,10 @@ export default function AntecedentesTab({ patient, profile }) {
           { key:'apnp_drogas', label:'Consumo de drogas', opts:['negativo','activo','suspendido'] },
           { key:'apnp_actividad_fisica', label:'Actividad física', opts:['sedentario','en proceso','activo'] },
         ].map(hab => (
-          <div key={hab.key} style={{ marginBottom:10, padding:'10px 12px', background:'#f0f4f8', borderRadius:10, border:'0.5px solid #e2ede9' }}>
-            <label style={lbl}>{hab.label}</label>
-            <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
+          <div key={hab.key} style={{ marginBottom:8, padding:'8px 12px', background:'#f0f4f8', borderRadius:10, border:'0.5px solid #e2ede9' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+              <label style={{ ...lbl, marginBottom:0, minWidth:140, flexShrink:0 }}>{hab.label}</label>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap', flex:1 }}>
               {hab.opts.map(v => (
                 <Chip key={v} label={v.charAt(0).toUpperCase()+v.slice(1)} active={data[hab.key]===v} onClick={() => upd(hab.key, v)} />
               ))}
@@ -367,9 +368,9 @@ export default function AntecedentesTab({ patient, profile }) {
 
       {showAGO && (
         <Accordion title="Antecedentes gineco-obstétricos (AGO)" sectionKey="ago" expanded={expanded} onToggle={toggle}>
-          <div style={row2}>
-            <div><label style={lbl}>Fecha última menstruación (FUM)</label><input type="date" style={inp} value={data.ago_fum} onChange={f('ago_fum')} /></div>
-            <div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:10 }}>
+            <div style={{ flex:'1 1 160px' }}><label style={lbl}>FUM</label><input type="date" style={inp} value={data.ago_fum} onChange={f('ago_fum')} /></div>
+            <div style={{ flex:'1 1 130px' }}>
               <label style={lbl}>Frecuencia menstrual</label>
               <select style={inp} value={data.ago_frecuencia_menstrual} onChange={f('ago_frecuencia_menstrual')}>
                 <option value="">Seleccionar...</option>
@@ -377,13 +378,14 @@ export default function AntecedentesTab({ patient, profile }) {
                 <option value="irregular">Irregular</option>
               </select>
             </div>
-          </div>
-          <div style={{ marginBottom:12 }}>
+            <div style={{ flex:'2 1 200px' }}>
             <label style={lbl}>Método de planificación familiar (MPF)</label>
             <select style={inp} value={data.ago_mpf} onChange={f('ago_mpf')}>
               <option value="">Seleccionar...</option>
               {MPF_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
+            </div>
+          </div>
             {data.ago_mpf === 'Dispositivo intrauterino' && <div style={{ marginTop:8 }}><label style={lbl}>¿Cuál DIU?</label><input style={inp} value={data.ago_mpf_diu_cual} onChange={f('ago_mpf_diu_cual')} /></div>}
             {data.ago_mpf === 'Implante subdérmico' && <div style={{ marginTop:8 }}><label style={lbl}>Año de colocación</label><input type="number" style={inp} value={data.ago_mpf_implante_año} onChange={f('ago_mpf_implante_año')} /></div>}
           </div>
