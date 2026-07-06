@@ -85,15 +85,18 @@ export default function NotificationBell({ profile }) {
     return d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short' })
   }
 
-  const typeIcon = type => ({
-    appointment: '📅',
-    staff: '👤',
-    branch: '🏥',
-    patient: '🧑‍⚕️',
-    clinic: '🏢',
-    admin: '👔',
-    preconsult_ready: '🟢',
-  }[type] || '🔔')
+  const typeIcon = type => {
+    const icons = {
+      appointment: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+      staff: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+      branch: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>,
+      patient: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+      clinic: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>,
+      admin: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>,
+      preconsult_ready: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+    }
+    return icons[type] || <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  }
 
   return (
     <>
@@ -101,7 +104,7 @@ export default function NotificationBell({ profile }) {
       <div style={{ position:'fixed', bottom:24, right:24, zIndex:9999, width:300, background:'#fff', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.18)', border:`2px solid #0F6E56`, overflow:'hidden', fontFamily:'Inter, sans-serif', animation:'slideIn 0.3s ease' }}>
         <div style={{ background:'#0F6E56', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:16 }}>🟢</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <span style={{ fontSize:13, fontWeight:700, color:'#fff' }}>Paciente listo</span>
           </div>
           <button onClick={() => setPopup(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.8)', fontSize:18, lineHeight:1 }}>×</button>
@@ -153,7 +156,7 @@ export default function NotificationBell({ profile }) {
             {notifications.map(n => (
               <div key={n.id}
                 style={{ display: 'flex', gap: 12, padding: '12px 16px', borderBottom: '1px solid #f5f5f5', background: n.is_read ? '#fff' : '#f0fdf9', transition: 'background 0.2s' }}>
-                <div style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{typeIcon(n.type)}</div>
+                <div style={{ flexShrink: 0, marginTop: 2, width:16, height:16 }}>{typeIcon(n.type)}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, color: '#1a1a1a', lineHeight: 1.5, marginBottom: 4 }}>{n.message}</div>
                   <div style={{ fontSize: 11, color: '#bbb' }}>{fmtTime(n.created_at)}</div>
