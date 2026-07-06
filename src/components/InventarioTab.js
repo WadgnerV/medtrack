@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import BodegasModal from './BodegasModal'
 
 const CATEGORIES = ['Medicamento', 'Producto estético', 'Insumo', 'Equipo']
 const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg']
@@ -25,6 +26,8 @@ async function fetchExchangeRate() {
 
 export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [items, setItems] = useState([])
+  const [warehouses, setWarehouses] = useState([])
+  const [showBodegas, setShowBodegas] = useState(false)
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -38,8 +41,13 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [form, setForm] = useState(emptyForm)
   const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
 
-  useEffect(() => { loadItems() }, [])
+  useEffect(() => { loadItems(); loadWarehouses() }, [])
   useEffect(() => { fetchExchangeRate().then(r => { if (r) setExchangeRate(r) }) }, [])
+
+  async function loadWarehouses() {
+    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    setWarehouses(data || [])
+  }
 
   async function loadItems() {
     setLoading(true)
@@ -175,6 +183,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           <option value="">Todas las categorías</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
+        <button onClick={() => setShowBodegas(true)} style={{ ...s.btn, background:'#fff', color:BLUE, border:`1px solid ${BLUE}` }}>Bodegas</button>
         <button style={s.btn} onClick={() => { setForm({...emptyForm, branch_id: profile?.branch_id || ''}); setModal('new') }}>+ Agregar ítem</button>
       </div>
 
@@ -239,7 +248,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           <div style={s.modalBox}>
             <div style={{ fontSize:15, fontWeight:600, marginBottom:18, color:'#1a1a1a' }}>{modal === 'edit' ? 'Editar ítem' : 'Nuevo ítem de inventario'}</div>
             <label style={s.label}>Nombre *</label>
-            <input style={s.input} value={form.name} onChange={f('name')} placeholder="Ej: Toxina botulínica 100U" />
+            <input style={s.input} value={form.name} onChange={f('name')}  />
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Categoría</label>
@@ -263,27 +272,30 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
               </div>
             </div>
             <label style={s.label}>Descripción</label>
-            <input style={s.input} value={form.description} onChange={f('description')} placeholder="Opcional" />
+            <input style={s.input} value={form.description} onChange={f('description')}  />
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Proveedor</label>
-                <input style={s.input} value={form.supplier} onChange={f('supplier')} placeholder="Nombre del proveedor" />
+                <input style={s.input} value={form.supplier} onChange={f('supplier')}  />
               </div>
               <div>
                 <label style={s.label}>Código SKU</label>
-                <input style={s.input} value={form.sku} onChange={f('sku')} placeholder="Código interno" />
+                <input style={s.input} value={form.sku} onChange={f('sku')}  />
               </div>
               <div>
                 <label style={s.label}>Lote</label>
-                <input style={s.input} value={form.lot} onChange={f('lot')} placeholder="Número de lote" />
+                <input style={s.input} value={form.lot} onChange={f('lot')}  />
               </div>
               <div>
                 <label style={s.label}>Fecha de vencimiento</label>
                 <input style={s.input} type="date" value={form.expiry_date} onChange={f('expiry_date')} />
               </div>
               <div>
-                <label style={s.label}>Ubicación física</label>
-                <input style={s.input} value={form.location} onChange={f('location')} placeholder="Ej: Bodega 1, Consultorio 2" />
+                <label style={s.label}>Bodega / Ubicación</label>
+                <select style={s.select} value={form.location} onChange={f('location')}>
+                  <option value="">Sin asignar</option>
+                  {warehouses.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
+                </select>
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
@@ -366,5 +378,6 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         </div>
       )}
     </div>
+      {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
   )
 }
