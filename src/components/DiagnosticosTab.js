@@ -65,7 +65,7 @@ export default function DiagnosticosTab({ patient, profile }) {
       <div style={{ fontSize:14, fontWeight:700, color:BLUE, marginBottom:16 }}>Diagnósticos</div>
 
       {canEdit && (
-        <div style={{ marginBottom:20, position:'relative' }}>
+        <div style={{ marginBottom:20, position:'relative', maxWidth:480 }}>
           <label style={lbl}>Agregar diagnóstico — buscar por código CIE-10 o descripción y seleccionar</label>
           <input style={inp} value={search} onChange={e => searchCie10(e.target.value)}
             placeholder="Ej: E11, diabetes, hipertensión..." />
