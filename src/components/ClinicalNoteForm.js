@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase'
 import AntecedentsSection from './AntecedentsSection'
 import PrintNotesModal from './PrintNotesModal'
 
+const BLUE = '#1a3a5c'
+
 const CONSULTATION_TYPES = [
   { value: 'integral',     label: 'Consulta médica integral' },
   { value: 'metabolica',   label: 'Consulta metabólica' },
