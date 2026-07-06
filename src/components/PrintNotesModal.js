@@ -49,9 +49,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
           <title>Notas clínicas</title>
           <style>
             body { font-family: Arial, sans-serif; font-size: 13pt; color: #222; line-height: 1.8; margin: 20mm; }
-            .note-block { page-break-inside: avoid; break-inside: avoid; } .ant-section { page-break-inside: avoid; break-inside: avoid; }
-            .no-break { page-break-before: avoid !important; break-before: avoid !important; }
-            * { orphans: 3; widows: 3; }
+            .note-block { page-break-inside: avoid; break-inside: avoid; }
             * { box-sizing: border-box; }
           </style>
         </head>
