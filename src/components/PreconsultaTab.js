@@ -55,7 +55,6 @@ function showObstetricos(type) {
 const emptyForm = {
   consultation_type: '',
 
-  motivo_consulta: '',
   pas: '', pad: '', spo2: '', spo2_method: 'aa', spo2_litros: '',
   glicemia: '', frecuencia_cardiaca: '', frecuencia_respiratoria: '',
   peso_kg: '', estatura_cm: '',
@@ -107,7 +106,6 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     setForm({
       consultation_type: r.consultation_type || '',
 
-      motivo_consulta: r.motivo_consulta || '',
       pas: r.pas || '', pad: r.pad || '',
       spo2: r.spo2 || '', spo2_method: r.spo2_method || 'aa', spo2_litros: r.spo2_litros || '',
       glicemia: r.glicemia || '',
@@ -142,7 +140,6 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
       antecedentes_medicamentos: form.antecedentes_medicamentos || null,
       antecedentes_familiares: form.antecedentes_familiares || null,
       antecedentes_habitos: form.antecedentes_habitos || null,
-      motivo_consulta: form.motivo_consulta || null,
       pas: form.pas ? parseInt(form.pas) : null,
       pad: form.pad ? parseInt(form.pad) : null,
       spo2: form.spo2 ? parseFloat(form.spo2) : null,
@@ -349,12 +346,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
                 </div>
               </div>
             )}
-            {r.motivo_consulta && (
-              <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:4 }}>Motivo de consulta</div>
-                <div style={{ fontSize:12 }}>{r.motivo_consulta}</div>
-              </div>
-            )}
+
 
             {antecedentes && (
               <div style={{ marginBottom:10 }}>
@@ -507,8 +499,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
           <AntecedentesTab patient={patient} profile={profile} saveRef={antecedentesRef} />
           <div style={{ height:1, background:'#e2ede9', margin:'20px 0' }} />
 
-          <div style={sec}>Motivo de consulta</div>
-          <textarea style={{ ...inp, minHeight:70, resize:'vertical', marginBottom:8 }} value={form.motivo_consulta} onChange={f('motivo_consulta')} />
+
 
           <div style={sec}>Signos vitales generales</div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
