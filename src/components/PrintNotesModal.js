@@ -189,21 +189,21 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                       {appItems.length > 0 && (
-                        <div style={{ marginBottom:8 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Patológicos Personales (APP)</div>
+                        <div style={{ marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:4, borderBottom:'1px solid #e2e8f0', paddingBottom:2 }}>Antecedentes Patológicos Personales (APP)</div>
                           {appItems.map((item, i) => (
                             <div key={i} style={{ marginBottom:6, paddingBottom:6, borderBottom:'1px dashed #f0f0f0' }}>
-                              <div style={{ fontSize:13, fontWeight:700 }}>{item.patologia === 'Otra' ? item.otra || 'Otra' : item.patologia}</div>
-                              {item.año && <div style={{ fontSize:12, color:'#666' }}>Diagnóstico: {item.año}</div>}
-                              {item.tratamiento && <div style={{ fontSize:12, color:'#555' }}>Tratamiento: {item.tratamiento}</div>}
+                              <div style={{ fontSize:11, fontWeight:700 }}>{item.patologia === 'Otra' ? item.otra || 'Otra' : item.patologia}</div>
+                              {item.año && <div style={{ fontSize:10, color:'#666' }}>Diagnóstico: {item.año}</div>}
+                              {item.tratamiento && <div style={{ fontSize:10, color:'#555' }}>Tratamiento: {item.tratamiento}</div>}
                               {item.observaciones && <div style={{ fontSize:12, color:'#777' }}>Obs: {item.observaciones}</div>}
                             </div>
                           ))}
                         </div>
                       )}
                       {Object.keys(antData).length > 0 && (
-                        <div style={{ marginBottom:8 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes No Patológicos (APnP)</div>
+                        <div style={{ marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:4, borderBottom:'1px solid #e2e8f0', paddingBottom:2 }}>Antecedentes No Patológicos (APnP)</div>
                           <div style={{ fontSize:12, color:'#333' }}>
                             {antData.apnp_educacion && <div style={{ marginBottom:3 }}><strong>Educación:</strong> {antData.apnp_educacion}</div>}
                             {antData.apnp_estado_civil && <div style={{ marginBottom:3 }}><strong>Estado civil:</strong> {antData.apnp_estado_civil}</div>}
@@ -218,8 +218,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                         </div>
                       )}
                       {antData.ago_fum !== undefined && patient?.sex === 'female' && (
-                        <div style={{ marginBottom:8 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Gineco-Obstétricos (AGO)</div>
+                        <div style={{ marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:4, borderBottom:'1px solid #e2e8f0', paddingBottom:2 }}>Antecedentes Gineco-Obstétricos (AGO)</div>
                           <div style={{ fontSize:12, color:'#333' }}>
                             {antData.ago_fum && <div style={{ marginBottom:3 }}><strong>FUM:</strong> {antData.ago_fum}</div>}
                             {antData.ago_mpf && <div style={{ marginBottom:3 }}><strong>MPF:</strong> {antData.ago_mpf}</div>}
@@ -231,8 +231,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                         </div>
                       )}
                       {aqxItems.length > 0 && (
-                        <div style={{ marginBottom:8 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Quirúrgicos (AQx)</div>
+                        <div style={{ marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:4, borderBottom:'1px solid #e2e8f0', paddingBottom:2 }}>Antecedentes Quirúrgicos (AQx)</div>
                           {aqxItems.map((item, i) => (
                             <div key={i} style={{ marginBottom:6, paddingBottom:6, borderBottom:'1px dashed #f0f0f0' }}>
                               <div style={{ fontSize:13, fontWeight:700 }}>{item.procedimiento}</div>
@@ -244,8 +244,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                         </div>
                       )}
                       {ahfItems.length > 0 && (
-                        <div style={{ marginBottom:8 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Heredo-Familiares (AHF)</div>
+                        <div style={{ marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:4, borderBottom:'1px solid #e2e8f0', paddingBottom:2 }}>Antecedentes Heredo-Familiares (AHF)</div>
                           {ahfItems.map((item, i) => (
                             <div key={i} style={{ marginBottom:4 }}>
                               <span style={{ fontSize:12, fontWeight:600 }}>{item.patologia === 'Otra' ? item.otra : item.patologia}</span>
@@ -339,7 +339,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                         const lines = section.split('\n')
                         const isLabel = lines[0]?.endsWith(':')
                         return (
-                          <div key={si} style={{ marginBottom:8 }}>
+                          <div key={si} style={{ marginBottom:6 }}>
                             {lines.map((line, li) => (
                               <div key={li} style={{ fontSize:13, color: li===0 && isLabel ? '#1a3a5c' : '#333', fontWeight: li===0 && isLabel ? 700 : 400 }}>
                                 {line}
@@ -373,7 +373,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
 
                 {/* FIRMA */}
                 <div style={{ marginTop:32, marginBottom:24, textAlign:'center' }}>
-                  <div style={{ borderTop:'1px solid #1a3a5c', width:220, margin:'0 auto', marginBottom:8 }}></div>
+                  <div style={{ borderTop:'1px solid #1a3a5c', width:220, margin:'0 auto', marginBottom:6 }}></div>
                   <div style={{ fontSize:13, color:'#333', fontWeight:700 }}>Firma y sello de médico que autoriza</div>
                 </div>
 
