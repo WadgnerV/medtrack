@@ -467,8 +467,8 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
 
   return (
     <div>
-      {/* Sección antecedentes */}
-      {patient && <AntecedentsSection patient={patient} profile={profile} canEdit={!!profile} compact={true} />}
+      {/* Sección antecedentes — oculta en nota médica general, se maneja desde pre-consulta */}
+      {patient && moduleType !== 'general' && <AntecedentsSection patient={patient} profile={profile} canEdit={!!profile} compact={true} />}
 
       {/* Botón nueva nota */}
       {showPrint && (
