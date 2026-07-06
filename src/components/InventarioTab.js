@@ -34,7 +34,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [exchangeRate, setExchangeRate] = useState(null)
   const [historyItem, setHistoryItem] = useState(null)
   const [history, setHistory] = useState([])
-  const emptyForm = { name:'', category:'Medicamento', unit:'unidad', quantity:'', min_quantity:'', description:'', cost:'', currency:'CRC', branch_id: profile?.branch_id || '' }
+  const emptyForm = { name:'', category:'Medicamento', unit:'unidad', quantity:'', min_quantity:'', description:'', cost:'', currency:'CRC', branch_id: profile?.branch_id || '', sku:'', sale_price:'', location:'', lot:'', supplier:'', expiry_date:'' }
   const [form, setForm] = useState(emptyForm)
   const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
 
@@ -73,6 +73,12 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
       currency: form.currency,
       exchange_rate: form.currency === 'USD' ? exchangeRate : null,
       cost_in_colones: costInColones,
+      sku: form.sku || null,
+      sale_price: form.sale_price ? parseFloat(form.sale_price) : null,
+      location: form.location || null,
+      lot: form.lot || null,
+      supplier: form.supplier || null,
+      expiry_date: form.expiry_date || null,
       updated_at: new Date().toISOString(),
     }
     if (modal === 'edit') {
@@ -180,17 +186,19 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
               <th style={s.th}>Ítem</th>
               <th style={s.th}>Categoría</th>
               <th style={s.th}>Cantidad</th>
+              <th style={s.th}>Proveedor</th>
+              <th style={s.th}>Vencimiento</th>
               <th style={s.th}>Costo unit.</th>
+              <th style={s.th}>P. venta</th>
               <th style={s.th}>Valor total</th>
-              <th style={s.th}>Actualizado</th>
               <th style={s.th}></th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} style={{ ...s.td, textAlign:'center', color:'#bbb' }}>Cargando...</td></tr>
+              <tr><td colSpan={9} style={{ ...s.td, textAlign:'center', color:'#bbb' }}>Cargando...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={7} style={{ ...s.td, textAlign:'center', color:'#bbb', padding:30 }}>No hay ítems registrados</td></tr>
+              <tr><td colSpan={9} style={{ ...s.td, textAlign:'center', color:'#bbb', padding:30 }}>No hay ítems registrados</td></tr>
             ) : filtered.map(item => (
               <tr key={item.id}>
                 <td style={s.td}>
@@ -202,12 +210,21 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 </td>
                 <td style={s.td}><span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>{item.category}</span></td>
                 <td style={s.td}>{item.quantity} {item.unit}</td>
+                <td style={s.td}>{item.supplier || '—'}</td>
+                <td style={s.td}>
+                  {item.expiry_date ? (() => {
+                    const exp = new Date(item.expiry_date + 'T12:00:00')
+                    const daysLeft = Math.ceil((exp - new Date()) / (1000*60*60*24))
+                    const color = daysLeft < 0 ? '#D85A30' : daysLeft < 30 ? '#BA7517' : '#555'
+                    return <span style={{ color, fontSize:12 }}>{exp.toLocaleDateString('es-CR')}{daysLeft < 30 && <span style={{ marginLeft:4, fontSize:10 }}>{daysLeft < 0 ? '⚠ Vencido' : `⚠ ${daysLeft}d`}</span>}</span>
+                  })() : '—'}
+                </td>
                 <td style={s.td}>{item.cost ? `${item.currency === 'USD' ? '$' : '₡'}${parseFloat(item.cost).toLocaleString('es-CR')}` : '—'}</td>
+                <td style={s.td}>{item.sale_price ? `₡${parseFloat(item.sale_price).toLocaleString('es-CR')}` : '—'}</td>
                 <td style={s.td}>{item.cost ? `₡${getItemValueInColones(item).toLocaleString('es-CR', { maximumFractionDigits:0 })}` : '—'}</td>
-                <td style={s.td}>{new Date(item.updated_at).toLocaleDateString('es-CR')}</td>
                 <td style={s.td}>
                   <button style={s.btnSm} onClick={() => { loadHistory(item.id); setHistoryItem(item); setModal('history') }}>Historial</button>
-                  <button style={s.btnSm} onClick={() => { setForm({...item, quantity: String(item.quantity), min_quantity: String(item.min_quantity||''), cost: String(item.cost||'')}); setModal('edit') }}>Editar</button>
+                  <button style={s.btnSm} onClick={() => { setForm({...item, quantity: String(item.quantity), min_quantity: String(item.min_quantity||''), cost: String(item.cost||''), sale_price: String(item.sale_price||''), sku: item.sku||'', location: item.location||'', lot: item.lot||'', supplier: item.supplier||'', expiry_date: item.expiry_date||''}); setModal('edit') }}>Editar</button>
                   <button style={s.btnDel} onClick={() => handleDelete(item.id)}>Eliminar</button>
                 </td>
               </tr>
@@ -249,6 +266,28 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
             <input style={s.input} value={form.description} onChange={f('description')} placeholder="Opcional" />
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
               <div>
+                <label style={s.label}>Proveedor</label>
+                <input style={s.input} value={form.supplier} onChange={f('supplier')} placeholder="Nombre del proveedor" />
+              </div>
+              <div>
+                <label style={s.label}>Código SKU</label>
+                <input style={s.input} value={form.sku} onChange={f('sku')} placeholder="Código interno" />
+              </div>
+              <div>
+                <label style={s.label}>Lote</label>
+                <input style={s.input} value={form.lot} onChange={f('lot')} placeholder="Número de lote" />
+              </div>
+              <div>
+                <label style={s.label}>Fecha de vencimiento</label>
+                <input style={s.input} type="date" value={form.expiry_date} onChange={f('expiry_date')} />
+              </div>
+              <div>
+                <label style={s.label}>Ubicación física</label>
+                <input style={s.input} value={form.location} onChange={f('location')} placeholder="Ej: Bodega 1, Consultorio 2" />
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div>
                 <label style={s.label}>Costo unitario</label>
                 <input style={s.input} type="number" min="0" value={form.cost} onChange={f('cost')} placeholder="0" />
               </div>
@@ -258,6 +297,10 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                   <option value="CRC">Colones (₡)</option>
                   <option value="USD">Dólares ($)</option>
                 </select>
+              </div>
+              <div>
+                <label style={s.label}>Precio de venta</label>
+                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} placeholder="0" />
               </div>
             </div>
             {form.currency === 'USD' && (
