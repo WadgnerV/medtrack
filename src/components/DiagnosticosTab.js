@@ -15,7 +15,7 @@ export default function DiagnosticosTab({ patient, profile }) {
   const [searching, setSearching] = useState(false)
 
   const patientId = patient.id
-  const canEdit = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
+  const canEdit = ['clinic_admin', 'admin', 'branch_admin', 'doctor', 'superadmin'].includes(profile?.role)
 
   useEffect(() => { loadDiagnoses() }, [patientId])
 
@@ -90,7 +90,7 @@ export default function DiagnosticosTab({ patient, profile }) {
       ) : diagnoses.length === 0 ? (
         <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin diagnósticos registrados.</div>
       ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:8 }}>
           {diagnoses.map(d => {
             const author = d.diagnoser ? `${d.diagnoser.prefix||''} ${d.diagnoser.first_name} ${d.diagnoser.last_name}`.trim() : ''
             const date = d.diagnosis_date ? new Date(d.diagnosis_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' }) : ''
