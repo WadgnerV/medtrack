@@ -319,15 +319,15 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
                   {antecedentes.apnp_educacion && <AntRow label="Educación" val={antecedentes.apnp_educacion} />}
                   {antecedentes.apnp_estado_civil && <AntRow label="Estado civil" val={antecedentes.apnp_estado_civil} />}
                   {antecedentes.apnp_religion && <AntRow label="Religión" val={antecedentes.apnp_religion} />}
-                  {antecedentes.apnp_fumado && antecedentes.apnp_fumado !== 'negativo' && <AntRow label="Fumado" val={`${antecedentes.apnp_fumado}${antecedentes.apnp_fumado_paquetes_dia?` — ${antecedentes.apnp_fumado_paquetes_dia} paq/día`:''}`} />}
-                  {antecedentes.apnp_alcohol && antecedentes.apnp_alcohol !== 'negativo' && <AntRow label="Alcohol" val={`${antecedentes.apnp_alcohol}${antecedentes.apnp_alcohol_bebida?` — ${antecedentes.apnp_alcohol_bebida}`:''}`} />}
-                  {antecedentes.apnp_drogas && antecedentes.apnp_drogas !== 'negativo' && <AntRow label="Drogas" val={antecedentes.apnp_drogas} />}
-                  {antecedentes.apnp_actividad_fisica && antecedentes.apnp_actividad_fisica !== 'sedentario' && <AntRow label="Actividad física" val={antecedentes.apnp_actividad_fisica} />}
-                  {antecedentes.apnp_alergia_medicamentos?.length > 0 && <AntRow label="Alergia medicamentos" val={antecedentes.apnp_alergia_medicamentos.map(a=>a.medicamento).join(', ')} />}
-                  {antecedentes.apnp_alergia_alimentos?.length > 0 && <AntRow label="Alergia alimentos" val={antecedentes.apnp_alergia_alimentos.map(a=>a.alimento).join(', ')} />}
-                  {antecedentes.app_patologias?.length > 0 && <AntRow label="APP" val={antecedentes.app_patologias.map(p=>p.patologia==='Otra'?p.otra:p.patologia).join(', ')} />}
-                  {antecedentes.aqx_procedimientos?.length > 0 && <AntRow label="AQx" val={antecedentes.aqx_procedimientos.map(p=>p.procedimiento).join(', ')} />}
-                  {antecedentes.ahf_familiares?.length > 0 && <AntRow label="AHF" val={antecedentes.ahf_familiares.map(f=>`${f.patologia==='Otra'?f.otra:f.patologia} (${f.parentesco})`).join(', ')} />}
+                  <AntRow label="Fumado" val={antecedentes.apnp_fumado==='negativo'?'Niega':antecedentes.apnp_fumado==='activo'?`Activo${antecedentes.apnp_fumado_paquetes_dia?` — ${antecedentes.apnp_fumado_paquetes_dia} paq/día, ${antecedentes.apnp_fumado_años} años`:''}`:antecedentes.apnp_fumado==='suspendido'?`Suspendido${antecedentes.apnp_fumado_año_suspension?` (${antecedentes.apnp_fumado_año_suspension})`:''}`:''} />
+                  <AntRow label="Alcohol" val={antecedentes.apnp_alcohol==='negativo'?'Niega':antecedentes.apnp_alcohol==='ocasional/social'?`Ocasional/social${antecedentes.apnp_alcohol_bebida?` — ${antecedentes.apnp_alcohol_bebida}`:''}`:`Habitual${antecedentes.apnp_alcohol_bebida?` — ${antecedentes.apnp_alcohol_bebida}`:''}`} />
+                  <AntRow label="Drogas" val={antecedentes.apnp_drogas==='negativo'?'Niega':antecedentes.apnp_drogas==='activo'?`Activo${antecedentes.apnp_drogas_tipos?.length?` — ${antecedentes.apnp_drogas_tipos.join(', ')}`:''}`:`Suspendido${antecedentes.apnp_drogas_año_suspension?` (${antecedentes.apnp_drogas_año_suspension})`:''}`} />
+                  <AntRow label="Actividad física" val={antecedentes.apnp_actividad_fisica==='sedentario'?'Sedentario':antecedentes.apnp_actividad_fisica==='en proceso'?`En proceso${antecedentes.apnp_ejercicio_tipos?.length?` — ${antecedentes.apnp_ejercicio_tipos.join(', ')}`:''}`:antecedentes.apnp_actividad_fisica==='activo'?`Activo${antecedentes.apnp_ejercicio_tipos?.length?` — ${antecedentes.apnp_ejercicio_tipos.join(', ')}`:''}`:'Sedentario'} />
+                  <AntRow label="Alergia medicamentos" val={antecedentes.apnp_alergia_medicamentos?.length>0?antecedentes.apnp_alergia_medicamentos.map(a=>`${a.medicamento} (${a.tipo})`).join(', '):'Niega'} />
+                  <AntRow label="Alergia alimentos" val={antecedentes.apnp_alergia_alimentos?.length>0?antecedentes.apnp_alergia_alimentos.map(a=>`${a.alimento} (${a.tipo})`).join(', '):'Niega'} />
+                  <AntRow label="APP" val={antecedentes.app_patologias?.length>0?antecedentes.app_patologias.map(p=>`${p.patologia==='Otra'?p.otra:p.patologia}${p.año?` (${p.año})`:''}`).join(', '):'Niega'} />
+                  <AntRow label="AQx" val={antecedentes.aqx_procedimientos?.length>0?antecedentes.aqx_procedimientos.map(p=>`${p.procedimiento}${p.año?` (${p.año})`:''}`).join(', '):'Niega'} />
+                  <AntRow label="AHF" val={antecedentes.ahf_familiares?.length>0?antecedentes.ahf_familiares.map(f=>`${f.patologia==='Otra'?f.otra:f.patologia} (${f.parentesco})`).join(', '):'Niega'} />
                 </div>
               </div>
             )}
