@@ -142,6 +142,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   }
 
   return (
+    <>
     <div>
       {/* Métricas */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
@@ -379,5 +380,6 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
       )}
     </div>
       {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
+    </>
   )
 }
