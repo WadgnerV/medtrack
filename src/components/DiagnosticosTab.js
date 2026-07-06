@@ -49,7 +49,6 @@ export default function DiagnosticosTab({ patient, profile }) {
       cie10_description: description,
       diagnosed_by: profile?.id,
       diagnosis_date: new Date().toISOString().split('T')[0],
-      module_type: 'general',
     })
     setSearch(''); setResults([])
     await loadDiagnoses()
