@@ -744,7 +744,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       )}
 
       {/* Lista de notas — layout master-detail */}
-      {!loaded ? (
+      {showForm ? null : !loaded ? (
         <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
       ) : notes.length === 0 ? (
         <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas clínicas registradas.</div>
@@ -789,7 +789,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             )}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
