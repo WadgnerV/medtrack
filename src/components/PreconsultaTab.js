@@ -305,6 +305,29 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
               })()}
             </div>
 
+            {(r.grasa_pct||r.masa_muscular_kg||r.grasa_visceral_pt||r.ancho_cintura_cm) && (
+              <div style={{ marginBottom:10 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:6 }}>Signos constitucionales</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
+                  {r.grasa_pct && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Grasa: </span><strong>{r.grasa_pct}%</strong></div>}
+                  {r.masa_muscular_kg && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Músculo: </span><strong>{r.masa_muscular_kg} kg</strong></div>}
+                  {r.grasa_visceral_pt && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Visceral: </span><strong>{r.grasa_visceral_pt} pt</strong></div>}
+                  {r.ancho_pecho_cm && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Pecho: </span><strong>{r.ancho_pecho_cm} cm</strong></div>}
+                  {r.ancho_cintura_cm && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Cintura: </span><strong>{r.ancho_cintura_cm} cm</strong></div>}
+                  {r.ancho_muslo_cm && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Muslo: </span><strong>{r.ancho_muslo_cm} cm</strong></div>}
+                </div>
+              </div>
+            )}
+            {(r.altura_uterina_cm||r.fcf_lpm||r.tono_uterino) && (
+              <div style={{ marginBottom:10 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:6 }}>Signos obstétricos</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
+                  {r.altura_uterina_cm && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>AU: </span><strong>{r.altura_uterina_cm} cm</strong></div>}
+                  {r.tono_uterino && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Tono: </span><strong>{r.tono_uterino}</strong></div>}
+                  {r.fcf_lpm && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>FCF: </span><strong>{r.fcf_lpm} lpm</strong></div>}
+                </div>
+              </div>
+            )}
             {r.motivo_consulta && (
               <div style={{ marginBottom:10 }}>
                 <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:4 }}>Motivo de consulta</div>
@@ -328,6 +351,32 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
                   <AntRow label="APP" val={antecedentes.app_patologias?.length>0?antecedentes.app_patologias.map(p=>`${p.patologia==='Otra'?p.otra:p.patologia}${p.año?` (${p.año})`:''}`).join(', '):'Niega'} />
                   <AntRow label="AQx" val={antecedentes.aqx_procedimientos?.length>0?antecedentes.aqx_procedimientos.map(p=>`${p.procedimiento}${p.año?` (${p.año})`:''}`).join(', '):'Niega'} />
                   <AntRow label="AHF" val={antecedentes.ahf_familiares?.length>0?antecedentes.ahf_familiares.map(f=>`${f.patologia==='Otra'?f.otra:f.patologia} (${f.parentesco})`).join(', '):'Niega'} />
+                  {antecedentes.ago_fum !== undefined && antecedentes.ago_fum !== null && (<>
+                    <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginTop:6, marginBottom:2 }}>AGO</div>
+                    {antecedentes.ago_fum && <AntRow label="FUM" val={antecedentes.ago_fum} />}
+                    {antecedentes.ago_frecuencia_menstrual && <AntRow label="Ciclo menstrual" val={antecedentes.ago_frecuencia_menstrual} />}
+                    {antecedentes.ago_mpf && <AntRow label="MPF" val={antecedentes.ago_mpf} />}
+                    <AntRow label="Menopausia" val={antecedentes.ago_menopausia==='sí'?`Sí${antecedentes.ago_menopausia_año?' ('+antecedentes.ago_menopausia_año+')':''}`:antecedentes.ago_menopausia==='perimenopáusica'?'Perimenopáusica':'No'} />
+                    <AntRow label="Embarazos" val={antecedentes.ago_embarazos==='sí'?`G${antecedentes.ago_gestas||0} P${antecedentes.ago_partos||0} A${antecedentes.ago_abortos||0} C${antecedentes.ago_cesareas||0}`:'Niega'} />
+                    {antecedentes.ago_complicaciones_embarazo && antecedentes.ago_complicaciones_tipos?.length>0 && <AntRow label="Complicaciones" val={antecedentes.ago_complicaciones_tipos.join(', ')} />}
+                    {antecedentes.ago_pap_resultado && <AntRow label="Último PAP" val={`${antecedentes.ago_pap_fecha||''} — ${antecedentes.ago_pap_resultado}`} />}
+                  </>)}
+                  {antecedentes.aped_resultado_embarazo && (<>
+                    <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginTop:6, marginBottom:2 }}>APed</div>
+                    <AntRow label="Resultado embarazo" val={antecedentes.aped_resultado_embarazo} />
+                    {(antecedentes.aped_apgar_1min||antecedentes.aped_apgar_5min) && <AntRow label="Apgar" val={`1min: ${antecedentes.aped_apgar_1min} / 5min: ${antecedentes.aped_apgar_5min}`} />}
+                    <AntRow label="Resucitación" val={antecedentes.aped_resucitacion==='sí'?`Sí — ${antecedentes.aped_resucitacion_cual||''}`: 'No'} />
+                    {antecedentes.aped_peso_nacer && <AntRow label="Peso nacer" val={`${antecedentes.aped_peso_nacer} g`} />}
+                    {antecedentes.aped_estatura_nacer && <AntRow label="Talla nacer" val={`${antecedentes.aped_estatura_nacer} cm`} />}
+                    {antecedentes.aped_cc_nacer && <AntRow label="CC nacer" val={`${antecedentes.aped_cc_nacer} cm`} />}
+                    <AntRow label="Tamizaje neonatal" val={antecedentes.aped_tamizaje==='positivo'?`Positivo — ${antecedentes.aped_tamizaje_patologia||''}`: 'Negativo'} />
+                  </>)}
+                  {antecedentes.ager_estado_basal && (<>
+                    <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginTop:6, marginBottom:2 }}>AGer</div>
+                    <AntRow label="Estado basal" val={antecedentes.ager_estado_basal} />
+                    <AntRow label="Caídas" val={antecedentes.ager_caidas==='sí'?`Sí${antecedentes.ager_caidas_fecha?` (${antecedentes.ager_caidas_fecha})`:''}`:'No'} />
+                    <AntRow label="Polifarmacia" val={antecedentes.ager_polifarmacia==='sí'?'Sí':'No'} />
+                  </>)}
                 </div>
               </div>
             )}
