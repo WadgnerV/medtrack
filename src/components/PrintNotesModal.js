@@ -259,17 +259,16 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                 )}
 
                 {/* NOTAS CLÍNICAS */}
-                <div className='no-break' style={{ marginBottom:20 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
-                    Notas clínicas
-                  </div>
+                <div style={{ marginBottom:20 }}>
                   {notesToPrint.length === 0 && <div style={{ fontSize:13, color:'#999', textAlign:'center', padding:16 }}>No hay notas seleccionadas</div>}
                   {notesToPrint.map((note, idx) => {
+                    const isFirst = idx === 0
                     const noteDate = note.note_date
                     const signo = (signosVitales || []).find(s => s.note_date === noteDate)
                     const meas = (measurements || []).find(m => m.measured_at?.startsWith(noteDate))
                     return (
                     <div className="note-block" key={note.id} style={{ marginBottom:20, paddingBottom:16, borderBottom: idx < notesToPrint.length-1 ? '2px dashed #e2e8f0' : 'none' }}>
+                      {idx === 0 && <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>Notas clínicas</div>}
 
                       {/* SIGNOS VITALES (módulo integral) */}
                       {signo && moduleType === 'integral' && (
