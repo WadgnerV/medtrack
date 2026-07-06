@@ -661,7 +661,15 @@ export default function AdminDashboard() {
     let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').eq('clinic_id', profile.clinic_id).neq('status', 'inactive').order('created_at', { ascending: false })
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
-    setPatients(data || [])
+    const loadedPatients = data || []
+    setPatients(loadedPatients)
+    // Restaurar paciente seleccionado si venimos de un refresh
+    const savedId = localStorage.getItem('adminSelPatientId')
+    if (savedId && localStorage.getItem('adminView') === 'perfil-paciente') {
+      const p = loadedPatients.find(x => x.id === savedId)
+      if (p) setSelPatient(p)
+      else { localStorage.removeItem('adminSelPatientId'); setViewPersist('calendario') }
+    }
   }
 
   async function loadAvailability() {
@@ -1729,7 +1737,7 @@ export default function AdminDashboard() {
             <PatientExpediente
               patient={selPatient}
               profile={profile}
-              onBack={() => { setSelPatient(null); setViewPersist('pacientes') }}
+              onBack={() => { setSelPatient(null); localStorage.removeItem('adminSelPatientId'); setViewPersist('pacientes') }}
               canEdit={true}
               senderRole='admin'
               enabledModules={enabledModules}
