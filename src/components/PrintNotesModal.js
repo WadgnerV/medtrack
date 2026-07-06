@@ -50,6 +50,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
           <style>
             body { font-family: Arial, sans-serif; font-size: 13pt; color: #222; line-height: 1.8; margin: 20mm; }
             .note-block { page-break-inside: avoid; break-inside: avoid; } .ant-section { page-break-inside: avoid; break-inside: avoid; }
+            .no-break { page-break-before: avoid !important; break-before: avoid !important; }
+            * { orphans: 3; widows: 3; }
             * { box-sizing: border-box; }
           </style>
         </head>
@@ -257,7 +259,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                 )}
 
                 {/* NOTAS CLÍNICAS */}
-                <div style={{ marginBottom:20, breakBefore:'avoid', pageBreakBefore:'avoid' }}>
+                <div className='no-break' style={{ marginBottom:20 }}>
                   <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
                     Notas clínicas
                   </div>
