@@ -16,8 +16,13 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
   const [mode, setMode] = useState('all')
   const [selected, setSelected] = useState([])
 
-  const appItems = antecedents?.filter(a => a.type === 'app') || []
-  const aqxItems = antecedents?.filter(a => a.type === 'aqx') || []
+  // Nueva estructura patient_antecedentes — apnpData es el registro completo
+  const antData = apnpData || {}
+  const appItems = antData.app_patologias || []
+  const aqxItems = antData.aqx_procedimientos || []
+  const ahfItems = antData.ahf_familiares || []
+  const alergiasMed = antData.apnp_alergia_medicamentos || []
+  const alergiasAli = antData.apnp_alergia_alimentos || []
 
   const notesToPrint = mode === 'all' ? notes
     : mode === 'last' ? notes.slice(0, 1)
@@ -162,9 +167,9 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                       ['Fecha de nacimiento', patient?.birth_date ? fmtDate(patient.birth_date) : ''],
                       ['Edad', patient?.birth_date ? (age(patient.birth_date) + ' años') : ''],
                       ['Lugar de residencia', [patient?.province, patient?.canton].filter(Boolean).join(', ')],
-                      ['Profesión', apnpData?.occupation || ''],
-                      ['Religión', apnpData?.religion || ''],
-                      ['Estado civil', apnpData?.civil_status || ''],
+                      ['Religión', antData.apnp_religion || ''],
+                      ['Estado civil', antData.apnp_estado_civil || ''],
+                      ['Educación', antData.apnp_educacion || ''],
                     ].map(([label, value]) => (
                       <div key={label} style={fieldStyle}>
                         <span style={labelStyle}>{label}</span>
@@ -182,56 +187,67 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                       {appItems.length > 0 && (
-                        <div>
+                        <div style={{ marginBottom:8 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Patológicos Personales (APP)</div>
                           {appItems.map((item, i) => (
                             <div key={i} style={{ marginBottom:6, paddingBottom:6, borderBottom:'1px dashed #f0f0f0' }}>
-                              <div style={{ fontSize:13, fontWeight:700 }}>{item.condition === 'Otra (especificar)' || item.condition === 'Cáncer (especificar)' ? item.condition.split(' (')[0]+': '+(item.condition_other||'—') : item.condition}</div>
-                              {item.diagnosis_year && <div style={{ fontSize:12, color:'#666' }}>Diagnóstico: {item.diagnosis_year}</div>}
-                              <div style={{ fontSize:12, color:'#555' }}>Estado: {STATUS_LABELS[item.current_status]||item.current_status}</div>
-                              {item.current_treatment && <div style={{ fontSize:12, color:'#555' }}>Tratamiento: {item.current_treatment}</div>}
-                              {item.observations && <div style={{ fontSize:12, color:'#777' }}>Obs: {item.observations}</div>}
+                              <div style={{ fontSize:13, fontWeight:700 }}>{item.patologia === 'Otra' ? item.otra || 'Otra' : item.patologia}</div>
+                              {item.año && <div style={{ fontSize:12, color:'#666' }}>Diagnóstico: {item.año}</div>}
+                              {item.tratamiento && <div style={{ fontSize:12, color:'#555' }}>Tratamiento: {item.tratamiento}</div>}
+                              {item.observaciones && <div style={{ fontSize:12, color:'#777' }}>Obs: {item.observaciones}</div>}
                             </div>
                           ))}
                         </div>
                       )}
-                      {apnpData && (
-                        <div>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes No Patológicos (APNP)</div>
+                      {Object.keys(antData).length > 0 && (
+                        <div style={{ marginBottom:8 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes No Patológicos (APnP)</div>
                           <div style={{ fontSize:12, color:'#333' }}>
-                            <div style={{ marginBottom:3 }}><strong>Tabaquismo:</strong> {apnpData.smoking_status === 'no' ? 'No fumador' : apnpData.smoking_status === 'ex' ? 'Ex-fumador' : 'Fumador activo'}{apnpData.smoking_cigs_per_day ? `, ${apnpData.smoking_cigs_per_day} cig/día` : ''}{apnpData.smoking_years ? `, ${apnpData.smoking_years} años` : ''}{apnpData.smoking_cigs_per_day && apnpData.smoking_years ? ` (PA: ${((parseFloat(apnpData.smoking_cigs_per_day)/20)*parseFloat(apnpData.smoking_years)).toFixed(1)})` : ''}</div>
-                            <div style={{ marginBottom:3 }}><strong>Alcohol:</strong> {apnpData.alcohol_status === 'no' ? 'No consume' : apnpData.alcohol_status === 'occasional' ? 'Ocasional' : 'Habitual'}{apnpData.alcohol_detail ? ` — ${apnpData.alcohol_detail}` : ''}</div>
-                            <div style={{ marginBottom:3 }}><strong>Drogas:</strong> {apnpData.drugs_status === 'no' ? 'No consume' : `Sí${apnpData.drugs_detail ? ` — ${apnpData.drugs_detail}` : ''}`}</div>
-                            <div style={{ marginBottom:3 }}><strong>Ejercicio:</strong> {apnpData.exercise_status === 'no' ? 'Sedentario' : `Activo${apnpData.exercise_types?.length ? ` (${apnpData.exercise_types.join(', ')})` : ''}${apnpData.exercise_days_per_week ? `, ${apnpData.exercise_days_per_week}x/sem` : ''}${apnpData.exercise_minutes ? `, ${apnpData.exercise_minutes} min` : ''}`}</div>
-                            <div style={{ marginBottom:3 }}><strong>Dieta:</strong> {apnpData.diet_type || '—'}{apnpData.diet_observations ? ` — ${apnpData.diet_observations}` : ''}</div>
-                            {apnpData.allergies?.length > 0 && <div style={{ marginBottom:3 }}><strong>Alergias:</strong> {apnpData.allergies.map(a => `${a.type}${a.medication_name?' ('+a.medication_name+')':''}: ${a.reaction}`).join('; ')}</div>}
-                            {apnpData.education && <div style={{ marginBottom:3 }}><strong>Educación:</strong> {apnpData.education}</div>}
-                            {apnpData.observations && <div style={{ marginBottom:3 }}><strong>Observaciones:</strong> {apnpData.observations}</div>}
+                            {antData.apnp_educacion && <div style={{ marginBottom:3 }}><strong>Educación:</strong> {antData.apnp_educacion}</div>}
+                            {antData.apnp_estado_civil && <div style={{ marginBottom:3 }}><strong>Estado civil:</strong> {antData.apnp_estado_civil}</div>}
+                            {antData.apnp_religion && <div style={{ marginBottom:3 }}><strong>Religión:</strong> {antData.apnp_religion}</div>}
+                            <div style={{ marginBottom:3 }}><strong>Fumado:</strong> {antData.apnp_fumado === 'negativo' ? 'No fumador' : antData.apnp_fumado === 'activo' ? `Activo${antData.apnp_fumado_paquetes_dia ? ` — ${antData.apnp_fumado_paquetes_dia} paq/día` : ''}${antData.apnp_fumado_años ? `, ${antData.apnp_fumado_años} años` : ''}` : `Suspendido${antData.apnp_fumado_año_suspension ? ` (${antData.apnp_fumado_año_suspension})` : ''}`}</div>
+                            <div style={{ marginBottom:3 }}><strong>Alcohol:</strong> {antData.apnp_alcohol === 'negativo' ? 'No consume' : `${antData.apnp_alcohol}${antData.apnp_alcohol_bebida ? ` — ${antData.apnp_alcohol_bebida}` : ''}`}</div>
+                            <div style={{ marginBottom:3 }}><strong>Drogas:</strong> {antData.apnp_drogas === 'negativo' ? 'No consume' : `${antData.apnp_drogas}${antData.apnp_drogas_tipos?.length ? ` — ${antData.apnp_drogas_tipos.join(', ')}` : ''}`}</div>
+                            <div style={{ marginBottom:3 }}><strong>Actividad física:</strong> {antData.apnp_actividad_fisica === 'sedentario' ? 'Sedentario' : `${antData.apnp_actividad_fisica}${antData.apnp_ejercicio_tipos?.length ? ` — ${antData.apnp_ejercicio_tipos.join(', ')}` : ''}${antData.apnp_ejercicio_veces_semana ? `, ${antData.apnp_ejercicio_veces_semana}x/sem` : ''}`}</div>
+                            {alergiasMed.length > 0 && <div style={{ marginBottom:3 }}><strong>Alergias medicamentos:</strong> {alergiasMed.map(a => `${a.medicamento} (${a.tipo})`).join('; ')}</div>}
+                            {alergiasAli.length > 0 && <div style={{ marginBottom:3 }}><strong>Alergias alimentos:</strong> {alergiasAli.map(a => `${a.alimento} (${a.tipo})`).join('; ')}</div>}
                           </div>
                         </div>
                       )}
-                      {agoData && patient?.sex === 'female' && (
-                        <div>
+                      {antData.ago_fum !== undefined && patient?.sex === 'female' && (
+                        <div style={{ marginBottom:8 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Gineco-Obstétricos (AGO)</div>
                           <div style={{ fontSize:12, color:'#333' }}>
-                            {agoData.fum && <div style={{ marginBottom:3 }}><strong>FUM:</strong> {fmtDate(agoData.fum)}</div>}
-                            {agoData.planning_method && <div style={{ marginBottom:3 }}><strong>Planificación:</strong> {agoData.planning_method}</div>}
-                            {agoData.cycle_type && <div style={{ marginBottom:3 }}><strong>Ciclo:</strong> {agoData.cycle_type === 'regular' ? 'Regular' : 'Irregular'}</div>}
-                            {agoData.bleeding_amount && <div style={{ marginBottom:3 }}><strong>Sangrado:</strong> {BLEEDING_LABELS[agoData.bleeding_amount]||agoData.bleeding_amount}</div>}
-                            <div style={{ marginBottom:3 }}><strong>GPAC:</strong> G{agoData.gestas||0} P{agoData.partos||0} A{agoData.abortos||0} C{agoData.cesareas||0}</div>
-                            {agoData.menopause === 'yes' && <div style={{ marginBottom:3 }}><strong>Menopausia:</strong> Sí, desde {agoData.menopause_year||'—'}. TRH: {agoData.hrt==='yes'?'Sí actualmente':agoData.hrt==='past'?'Anteriormente':'No'}{agoData.hrt_detail?` (${agoData.hrt_detail})`:''}</div>}
-                            {agoData.last_pap && <div style={{ marginBottom:3 }}><strong>Último PAP:</strong> {fmtDate(agoData.last_pap)} — {PAP_LABELS[agoData.pap_result]||agoData.pap_result||'—'}</div>}
+                            {antData.ago_fum && <div style={{ marginBottom:3 }}><strong>FUM:</strong> {antData.ago_fum}</div>}
+                            {antData.ago_mpf && <div style={{ marginBottom:3 }}><strong>MPF:</strong> {antData.ago_mpf}</div>}
+                            {antData.ago_frecuencia_menstrual && <div style={{ marginBottom:3 }}><strong>Ciclo:</strong> {antData.ago_frecuencia_menstrual}</div>}
+                            {antData.ago_embarazos === 'sí' && <div style={{ marginBottom:3 }}><strong>GPAC:</strong> G{antData.ago_gestas||0} P{antData.ago_partos||0} A{antData.ago_abortos||0} C{antData.ago_cesareas||0}</div>}
+                            {antData.ago_menopausia === 'sí' && <div style={{ marginBottom:3 }}><strong>Menopausia:</strong> Sí{antData.ago_menopausia_año ? ` desde ${antData.ago_menopausia_año}` : ''}</div>}
+                            {antData.ago_pap_fecha && <div style={{ marginBottom:3 }}><strong>Último PAP:</strong> {antData.ago_pap_fecha} — {antData.ago_pap_resultado || '—'}</div>}
                           </div>
                         </div>
                       )}
                       {aqxItems.length > 0 && (
-                        <div>
+                        <div style={{ marginBottom:8 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Quirúrgicos (AQx)</div>
                           {aqxItems.map((item, i) => (
                             <div key={i} style={{ marginBottom:6, paddingBottom:6, borderBottom:'1px dashed #f0f0f0' }}>
-                              <div style={{ fontSize:13, fontWeight:700 }}>{item.condition}</div>
-                              {item.diagnosis_year && <div style={{ fontSize:12, color:'#666' }}>Año: {item.diagnosis_year}</div>}
-                              {item.observations && <div style={{ fontSize:12, color:'#555' }}>{item.observations}</div>}
+                              <div style={{ fontSize:13, fontWeight:700 }}>{item.procedimiento}</div>
+                              {item.año && <div style={{ fontSize:12, color:'#666' }}>Año: {item.año}</div>}
+                              {item.complicaciones && <div style={{ fontSize:12, color:'#555' }}>Complicaciones: {item.complicaciones}</div>}
+                              {item.observaciones && <div style={{ fontSize:12, color:'#555' }}>{item.observaciones}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {ahfItems.length > 0 && (
+                        <div style={{ marginBottom:8 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6, borderBottom:'1px solid #e2e8f0', paddingBottom:3 }}>Antecedentes Heredo-Familiares (AHF)</div>
+                          {ahfItems.map((item, i) => (
+                            <div key={i} style={{ marginBottom:4 }}>
+                              <span style={{ fontSize:12, fontWeight:600 }}>{item.patologia === 'Otra' ? item.otra : item.patologia}</span>
+                              {item.parentesco && <span style={{ fontSize:12, color:'#666' }}> — {item.parentesco}</span>}
                             </div>
                           ))}
                         </div>

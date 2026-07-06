@@ -235,7 +235,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     setLastConsultType(pc?.consultation_type || '')
     const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }, { data: treatData }, { data: diagData }] = await Promise.all([
       supabase.from('clinical_notes').select('*, author:recorded_by(first_name, last_name, prefix)').eq('patient_id', patientId).eq('module_type', moduleType).order('note_date', { ascending: false }),
-      supabase.from('patient_antecedents').select('*').eq('patient_id', patientId),
+      supabase.from('patient_antecedentes').select('*').eq('patient_id', patientId).maybeSingle(),
       supabase.from('clinic_settings').select('*').limit(1).single(),
       supabase.from('measurements').select('*').eq('patient_id', patientId).order('measured_at', { ascending: false }),
       supabase.from('clinical_notes').select('*').eq('patient_id', patientId).eq('module_type', moduleType).not('pas', 'is', null).order('note_date', { ascending: false }),
@@ -243,9 +243,9 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       supabase.from('patient_diagnoses').select('*').eq('patient_id', patientId).eq('is_active', true).order('diagnosis_date', { ascending: false }),
     ])
     setNotes(notesData || [])
-    setAntecedents(antData || [])
-    setApnpData((antData||[]).find(a=>a.type==='apnp')?.apnp_data || null)
-    setAgoData((antData||[]).find(a=>a.type==='ago')?.ago_data || null)
+    setAntecedents(antData ? [antData] : [])
+    setApnpData(antData || null)
+    setAgoData(antData || null)
     setClinicSettings(cs || null)
     setMeasurements(measData || [])
     setSignosVitales(signosData || [])
