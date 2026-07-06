@@ -8,6 +8,8 @@ export default function NotificationBell({ profile }) {
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unread, setUnread] = useState(0)
+  const [popup, setPopup] = useState(null)
+  const popupTimer = useRef(null)
   const panelRef = useRef(null)
 
   useEffect(() => {
@@ -23,6 +25,11 @@ export default function NotificationBell({ profile }) {
       }, payload => {
         setNotifications(p => [payload.new, ...p])
         setUnread(p => p + 1)
+        if (payload.new.type === 'preconsult_ready') {
+          setPopup(payload.new)
+          clearTimeout(popupTimer.current)
+          popupTimer.current = setTimeout(() => setPopup(null), 8000)
+        }
       })
       .subscribe()
 
@@ -85,9 +92,26 @@ export default function NotificationBell({ profile }) {
     patient: '🧑‍⚕️',
     clinic: '🏢',
     admin: '👔',
+    preconsult_ready: '🟢',
   }[type] || '🔔')
 
   return (
+    <>
+    {popup && (
+      <div style={{ position:'fixed', bottom:24, right:24, zIndex:9999, width:300, background:'#fff', borderRadius:14, boxShadow:'0 8px 32px rgba(0,0,0,0.18)', border:`2px solid #0F6E56`, overflow:'hidden', fontFamily:'Inter, sans-serif', animation:'slideIn 0.3s ease' }}>
+        <div style={{ background:'#0F6E56', padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ fontSize:16 }}>🟢</span>
+            <span style={{ fontSize:13, fontWeight:700, color:'#fff' }}>Paciente listo</span>
+          </div>
+          <button onClick={() => setPopup(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.8)', fontSize:18, lineHeight:1 }}>×</button>
+        </div>
+        <div style={{ padding:'12px 14px' }}>
+          <div style={{ fontSize:13, color:'#333', marginBottom:4 }}>{popup.message}</div>
+          <div style={{ fontSize:11, color:'#aaa' }}>{fmtTime(popup.created_at)}</div>
+        </div>
+      </div>
+    )}
     <div style={{ position: 'relative' }} ref={panelRef}>
       {/* Campanita */}
       <button onClick={toggleOpen}
@@ -143,5 +167,6 @@ export default function NotificationBell({ profile }) {
         </div>
       )}
     </div>
+    </>
   )
 }
