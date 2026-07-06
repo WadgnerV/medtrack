@@ -143,7 +143,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
 
   const [careModules, setCareModules] = useState([])
   const [expandidos, setExpandidos] = useState({})
-  const [seccion, setSeccion] = useState(null)
+  const [seccion, setSeccion] = useState({ type: 'extra', key: 'preconsulta' })
 
   useEffect(() => {
     if (patient?.id) loadCareModules()
