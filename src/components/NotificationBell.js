@@ -73,6 +73,14 @@ export default function NotificationBell({ profile }) {
     }
   }
 
+  const renderMsg = msg => {
+    const parts = msg.split(/\*\*(.+?)\*\*/)
+    return parts.map((part, i) => i % 2 === 1
+      ? <strong key={i}>{part}</strong>
+      : part
+    )
+  }
+
   const fmtTime = ts => {
     const d = new Date(ts)
     const now = new Date()
@@ -109,7 +117,7 @@ export default function NotificationBell({ profile }) {
           <button onClick={() => setPopup(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.8)', fontSize:18, lineHeight:1 }}>×</button>
         </div>
         <div style={{ padding:'12px 14px' }}>
-          <div style={{ fontSize:13, color:'#333', marginBottom:4 }}>{popup.message}</div>
+          <div style={{ fontSize:13, color:'#333', marginBottom:4 }}>{renderMsg(popup.message)}</div>
           <div style={{ fontSize:11, color:'#aaa' }}>{fmtTime(popup.created_at)}</div>
         </div>
       </div>
@@ -157,7 +165,7 @@ export default function NotificationBell({ profile }) {
                 style={{ display: 'flex', gap: 12, padding: '12px 16px', borderBottom: '1px solid #f5f5f5', background: n.is_read ? '#fff' : '#f0fdf9', transition: 'background 0.2s' }}>
                 <div style={{ flexShrink: 0, marginTop: 2, width:16, height:16 }}>{typeIcon(n.type)}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: '#1a1a1a', lineHeight: 1.5, marginBottom: 4 }}>{n.message}</div>
+                  <div style={{ fontSize: 13, color: '#1a1a1a', lineHeight: 1.5, marginBottom: 4 }}>{renderMsg(n.message)}</div>
                   <div style={{ fontSize: 11, color: '#bbb' }}>{fmtTime(n.created_at)}</div>
                 </div>
                 {!n.is_read && (

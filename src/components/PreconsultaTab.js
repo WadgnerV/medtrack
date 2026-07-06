@@ -174,7 +174,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
           clinic_id: profile.clinic_id,
           type: 'preconsult_ready',
           title: 'Paciente listo',
-          message: `${patientName} ya pasó por pre-consulta y está listo para ser atendido.`,
+          message: `El paciente **${patientName}** agendado para su cita con fecha ${todayAppointment?.appointment_date ? new Date(todayAppointment.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' }) : ''} a las ${todayAppointment?.appointment_time?.slice(0,5) || ''} ya terminó el proceso de preconsulta y está listo para ser atendido.`,
           is_read: false,
           sender_id: profile.id,
           data: { appointment_id: todayAppointment?.id || null, patient_id: patient.profile?.id || patient.id }
