@@ -40,7 +40,7 @@ const emptyForm = {
   motivo: '', padecimiento: '', examen: '', procedimiento: '', tratamiento: '',
   imagenes: '', laboratorios: '',
   planOpciones: [], planOtroChecked: false, planOtro: '',
-  note_date: new Date().toISOString().split('T')[0]
+  note_date: new Date().toISOString().split('T')[0],
   consultation_type: '',
 }
 
