@@ -6,6 +6,19 @@ import { supabase } from '../lib/supabase'
 import AntecedentsSection from './AntecedentsSection'
 import PrintNotesModal from './PrintNotesModal'
 
+const CONSULTATION_TYPES = [
+  { value: 'integral',     label: 'Consulta médica integral' },
+  { value: 'metabolica',   label: 'Consulta metabólica' },
+  { value: 'estetica',     label: 'Consulta estética' },
+  { value: 'regenerativa', label: 'Consulta regenerativa' },
+  { value: 'obstetrica',   label: 'Consulta obstétrica' },
+  { value: 'pediatrica',   label: 'Consulta pediátrica' },
+  { value: 'geriatrica',   label: 'Consulta geriátrica' },
+  { value: 'psicologia',   label: 'Psicología' },
+  { value: 'fisioterapia', label: 'Terapia física' },
+  { value: 'nutricion',    label: 'Nutrición' },
+]
+
 const CONSULTATION_TYPE_COLORS = {
   integral:      '#F59E0B',
   metabolica:    '#F97316',
