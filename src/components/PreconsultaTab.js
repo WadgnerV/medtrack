@@ -75,6 +75,13 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   const [expandedId, setExpandedId] = useState(null)
 
   const canEdit = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
+  const isEditable = (r) => {
+    if (!canEdit) return false
+    const recorded = new Date(r.recorded_at)
+    const now = new Date()
+    const diffHours = (now - recorded) / (1000 * 60 * 60)
+    return diffHours < 24
+  }
   const antecedentesRef = useRef(null)
 
   useEffect(() => { if (patient?.id) loadRecords() }, [patient?.id])
@@ -286,7 +293,13 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
             </span>
             {canEdit && (
               <>
-                <button onClick={e=>{e.stopPropagation();startEdit(r)}} style={{ background:'none', border:'0.5px solid #e2ede9', borderRadius:6, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#555' }}>Editar</button>
+                {isEditable(r) ? (
+                  <button onClick={e=>{e.stopPropagation();startEdit(r)}} style={{ background:'none', border:'0.5px solid #e2ede9', borderRadius:6, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#555' }}>Editar</button>
+                ) : (
+                  <span title="No editable — han pasado más de 24 horas" style={{ fontSize:11, color:'#ccc', padding:'3px 8px', display:'flex', alignItems:'center', gap:3 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Bloqueado
+                  </span>
+                )}
                 <button onClick={e=>{e.stopPropagation();handleDelete(r.id)}} style={{ background:'none', border:'0.5px solid #fde0e0', borderRadius:6, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#D85A30' }}>Eliminar</button>
               </>
             )}
