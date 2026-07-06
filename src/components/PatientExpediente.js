@@ -206,8 +206,9 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (!seccion) return { label: '', Icon: null, moduloLabel: '' }
     if (seccion.type === 'extra') {
       const extraMap = {
+        preconsulta:     { label: 'Pre-consulta',          Icon: Stethoscope   },
+        nota_medica:     { label: 'Nota médica',           Icon: FileText      },
         chat:            { label: 'Chat',                  Icon: MessageSquare },
-        asignacion:      { label: 'Asignación de módulos', Icon: Settings      },
         documentos:      { label: 'Documentos',            Icon: Paperclip     },
         consentimientos: { label: 'Consentimientos',       Icon: ClipboardList },
       }
@@ -248,10 +249,10 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
 
   const menuExtras = [
     { key: 'preconsulta',     label: 'Pre-consulta',        Icon: Stethoscope   },
+    { key: 'nota_medica',     label: 'Nota médica',           Icon: FileText      },
     { key: 'chat',            label: 'Chat',                  Icon: MessageSquare },
     { key: 'documentos',      label: 'Documentos',            Icon: Paperclip     },
     { key: 'consentimientos', label: 'Consentimientos',       Icon: ClipboardList },
-    ...(canEdit ? [{ key: 'asignacion', label: 'Asignación de módulos', Icon: Settings }] : []),
   ]
 
   return (
