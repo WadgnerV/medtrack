@@ -165,8 +165,11 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     if (ready) {
       const doctorId = todayAppointment?.doctor_id || null
       const patientName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
+      console.log('todayAppointment:', todayAppointment)
+      console.log('doctorId:', doctorId)
+      console.log('patientName:', patientName)
       if (doctorId) {
-        await supabase.from('notifications').insert({
+        const { error: notifError } = await supabase.from('notifications').insert({
           profile_id: doctorId,
           clinic_id: profile.clinic_id,
           type: 'preconsult_ready',
@@ -176,6 +179,10 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
           sender_id: profile.id,
           data: { appointment_id: todayAppointment?.id || null, patient_id: patient.profile?.id || patient.id }
         })
+        if (notifError) console.error('Error notificación:', notifError)
+        else console.log('Notificación enviada OK')
+      } else {
+        console.log('Sin doctor asignado, no se notifica')
       }
     }
     await loadRecords()
