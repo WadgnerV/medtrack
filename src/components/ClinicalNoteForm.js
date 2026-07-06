@@ -235,7 +235,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     setLastConsultType(pc?.consultation_type || '')
     const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }, { data: treatData }, { data: diagData }] = await Promise.all([
       supabase.from('clinical_notes').select('*, author:recorded_by(first_name, last_name, prefix)').eq('patient_id', patientId).eq('module_type', moduleType).order('note_date', { ascending: false }),
-      supabase.from('patient_antecedentes').select('*').eq('patient_id', patientId).maybeSingle(),
+      supabase.from('patient_antecedentes').select('*').eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId).maybeSingle(),
       supabase.from('clinic_settings').select('*').limit(1).single(),
       supabase.from('measurements').select('*').eq('patient_id', patientId).order('measured_at', { ascending: false }),
       supabase.from('clinical_notes').select('*').eq('patient_id', patientId).eq('module_type', moduleType).not('pas', 'is', null).order('note_date', { ascending: false }),
