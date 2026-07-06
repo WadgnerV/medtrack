@@ -163,7 +163,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
       await supabase.from('preconsult_records').insert(payload)
     }
     if (ready) {
-      const doctorId = todayAppointment?.doctor_id || patient.assigned_doctor_id
+      const doctorId = todayAppointment?.doctor_id || null
       const patientName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
       if (doctorId) {
         await supabase.from('notifications').insert({
