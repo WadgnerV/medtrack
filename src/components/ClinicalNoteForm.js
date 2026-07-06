@@ -174,6 +174,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [showPrint, setShowPrint] = useState(false)
+  const [selectedNoteId, setSelectedNoteId] = useState(null)
   const [measurements, setMeasurements] = useState([])
   const [signosVitales, setSignosVitales] = useState([])
   const [treatments, setTreatments] = useState([])
@@ -685,12 +686,50 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
         </div>
       )}
 
-      {/* Lista de notas */}
+      {/* Lista de notas — layout master-detail */}
       {!loaded ? (
         <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
       ) : notes.length === 0 ? (
         <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin notas clínicas registradas.</div>
-      ) : notes.map(n => <CollapsibleNote key={n.id} n={n} color={G} onEdit={startEdit} onDelete={deleteNote} patient={patient} />)}
+      ) : (
+        <div style={{ display:'flex', height:'calc(100vh - 220px)', border:'0.5px solid #e2ede9', borderRadius:12, overflow:'hidden' }}>
+          {/* Columna izquierda */}
+          <div style={{ width:220, flexShrink:0, borderRight:'0.5px solid #e2ede9', overflowY:'auto', background:'#f8fbf9' }}>
+            {notes.map(n => {
+              const isSelected = selectedNoteId === n.id
+              const date = new Date(n.note_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })
+              const locked = (new Date() - new Date(n.created_at)) / (1000*60*60) >= 24
+              return (
+                <div key={n.id} onClick={() => setSelectedNoteId(isSelected ? null : n.id)}
+                  style={{ padding:'12px 14px', cursor:'pointer', borderBottom:'0.5px solid #e2ede9',
+                    background: isSelected ? '#E1F5EE' : '#f8fbf9',
+                    borderLeft: isSelected ? `3px solid ${G}` : '3px solid transparent' }}>
+                  <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
+                  {n.motivo && <div style={{ fontSize:11, color:'#888', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.motivo}</div>}
+                  <div style={{ marginTop:4, display:'flex', alignItems:'center', gap:6 }}>
+                    {locked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
+                    <span style={{ fontSize:10, color: locked?'#ccc':'#888' }}>{n.author?.prefix||''} {n.author?.first_name} {n.author?.last_name}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {/* Columna derecha — detalle */}
+          <div style={{ flex:1, overflowY:'auto', background:'#fff' }}>
+            {selectedNoteId ? (
+              (() => {
+                const n = notes.find(x => x.id === selectedNoteId)
+                if (!n) return null
+                return <CollapsibleNote key={n.id} n={n} color={G} onEdit={startEdit} onDelete={deleteNote} patient={patient} forceExpanded={true} />
+              })()
+            ) : (
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', color:'#ccc', fontSize:13 }}>
+                Seleccioná una nota para ver el detalle
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
