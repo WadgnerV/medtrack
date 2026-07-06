@@ -478,8 +478,13 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       note_text: text, note_date: form.note_date || new Date().toISOString().split('T')[0],
       recorded_by: user.id,
     }
-    if (editingId) await supabase.from('clinical_notes').update(payload).eq('id', editingId)
-    else await supabase.from('clinical_notes').insert(payload)
+    if (editingId) {
+      const { error: updateErr } = await supabase.from('clinical_notes').update(payload).eq('id', editingId)
+      if (updateErr) console.error('Error update:', updateErr)
+    } else {
+      const { error: insertErr } = await supabase.from('clinical_notes').insert(payload)
+      if (insertErr) console.error('Error insert:', insertErr)
+    }
     setForm(emptyForm); setEditingId(null); setShowForm(false)
     await load(); setSaving(false)
   }
