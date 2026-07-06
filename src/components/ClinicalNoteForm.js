@@ -6,6 +6,19 @@ import { supabase } from '../lib/supabase'
 import AntecedentsSection from './AntecedentsSection'
 import PrintNotesModal from './PrintNotesModal'
 
+const CONSULTATION_TYPE_COLORS = {
+  integral:      '#F59E0B',
+  metabolica:    '#F97316',
+  estetica:      '#A855F7',
+  regenerativa:  '#3B82F6',
+  obstetrica:    '#EC4899',
+  pediatrica:    '#22C55E',
+  geriatrica:    '#6B7280',
+  psicologia:    '#92400E',
+  fisioterapia:  '#EF4444',
+  nutricion:     '#F97316',
+}
+
 const PLAN_OPTIONS = [
   'Cita control asignada',
   'Consultar en caso de ser necesario',
