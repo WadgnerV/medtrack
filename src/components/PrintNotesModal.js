@@ -48,9 +48,11 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
           <meta charset="utf-8">
           <title>Notas clínicas</title>
           <style>
-            body { font-family: Arial, sans-serif; font-size: 13pt; color: #222; line-height: 1.8; margin: 20mm; }
-            .note-block { page-break-inside: avoid; break-inside: avoid; }
+            body { font-family: Arial, sans-serif; font-size: 11pt; color: #222; line-height: 1.6; margin: 15mm; }
             * { box-sizing: border-box; }
+            @media print {
+              body { margin: 10mm 15mm; }
+            }
           </style>
         </head>
         <body>${printContent}</body>
