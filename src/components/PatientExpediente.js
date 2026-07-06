@@ -286,12 +286,12 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
         </div>
 
         <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
-          {orderedModules.length > 0 && (
+          {false && orderedModules.length > 0 && (
             <div style={{ padding: '0 14px 6px', fontSize: 10, color: '#8aab9a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
               Módulos activos
             </div>
           )}
-          {orderedModules.map(mod => {
+          {false && orderedModules.map(mod => {
             const Icono = mod.icon
             const expandido = expandidos[mod.id]
             const moduloActivo = seccion?.type === 'modulo' && seccion?.moduleType === mod.id
