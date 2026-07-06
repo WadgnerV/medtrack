@@ -28,7 +28,6 @@ export default function NotificationBell({ profile }) {
         if (payload.new.type === 'preconsult_ready') {
           setPopup(payload.new)
           clearTimeout(popupTimer.current)
-          popupTimer.current = setTimeout(() => setPopup(null), 8000)
         }
       })
       .subscribe()
