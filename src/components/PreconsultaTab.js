@@ -5,6 +5,19 @@ import AntecedentesTab from './AntecedentesTab'
 const G = '#0F6E56'
 const BLUE = '#1a3a5c'
 
+const CONSULTATION_TYPE_COLORS = {
+  integral:      '#F59E0B',
+  metabolica:    '#F97316',
+  estetica:      '#A855F7',
+  regenerativa:  '#3B82F6',
+  obstetrica:    '#EC4899',
+  pediatrica:    '#22C55E',
+  geriatrica:    '#6B7280',
+  psicologia:    '#92400E',
+  fisioterapia:  '#EF4444',
+  nutricion:     '#F97316',
+}
+
 const CONSULTATION_TYPES = [
   { value: 'integral', label: 'Consulta médica integral' },
   { value: 'metabolica', label: 'Consulta metabólica' },
@@ -447,7 +460,12 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
                     style={{ padding:'12px 14px', cursor:'pointer', borderBottom:'0.5px solid #e2ede9',
                       background: isSelected ? '#E1F5EE' : '#f8fbf9',
                       borderLeft: isSelected ? `3px solid ${G}` : '3px solid transparent' }}>
-                    <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
+                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                      {r.consultation_type && (
+                        <div style={{ width:8, height:8, borderRadius:'50%', flexShrink:0, background: CONSULTATION_TYPE_COLORS[r.consultation_type] || '#ccc' }} />
+                      )}
+                      <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
+                    </div>
                     <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>
                       {new Date(r.recorded_at).toLocaleTimeString('es-CR', { hour:'2-digit', minute:'2-digit', hour12:false })} hrs
                     </div>

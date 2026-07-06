@@ -41,6 +41,7 @@ const emptyForm = {
   imagenes: '', laboratorios: '',
   planOpciones: [], planOtroChecked: false, planOtro: '',
   note_date: new Date().toISOString().split('T')[0]
+  consultation_type: '',
 }
 
 function parseNoteText(text) {
@@ -169,6 +170,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [notes, setNotes] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const [lastConsultType, setLastConsultType] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -193,6 +195,16 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   useEffect(() => { if (profile?.clinic_id && moduleType) loadTemplates() }, [profile?.clinic_id, moduleType])
 
   async function load() {
+    // Cargar tipo de consulta de la preconsulta más reciente
+    const today = new Date().toISOString().split('T')[0]
+    const { data: pc } = await supabase.from('preconsult_records')
+      .select('consultation_type')
+      .eq('patient_id', patientId)
+      .gte('recorded_at', today + 'T00:00:00')
+      .order('recorded_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (pc?.consultation_type) setLastConsultType(pc.consultation_type)
     const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }, { data: treatData }, { data: diagData }] = await Promise.all([
       supabase.from('clinical_notes').select('*, author:recorded_by(first_name, last_name, prefix)').eq('patient_id', patientId).eq('module_type', moduleType).order('note_date', { ascending: false }),
       supabase.from('patient_antecedents').select('*').eq('patient_id', patientId),
@@ -436,7 +448,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     const payload = {
-      patient_id: patientId, module_type: moduleType,
+      patient_id: patientId, module_type: moduleType, consultation_type: form.consultation_type || null,
       note_text: text, note_date: form.note_date || new Date().toISOString().split('T')[0],
       recorded_by: user.id,
     }
@@ -494,7 +506,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
           {notes.length > 0 && (
             <button onClick={() => setShowPrint(true)} style={{ background:'#f0f4f8', color:'#1a3a5c', border:'1px solid #e2e8f0', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imprimir notas</button>
           )}
-          <button onClick={() => { setShowForm(true); setForm(emptyForm); setEditingId(null) }}
+          <button onClick={() => { setShowForm(true); setForm({ ...emptyForm, consultation_type: lastConsultType }); setEditingId(null) }}
             style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
             + Nueva nota
           </button>
@@ -511,6 +523,18 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
           </div>
 
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+            {/* Tipo de consulta */}
+            <div>
+              <label style={label}>Tipo de consulta</label>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                {form.consultation_type && <div style={{ width:10, height:10, borderRadius:'50%', background: CONSULTATION_TYPE_COLORS[form.consultation_type] || '#ccc', flexShrink:0 }} />}
+                <select style={{ ...inp1, flex:1 }} value={form.consultation_type} onChange={e => setForm(p => ({ ...p, consultation_type: e.target.value }))}>
+                  <option value="">Seleccionar tipo...</option>
+                  {CONSULTATION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+            </div>
+
             {/* Fecha */}
             <div>
               <label style={label}>Fecha de la nota</label>
@@ -704,7 +728,10 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                   style={{ padding:'12px 14px', cursor:'pointer', borderBottom:'0.5px solid #e2ede9',
                     background: isSelected ? '#E1F5EE' : '#f8fbf9',
                     borderLeft: isSelected ? `3px solid ${G}` : '3px solid transparent' }}>
-                  <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    {n.consultation_type && <div style={{ width:8, height:8, borderRadius:'50%', flexShrink:0, background: CONSULTATION_TYPE_COLORS[n.consultation_type] || '#ccc' }} />}
+                    <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
+                  </div>
                   {n.motivo && <div style={{ fontSize:11, color:'#888', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.motivo}</div>}
                   <div style={{ marginTop:4, display:'flex', alignItems:'center', gap:6 }}>
                     {locked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
