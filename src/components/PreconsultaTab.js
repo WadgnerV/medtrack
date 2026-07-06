@@ -428,7 +428,48 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
       {!showForm && (
         loading ? <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
         : records.length === 0 ? <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin registros de pre-consulta.</div>
-        : records.map(r => <QuickView key={r.id} r={r} />)
+        : (
+          <div style={{ display:'flex', gap:0, minHeight:400, border:'0.5px solid #e2ede9', borderRadius:12, overflow:'hidden' }}>
+            {/* Columna izquierda — lista */}
+            <div style={{ width:220, flexShrink:0, borderRight:'0.5px solid #e2ede9', overflowY:'auto', background:'#f8fbf9' }}>
+              {records.map(r => {
+                const isSelected = expandedId === r.id
+                const date = new Date(r.recorded_at).toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })
+                const consType = CONSULTATION_TYPES.find(c => c.value === r.consultation_type)
+                return (
+                  <div key={r.id} onClick={() => setExpandedId(isSelected ? null : r.id)}
+                    style={{ padding:'12px 14px', cursor:'pointer', borderBottom:'0.5px solid #e2ede9',
+                      background: isSelected ? '#E1F5EE' : '#f8fbf9',
+                      borderLeft: isSelected ? `3px solid ${G}` : '3px solid transparent' }}>
+                    <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
+                    <div style={{ fontSize:11, color:'#888', marginTop:2 }}>{consType?.label || '—'}</div>
+                    <div style={{ marginTop:4 }}>
+                      <span style={{ fontSize:10, fontWeight:500, padding:'2px 7px', borderRadius:20,
+                        background: r.status==='ready'?'#E1F5EE':'#f0f4f8',
+                        color: r.status==='ready'?G:'#888' }}>
+                        {r.status==='ready'?'Trasladado':'Borrador'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            {/* Columna derecha — detalle */}
+            <div style={{ flex:1, overflowY:'auto', background:'#fff' }}>
+              {expandedId ? (
+                (() => {
+                  const r = records.find(x => x.id === expandedId)
+                  if (!r) return null
+                  return <QuickView r={r} />
+                })()
+              ) : (
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', color:'#ccc', fontSize:13 }}>
+                  Seleccioná una pre-consulta para ver el detalle
+                </div>
+              )}
+            </div>
+          </div>
+        )
       )}
 
       {showForm && (
