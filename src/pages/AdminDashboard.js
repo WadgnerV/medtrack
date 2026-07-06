@@ -360,7 +360,6 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const { patientId: urlPatientId } = useParams()
   const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config','sucursales','perfil-paciente'].includes(v) ? v : 'calendario' })
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
   function setSelPatientPersist(p) { 
@@ -1730,7 +1729,7 @@ export default function AdminDashboard() {
             <PatientExpediente
               patient={selPatient}
               profile={profile}
-              onBack={() => { setSelPatient(null); setViewPersist('pacientes'); navigate('/admin') }}
+              onBack={() => { setSelPatient(null); setViewPersist('pacientes') }}
               canEdit={true}
               senderRole='admin'
               enabledModules={enabledModules}
