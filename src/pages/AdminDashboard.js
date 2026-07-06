@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import DocumentosTab from '../components/DocumentosTab'
@@ -360,8 +360,14 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config','sucursales'].includes(v) ? v : 'calendario' })
+  const { patientId: urlPatientId } = useParams()
+  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config','sucursales','perfil-paciente'].includes(v) ? v : 'calendario' })
   function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
+  function setSelPatientPersist(p) { 
+    if (p) localStorage.setItem('adminSelPatientId', p.id)
+    else localStorage.removeItem('adminSelPatientId')
+    setSelPatient(p)
+  }
   const [searchPac, setSearchPac] = useState('')
   const [searchDoc, setSearchDoc] = useState('')
   const [inactivePatients, setInactivePatients] = useState([])
@@ -1724,7 +1730,7 @@ export default function AdminDashboard() {
             <PatientExpediente
               patient={selPatient}
               profile={profile}
-              onBack={() => { setSelPatient(null); setViewPersist('pacientes') }}
+              onBack={() => { setSelPatient(null); setViewPersist('pacientes'); navigate('/admin') }}
               canEdit={true}
               senderRole='admin'
               enabledModules={enabledModules}
