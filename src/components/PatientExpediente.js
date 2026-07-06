@@ -229,7 +229,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       if (key === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} todayAppointment={todayAppointment} />
       if (key === 'nota_medica') {
         const canEditNote = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
-        return <ClinicalNoteForm patientId={patient.profile?.id || patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
+        return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
       }
       if (key === 'chat') return <ModuleChat patient={patient} careModules={careModules} profile={profile} senderRole={senderRole} />
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
