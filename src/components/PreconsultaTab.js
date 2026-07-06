@@ -351,7 +351,12 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
                   <AntRow label="APP" val={antecedentes.app_patologias?.length>0?antecedentes.app_patologias.map(p=>`${p.patologia==='Otra'?p.otra:p.patologia}${p.año?` (${p.año})`:''}`).join(', '):'Niega'} />
                   <AntRow label="AQx" val={antecedentes.aqx_procedimientos?.length>0?antecedentes.aqx_procedimientos.map(p=>`${p.procedimiento}${p.año?` (${p.año})`:''}`).join(', '):'Niega'} />
                   <AntRow label="AHF" val={antecedentes.ahf_familiares?.length>0?antecedentes.ahf_familiares.map(f=>`${f.patologia==='Otra'?f.otra:f.patologia} (${f.parentesco})`).join(', '):'Niega'} />
-                  {antecedentes.ago_fum !== undefined && antecedentes.ago_fum !== null && (<>
+                  {(() => {
+                    const birthDate = patient.birth_date || patient.profile?.birth_date
+                    const age = birthDate ? Math.floor((Date.now() - new Date(birthDate+'T12:00:00')) / (1000*60*60*24*365.25)) : null
+                    const sex = patient.sex || patient.profile?.sex
+                    return sex === 'female' && age !== null && age >= 10
+                  })() && (<>
                     <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginTop:6, marginBottom:2 }}>AGO</div>
                     {antecedentes.ago_fum && <AntRow label="FUM" val={antecedentes.ago_fum} />}
                     {antecedentes.ago_frecuencia_menstrual && <AntRow label="Ciclo menstrual" val={antecedentes.ago_frecuencia_menstrual} />}
@@ -361,7 +366,11 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
                     {antecedentes.ago_complicaciones_embarazo && antecedentes.ago_complicaciones_tipos?.length>0 && <AntRow label="Complicaciones" val={antecedentes.ago_complicaciones_tipos.join(', ')} />}
                     {antecedentes.ago_pap_resultado && <AntRow label="Último PAP" val={`${antecedentes.ago_pap_fecha||''} — ${antecedentes.ago_pap_resultado}`} />}
                   </>)}
-                  {antecedentes.aped_resultado_embarazo && (<>
+                  {(() => {
+                    const birthDate = patient.birth_date || patient.profile?.birth_date
+                    const age = birthDate ? Math.floor((Date.now() - new Date(birthDate+'T12:00:00')) / (1000*60*60*24*365.25)) : null
+                    return age !== null && age < 10
+                  })() && (<>
                     <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginTop:6, marginBottom:2 }}>APed</div>
                     <AntRow label="Resultado embarazo" val={antecedentes.aped_resultado_embarazo} />
                     {(antecedentes.aped_apgar_1min||antecedentes.aped_apgar_5min) && <AntRow label="Apgar" val={`1min: ${antecedentes.aped_apgar_1min} / 5min: ${antecedentes.aped_apgar_5min}`} />}
@@ -371,7 +380,11 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
                     {antecedentes.aped_cc_nacer && <AntRow label="CC nacer" val={`${antecedentes.aped_cc_nacer} cm`} />}
                     <AntRow label="Tamizaje neonatal" val={antecedentes.aped_tamizaje==='positivo'?`Positivo — ${antecedentes.aped_tamizaje_patologia||''}`: 'Negativo'} />
                   </>)}
-                  {antecedentes.ager_estado_basal && (<>
+                  {(() => {
+                    const birthDate = patient.birth_date || patient.profile?.birth_date
+                    const age = birthDate ? Math.floor((Date.now() - new Date(birthDate+'T12:00:00')) / (1000*60*60*24*365.25)) : null
+                    return age !== null && age >= 65
+                  })() && (<>
                     <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginTop:6, marginBottom:2 }}>AGer</div>
                     <AntRow label="Estado basal" val={antecedentes.ager_estado_basal} />
                     <AntRow label="Caídas" val={antecedentes.ager_caidas==='sí'?`Sí${antecedentes.ager_caidas_fecha?` (${antecedentes.ager_caidas_fecha})`:''}`:'No'} />
