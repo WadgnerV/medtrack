@@ -429,7 +429,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
         loading ? <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
         : records.length === 0 ? <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>Sin registros de pre-consulta.</div>
         : (
-          <div style={{ display:'flex', gap:0, minHeight:400, border:'0.5px solid #e2ede9', borderRadius:12, overflow:'hidden' }}>
+          <div style={{ display:'flex', gap:0, height:'calc(100vh - 220px)', border:'0.5px solid #e2ede9', borderRadius:12, overflow:'hidden' }}>
             {/* Columna izquierda — lista */}
             <div style={{ width:220, flexShrink:0, borderRight:'0.5px solid #e2ede9', overflowY:'auto', background:'#f8fbf9' }}>
               {records.map(r => {
