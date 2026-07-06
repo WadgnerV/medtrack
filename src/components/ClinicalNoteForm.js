@@ -773,9 +773,13 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                       {CONSULTATION_TYPES.find(t => t.value === n.consultation_type)?.label || n.consultation_type}
                     </div>
                   )}
-                  <div style={{ marginTop:4, display:'flex', alignItems:'center', gap:6 }}>
-                    {locked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
-                    <span style={{ fontSize:10, color: locked?'#ccc':'#888' }}>{n.author?.prefix||''} {n.author?.first_name} {n.author?.last_name}</span>
+                  <div style={{ fontSize:10, color:'#888', marginTop:2 }}>{n.author?.prefix||''} {n.author?.first_name} {n.author?.last_name}</div>
+                  <div style={{ marginTop:5 }}>
+                    <span style={{ fontSize:10, fontWeight:500, padding:'2px 7px', borderRadius:20,
+                      background: locked ? '#f0f4f8' : '#E1F5EE',
+                      color: locked ? '#999' : G }}>
+                      {locked ? 'Bloqueada' : 'Nota creada'}
+                    </span>
                   </div>
                 </div>
               )
