@@ -166,7 +166,8 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     } else {
       await supabase.from('preconsult_records').insert(payload)
     }
-    if (ready) {
+    const alreadyReady = editingId && records.find(r => r.id === editingId)?.status === 'ready'
+    if (ready && !alreadyReady) {
       const doctorId = todayAppointment?.doctor_id || null
       const patientName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
       console.log('todayAppointment:', todayAppointment)
@@ -591,14 +592,23 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
               style={{ padding:'8px 16px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
               Cancelar
             </button>
-            <button onClick={() => handleSave(false)} disabled={saving || !form.consultation_type}
-              style={{ padding:'8px 18px', background:'#f0f4f8', color:BLUE, border:'1px solid #c5d5e8', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>
-              {saving ? 'Guardando...' : 'Guardar borrador'}
-            </button>
-            <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type}
-              style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
-              {saving ? 'Guardando...' : 'Guardar y trasladar paciente'}
-            </button>
+            {editingId && records.find(r => r.id === editingId)?.status === 'ready' ? (
+              <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type}
+                style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            ) : (
+              <>
+                <button onClick={() => handleSave(false)} disabled={saving || !form.consultation_type}
+                  style={{ padding:'8px 18px', background:'#f0f4f8', color:BLUE, border:'1px solid #c5d5e8', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>
+                  {saving ? 'Guardando...' : 'Guardar borrador'}
+                </button>
+                <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type}
+                  style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
+                  {saving ? 'Guardando...' : 'Guardar y trasladar paciente'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
