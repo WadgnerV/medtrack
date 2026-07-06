@@ -124,15 +124,17 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
 
   useEffect(() => {
     async function loadTodayAppointment() {
-      const patientId = patient.profile?.id || patient.id
+      const patientId = patient.id
       const today = new Date().toISOString().split('T')[0]
-      const { data } = await supabase.from('appointments')
+      console.log('Buscando cita para patient.id:', patientId, 'fecha:', today)
+      const { data, error } = await supabase.from('appointments')
         .select('id, doctor_id, appointment_date, appointment_time, status')
         .eq('patient_id', patientId)
         .eq('appointment_date', today)
         .order('appointment_time', { ascending: true })
         .limit(1)
         .maybeSingle()
+      console.log('Cita encontrada:', data, 'error:', error)
       if (data) setTodayAppointment(data)
     }
     loadTodayAppointment()
