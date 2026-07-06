@@ -238,7 +238,24 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
     )
   }
 
+  function AntRow({ label, val }) {
+    return (
+      <div style={{ display:'flex', gap:6, fontSize:12 }}>
+        <span style={{ color:'#888', minWidth:140, flexShrink:0 }}>{label}:</span>
+        <span style={{ fontWeight:500 }}>{val}</span>
+      </div>
+    )
+  }
+
   function QuickView({ r }) {
+    const [antecedentes, setAntecedentes] = useState(null)
+    const patId = patient.profile?.id || patient.id
+    useEffect(() => {
+      if (expandedId === r.id) {
+        supabase.from('patient_antecedentes').select('*').eq('patient_id', patId).eq('clinic_id', profile.clinic_id).maybeSingle()
+          .then(({ data }) => setAntecedentes(data))
+      }
+    }, [expandedId, r.id])
     const rec = r.recorder
     const recName = rec ? `${rec.prefix?rec.prefix+' ':''}${rec.first_name} ${rec.last_name}` : 'Desconocido'
     const date = new Date(r.recorded_at).toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })
@@ -270,17 +287,57 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
         </div>
         {isExp && (
           <div style={{ padding:'14px 16px', borderTop:'0.5px solid #f0f5f3', background:'#fafdfb' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:8, marginBottom:10 }}>
+
+            <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:8 }}>Signos vitales</div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:10, marginBottom:12 }}>
               {r.pas && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>PA: </span><strong>{r.pas}/{r.pad} mmHg</strong></div>}
-              {r.spo2 && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>SpO2: </span><strong>{r.spo2}% ({r.spo2_method||'AA'})</strong></div>}
+              {r.spo2 && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>SpO2: </span><strong>{r.spo2}% ({r.spo2_method||'AA'}{r.spo2_litros?` ${r.spo2_litros}L/min`:''})</strong></div>}
               {r.frecuencia_cardiaca && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>FC: </span><strong>{r.frecuencia_cardiaca} lpm</strong></div>}
               {r.frecuencia_respiratoria && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>FR: </span><strong>{r.frecuencia_respiratoria} rpm</strong></div>}
               {r.glicemia && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Glicemia: </span><strong>{r.glicemia} mg/dL</strong></div>}
               {r.peso_kg && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Peso: </span><strong>{r.peso_kg} kg</strong></div>}
               {r.estatura_cm && <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>Talla: </span><strong>{r.estatura_cm} cm</strong></div>}
+              {r.peso_kg && r.estatura_cm && (() => {
+                const imc = (parseFloat(r.peso_kg)/Math.pow(parseFloat(r.estatura_cm)/100,2)).toFixed(1)
+                const n = parseFloat(imc)
+                const cat = n<18.5?'Desnutrición':n<25?'Normal':n<30?'Sobrepeso':'Obesidad'
+                return <div style={{ fontSize:12 }}><span style={{ color:'#888' }}>IMC: </span><strong>{imc} ({cat})</strong></div>
+              })()}
             </div>
-            {r.motivo_consulta && <div style={{ fontSize:12, marginBottom:6 }}><span style={{ color:'#888', fontWeight:600 }}>Motivo: </span>{r.motivo_consulta}</div>}
-            {r.nota_enfermeria && <div style={{ fontSize:12 }}><span style={{ color:'#888', fontWeight:600 }}>Nota: </span>{r.nota_enfermeria}</div>}
+
+            {r.motivo_consulta && (
+              <div style={{ marginBottom:10 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:4 }}>Motivo de consulta</div>
+                <div style={{ fontSize:12 }}>{r.motivo_consulta}</div>
+              </div>
+            )}
+
+            {antecedentes && (
+              <div style={{ marginBottom:10 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:8 }}>Antecedentes</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {antecedentes.apnp_educacion && <AntRow label="Educación" val={antecedentes.apnp_educacion} />}
+                  {antecedentes.apnp_estado_civil && <AntRow label="Estado civil" val={antecedentes.apnp_estado_civil} />}
+                  {antecedentes.apnp_religion && <AntRow label="Religión" val={antecedentes.apnp_religion} />}
+                  {antecedentes.apnp_fumado && antecedentes.apnp_fumado !== 'negativo' && <AntRow label="Fumado" val={`${antecedentes.apnp_fumado}${antecedentes.apnp_fumado_paquetes_dia?` — ${antecedentes.apnp_fumado_paquetes_dia} paq/día`:''}`} />}
+                  {antecedentes.apnp_alcohol && antecedentes.apnp_alcohol !== 'negativo' && <AntRow label="Alcohol" val={`${antecedentes.apnp_alcohol}${antecedentes.apnp_alcohol_bebida?` — ${antecedentes.apnp_alcohol_bebida}`:''}`} />}
+                  {antecedentes.apnp_drogas && antecedentes.apnp_drogas !== 'negativo' && <AntRow label="Drogas" val={antecedentes.apnp_drogas} />}
+                  {antecedentes.apnp_actividad_fisica && antecedentes.apnp_actividad_fisica !== 'sedentario' && <AntRow label="Actividad física" val={antecedentes.apnp_actividad_fisica} />}
+                  {antecedentes.apnp_alergia_medicamentos?.length > 0 && <AntRow label="Alergia medicamentos" val={antecedentes.apnp_alergia_medicamentos.map(a=>a.medicamento).join(', ')} />}
+                  {antecedentes.apnp_alergia_alimentos?.length > 0 && <AntRow label="Alergia alimentos" val={antecedentes.apnp_alergia_alimentos.map(a=>a.alimento).join(', ')} />}
+                  {antecedentes.app_patologias?.length > 0 && <AntRow label="APP" val={antecedentes.app_patologias.map(p=>p.patologia==='Otra'?p.otra:p.patologia).join(', ')} />}
+                  {antecedentes.aqx_procedimientos?.length > 0 && <AntRow label="AQx" val={antecedentes.aqx_procedimientos.map(p=>p.procedimiento).join(', ')} />}
+                  {antecedentes.ahf_familiares?.length > 0 && <AntRow label="AHF" val={antecedentes.ahf_familiares.map(f=>`${f.patologia==='Otra'?f.otra:f.patologia} (${f.parentesco})`).join(', ')} />}
+                </div>
+              </div>
+            )}
+
+            {r.nota_enfermeria && (
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, color:BLUE, textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:4 }}>Nota de enfermería</div>
+                <div style={{ fontSize:12 }}>{r.nota_enfermeria}</div>
+              </div>
+            )}
           </div>
         )}
       </div>
