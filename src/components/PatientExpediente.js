@@ -18,7 +18,7 @@ import {
   Settings, Phone, Mail, CreditCard, Calendar,
   ChevronRight, ChevronDown, ChevronLeft,
   FileText, Activity, Clipboard, Dumbbell, Heart, Scale, Syringe,
-  CheckSquare, MessageSquare, Smile, Salad
+  CheckSquare, MessageSquare, Smile, Salad, FlaskConical, ImageIcon, Pill, Stethoscope as StethoscopeIcon
 } from 'lucide-react'
 
 const G = '#1D9E75'
@@ -209,7 +209,10 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       const extraMap = {
         preconsulta:     { label: 'Pre-consulta',          Icon: Stethoscope   },
         nota_medica:     { label: 'Nota médica',           Icon: FileText      },
-        chat:            { label: 'Chat',                  Icon: MessageSquare },
+        diagnosticos:    { label: 'Diagnósticos',          Icon: Activity      },
+        laboratorios:    { label: 'Estudios de laboratorio', Icon: FlaskConical },
+        imagenes:        { label: 'Estudios de imágenes',  Icon: ImageIcon     },
+        recetas:         { label: 'Recetas médicas',       Icon: Pill          },
         documentos:      { label: 'Documentos',            Icon: Paperclip     },
         consentimientos: { label: 'Consentimientos',       Icon: ClipboardList },
       }
@@ -231,7 +234,10 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
         const canEditNote = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
         return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
       }
-      if (key === 'chat') return <ModuleChat patient={patient} careModules={careModules} profile={profile} senderRole={senderRole} />
+      if (key === 'diagnosticos') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de diagnósticos — próximamente</div>
+      if (key === 'laboratorios') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de estudios de laboratorio — próximamente</div>
+      if (key === 'imagenes') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de estudios de imágenes — próximamente</div>
+      if (key === 'recetas') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de recetas médicas — próximamente</div>
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
       if (key === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
       if (key === 'asignacion') return (
@@ -253,11 +259,14 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
   }
 
   const menuExtras = [
-    { key: 'preconsulta',     label: 'Pre-consulta',        Icon: Stethoscope   },
-    { key: 'nota_medica',     label: 'Nota médica',           Icon: FileText      },
-    { key: 'chat',            label: 'Chat',                  Icon: MessageSquare },
-    { key: 'documentos',      label: 'Documentos',            Icon: Paperclip     },
-    { key: 'consentimientos', label: 'Consentimientos',       Icon: ClipboardList },
+    { key: 'preconsulta',     label: 'Pre-consulta',          Icon: Stethoscope   },
+    { key: 'nota_medica',     label: 'Nota médica',             Icon: FileText      },
+    { key: 'diagnosticos',    label: 'Diagnósticos',            Icon: Activity      },
+    { key: 'laboratorios',    label: 'Estudios de laboratorio', Icon: FlaskConical  },
+    { key: 'imagenes',        label: 'Estudios de imágenes',    Icon: ImageIcon     },
+    { key: 'recetas',         label: 'Recetas médicas',         Icon: Pill          },
+    { key: 'documentos',      label: 'Documentos',              Icon: Paperclip     },
+    { key: 'consentimientos', label: 'Consentimientos',         Icon: ClipboardList },
   ]
 
   return (
