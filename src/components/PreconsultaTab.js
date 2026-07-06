@@ -65,7 +65,7 @@ const emptyForm = {
   nota_enfermeria: '',
 }
 
-export default function PreconsultaTab({ patient, profile, appointment }) {
+export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -126,7 +126,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
       clinic_id: profile.clinic_id,
       recorded_by: profile.id,
       recorded_at: new Date().toISOString(),
-      appointment_id: appointment?.id || null,
+      appointment_id: todayAppointment?.id || null,
       status: ready ? 'ready' : 'draft',
       consultation_type: form.consultation_type || null,
       antecedentes_patologicos: form.antecedentes_patologicos || null,
@@ -163,9 +163,9 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
       await supabase.from('preconsult_records').insert(payload)
     }
     if (ready) {
-      const doctorId = patient.assigned_doctor_id || appointment?.doctor_id
+      const doctorId = todayAppointment?.doctor_id || patient.assigned_doctor_id
+      const patientName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
       if (doctorId) {
-        const patientName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
         await supabase.from('notifications').insert({
           profile_id: doctorId,
           clinic_id: profile.clinic_id,
@@ -174,6 +174,7 @@ export default function PreconsultaTab({ patient, profile, appointment }) {
           message: `${patientName} ya pasó por pre-consulta y está listo para ser atendido.`,
           is_read: false,
           sender_id: profile.id,
+          data: { appointment_id: todayAppointment?.id || null, patient_id: patient.profile?.id || patient.id }
         })
       }
     }

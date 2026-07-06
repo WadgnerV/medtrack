@@ -120,6 +120,25 @@ function ModuleRenderer({ moduleType, sub, patient, careModule, canEdit, profile
 }
 
 export default function PatientExpediente({ patient, profile, onBack, canEdit = true, senderRole = 'admin', enabledModules, clinicPlan, doctors }) {
+  const [todayAppointment, setTodayAppointment] = useState(null)
+
+  useEffect(() => {
+    async function loadTodayAppointment() {
+      const patientId = patient.profile?.id || patient.id
+      const today = new Date().toISOString().split('T')[0]
+      const { data } = await supabase.from('appointments')
+        .select('id, doctor_id, start_time, status')
+        .eq('patient_id', patientId)
+        .gte('start_time', today + 'T00:00:00')
+        .lte('start_time', today + 'T23:59:59')
+        .order('start_time', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+      if (data) setTodayAppointment(data)
+    }
+    loadTodayAppointment()
+  }, [patient])
+
   const [careModules, setCareModules] = useState([])
   const [expandidos, setExpandidos] = useState({})
   const [seccion, setSeccion] = useState(null)
@@ -194,7 +213,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (!seccion) return <div style={{ color: '#8aab9a', fontSize: 14 }}>Seleccioná una sección.</div>
     if (seccion.type === 'extra') {
       const { key } = seccion
-      if (key === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} appointment={null} />
+      if (key === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} todayAppointment={todayAppointment} />
       if (key === 'chat') return <ModuleChat patient={patient} careModules={careModules} profile={profile} senderRole={senderRole} />
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
       if (key === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
