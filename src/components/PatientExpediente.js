@@ -127,11 +127,10 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       const patientId = patient.profile?.id || patient.id
       const today = new Date().toISOString().split('T')[0]
       const { data } = await supabase.from('appointments')
-        .select('id, doctor_id, start_time, status')
+        .select('id, doctor_id, appointment_date, appointment_time, status')
         .eq('patient_id', patientId)
-        .gte('start_time', today + 'T00:00:00-06:00')
-        .lte('start_time', today + 'T23:59:59-06:00')
-        .order('start_time', { ascending: true })
+        .eq('appointment_date', today)
+        .order('appointment_time', { ascending: true })
         .limit(1)
         .maybeSingle()
       if (data) setTodayAppointment(data)
