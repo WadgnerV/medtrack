@@ -95,8 +95,8 @@ function parseNoteText(text) {
   return form
 }
 
-function CollapsibleNote({ n, color, onEdit, onDelete, patient }) {
-  const [expanded, setExpanded] = useState(false)
+function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=false }) {
+  const [expanded, setExpanded] = useState(forceExpanded)
   const dName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
   const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
   const createdAt = n.created_at ? new Date(n.created_at) : new Date(n.note_date)
@@ -135,8 +135,8 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient }) {
     const w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.focus(); setTimeout(() => { w.print(); w.close() }, 500)
   }
   return (
-    <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, marginBottom:8, overflow:'hidden' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', cursor:'pointer' }} onClick={() => setExpanded(x => !x)}>
+    <div style={{ background:'#fff', border: forceExpanded ? 'none' : '0.5px solid #eee', borderRadius: forceExpanded ? 0 : 12, marginBottom: forceExpanded ? 0 : 8, overflow:'hidden' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', cursor: forceExpanded ? 'default' : 'pointer' }} onClick={() => !forceExpanded && setExpanded(x => !x)}>
         <div>
           <div style={{ fontSize:13, fontWeight:600, color: color }}>{dName}</div>
           <div style={{ fontSize:11, color:'#aaa' }}>{fecha}</div>
