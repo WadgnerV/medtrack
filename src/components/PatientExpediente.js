@@ -127,6 +127,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       const patientId = patient.id
       const today = new Date().toISOString().split('T')[0]
       console.log('Buscando cita para patient.id:', patientId, 'fecha:', today)
+      console.log('patient completo:', JSON.stringify({id: patient.id, profile_id: patient.profile_id, pid: patient.profile?.id}))
       const { data, error } = await supabase.from('appointments')
         .select('id, doctor_id, appointment_date, appointment_time, status')
         .eq('patient_id', patientId)
