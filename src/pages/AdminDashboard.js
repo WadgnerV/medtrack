@@ -1818,32 +1818,45 @@ export default function AdminDashboard() {
                 const [abg, acolor] = ACOLORS[aci]
                 const diag = allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description
                 return (
-                  <div key={p.id} onClick={() => openPatient(p)} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'12px 14px', cursor:'pointer', display:'flex', flexDirection:'column', gap:8 }}
+                  <div key={p.id} onClick={() => openPatient(p)}
+                    style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', cursor:'pointer', display:'flex', flexDirection:'column', gap:0, position:'relative' }}
                     onMouseEnter={e=>e.currentTarget.style.borderColor='#ccc'} onMouseLeave={e=>e.currentTarget.style.borderColor='#eee'}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                      <div style={{ width:36, height:36, borderRadius:'50%', background:abg, color:acolor, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                      <div style={{ width:38, height:38, borderRadius:'50%', background:abg, color:acolor, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:500, flexShrink:0 }}>{initials(pName(p))}</div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{(p.profile?.last_name||'')} {(p.profile?.first_name||'')}</div>
-                        <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{age(p.birth_date)} años{p.province ? ` · ${p.province}` : ''}</div>
+                        <div style={{ fontSize:11, color:'#aaa', marginTop:2 }}>{age(p.birth_date)} años{p.province ? ` · ${p.province}` : ''}</div>
                       </div>
                     </div>
-                    <div style={{ height:'0.5px', background:'#f0f0f0' }} />
-                    <div style={{ fontSize:11, color:'#888' }}>
-                      {p.profile?.email || ''}{p.phone ? ` · ${p.phone}` : ''}
+                    <div style={{ height:'0.5px', background:'#f0f0f0', marginBottom:10 }} />
+                    <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:32 }}>
+                      {p.profile?.email && (
+                        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#888' }}>
+                          <i className="ti ti-mail" style={{ fontSize:13, color:'#bbb' }} aria-hidden="true"></i>
+                          <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.profile.email}</span>
+                        </div>
+                      )}
+                      {p.phone && (
+                        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#888' }}>
+                          <i className="ti ti-phone" style={{ fontSize:13, color:'#bbb' }} aria-hidden="true"></i>
+                          {p.phone}
+                        </div>
+                      )}
                     </div>
-                    <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f5f5f5', color: diag ? '#555' : '#bbb' }}>{diag || 'Sin diagnóstico'}</span>
-                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status==='active' ? '#E1F5EE' : '#FAEEDA', color: p.status==='active' ? '#0F6E56' : '#854F0B' }}>{p.status==='active' ? 'activo' : 'pendiente'}</span>
-                    </div>
-                    <div style={{ display:'flex', justifyContent:'flex-end', gap:6 }}>
-                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
-                        onClick={e=>{ e.stopPropagation(); setEditPatientForm({ profileId:p.profile?.id, patientId:p.id, firstName:p.profile?.first_name||'', lastName:p.profile?.last_name||'', email:p.profile?.email||'', idNumber:p.id_number||'', phone:p.phone||'', birthDate:p.birth_date||'', sex:p.sex||'', province:p.province||'', canton:p.canton||'', height:p.height_cm||'' }); setModal('edit-patient') }}>
-                        <i className="ti ti-edit" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
-                      </button>
-                      <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #FAECE7', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
-                        onClick={e=>{ e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>
-                        <i className="ti ti-trash" style={{ fontSize:13, color:'#D85A30' }} aria-hidden="true"></i>
-                      </button>
+                    <div style={{ position:'absolute', bottom:14, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background: p.status==='active' ? '#E1F5EE' : '#FAEEDA', color: p.status==='active' ? '#0F6E56' : '#854F0B' }}>
+                        {p.status==='active' ? 'activo' : 'pendiente'}
+                      </span>
+                      <div style={{ display:'flex', gap:4 }}>
+                        <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #eee', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                          onClick={e=>{ e.stopPropagation(); setEditPatientForm({ profileId:p.profile?.id, patientId:p.id, firstName:p.profile?.first_name||'', lastName:p.profile?.last_name||'', email:p.profile?.email||'', idNumber:p.id_number||'', phone:p.phone||'', birthDate:p.birth_date||'', sex:p.sex||'', province:p.province||'', canton:p.canton||'', height:p.height_cm||'' }); setModal('edit-patient') }}>
+                          <i className="ti ti-edit" style={{ fontSize:13, color:'#666' }} aria-hidden="true"></i>
+                        </button>
+                        <button style={{ width:28, height:28, borderRadius:6, border:'0.5px solid #FAECE7', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}
+                          onClick={e=>{ e.stopPropagation(); openDelete('patient', p.id, pName(p)) }}>
+                          <i className="ti ti-trash" style={{ fontSize:13, color:'#D85A30' }} aria-hidden="true"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )
