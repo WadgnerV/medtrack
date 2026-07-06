@@ -9,6 +9,7 @@ import OdontologiaModule from '../pages/OdontologiaModule'
 import NutricionModule from '../pages/NutricionModule'
 import CareModulesAdmin from './CareModulesAdmin'
 import PreconsultaTab from './PreconsultaTab'
+import ClinicalNoteForm from './ClinicalNoteForm'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
 import ModuleChat from './ModuleChat'
@@ -226,6 +227,10 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (seccion.type === 'extra') {
       const { key } = seccion
       if (key === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} todayAppointment={todayAppointment} />
+      if (key === 'nota_medica') {
+        const canEditNote = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
+        return <ClinicalNoteForm patientId={patient.profile?.id || patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
+      }
       if (key === 'chat') return <ModuleChat patient={patient} careModules={careModules} profile={profile} senderRole={senderRole} />
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
       if (key === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
