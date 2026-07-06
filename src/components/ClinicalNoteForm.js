@@ -789,7 +789,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             )}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   )
 }
