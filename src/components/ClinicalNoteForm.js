@@ -765,7 +765,14 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                     {n.consultation_type && <div style={{ width:8, height:8, borderRadius:'50%', flexShrink:0, background: CONSULTATION_TYPE_COLORS[n.consultation_type] || '#ccc' }} />}
                     <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
                   </div>
-                  {n.motivo && <div style={{ fontSize:11, color:'#888', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{n.motivo}</div>}
+                  <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>
+                    {new Date(n.created_at).toLocaleTimeString('es-CR', { hour:'2-digit', minute:'2-digit', hour12:false })} hrs
+                  </div>
+                  {n.consultation_type && (
+                    <div style={{ fontSize:11, color:'#666', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {CONSULTATION_TYPES.find(t => t.value === n.consultation_type)?.label || n.consultation_type}
+                    </div>
+                  )}
                   <div style={{ marginTop:4, display:'flex', alignItems:'center', gap:6 }}>
                     {locked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
                     <span style={{ fontSize:10, color: locked?'#ccc':'#888' }}>{n.author?.prefix||''} {n.author?.first_name} {n.author?.last_name}</span>
