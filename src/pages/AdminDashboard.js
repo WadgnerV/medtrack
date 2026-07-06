@@ -1741,7 +1741,7 @@ export default function AdminDashboard() {
             <PatientExpediente
               patient={selPatient}
               profile={profile}
-              onBack={() => { setSelPatient(null); localStorage.removeItem('adminSelPatientId'); setViewPersist('pacientes') }}
+              onBack={() => { setSelPatient(null); localStorage.removeItem('adminSelPatientId'); localStorage.removeItem('expedienteSeccion'); setViewPersist('pacientes') }}
               canEdit={true}
               senderRole='admin'
               enabledModules={enabledModules}

@@ -143,7 +143,16 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
 
   const [careModules, setCareModules] = useState([])
   const [expandidos, setExpandidos] = useState({})
-  const [seccion, setSeccion] = useState({ type: 'extra', key: 'preconsulta' })
+  const [seccion, setSeccion] = useState(() => {
+    const saved = localStorage.getItem('expedienteSeccion')
+    if (saved) try { return JSON.parse(saved) } catch {}
+    return { type: 'extra', key: 'preconsulta' }
+  })
+
+  const setSeccionPersist = (s) => {
+    localStorage.setItem('expedienteSeccion', JSON.stringify(s))
+    setSeccion(s)
+  }
 
   useEffect(() => {
     if (patient?.id) loadCareModules(true)
@@ -163,7 +172,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
       const first = ordered[0]
       const firstSub = MODULE_CONFIG[first]?.subsecciones[0]?.id
       setExpandidos({ [first]: true })
-      setSeccion({ type: 'modulo', moduleType: first, sub: firstSub })
+      setSeccionPersist({ type: 'modulo', moduleType: first, sub: firstSub })
     }
   }
 
@@ -182,15 +191,15 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
   function seleccionarModulo(mod) {
     toggleExpandir(mod.id)
     const yaTieneActiva = seccion?.type === 'modulo' && seccion?.moduleType === mod.id
-    if (!yaTieneActiva) setSeccion({ type: 'modulo', moduleType: mod.id, sub: mod.subsecciones[0].id })
+    if (!yaTieneActiva) setSeccionPersist({ type: 'modulo', moduleType: mod.id, sub: mod.subsecciones[0].id })
   }
 
   function seleccionarSub(moduleType, subId) {
-    setSeccion({ type: 'modulo', moduleType, sub: subId })
+    setSeccionPersist({ type: 'modulo', moduleType, sub: subId })
   }
 
   function seleccionarExtra(key) {
-    setSeccion({ type: 'extra', key })
+    setSeccionPersist({ type: 'extra', key })
   }
 
   function getHeaderInfo() {
