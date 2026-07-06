@@ -10,6 +10,7 @@ import NutricionModule from '../pages/NutricionModule'
 import CareModulesAdmin from './CareModulesAdmin'
 import PreconsultaTab from './PreconsultaTab'
 import ClinicalNoteForm from './ClinicalNoteForm'
+import DiagnosticosTab from './DiagnosticosTab'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
 import ModuleChat from './ModuleChat'
@@ -234,7 +235,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
         const canEditNote = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
         return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
       }
-      if (key === 'diagnosticos') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de diagnósticos — próximamente</div>
+      if (key === 'diagnosticos') return <DiagnosticosTab patient={patient} profile={profile} />
       if (key === 'laboratorios') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de estudios de laboratorio — próximamente</div>
       if (key === 'imagenes') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de estudios de imágenes — próximamente</div>
       if (key === 'recetas') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de recetas médicas — próximamente</div>
