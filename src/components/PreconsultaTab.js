@@ -442,8 +442,11 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
                       background: isSelected ? '#E1F5EE' : '#f8fbf9',
                       borderLeft: isSelected ? `3px solid ${G}` : '3px solid transparent' }}>
                     <div style={{ fontSize:12, fontWeight:600, color: isSelected ? G : BLUE }}>{date}</div>
-                    <div style={{ fontSize:11, color:'#888', marginTop:2 }}>{consType?.label || '—'}</div>
-                    <div style={{ marginTop:4 }}>
+                    <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>
+                      {new Date(r.recorded_at).toLocaleTimeString('es-CR', { hour:'2-digit', minute:'2-digit', hour12:false })} hrs
+                    </div>
+                    <div style={{ fontSize:11, color:'#666', marginTop:3 }}>{consType?.label || '—'}</div>
+                    <div style={{ marginTop:5 }}>
                       <span style={{ fontSize:10, fontWeight:500, padding:'2px 7px', borderRadius:20,
                         background: r.status==='ready'?'#E1F5EE':'#f0f4f8',
                         color: r.status==='ready'?G:'#888' }}>
