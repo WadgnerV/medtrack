@@ -209,6 +209,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (seccion.type === 'extra') {
       const extraMap = {
         preconsulta:     { label: 'Pre-consulta',          Icon: Stethoscope   },
+        evolucion_signos:{ label: 'Evolución de signos',     Icon: Activity      },
         nota_medica:     { label: 'Nota médica',           Icon: FileText      },
         diagnosticos:    { label: 'Diagnósticos',          Icon: Activity      },
         laboratorios:    { label: 'Estudios de laboratorio', Icon: FlaskConical },
@@ -231,6 +232,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
     if (seccion.type === 'extra') {
       const { key } = seccion
       if (key === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} todayAppointment={todayAppointment} />
+      if (key === 'evolucion_signos') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Evolución de signos — próximamente</div>
       if (key === 'nota_medica') {
         const canEditNote = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
         return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
@@ -261,6 +263,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
 
   const menuExtras = [
     { key: 'preconsulta',     label: 'Pre-consulta',          Icon: Stethoscope   },
+    { key: 'evolucion_signos', label: 'Evolución de signos',    Icon: Activity      },
     { key: 'nota_medica',     label: 'Nota médica',             Icon: FileText      },
     { key: 'diagnosticos',    label: 'Diagnósticos',            Icon: Activity      },
     { key: 'laboratorios',    label: 'Estudios de laboratorio', Icon: FlaskConical  },
