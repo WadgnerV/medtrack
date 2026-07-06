@@ -208,16 +208,16 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   useEffect(() => { if (profile?.clinic_id && moduleType) loadTemplates() }, [profile?.clinic_id, moduleType])
 
   async function load() {
-    // Cargar tipo de consulta de la preconsulta más reciente
-    const today = new Date().toISOString().split('T')[0]
+    // Cargar tipo de consulta de la preconsulta dentro de las últimas 2 horas
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     const { data: pc } = await supabase.from('preconsult_records')
       .select('consultation_type')
       .eq('patient_id', patientId)
-      .gte('recorded_at', today + 'T00:00:00')
+      .gte('recorded_at', twoHoursAgo)
       .order('recorded_at', { ascending: false })
       .limit(1)
       .maybeSingle()
-    if (pc?.consultation_type) setLastConsultType(pc.consultation_type)
+    setLastConsultType(pc?.consultation_type || '')
     const [{ data: notesData }, { data: antData }, { data: cs }, { data: measData }, { data: signosData }, { data: treatData }, { data: diagData }] = await Promise.all([
       supabase.from('clinical_notes').select('*, author:recorded_by(first_name, last_name, prefix)').eq('patient_id', patientId).eq('module_type', moduleType).order('note_date', { ascending: false }),
       supabase.from('patient_antecedents').select('*').eq('patient_id', patientId),
