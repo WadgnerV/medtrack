@@ -371,6 +371,7 @@ export default function AdminDashboard() {
   const [searchDoc, setSearchDoc] = useState('')
   const [inactivePatients, setInactivePatients] = useState([])
   const [showInactive, setShowInactive] = useState(false)
+  const [inactiveSearch, setInactiveSearch] = useState('')
   const [newPatientId, setNewPatientId] = useState(null)
   const [blockForm, setBlockForm] = useState({ doctor_id:'', date:'', end_date:'', start_time:'', end_time:'', reason:'' })
   const [apptTags, setApptTags] = useState([])
@@ -1752,11 +1753,19 @@ export default function AdminDashboard() {
 
           {view === 'pacientes' && showInactive && (
             <div>
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
-                <button onClick={() => setShowInactive(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#1D9E75', display:'flex', alignItems:'center', gap:4 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14, flexWrap:'wrap' }}>
+                <button onClick={() => { setShowInactive(false); setInactiveSearch('') }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#1D9E75', display:'flex', alignItems:'center', gap:4 }}>
                   <i className="ti ti-arrow-left" style={{ fontSize:13 }} aria-hidden="true"></i> Volver a pacientes
                 </button>
                 <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Perfiles inactivos</div>
+                <div style={{ flex:1, minWidth:200 }}>
+                  <div style={{ position:'relative' }}>
+                    <i className="ti ti-search" style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:13, color:'#bbb' }} aria-hidden="true"></i>
+                    <input value={inactiveSearch} onChange={e => setInactiveSearch(e.target.value)}
+                      placeholder="Buscar por nombre, cédula o correo..."
+                      style={{ width:'100%', padding:'7px 10px 7px 32px', fontSize:13, border:'0.5px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }} />
+                  </div>
+                </div>
               </div>
               {inactivePatients.length === 0 ? (
                 <div style={{ textAlign:'center', color:'#bbb', fontSize:13, padding:30 }}>No hay perfiles inactivos</div>
@@ -1772,7 +1781,14 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {inactivePatients.map(p => (
+                      {inactivePatients.filter(p => {
+                        if (!inactiveSearch) return true
+                        const q = inactiveSearch.toLowerCase()
+                        return (p.profile?.first_name||'').toLowerCase().includes(q) ||
+                               (p.profile?.last_name||'').toLowerCase().includes(q) ||
+                               (p.id_number||'').toLowerCase().includes(q) ||
+                               (p.profile?.email||'').toLowerCase().includes(q)
+                      }).map(p => (
                         <tr key={p.id}>
                           <td style={{ padding:'10px 14px', fontSize:13, borderBottom:'0.5px solid #f0f0f0', color:'#1a1a1a' }}>{p.profile?.first_name} {p.profile?.last_name}</td>
                           <td style={{ padding:'10px 14px', fontSize:13, borderBottom:'0.5px solid #f0f0f0', color:'#666' }}>{p.id_number || '—'}</td>
