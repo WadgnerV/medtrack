@@ -1174,6 +1174,7 @@ export default function AdminDashboard() {
 
   async function openPatient(p) {
     setSelPatient(p)
+    localStorage.setItem('adminSelPatientId', p.id)
     setPatientTab('progreso')
     setViewPersist('perfil-paciente')
     const pid = p.id
