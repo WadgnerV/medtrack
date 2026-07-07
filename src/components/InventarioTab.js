@@ -159,7 +159,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const filtered = items.filter(i => {
     if (filterBranch && i.branch_id !== filterBranch) return false
     if (filterCat && i.category !== filterCat) return false
-    if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (search && !i.name.toLowerCase().includes(search.toLowerCase()) && !(i.sku||'').toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
@@ -236,6 +236,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         <table style={{ width:'100%', borderCollapse:'collapse' }}>
           <thead>
             <tr>
+              <th style={s.th}>SKU</th>
               <th style={s.th}>Ítem</th>
               <th style={s.th}>Categoría</th>
               <th style={s.th}>Cantidad</th>
@@ -249,11 +250,14 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} style={{ ...s.td, textAlign:'center', color:'#bbb' }}>Cargando...</td></tr>
+              <tr><td colSpan={10} style={{ ...s.td, textAlign:'center', color:'#bbb' }}>Cargando...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={9} style={{ ...s.td, textAlign:'center', color:'#bbb', padding:30 }}>No hay ítems registrados</td></tr>
+              <tr><td colSpan={10} style={{ ...s.td, textAlign:'center', color:'#bbb', padding:30 }}>No hay ítems registrados</td></tr>
             ) : filtered.map(item => (
               <tr key={item.id}>
+                <td style={s.td}>
+                  <span style={{ fontSize:11, fontWeight:600, color:'#0F6E56', background:'#E1F5EE', padding:'2px 7px', borderRadius:20 }}>{item.sku || '—'}</span>
+                </td>
                 <td style={s.td}>
                   <div style={{ fontWeight:500, color:'#1a1a1a' }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{item.description}</div>}
