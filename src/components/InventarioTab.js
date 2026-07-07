@@ -34,6 +34,12 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [historyItem, setHistoryItem] = useState(null)
   const [history, setHistory] = useState([])
   const [showBodegas, setShowBodegas] = useState(false)
+  const [catalog, setCatalog] = useState([])
+  const [catalogSearch, setCatalogSearch] = useState('')
+  const [showCatalogDropdown, setShowCatalogDropdown] = useState(false)
+  const [showNewCatalogItem, setShowNewCatalogItem] = useState(false)
+  const [newCatalogItem, setNewCatalogItem] = useState({ name:'', category:'Medicamento' })
+  const [skuPrefix, setSkuPrefix] = useState('')
 
   const emptyForm = {
     name:'', category:'Medicamento', unit:'unidad', quantity:'', min_quantity:'',
@@ -43,8 +49,45 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [form, setForm] = useState(emptyForm)
   const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
 
-  useEffect(() => { loadItems(); loadWarehouses() }, [])
+  useEffect(() => { loadItems(); loadWarehouses(); loadCatalog(); loadSkuPrefix() }, [])
   useEffect(() => { fetchExchangeRate().then(r => { if (r) setExchangeRate(r) }) }, [])
+
+  async function loadSkuPrefix() {
+    const { data } = await supabase.from('clinics').select('sku_prefix').eq('id', profile.clinic_id).single()
+    setSkuPrefix(data?.sku_prefix || 'SKU')
+  }
+
+  async function loadCatalog() {
+    const { data } = await supabase.from('inventory_catalog').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    setCatalog(data || [])
+  }
+
+  async function generateSku(category) {
+    const prefix = skuPrefix || 'SKU'
+    const catCode = { 'Medicamento':'MED', 'Insumo':'IN', 'Producto estético':'EST', 'Equipo':'EQ' }[category] || 'OTR'
+    const { data } = await supabase.from('inventory_catalog').select('sku').eq('clinic_id', profile.clinic_id).eq('category', category).order('created_at', { ascending: false })
+    const count = (data || []).length + 1
+    return `${prefix}-${catCode}-${String(count).padStart(5, '0')}`
+  }
+
+  async function addToCatalog() {
+    if (!newCatalogItem.name) return
+    const sku = await generateSku(newCatalogItem.category)
+    const { data } = await supabase.from('inventory_catalog').insert({
+      clinic_id: profile.clinic_id,
+      name: newCatalogItem.name,
+      category: newCatalogItem.category,
+      sku
+    }).select().single()
+    if (data) {
+      await loadCatalog()
+      setForm(p => ({ ...p, name: data.name, sku: data.sku, category: data.category }))
+      setCatalogSearch(data.name)
+    }
+    setShowNewCatalogItem(false)
+    setNewCatalogItem({ name:'', category:'Medicamento' })
+    setShowCatalogDropdown(false)
+  }
 
   async function loadWarehouses() {
     const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.clinic_id).order('name')
@@ -245,14 +288,44 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
       </div>
 
       {(modal === 'new' || modal === 'edit') && (
-        <div style={s.overlay} onClick={e => { if (e.target === e.currentTarget) { setModal(null); setForm(emptyForm) } }}>
+        <div style={s.overlay} onClick={e => { if (e.target === e.currentTarget) { setModal(null); setForm(emptyForm); setCatalogSearch('') } }}>
           <div style={s.modalBox}>
             <div style={{ fontSize:15, fontWeight:600, marginBottom:16, color:'#1a1a1a' }}>{modal === 'edit' ? 'Editar ítem' : 'Nuevo ítem de inventario'}</div>
 
             <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:10 }}>
-              <div>
+              <div style={{ position:'relative' }}>
                 <label style={s.label}>Nombre *</label>
-                <input style={s.input} value={form.name} onChange={f('name')} />
+                <input style={s.input} value={catalogSearch || form.name}
+                  onChange={e => {
+                    setCatalogSearch(e.target.value)
+                    setForm(p => ({ ...p, name: e.target.value, sku: '' }))
+                    setShowCatalogDropdown(true)
+                  }}
+                  onFocus={() => setShowCatalogDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowCatalogDropdown(false), 200)}
+                />
+                {showCatalogDropdown && (
+                  <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'0.5px solid #e2ede9', borderRadius:8, zIndex:100, maxHeight:200, overflowY:'auto', boxShadow:'0 4px 12px rgba(0,0,0,0.1)', marginTop:2 }}>
+                    {catalog.filter(c => !catalogSearch || c.name.toLowerCase().includes(catalogSearch.toLowerCase())).map(c => (
+                      <div key={c.id} onMouseDown={() => {
+                        setForm(p => ({ ...p, name: c.name, sku: c.sku, category: c.category }))
+                        setCatalogSearch(c.name)
+                        setShowCatalogDropdown(false)
+                      }} style={{ padding:'8px 12px', cursor:'pointer', fontSize:12, borderBottom:'0.5px solid #f0f5f3', display:'flex', justifyContent:'space-between' }}
+                        onMouseEnter={e => e.currentTarget.style.background='#f4faf7'}
+                        onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                        <span>{c.name}</span>
+                        <span style={{ fontSize:11, color:'#aaa' }}>{c.sku}</span>
+                      </div>
+                    ))}
+                    <div onMouseDown={() => { setShowNewCatalogItem(true); setShowCatalogDropdown(false) }}
+                      style={{ padding:'8px 12px', cursor:'pointer', fontSize:12, color:'#0F6E56', fontWeight:500, borderTop:'0.5px solid #e2ede9' }}
+                      onMouseEnter={e => e.currentTarget.style.background='#f4faf7'}
+                      onMouseLeave={e => e.currentTarget.style.background='#fff'}>
+                      + Agregar "{catalogSearch || 'nuevo ítem'}" al catálogo
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label style={s.label}>Categoría</label>
@@ -342,7 +415,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
             )}
 
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:8 }}>
-              <button style={{ ...s.btnSm, padding:'7px 14px' }} onClick={() => { setModal(null); setForm(emptyForm) }}>Cancelar</button>
+              <button style={{ ...s.btnSm, padding:'7px 14px' }} onClick={() => { setModal(null); setForm(emptyForm); setCatalogSearch('') }}>Cancelar</button>
               <button style={{ ...s.btn, opacity: saving ? 0.7 : 1 }} onClick={handleSave} disabled={saving}>
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
@@ -389,6 +462,24 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         </div>
       )}
 
+      {showNewCatalogItem && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ background:'#fff', borderRadius:12, padding:24, width:400 }}>
+            <div style={{ fontSize:14, fontWeight:600, color:'#1a3a5c', marginBottom:16 }}>Agregar al catálogo</div>
+            <label style={s.label}>Nombre</label>
+            <input style={s.input} value={newCatalogItem.name} onChange={e => setNewCatalogItem(p=>({...p,name:e.target.value}))} />
+            <label style={s.label}>Categoría</label>
+            <select style={s.select} value={newCatalogItem.category} onChange={e => setNewCatalogItem(p=>({...p,category:e.target.value}))}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <div style={{ fontSize:11, color:'#aaa', marginBottom:12 }}>El SKU se generará automáticamente con el prefijo de tu clínica</div>
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button style={s.btnSm} onClick={() => setShowNewCatalogItem(false)}>Cancelar</button>
+              <button style={s.btn} onClick={addToCatalog}>Agregar</button>
+            </div>
+          </div>
+        </div>
+      )}
       {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
     </div>
   )
