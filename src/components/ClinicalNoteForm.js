@@ -496,33 +496,65 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       const { error: insertErr } = await supabase.from('clinical_notes').insert(payload)
       if (insertErr) console.error('Error insert:', insertErr)
     }
-    // Descontar inventario si hubo procedimiento
-    if (hizoProcedimiento === 'si' && insumosUsados.length > 0) {
-      for (const uso of insumosUsados) {
-        if (!uso.item_id || !uso.cantidad) continue
-        const item = inventoryItems.find(i => i.id === uso.item_id)
-        if (!item) continue
-        const nuevaCantidad = item.quantity - parseFloat(uso.cantidad)
-        await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
-        await supabase.from('inventory_history').insert({
-          item_id: uso.item_id, clinic_id: profile.clinic_id,
-          quantity_before: item.quantity, quantity_after: nuevaCantidad,
-          change_type: 'procedimiento', recorded_by: profile.id
-        })
-        // Notificar si stock bajo
-        if (nuevaCantidad <= item.min_quantity) {
-          const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
-          if (admins && admins.length > 0) {
-            await supabase.from('notifications').insert(admins.map(a => ({
-              profile_id: a.id, clinic_id: profile.clinic_id,
-              type: 'low_stock', title: 'Stock bajo',
-              message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo permitido: ${item.min_quantity}.`,
-              is_read: false, sender_id: profile.id
-            })))
+    // Manejar insumos usados
+    if (hizoProcedimiento !== null) {
+      const noteId = editingId || (await supabase.from('clinical_notes').select('id').eq('patient_id', patientId).eq('module_type', moduleType).order('created_at', { ascending: false }).limit(1).single()).data?.id
+
+      if (noteId) {
+        // Obtener insumos previos para calcular diferencia
+        const { data: prevSupplies } = await supabase.from('clinical_note_supplies').select('*').eq('note_id', noteId)
+        const prev = prevSupplies || []
+
+        // Borrar registros previos
+        await supabase.from('clinical_note_supplies').delete().eq('note_id', noteId)
+
+        // Procesar nuevos insumos
+        if (hizoProcedimiento === 'si') {
+          for (const uso of insumosUsados) {
+            if (!uso.item_id || !uso.cantidad) continue
+            const item = inventoryItems.find(i => i.id === uso.item_id)
+            if (!item) continue
+
+            // Calcular diferencia respecto al uso anterior
+            const cantAnterior = prev.find(p => p.item_id === uso.item_id)?.cantidad || 0
+            const diff = parseFloat(uso.cantidad) - parseFloat(cantAnterior)
+
+            if (diff !== 0) {
+              const nuevaCantidad = item.quantity - diff
+              await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
+              await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
+              if (nuevaCantidad <= item.min_quantity) {
+                const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+                if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo permitido: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
+              }
+            }
+
+            // Guardar nuevo registro
+            await supabase.from('clinical_note_supplies').insert({ note_id: noteId, clinic_id: profile.clinic_id, item_id: uso.item_id, cantidad: parseFloat(uso.cantidad) })
+          }
+
+          // Devolver al inventario los insumos que se quitaron
+          for (const p of prev) {
+            const enNuevos = insumosUsados.find(u => u.item_id === p.item_id)
+            if (!enNuevos) {
+              const item = inventoryItems.find(i => i.id === p.item_id)
+              if (item) {
+                const nuevaCantidad = item.quantity + parseFloat(p.cantidad)
+                await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', p.item_id)
+              }
+            }
+          }
+        } else {
+          // Si cambió a "no", devolver todo al inventario
+          for (const p of prev) {
+            const item = inventoryItems.find(i => i.id === p.item_id)
+            if (item) {
+              await supabase.from('inventory_items').update({ quantity: item.quantity + parseFloat(p.cantidad), updated_at: new Date().toISOString() }).eq('id', p.item_id)
+            }
           }
         }
+        await loadInventoryItems()
       }
-      await loadInventoryItems()
     }
     setForm(emptyForm); setEditingId(null); setShowForm(false)
     setHizoProcedimiento(null); setInsumosUsados([])
@@ -533,6 +565,12 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     if (!window.confirm('¿Estás seguro que querés eliminar esta nota? Esta acción no se puede deshacer.')) return
     await supabase.from('clinical_notes').delete().eq('id', id)
     await load()
+  }
+
+  async function loadNoteSupplies(noteId) {
+    const { data } = await supabase.from('clinical_note_supplies').select('*').eq('note_id', noteId)
+    setInsumosUsados(data ? data.map(s => ({ item_id: s.item_id, cantidad: String(s.cantidad), supply_id: s.id })) : [])
+    setHizoProcedimiento(data && data.length > 0 ? 'si' : null)
   }
 
   function startEdit(note) {
