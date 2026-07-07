@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import BodegasModal from './BodegasModal'
+import CatalogoModal from './CatalogoModal'
 
 const CATEGORIES = ['Medicamento', 'Producto estético', 'Insumo', 'Equipo']
 const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg']
@@ -34,6 +35,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [historyItem, setHistoryItem] = useState(null)
   const [history, setHistory] = useState([])
   const [showBodegas, setShowBodegas] = useState(false)
+  const [showCatalogo, setShowCatalogo] = useState(false)
   const [catalog, setCatalog] = useState([])
   const [catalogSearch, setCatalogSearch] = useState('')
   const [showCatalogDropdown, setShowCatalogDropdown] = useState(false)
@@ -228,6 +230,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           <option value="">Todas las categorías</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
+        <button style={s.btnOutline} onClick={() => setShowCatalogo(true)}>Catálogo</button>
         <button style={s.btnOutline} onClick={() => setShowBodegas(true)}>Bodegas</button>
         <button style={s.btn} onClick={() => { setForm({...emptyForm, branch_id: profile?.branch_id || ''}); setModal('new') }}>+ Agregar ítem</button>
       </div>
@@ -485,6 +488,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </div>
         </div>
       )}
+      {showCatalogo && <CatalogoModal profile={profile} onClose={() => { setShowCatalogo(false); loadCatalog() }} />}
       {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
     </div>
   )
