@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import BodegasModal from './BodegasModal'
 import CatalogoModal from './CatalogoModal'
 import AjusteInventarioModal from './AjusteInventarioModal'
+import SolicitudesCompraTab from './SolicitudesCompraTab'
 
 const CATEGORIES = ['Medicamento', 'Producto estético', 'Insumo', 'Equipo']
 const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg']
@@ -91,6 +92,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [historyItem, setHistoryItem] = useState(null)
   const [history, setHistory] = useState([])
   const [showBodegas, setShowBodegas] = useState(false)
+  const [activeTab, setActiveTab] = useState('inventario')
   const [showCatalogo, setShowCatalogo] = useState(false)
   const [ajusteItem, setAjusteItem] = useState(null)
   const [catalog, setCatalog] = useState([])
@@ -253,7 +255,19 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
 
   return (
     <div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
+      <div style={{ display:'flex', gap:0, marginBottom:20, border:'0.5px solid #e2ede9', borderRadius:10, overflow:'hidden', width:'fit-content' }}>
+        {[['inventario','Inventario'],['solicitudes','Solicitudes de compra']].map(([k,l]) => (
+          <div key={k} onClick={() => setActiveTab(k)}
+            style={{ padding:'8px 18px', cursor:'pointer', fontSize:13, fontWeight:500,
+              background: activeTab===k ? BLUE : '#fff', color: activeTab===k ? '#fff' : '#555',
+              borderRight: k==='inventario' ? '0.5px solid #e2ede9' : 'none' }}>
+            {l}
+          </div>
+        ))}
+      </div>
+
+      {activeTab === 'solicitudes' && <SolicitudesCompraTab profile={profile} inventoryItems={items} />}
+      {activeTab === 'inventario' && <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
         <div style={{ ...s.card, marginBottom:0 }}>
           <div style={{ fontSize:11, color:'#999', marginBottom:4 }}>Total ítems</div>
           <div style={{ fontSize:20, fontWeight:500, color:'#1a1a1a' }}>{filtered.length}</div>
@@ -561,6 +575,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </div>
         </div>
       )}
+      }
       {ajusteItem && <AjusteInventarioModal item={ajusteItem} profile={profile} onClose={() => setAjusteItem(null)} onSaved={() => { setAjusteItem(null); loadItems() }} />
       }
       {showCatalogo && <CatalogoModal profile={profile} onClose={() => { setShowCatalogo(false); loadCatalog() }} />}
