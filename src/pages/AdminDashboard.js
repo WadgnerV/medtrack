@@ -541,6 +541,8 @@ export default function AdminDashboard() {
 
   async function loadClinicSettings() {
     const { data } = await supabase.from('clinic_settings').select('*').limit(1).single()
+    const { data: clinicData } = await supabase.from('clinics').select('sku_prefix').eq('id', profile.clinic_id).single()
+    if (clinicData?.sku_prefix) data.sku_prefix = clinicData.sku_prefix
     if (data) setClinicSettings(data)
     // Cargar plan de la clínica
     if (profile?.clinic_id) {
@@ -587,6 +589,9 @@ export default function AdminDashboard() {
   async function saveClinicSettings() {
     if (!clinicSettings) return
     setSavingSettings(true)
+    if (clinicSettings.sku_prefix) {
+      await supabase.from('clinics').update({ sku_prefix: clinicSettings.sku_prefix.toUpperCase().slice(0,5) }).eq('id', profile.clinic_id)
+    }
     await supabase.from('clinic_settings').update({
       clinic_name: clinicSettings.clinic_name,
       whatsapp: clinicSettings.whatsapp,
@@ -3049,6 +3054,7 @@ export default function AdminDashboard() {
                 { l:'Nombre de la clínica', k:'clinic_name', ph:'Glow Clinic' },
                 { l:'WhatsApp de agenda', k:'whatsapp', ph:'+506 0000-0000' },
                 { l:'Correo de contacto', k:'email', ph:'info@clinica.com' },
+                { l:'Prefijo SKU inventario', k:'sku_prefix', ph:'GLO' },
               ].map((row,i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 0', borderBottom:'1px solid #ebebeb' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{row.l}</div>
