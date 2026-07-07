@@ -84,6 +84,9 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [hizoProcedimiento, setHizoProcedimiento] = useState(null)
+  const [insumosUsados, setInsumosUsados] = useState([])
+  const [inventoryItems, setInventoryItems] = useState([])
   const [expandedId, setExpandedId] = useState(null)
 
   const canEdit = ['clinic_admin', 'admin', 'branch_admin', 'doctor'].includes(profile?.role)
@@ -96,7 +99,12 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   }
   const antecedentesRef = useRef(null)
 
-  useEffect(() => { if (patient?.id) loadRecords() }, [patient?.id])
+  useEffect(() => { if (patient?.id) { loadRecords(); loadInventory() } }, [patient?.id])
+
+  async function loadInventory() {
+    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity').eq('clinic_id', profile.clinic_id).order('name')
+    setInventoryItems(data || [])
+  }
 
   async function loadRecords() {
     setLoading(true)
@@ -109,6 +117,8 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   }
 
   function startNew() {
+    setHizoProcedimiento(null)
+    setInsumosUsados([])
     const lastRecord = records[0]
     setForm(emptyForm)
     setEditingId(null)
@@ -605,19 +615,58 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
           <div style={sec}>Nota de enfermería</div>
           <textarea style={{ ...inp, minHeight:80, resize:'vertical', marginBottom:20 }} value={form.nota_enfermeria} onChange={f('nota_enfermeria')} />
 
+          <div style={{ margin:'16px 0', padding:'14px', background:'#f8fbf9', border:'0.5px solid #e2ede9', borderRadius:10 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:10 }}>¿Realizó algún procedimiento? <span style={{ color:'#D85A30' }}>*</span></div>
+            <div style={{ display:'flex', gap:8, marginBottom: hizoProcedimiento === 'si' ? 12 : 0 }}>
+              {[['no','No'],['si','Sí']].map(([v,l]) => (
+                <div key={v} onClick={() => { setHizoProcedimiento(v); if (v==='no') setInsumosUsados([]) }}
+                  style={{ padding:'5px 14px', borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:hizoProcedimiento===v?600:400,
+                    border: hizoProcedimiento===v?`2px solid #1a3a5c`:'1px solid #ddd',
+                    background: hizoProcedimiento===v?'#E6F1FB':'#fff', color: hizoProcedimiento===v?'#1a3a5c':'#666' }}>
+                  {l}
+                </div>
+              ))}
+            </div>
+            {hizoProcedimiento === 'si' && (
+              <div>
+                {insumosUsados.map((uso, i) => {
+                  const item = inventoryItems.find(x => x.id === uso.item_id)
+                  const stockBajo = item && parseFloat(uso.cantidad) > item.quantity
+                  return (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, padding:'8px 10px', background:'#fff', borderRadius:8, border: stockBajo?'1px solid #F59E0B':'0.5px solid #e2ede9' }}>
+                      <select style={{ flex:2, padding:'6px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }}
+                        value={uso.item_id} onChange={e => { const arr=[...insumosUsados]; arr[i]={...arr[i],item_id:e.target.value}; setInsumosUsados(arr) }}>
+                        <option value="">Seleccionar insumo...</option>
+                        {inventoryItems.map(it => <option key={it.id} value={it.id}>{it.name} — {it.quantity} {it.unit}</option>)}
+                      </select>
+                      <input type="number" min="0" style={{ width:80, padding:'6px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }}
+                        value={uso.cantidad} onChange={e => { const arr=[...insumosUsados]; arr[i]={...arr[i],cantidad:e.target.value}; setInsumosUsados(arr) }} placeholder="Cant." />
+                      {item && <span style={{ fontSize:11, color:'#aaa', whiteSpace:'nowrap' }}>{item.unit}</span>}
+                      {stockBajo && <span style={{ fontSize:10, color:'#BA7517' }}>⚠ Stock insuficiente</span>}
+                      <button onClick={() => setInsumosUsados(p=>p.filter((_,j)=>j!==i))} style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:16 }}>×</button>
+                    </div>
+                  )
+                })}
+                <button onClick={() => setInsumosUsados(p=>[...p,{item_id:'',cantidad:''}])}
+                  style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
+                  + Agregar insumo
+                </button>
+              </div>
+            )}
+          </div>
           <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
             <button onClick={() => { setShowForm(false); setEditingId(null) }}
               style={{ padding:'8px 16px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>
               Cancelar
             </button>
             {editingId && records.find(r => r.id === editingId)?.status === 'ready' ? (
-              <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type}
+              <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type || hizoProcedimiento === null}
                 style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
                 {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             ) : (
               <>
-                <button onClick={() => handleSave(false)} disabled={saving || !form.consultation_type}
+                <button onClick={() => handleSave(false)} disabled={saving || !form.consultation_type || hizoProcedimiento === null}
                   style={{ padding:'8px 18px', background:'#f0f4f8', color:BLUE, border:'1px solid #c5d5e8', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.7:1 }}>
                   {saving ? 'Guardando...' : 'Guardar borrador'}
                 </button>

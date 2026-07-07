@@ -198,6 +198,10 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [notes, setNotes] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const [hizoProcedimiento, setHizoProcedimiento] = useState(null)
+  const [insumosUsados, setInsumosUsados] = useState([])
+  const [inventoryItems, setInventoryItems] = useState([])
+  const [insumoSearch, setInsumoSearch] = useState('')
   const [lastConsultType, setLastConsultType] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -219,8 +223,13 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const inpM = { ...inp1, height:90, resize:'vertical' }
   const label = { fontSize:12, fontWeight:600, color:'#555', marginBottom:4, display:'block' }
 
-  useEffect(() => { if (patientId) load() }, [patientId])
+  useEffect(() => { if (patientId) { load(); loadInventoryItems() } }, [patientId])
   useEffect(() => { if (profile?.clinic_id && moduleType) loadTemplates() }, [profile?.clinic_id, moduleType])
+
+  async function loadInventoryItems() {
+    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity, category').eq('clinic_id', profile.clinic_id).order('name')
+    setInventoryItems(data || [])
+  }
 
   async function load() {
     // Cargar tipo de consulta de la preconsulta dentro de las últimas 2 horas
@@ -487,7 +496,36 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       const { error: insertErr } = await supabase.from('clinical_notes').insert(payload)
       if (insertErr) console.error('Error insert:', insertErr)
     }
+    // Descontar inventario si hubo procedimiento
+    if (hizoProcedimiento === 'si' && insumosUsados.length > 0) {
+      for (const uso of insumosUsados) {
+        if (!uso.item_id || !uso.cantidad) continue
+        const item = inventoryItems.find(i => i.id === uso.item_id)
+        if (!item) continue
+        const nuevaCantidad = item.quantity - parseFloat(uso.cantidad)
+        await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
+        await supabase.from('inventory_history').insert({
+          item_id: uso.item_id, clinic_id: profile.clinic_id,
+          quantity_before: item.quantity, quantity_after: nuevaCantidad,
+          change_type: 'procedimiento', recorded_by: profile.id
+        })
+        // Notificar si stock bajo
+        if (nuevaCantidad <= item.min_quantity) {
+          const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+          if (admins) {
+            await supabase.from('notifications').insert(admins.map(a => ({
+              profile_id: a.id, clinic_id: profile.clinic_id,
+              type: 'low_stock', title: 'Stock bajo',
+              message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo permitido: ${item.min_quantity}.`,
+              is_read: false, sender_id: profile.id
+            })))
+          }
+        }
+      }
+      await loadInventoryItems()
+    }
     setForm(emptyForm); setEditingId(null); setShowForm(false)
+    setHizoProcedimiento(null); setInsumosUsados([])
     await load(); setSaving(false)
   }
 
@@ -539,7 +577,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
           {notes.length > 0 && (
             <button onClick={() => setShowPrint(true)} style={{ background:'#f0f4f8', color:'#1a3a5c', border:'1px solid #e2e8f0', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imprimir notas</button>
           )}
-          <button onClick={() => { setShowForm(true); setForm({ ...emptyForm, consultation_type: lastConsultType }); setEditingId(null) }}
+          <button onClick={() => { setShowForm(true); setForm({ ...emptyForm, consultation_type: lastConsultType }); setEditingId(null); setHizoProcedimiento(null); setInsumosUsados([]) }}
             style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
             + Nueva nota
           </button>
@@ -735,8 +773,8 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                 <i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Laboratorios
               </button>
             )}
-            <button onClick={save} disabled={saving}
-              style={{ flex:1, padding:'8px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving ? 0.7 : 1 }}>
+            <button onClick={save} disabled={saving || hizoProcedimiento === null}
+              style={{ flex:1, padding:'8px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: (saving || hizoProcedimiento === null) ? 0.5 : 1 }}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar nota' : 'Guardar nota'}
             </button>
           </div>
