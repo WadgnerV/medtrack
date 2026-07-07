@@ -29,6 +29,7 @@ export default function TicketsTab({ profile }) {
   const [newComment, setNewComment] = useState('')
   const [saving, setSaving] = useState(false)
   const [reasignando, setReasignando] = useState(false)
+  const [activeTab, setActiveTab] = useState('asignados')
   const [newAssignee, setNewAssignee] = useState('')
   const commentsEndRef = useRef(null)
 
@@ -116,6 +117,15 @@ export default function TicketsTab({ profile }) {
       ticket_id: selectedTicket.id, author_id: profile.id,
       comment: `Estado cambiado a: ${label}`
     })
+    // Notificar al creador si fue resuelto
+    if (status === 'resuelto' && selectedTicket.created_by !== profile.id) {
+      await supabase.from('notifications').insert({
+        profile_id: selectedTicket.created_by, clinic_id: profile.clinic_id,
+        type: 'ticket', title: 'Ticket resuelto',
+        message: `**${profile.first_name} ${profile.last_name}** marcó como resuelto tu ticket: "${selectedTicket.title}". Por favor confirmá la recepción para cerrarlo.`,
+        is_read: false, sender_id: profile.id
+      })
+    }
     setSelectedTicket(p => ({ ...p, status }))
     await loadComments(selectedTicket.id)
     await load()
@@ -150,7 +160,9 @@ export default function TicketsTab({ profile }) {
     setSelectedTicket(null)
   }
 
-  const myTickets = tickets.filter(t => t.created_by === profile.id || t.assigned_to === profile.id)
+  const misTickets = tickets.filter(t => t.created_by === profile.id)
+  const asignadosAmi = tickets.filter(t => t.assigned_to === profile.id)
+  const ticketsMostrados = activeTab === 'asignados' ? asignadosAmi : misTickets
 
   return (
     <div style={{ display:'flex', gap:16, height:'calc(100vh - 180px)' }}>
@@ -160,13 +172,29 @@ export default function TicketsTab({ profile }) {
           + Crear ticket
         </button>
 
+        <div style={{ display:'flex', marginBottom:10, border:'0.5px solid #e2ede9', borderRadius:8, overflow:'hidden' }}>
+          {[['asignados','Asignados a mí'],['mios','Creados por mí']].map(([k,l]) => (
+            <div key={k} onClick={() => setActiveTab(k)}
+              style={{ flex:1, padding:'6px 8px', cursor:'pointer', fontSize:11, fontWeight:500, textAlign:'center',
+                background: activeTab===k ? BLUE : '#fff', color: activeTab===k ? '#fff' : '#555',
+                borderRight: k==='asignados' ? '0.5px solid #e2ede9' : 'none' }}>
+              {l}
+              {k==='asignados' && asignadosAmi.filter(t=>t.status==='abierto').length > 0 && (
+                <span style={{ marginLeft:4, background:'#D85A30', color:'#fff', borderRadius:20, fontSize:10, padding:'0 5px' }}>
+                  {asignadosAmi.filter(t=>t.status==='abierto').length}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
         {loading ? (
           <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Cargando...</div>
-        ) : myTickets.length === 0 ? (
+        ) : ticketsMostrados.length === 0 ? (
           <div style={{ textAlign:'center', padding:20, color:'#bbb', fontSize:13 }}>Sin tickets</div>
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:8, overflowY:'auto' }}>
-            {myTickets.map(ticket => {
+            {ticketsMostrados.map(ticket => {
               const st = STATUSES.find(s => s.value === ticket.status) || STATUSES[0]
               const pr = PRIORITIES.find(p => p.value === ticket.priority) || PRIORITIES[1]
               const isSelected = selectedTicket?.id === ticket.id
@@ -181,7 +209,9 @@ export default function TicketsTab({ profile }) {
                   <div style={{ fontSize:11, color:'#aaa', marginBottom:4 }}>{ticket.category}</div>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:10, fontWeight:500, padding:'2px 7px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
-                    <span style={{ fontSize:10, color:'#bbb' }}>{isMine ? 'Creado por mí' : 'Asignado a mí'}</span>
+                    <span style={{ fontSize:10, color: ticket.assigned_to === profile.id && ticket.status === 'abierto' ? G : '#bbb', fontWeight: ticket.assigned_to === profile.id && ticket.status === 'abierto' ? 600 : 400 }}>
+                      {ticket.assigned_to === profile.id ? '→ Debo resolver' : 'Creado por mí'}
+                    </span>
                   </div>
                 </div>
               )
