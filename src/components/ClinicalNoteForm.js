@@ -236,7 +236,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     const { data: pc } = await supabase.from('preconsult_records')
       .select('consultation_type')
-      .eq('patient_id', patientId)
+      .eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId)
       .gte('recorded_at', twoHoursAgo)
       .order('recorded_at', { ascending: false })
       .limit(1)
