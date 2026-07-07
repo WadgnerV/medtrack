@@ -9,6 +9,60 @@ const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 
 const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 
+async function exportInventarioXLSX(items, history, exchangeRate) {
+  const XLSX = await import('xlsx')
+  const today = new Date().toISOString().split('T')[0]
+
+  // Calcular movimiento del día por item
+  const todayHistory = history.filter(h => h.created_at?.startsWith(today))
+  const movimientosPorItem = {}
+  todayHistory.forEach(h => {
+    const id = h.item_id
+    const diff = h.change_amount !== undefined && h.change_amount !== null
+      ? h.change_amount
+      : (h.quantity_after - h.quantity_before)
+    movimientosPorItem[id] = (movimientosPorItem[id] || 0) + diff
+  })
+
+  const rows = items.map(item => {
+    const mov = movimientosPorItem[item.id] || 0
+    const costoCRC = item.cost ? (item.currency === 'USD' ? item.cost * (exchangeRate||462) : item.cost) : 0
+    return {
+      'SKU': item.sku || '—',
+      'Nombre': item.name,
+      'Categoría': item.category,
+      'Unidad': item.unit,
+      'Stock actual': item.quantity,
+      'Stock mínimo': item.min_quantity || 0,
+      'Estado stock': item.min_quantity > 0 && item.quantity <= item.min_quantity ? 'BAJO' : 'OK',
+      'Bodega': item.location || '—',
+      'Proveedor': item.supplier || '—',
+      'Lote': item.lot || '—',
+      'Vencimiento': item.expiry_date || '—',
+      'Costo unitario': item.cost || 0,
+      'Moneda': item.currency || 'CRC',
+      'Costo unitario (₡)': costoCRC,
+      'Precio de venta': item.sale_price || 0,
+      'Valor total (₡)': costoCRC * item.quantity,
+      'Movimiento hoy': mov === 0 ? 0 : mov > 0 ? `+${mov}` : mov,
+      'Descripción': item.description || '—',
+    }
+  })
+
+  const ws = XLSX.utils.json_to_sheet(rows)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Inventario')
+
+  // Ancho de columnas
+  ws['!cols'] = [
+    {wch:14},{wch:30},{wch:16},{wch:10},{wch:12},{wch:12},{wch:12},
+    {wch:16},{wch:20},{wch:12},{wch:14},{wch:14},{wch:8},{wch:16},
+    {wch:14},{wch:16},{wch:14},{wch:30}
+  ]
+
+  XLSX.writeFile(wb, `inventario_${today}.xlsx`)
+}
+
 async function fetchExchangeRate() {
   try {
     const res = await fetch('https://apis.gometa.org/tdc/tdc.json')
@@ -25,6 +79,7 @@ async function fetchExchangeRate() {
 
 export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [items, setItems] = useState([])
+  const [allHistory, setAllHistory] = useState([])
   const [warehouses, setWarehouses] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
@@ -104,6 +159,10 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
     if (!isClinicAdmin && profile.branch_id) q = q.eq('branch_id', profile.branch_id)
     const { data } = await q
     setItems(data || [])
+    // Cargar historial del día
+    const today = new Date().toISOString().split('T')[0]
+    const { data: hist } = await supabase.from('inventory_history').select('*').eq('clinic_id', profile.clinic_id).gte('created_at', today + 'T00:00:00')
+    setAllHistory(hist || [])
     setLoading(false)
   }
 
@@ -233,6 +292,10 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <button style={s.btnOutline} onClick={() => setShowCatalogo(true)}>Catálogo</button>
+        <button style={s.btnOutline} onClick={() => exportInventarioXLSX(filtered, allHistory, exchangeRate)}>
+          <i className="ti ti-file-spreadsheet" style={{ fontSize:13, marginRight:4 }} aria-hidden="true"></i>
+          Exportar XLSX
+        </button>
         <button style={s.btnOutline} onClick={() => setShowBodegas(true)}>Bodegas</button>
         <button style={s.btn} onClick={() => { setForm({...emptyForm, branch_id: profile?.branch_id || ''}); setModal('new') }}>+ Agregar ítem</button>
       </div>
