@@ -213,6 +213,24 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
         console.log('Sin doctor asignado, no se notifica')
       }
     }
+    // Descontar inventario si hubo procedimiento
+    if (hizoProcedimiento === 'si' && insumosUsados.length > 0) {
+      for (const uso of insumosUsados) {
+        if (!uso.item_id || !uso.cantidad) continue
+        const item = inventoryItems.find(i => i.id === uso.item_id)
+        if (!item) continue
+        const nuevaCantidad = item.quantity - parseFloat(uso.cantidad)
+        await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
+        await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
+        if (nuevaCantidad <= item.min_quantity) {
+          const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+          if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
+        }
+      }
+      await loadInventory()
+      setHizoProcedimiento(null)
+      setInsumosUsados([])
+    }
     await loadRecords()
     setShowForm(false); setEditingId(null); setSaving(false)
   }
