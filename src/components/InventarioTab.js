@@ -342,12 +342,17 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                   <span style={{ fontSize:11, fontWeight:600, color:'#0F6E56', background:'#E1F5EE', padding:'2px 7px', borderRadius:20 }}>{item.sku || '—'}</span>
                 </td>
                 <td style={s.td}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    {item.image_url && <img src={item.image_url} alt={item.name} style={{ width:36, height:36, objectFit:'cover', borderRadius:6, flexShrink:0 }} />}
+                    <div>
                   <div style={{ fontWeight:500, color:'#1a1a1a' }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{item.description}</div>}
                   {item.location && <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>{item.location}</div>}
                   {item.min_quantity > 0 && item.quantity <= item.min_quantity && (
                     <span style={{ fontSize:10, background:'#fde0e0', color:'#d9534f', padding:'1px 6px', borderRadius:20, marginTop:3, display:'inline-block' }}>Stock bajo</span>
                   )}
+                    </div>
+                  </div>
                 </td>
                 <td style={s.td}><span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>{item.category}</span></td>
                 <td style={s.td}>{item.quantity} {item.unit}</td>

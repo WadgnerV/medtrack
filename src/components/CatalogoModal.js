@@ -40,9 +40,25 @@ export default function CatalogoModal({ profile, onClose }) {
     setItems(p => p.filter(x => x.id !== item.id))
   }
 
+  async function uploadImage(file, itemId) {
+    const ext = file.name.split('.').pop()
+    const path = `${profile.clinic_id}/${itemId}.${ext}`
+    const { error } = await supabase.storage.from('inventory-images').upload(path, file, { upsert: true })
+    if (error) return null
+    const { data } = supabase.storage.from('inventory-images').getPublicUrl(path)
+    return data.publicUrl
+  }
+
   async function saveEdit() {
     if (!editing?.name) return
     setSaving(true)
+    let image_url = editing.image_url || null
+    if (editing._imageFile) {
+      const url = await uploadImage(editing._imageFile, editing.id)
+      if (url) image_url = url
+    }
+    if (editing._removeImage) image_url = null
+
     await supabase.from('inventory_items').update({
       name: editing.name,
       category: editing.category,
@@ -55,6 +71,7 @@ export default function CatalogoModal({ profile, onClose }) {
       expiry_date: editing.expiry_date || null,
       location: editing.location || null,
       description: editing.description || null,
+      image_url,
       updated_at: new Date().toISOString(),
     }).eq('id', editing.id)
     await load()
@@ -143,6 +160,40 @@ export default function CatalogoModal({ profile, onClose }) {
               <label style={lbl}>Descripción</label>
               <input style={inp} value={editing.description||''} onChange={f('description')} />
             </div>
+            <div style={{ marginBottom:16 }}>
+              <label style={lbl}>Imagen del ítem</label>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                {(editing.image_url && !editing._removeImage) ? (
+                  <div style={{ position:'relative' }}>
+                    <img src={editing._previewUrl || editing.image_url} alt={editing.name}
+                      style={{ width:80, height:80, objectFit:'cover', borderRadius:8, border:'0.5px solid #e2ede9' }} />
+                    <button onClick={() => setEditing(p => ({ ...p, _removeImage:true, _imageFile:null, _previewUrl:null }))}
+                      style={{ position:'absolute', top:-6, right:-6, background:'#D85A30', color:'#fff', border:'none', borderRadius:'50%', width:18, height:18, cursor:'pointer', fontSize:12, lineHeight:'18px', textAlign:'center' }}>×</button>
+                  </div>
+                ) : editing._previewUrl ? (
+                  <div style={{ position:'relative' }}>
+                    <img src={editing._previewUrl} alt="preview"
+                      style={{ width:80, height:80, objectFit:'cover', borderRadius:8, border:'0.5px solid #e2ede9' }} />
+                    <button onClick={() => setEditing(p => ({ ...p, _imageFile:null, _previewUrl:null }))}
+                      style={{ position:'absolute', top:-6, right:-6, background:'#D85A30', color:'#fff', border:'none', borderRadius:'50%', width:18, height:18, cursor:'pointer', fontSize:12, lineHeight:'18px', textAlign:'center' }}>×</button>
+                  </div>
+                ) : (
+                  <div style={{ width:80, height:80, borderRadius:8, border:'1px dashed #e2ede9', display:'flex', alignItems:'center', justifyContent:'center', color:'#ccc' }}>
+                    <i className="ti ti-photo" style={{ fontSize:24 }} aria-hidden="true"></i>
+                  </div>
+                )}
+                <label style={{ padding:'6px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
+                  {editing.image_url || editing._previewUrl ? 'Cambiar imagen' : 'Agregar imagen'}
+                  <input type="file" accept="image/*" style={{ display:'none' }}
+                    onChange={e => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      const url = URL.createObjectURL(file)
+                      setEditing(p => ({ ...p, _imageFile: file, _previewUrl: url, _removeImage: false }))
+                    }} />
+                </label>
+              </div>
+            </div>
             <div style={{ padding:'10px 14px', background:'#FFF8E1', border:'1px solid #F59E0B', borderRadius:8, marginBottom:16, fontSize:12, color:'#854F0B' }}>
               Para modificar el stock actual usá el botón <strong>Ajuste</strong> en la tabla de inventario.
             </div>
@@ -180,7 +231,8 @@ export default function CatalogoModal({ profile, onClose }) {
                     <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:20, background: catColor[item.category]||'#f0f0f0', color: catText[item.category]||'#555', whiteSpace:'nowrap' }}>
                       {item.sku || '—'}
                     </span>
-                    <span style={{ flex:1, fontSize:13, color:'#1a1a1a' }}>{item.name}</span>
+                    {item.image_url && <img src={item.image_url} alt={item.name} style={{ width:32, height:32, objectFit:'cover', borderRadius:6, flexShrink:0 }} />}
+                  <span style={{ flex:1, fontSize:13, color:'#1a1a1a' }}>{item.name}</span>
                     <span style={{ fontSize:11, color:'#aaa' }}>{item.quantity} {item.unit}</span>
                     <button onClick={() => setEditing({ ...item, cost: String(item.cost||''), sale_price: String(item.sale_price||''), expiry_date: item.expiry_date||'' })}
                       style={{ border:'0.5px solid #e2ede9', background:'#fff', borderRadius:6, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#555' }}>
