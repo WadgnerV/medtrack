@@ -9,10 +9,7 @@ const BLUE = '#1a3a5c'
 
 async function fetchExchangeRate() {
   try {
-    const today = new Date()
-    const fmt = d => String(d).padStart(2, '0')
-    const fecha = `${today.getFullYear()}/${fmt(today.getMonth()+1)}/${fmt(today.getDate())}`
-    const res = await fetch(`https://apis.gometa.org/tdc/tdc.json`)
+    const res = await fetch('https://apis.gometa.org/tdc/tdc.json')
     const data = await res.json()
     if (data?.venta) return parseFloat(data.venta)
   } catch {}
@@ -27,7 +24,6 @@ async function fetchExchangeRate() {
 export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [items, setItems] = useState([])
   const [warehouses, setWarehouses] = useState([])
-  const [showBodegas, setShowBodegas] = useState(false)
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -37,7 +33,13 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [exchangeRate, setExchangeRate] = useState(null)
   const [historyItem, setHistoryItem] = useState(null)
   const [history, setHistory] = useState([])
-  const emptyForm = { name:'', category:'Medicamento', unit:'unidad', quantity:'', min_quantity:'', description:'', cost:'', currency:'CRC', branch_id: profile?.branch_id || '', sku:'', sale_price:'', location:'', lot:'', supplier:'', expiry_date:'' }
+  const [showBodegas, setShowBodegas] = useState(false)
+
+  const emptyForm = {
+    name:'', category:'Medicamento', unit:'unidad', quantity:'', min_quantity:'',
+    description:'', cost:'', currency:'CRC', branch_id: profile?.branch_id || '',
+    sku:'', sale_price:'', location:'', lot:'', supplier:'', expiry_date:''
+  }
   const [form, setForm] = useState(emptyForm)
   const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
 
@@ -124,26 +126,27 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
     const costCRC = item.currency === 'USD' ? item.cost * rate : item.cost
     return costCRC * item.quantity
   }
+
   const totalValue = filtered.reduce((sum, i) => sum + getItemValueInColones(i), 0)
   const lowStock = filtered.filter(i => i.min_quantity > 0 && i.quantity <= i.min_quantity).length
 
   const s = {
     card: { background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 },
     btn: { background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' },
+    btnOutline: { background:'#fff', color:BLUE, border:`1px solid ${BLUE}`, borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' },
     btnSm: { background:'none', border:'1px solid #eee', borderRadius:6, padding:'3px 10px', fontSize:12, cursor:'pointer', color:'#555', marginRight:6 },
     btnDel: { background:'none', border:'1px solid #fde0e0', borderRadius:6, padding:'3px 10px', fontSize:12, cursor:'pointer', color:'#d9534f' },
-    label: { fontSize:12, fontWeight:500, color:'#555', marginBottom:4, display:'block' },
-    input: { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:12 },
-    select: { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:12 },
-    overlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' },
-    modalBox: { background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:800, maxHeight:'90vh', overflowY:'auto' },
+    label: { fontSize:11, fontWeight:600, color:'#666', marginBottom:4, display:'block', textTransform:'uppercase', letterSpacing:'0.5px' },
+    input: { width:'100%', padding:'7px 9px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:10 },
+    select: { width:'100%', padding:'7px 9px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:10 },
+    overlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 },
+    modalBox: { background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:820, maxHeight:'90vh', overflowY:'auto' },
     th: { textAlign:'left', padding:'8px 12px', color:'#888', fontWeight:500, fontSize:12, borderBottom:'1px solid #eee' },
     td: { padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', fontSize:13, color:'#333', verticalAlign:'middle' },
   }
 
   return (
     <div>
-      {/* Métricas */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
         <div style={{ ...s.card, marginBottom:0 }}>
           <div style={{ fontSize:11, color:'#999', marginBottom:4 }}>Total ítems</div>
@@ -164,7 +167,6 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         </div>
       </div>
 
-      {/* Filtros y búsqueda */}
       <div style={{ display:'flex', gap:10, marginBottom:14, flexWrap:'wrap', alignItems:'center' }}>
         <div style={{ position:'relative', flex:1, minWidth:180 }}>
           <i className="ti ti-search" style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'#bbb' }} aria-hidden="true"></i>
@@ -183,11 +185,10 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           <option value="">Todas las categorías</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button onClick={() => setShowBodegas(true)} style={{ ...s.btn, background:'#fff', color:BLUE, border:`1px solid ${BLUE}` }}>Bodegas</button>
+        <button style={s.btnOutline} onClick={() => setShowBodegas(true)}>Bodegas</button>
         <button style={s.btn} onClick={() => { setForm({...emptyForm, branch_id: profile?.branch_id || ''}); setModal('new') }}>+ Agregar ítem</button>
       </div>
 
-      {/* Tabla */}
       <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, overflow:'hidden' }}>
         <table style={{ width:'100%', borderCollapse:'collapse' }}>
           <thead>
@@ -213,6 +214,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 <td style={s.td}>
                   <div style={{ fontWeight:500, color:'#1a1a1a' }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:11, color:'#999', marginTop:1 }}>{item.description}</div>}
+                  {item.location && <div style={{ fontSize:11, color:'#aaa', marginTop:1 }}>{item.location}</div>}
                   {item.min_quantity > 0 && item.quantity <= item.min_quantity && (
                     <span style={{ fontSize:10, background:'#fde0e0', color:'#d9534f', padding:'1px 6px', borderRadius:20, marginTop:3, display:'inline-block' }}>Stock bajo</span>
                   )}
@@ -242,14 +244,16 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         </table>
       </div>
 
-      {/* Modal nuevo/editar */}
       {(modal === 'new' || modal === 'edit') && (
         <div style={s.overlay} onClick={e => { if (e.target === e.currentTarget) { setModal(null); setForm(emptyForm) } }}>
           <div style={s.modalBox}>
-            <div style={{ fontSize:15, fontWeight:600, marginBottom:18, color:'#1a1a1a' }}>{modal === 'edit' ? 'Editar ítem' : 'Nuevo ítem de inventario'}</div>
-            <label style={s.label}>Nombre *</label>
-            <input style={s.input} value={form.name} onChange={f('name')}  />
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:10, marginBottom:0 }}>
+            <div style={{ fontSize:15, fontWeight:600, marginBottom:16, color:'#1a1a1a' }}>{modal === 'edit' ? 'Editar ítem' : 'Nuevo ítem de inventario'}</div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:10 }}>
+              <div>
+                <label style={s.label}>Nombre *</label>
+                <input style={s.input} value={form.name} onChange={f('name')} />
+              </div>
               <div>
                 <label style={s.label}>Categoría</label>
                 <select style={s.select} value={form.category} onChange={f('category')}>
@@ -262,6 +266,9 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                   {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Cantidad *</label>
                 <input style={s.input} type="number" min="0" value={form.quantity} onChange={f('quantity')} />
@@ -270,8 +277,30 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 <label style={s.label}>Cantidad mínima</label>
                 <input style={s.input} type="number" min="0" value={form.min_quantity} onChange={f('min_quantity')} />
               </div>
+              <div>
+                <label style={s.label}>Costo unitario</label>
+                <input style={s.input} type="number" min="0" value={form.cost} onChange={f('cost')} />
+              </div>
+              <div>
+                <label style={s.label}>Moneda</label>
+                <select style={s.select} value={form.currency} onChange={f('currency')}>
+                  <option value="CRC">Colones (₡)</option>
+                  <option value="USD">Dólares ($)</option>
+                </select>
+              </div>
+              <div>
+                <label style={s.label}>Precio de venta</label>
+                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} />
+              </div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:10, marginBottom:0 }}>
+
+            {form.currency === 'USD' && (
+              <div style={{ background:'#f8fffe', border:'1px solid #E1F5EE', borderRadius:8, padding:'8px 12px', marginBottom:10, fontSize:12, color:'#555' }}>
+                {exchangeRate ? `Tipo de cambio BCCR: ₡${exchangeRate.toLocaleString('es-CR')} por $1` : 'Obteniendo tipo de cambio...'}
+              </div>
+            )}
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Proveedor</label>
                 <input style={s.input} value={form.supplier} onChange={f('supplier')} />
@@ -296,37 +325,22 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 </select>
               </div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:0 }}>
-              <div>
-                <label style={s.label}>Costo unitario</label>
-                <input style={s.input} type="number" min="0" value={form.cost} onChange={f('cost')} />
-              </div>
-              <div>
-                <label style={s.label}>Moneda</label>
-                <select style={s.select} value={form.currency} onChange={f('currency')}>
-                  <option value="CRC">Colones (₡)</option>
-                  <option value="USD">Dólares ($)</option>
-                </select>
-              </div>
-              <div>
-                <label style={s.label}>Precio de venta</label>
-                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} />
-              </div>
 
-                        {form.currency === 'USD' && (
-              <div style={{ background:'#f8fffe', border:'1px solid #E1F5EE', borderRadius:8, padding:'8px 12px', marginBottom:12, fontSize:12, color:'#555' }}>
-                {exchangeRate ? `Tipo de cambio BCCR: ₡${exchangeRate.toLocaleString('es-CR')} por $1` : 'Obteniendo tipo de cambio del BCCR...'}
-              </div>
-            )}
+            <div>
+              <label style={s.label}>Descripción</label>
+              <input style={s.input} value={form.description} onChange={f('description')} />
+            </div>
+
             {isClinicAdmin && branches.length > 0 && (
-              <>
+              <div>
                 <label style={s.label}>Sucursal</label>
                 <select style={s.select} value={form.branch_id} onChange={f('branch_id')}>
                   <option value="">Sin sucursal específica</option>
                   {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
-              </>
+              </div>
             )}
+
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:8 }}>
               <button style={{ ...s.btnSm, padding:'7px 14px' }} onClick={() => { setModal(null); setForm(emptyForm) }}>Cancelar</button>
               <button style={{ ...s.btn, opacity: saving ? 0.7 : 1 }} onClick={handleSave} disabled={saving}>
@@ -337,7 +351,6 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
         </div>
       )}
 
-      {/* Modal historial */}
       {modal === 'history' && historyItem && (
         <div style={s.overlay} onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
           <div style={s.modalBox}>
@@ -375,7 +388,8 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </div>
         </div>
       )}
+
       {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
-    </>
+    </div>
   )
 }
