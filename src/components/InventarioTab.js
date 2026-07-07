@@ -136,7 +136,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
     input: { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:12 },
     select: { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', marginBottom:12 },
     overlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' },
-    modalBox: { background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:500, maxHeight:'90vh', overflowY:'auto' },
+    modalBox: { background:'#fff', borderRadius:14, padding:24, width:'100%', maxWidth:800, maxHeight:'90vh', overflowY:'auto' },
     th: { textAlign:'left', padding:'8px 12px', color:'#888', fontWeight:500, fontSize:12, borderBottom:'1px solid #eee' },
     td: { padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', fontSize:13, color:'#333', verticalAlign:'middle' },
   }
