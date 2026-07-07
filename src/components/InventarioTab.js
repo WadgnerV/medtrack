@@ -376,8 +376,8 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </div>
         </div>
       )}
-    </div>
       {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
+    </div>
     </>
   )
 }
