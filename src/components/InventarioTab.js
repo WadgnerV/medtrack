@@ -6,7 +6,7 @@ import AjusteInventarioModal from './AjusteInventarioModal'
 import SolicitudesCompraTab from './SolicitudesCompraTab'
 
 const CATEGORIES = ['Medicamento', 'Producto estético', 'Insumo', 'Equipo']
-const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg']
+const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg', 'mg']
 const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 

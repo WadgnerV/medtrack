@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 const G = '#0F6E56'
 const BLUE = '#1a3a5c'
 const CATEGORIES = ['Medicamento', 'Producto estético', 'Insumo', 'Equipo']
-const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg']
+const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg', 'mg']
 const inp = { width:'100%', padding:'7px 9px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
 const lbl = { fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:4, display:'block' }
 
