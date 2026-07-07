@@ -511,14 +511,16 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
         })
         // Notificar si stock bajo
         if (nuevaCantidad <= item.min_quantity) {
-          const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
-          if (admins) {
-            await supabase.from('notifications').insert(admins.map(a => ({
+          const { data: admins, error: adminsError } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+          console.log('Admins para notificar:', admins, 'Error:', adminsError)
+          if (admins && admins.length > 0) {
+            const { error: notifError } = await supabase.from('notifications').insert(admins.map(a => ({
               profile_id: a.id, clinic_id: profile.clinic_id,
               type: 'low_stock', title: 'Stock bajo',
               message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo permitido: ${item.min_quantity}.`,
               is_read: false, sender_id: profile.id
             })))
+            console.log('Notif error:', notifError)
           }
         }
       }
