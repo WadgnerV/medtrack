@@ -575,7 +575,9 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
 
   function startEdit(note) {
     setForm(parseNoteText(note.note_text))
-    setEditingId(note.id); setShowForm(true)
+    setEditingId(note.id)
+    setShowForm(true)
+    loadNoteSupplies(note.id)
   }
 
   function togglePlan(opt) {
