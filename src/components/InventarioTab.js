@@ -250,7 +250,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
             <div style={{ fontSize:15, fontWeight:600, marginBottom:18, color:'#1a1a1a' }}>{modal === 'edit' ? 'Editar ítem' : 'Nuevo ítem de inventario'}</div>
             <label style={s.label}>Nombre *</label>
             <input style={s.input} value={form.name} onChange={f('name')}  />
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:10, marginBottom:0 }}>
               <div>
                 <label style={s.label}>Categoría</label>
                 <select style={s.select} value={form.category} onChange={f('category')}>
@@ -265,44 +265,42 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
               </div>
               <div>
                 <label style={s.label}>Cantidad *</label>
-                <input style={s.input} type="number" min="0" value={form.quantity} onChange={f('quantity')} placeholder="0" />
+                <input style={s.input} type="number" min="0" value={form.quantity} onChange={f('quantity')} />
               </div>
               <div>
-                <label style={s.label}>Cantidad mínima (alerta)</label>
-                <input style={s.input} type="number" min="0" value={form.min_quantity} onChange={f('min_quantity')} placeholder="0" />
+                <label style={s.label}>Cantidad mínima</label>
+                <input style={s.input} type="number" min="0" value={form.min_quantity} onChange={f('min_quantity')} />
               </div>
             </div>
-            <label style={s.label}>Descripción</label>
-            <input style={s.input} value={form.description} onChange={f('description')}  />
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:10, marginBottom:0 }}>
               <div>
                 <label style={s.label}>Proveedor</label>
-                <input style={s.input} value={form.supplier} onChange={f('supplier')}  />
+                <input style={s.input} value={form.supplier} onChange={f('supplier')} />
               </div>
               <div>
-                <label style={s.label}>Código SKU</label>
-                <input style={s.input} value={form.sku} onChange={f('sku')}  />
+                <label style={s.label}>SKU</label>
+                <input style={s.input} value={form.sku} onChange={f('sku')} />
               </div>
               <div>
                 <label style={s.label}>Lote</label>
-                <input style={s.input} value={form.lot} onChange={f('lot')}  />
+                <input style={s.input} value={form.lot} onChange={f('lot')} />
               </div>
               <div>
-                <label style={s.label}>Fecha de vencimiento</label>
+                <label style={s.label}>Vencimiento</label>
                 <input style={s.input} type="date" value={form.expiry_date} onChange={f('expiry_date')} />
               </div>
               <div>
-                <label style={s.label}>Bodega / Ubicación</label>
+                <label style={s.label}>Bodega</label>
                 <select style={s.select} value={form.location} onChange={f('location')}>
                   <option value="">Sin asignar</option>
                   {warehouses.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
                 </select>
               </div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:0 }}>
               <div>
                 <label style={s.label}>Costo unitario</label>
-                <input style={s.input} type="number" min="0" value={form.cost} onChange={f('cost')} placeholder="0" />
+                <input style={s.input} type="number" min="0" value={form.cost} onChange={f('cost')} />
               </div>
               <div>
                 <label style={s.label}>Moneda</label>
@@ -313,10 +311,10 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
               </div>
               <div>
                 <label style={s.label}>Precio de venta</label>
-                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} placeholder="0" />
+                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} />
               </div>
-            </div>
-            {form.currency === 'USD' && (
+
+                        {form.currency === 'USD' && (
               <div style={{ background:'#f8fffe', border:'1px solid #E1F5EE', borderRadius:8, padding:'8px 12px', marginBottom:12, fontSize:12, color:'#555' }}>
                 {exchangeRate ? `Tipo de cambio BCCR: ₡${exchangeRate.toLocaleString('es-CR')} por $1` : 'Obteniendo tipo de cambio del BCCR...'}
               </div>
