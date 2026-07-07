@@ -24,7 +24,6 @@ export default function RecetasTab({ patient, profile }) {
     const { data } = await supabase.from('clinical_notes')
       .select('id, note_date, note_text, created_at, author:recorded_by(first_name, last_name, prefix)')
       .eq('patient_id', patientId)
-      .eq('module_type', 'general')
       .order('note_date', { ascending: false })
     const parsed = (data || []).map(n => ({
       ...n,
