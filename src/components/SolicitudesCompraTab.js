@@ -119,7 +119,14 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
                 requester_name: `${profile.first_name} ${profile.last_name}`,
                 items: validItems.map(i => {
                   const inv = inventoryItems.find(x => x.id === i.item_id)
-                  return { name: inv?.name || '—', quantity: i.quantity, unit: inv?.unit || '' }
+                  return {
+                    name: inv?.name || '—',
+                    quantity: i.quantity,
+                    unit: inv?.unit || '',
+                    stock_actual: inv?.quantity ?? '—',
+                    stock_minimo: inv?.min_quantity ?? 0,
+                    en_minimo: inv?.min_quantity > 0 && inv?.quantity <= inv?.min_quantity
+                  }
                 }),
                 notes: newNotes || null,
                 order_id: order.id,
