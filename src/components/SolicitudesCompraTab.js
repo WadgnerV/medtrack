@@ -37,7 +37,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
   async function load() {
     setLoading(true)
     const { data } = await supabase.from('purchase_orders')
-      .select('*, creator:created_by(id, first_name, last_name, role), approver:approved_by(first_name, last_name), items:purchase_order_items(*, inventory_item:item_id(name, unit, sku))')
+      .select('*, creator:created_by(id, first_name, last_name, role), approver:approved_by(first_name, last_name), assignee:assigned_to(first_name, last_name), items:purchase_order_items(*, inventory_item:item_id(name, unit, sku))')
       .eq('clinic_id', profile.clinic_id)
       .order('created_at', { ascending: false })
     setOrders(data || [])
@@ -338,7 +338,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
       ) : orders.length === 0 ? (
         <div style={{ textAlign:'center', padding:30, color:'#bbb', fontSize:13 }}>No hay solicitudes de compra</div>
       ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(260px, 1fr))', gap:12 }}>
           {orders.map(order => {
             const st = STATUS[order.status] || STATUS.draft
             const canReceive = order.status === 'approved' || order.status === 'modified'
@@ -349,11 +349,16 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
               <div key={order.id} style={{ background:'#fff', border: pendingMe ? `1.5px solid #F59E0B` : '0.5px solid #e2ede9', borderRadius:12, padding:'14px 16px' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                   <div style={{ flex:1, cursor:'pointer' }} onClick={() => setSelectedOrder(order)}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
                       <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
                       {pendingMe && <span style={{ fontSize:11, color:'#BA7517', fontWeight:500 }}>⚠ Pendiente tu aprobación</span>}
                       {canReceive && <span style={{ fontSize:11, color:G, fontWeight:500 }}>Lista para recibir</span>}
                     </div>
+                    {order.status === 'sent' && isMine && order.assignee && (
+                      <div style={{ fontSize:11, color:'#aaa', marginBottom:4 }}>
+                        Esperando aprobación de <strong>{order.assignee.first_name} {order.assignee.last_name}</strong>
+                      </div>
+                    )}
                     <div style={{ fontSize:13, color:BLUE, fontWeight:500 }}>
                       {order.creator?.first_name} {order.creator?.last_name}
                     </div>
