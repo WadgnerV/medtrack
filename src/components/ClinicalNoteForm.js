@@ -750,6 +750,45 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             </div>
           </div>
 
+          <div style={{ margin:'16px 0', padding:'14px', background:'#f8fbf9', border:'0.5px solid #e2ede9', borderRadius:10 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:10 }}>¿Realizó algún procedimiento médico? <span style={{ color:'#D85A30' }}>*</span></div>
+            <div style={{ display:'flex', gap:8, marginBottom: hizoProcedimiento === 'si' ? 12 : 0 }}>
+              {[['no','No'],['si','Sí']].map(([v,l]) => (
+                <div key={v} onClick={() => { setHizoProcedimiento(v); if (v==='no') setInsumosUsados([]) }}
+                  style={{ padding:'5px 14px', borderRadius:20, cursor:'pointer', fontSize:12, fontWeight:hizoProcedimiento===v?600:400,
+                    border: hizoProcedimiento===v?`2px solid #1a3a5c`:'1px solid #ddd',
+                    background: hizoProcedimiento===v?'#E6F1FB':'#fff', color: hizoProcedimiento===v?'#1a3a5c':'#666' }}>
+                  {l}
+                </div>
+              ))}
+            </div>
+            {hizoProcedimiento === 'si' && (
+              <div>
+                {insumosUsados.map((uso, i) => {
+                  const item = inventoryItems.find(x => x.id === uso.item_id)
+                  const stockBajo = item && parseFloat(uso.cantidad) > item.quantity
+                  return (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, padding:'8px 10px', background:'#fff', borderRadius:8, border: stockBajo?'1px solid #F59E0B':'0.5px solid #e2ede9' }}>
+                      <select style={{ flex:'0 1 auto', maxWidth:280, padding:'6px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }}
+                        value={uso.item_id} onChange={e => { const arr=[...insumosUsados]; arr[i]={...arr[i],item_id:e.target.value}; setInsumosUsados(arr) }}>
+                        <option value="">Seleccionar insumo...</option>
+                        {inventoryItems.map(it => <option key={it.id} value={it.id}>{it.name} — {it.quantity} {it.unit}</option>)}
+                      </select>
+                      <input type="number" min="0" style={{ width:80, padding:'6px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }}
+                        value={uso.cantidad} onChange={e => { const arr=[...insumosUsados]; arr[i]={...arr[i],cantidad:e.target.value}; setInsumosUsados(arr) }} placeholder="Cant." />
+                      {item && <span style={{ fontSize:11, color:'#aaa', whiteSpace:'nowrap' }}>{item.unit}</span>}
+                      {stockBajo && <span style={{ fontSize:10, color:'#BA7517' }}>⚠ Stock insuficiente</span>}
+                      <button onClick={() => setInsumosUsados(p=>p.filter((_,j)=>j!==i))} style={{ background:'none', border:'none', cursor:'pointer', color:'#ccc', fontSize:16 }}>×</button>
+                    </div>
+                  )
+                })}
+                <button onClick={() => setInsumosUsados(p=>[...p,{item_id:'',cantidad:''}])}
+                  style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
+                  + Agregar insumo
+                </button>
+              </div>
+            )}
+          </div>
           <div style={{ display:'flex', gap:8, marginTop:14, flexWrap:'wrap' }}>
             <button onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}
               style={{ padding:'8px 14px', border:'1px solid #e0e0e0', borderRadius:8, cursor:'pointer', fontSize:13, color:'#666', background:'#fff' }}>

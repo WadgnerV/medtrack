@@ -634,7 +634,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
                   const stockBajo = item && parseFloat(uso.cantidad) > item.quantity
                   return (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, padding:'8px 10px', background:'#fff', borderRadius:8, border: stockBajo?'1px solid #F59E0B':'0.5px solid #e2ede9' }}>
-                      <select style={{ flex:2, padding:'6px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }}
+                      <select style={{ flex:'0 1 auto', maxWidth:280, padding:'6px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }}
                         value={uso.item_id} onChange={e => { const arr=[...insumosUsados]; arr[i]={...arr[i],item_id:e.target.value}; setInsumosUsados(arr) }}>
                         <option value="">Seleccionar insumo...</option>
                         {inventoryItems.map(it => <option key={it.id} value={it.id}>{it.name} — {it.quantity} {it.unit}</option>)}
