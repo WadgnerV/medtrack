@@ -292,7 +292,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           <div style={s.modalBox}>
             <div style={{ fontSize:15, fontWeight:600, marginBottom:16, color:'#1a1a1a' }}>{modal === 'edit' ? 'Editar ítem' : 'Nuevo ítem de inventario'}</div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:10 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:10 }}>
               <div style={{ position:'relative' }}>
                 <label style={s.label}>Nombre *</label>
                 <input style={s.input} value={catalogSearch || form.name}
@@ -337,17 +337,15 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 <label style={s.label}>SKU</label>
                 <input style={{ ...s.input, background:'#f5f5f5', color:'#888', cursor:'not-allowed' }} value={form.sku} readOnly />
               </div>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Unidad</label>
-                <select style={{ ...s.select, maxWidth:200 }} value={form.unit} onChange={f('unit')}>
+                <select style={s.select} value={form.unit} onChange={f('unit')}>
                   {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
             </div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:10 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Cantidad *</label>
                 <input style={s.input} type="number" min="0" value={form.quantity} onChange={f('quantity')} />
@@ -367,10 +365,6 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                   <option value="USD">Dólares ($)</option>
                 </select>
               </div>
-              <div>
-                <label style={s.label}>Precio de venta</label>
-                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} />
-              </div>
             </div>
 
             {form.currency === 'USD' && (
@@ -379,12 +373,11 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
               </div>
             )}
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:10 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:10 }}>
               <div>
                 <label style={s.label}>Proveedor</label>
                 <input style={s.input} value={form.supplier} onChange={f('supplier')} />
               </div>
-
               <div>
                 <label style={s.label}>Lote</label>
                 <input style={s.input} value={form.lot} onChange={f('lot')} />
@@ -402,20 +395,25 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
               </div>
             </div>
 
-            <div>
-              <label style={s.label}>Descripción</label>
-              <input style={s.input} value={form.description} onChange={f('description')} />
-            </div>
-
-            {isClinicAdmin && branches.length > 0 && (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr 1fr', gap:10 }}>
               <div>
-                <label style={s.label}>Sucursal</label>
-                <select style={s.select} value={form.branch_id} onChange={f('branch_id')}>
-                  <option value="">Sin sucursal específica</option>
-                  {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
+                <label style={s.label}>Precio de venta</label>
+                <input style={s.input} type="number" min="0" value={form.sale_price} onChange={f('sale_price')} />
               </div>
-            )}
+              <div>
+                <label style={s.label}>Descripción</label>
+                <input style={s.input} value={form.description} onChange={f('description')} />
+              </div>
+              {isClinicAdmin && branches.length > 0 && (
+                <div>
+                  <label style={s.label}>Sucursal</label>
+                  <select style={s.select} value={form.branch_id} onChange={f('branch_id')}>
+                    <option value="">Sin sucursal específica</option>
+                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
 
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:8 }}>
               <button style={{ ...s.btnSm, padding:'7px 14px' }} onClick={() => { setModal(null); setForm(emptyForm); setCatalogSearch('') }}>Cancelar</button>
