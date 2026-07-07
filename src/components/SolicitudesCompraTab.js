@@ -36,10 +36,11 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase.from('purchase_orders')
-      .select('*, creator:created_by(id, first_name, last_name, role, profile:id(email)), approver:approved_by(first_name, last_name), items:purchase_order_items(*, inventory_item:item_id(name, unit, sku))')
+    const { data, error } = await supabase.from('purchase_orders')
+      .select('*, creator:created_by(id, first_name, last_name, role), approver:approved_by(first_name, last_name), items:purchase_order_items(*, inventory_item:item_id(name, unit, sku))')
       .eq('clinic_id', profile.clinic_id)
       .order('created_at', { ascending: false })
+    console.log('Orders:', data, 'Error:', error)
     setOrders(data || [])
     setLoading(false)
   }

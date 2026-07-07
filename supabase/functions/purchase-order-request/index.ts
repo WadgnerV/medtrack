@@ -3,8 +3,17 @@ import { Resend } from 'npm:resend'
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 serve(async (req) => {
-  const { to_email, to_name, clinic_name, requester_name, items, notes, order_id } = await req.json()
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  const { to_email, to_name, clinic_name, requester_name, items, notes } = await req.json()
 
   const itemsHtml = items.map((i: any) => `
     <tr>
@@ -52,12 +61,14 @@ serve(async (req) => {
     </html>
   `
 
-  await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: 'noreply@medtrackcr.com',
     to: [to_email],
     subject: `Nueva solicitud de compra pendiente — ${clinic_name}`,
     html,
   })
 
-  return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify({ ok: !error, error }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  })
 })
