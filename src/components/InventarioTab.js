@@ -334,8 +334,14 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 </select>
               </div>
               <div>
+                <label style={s.label}>SKU</label>
+                <input style={{ ...s.input, background:'#f5f5f5', color:'#888', cursor:'not-allowed' }} value={form.sku} readOnly />
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:10 }}>
+              <div>
                 <label style={s.label}>Unidad</label>
-                <select style={s.select} value={form.unit} onChange={f('unit')}>
+                <select style={{ ...s.select, maxWidth:200 }} value={form.unit} onChange={f('unit')}>
                   {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
@@ -378,10 +384,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 <label style={s.label}>Proveedor</label>
                 <input style={s.input} value={form.supplier} onChange={f('supplier')} />
               </div>
-              <div>
-                <label style={s.label}>SKU</label>
-                <input style={s.input} value={form.sku} onChange={f('sku')} />
-              </div>
+
               <div>
                 <label style={s.label}>Lote</label>
                 <input style={s.input} value={form.lot} onChange={f('lot')} />
