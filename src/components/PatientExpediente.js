@@ -12,6 +12,9 @@ import PreconsultaTab from './PreconsultaTab'
 import ClinicalNoteForm from './ClinicalNoteForm'
 import DiagnosticosTab from './DiagnosticosTab'
 import EvolucionSignosTab from './EvolucionSignosTab'
+import LaboratoriosTab from './LaboratoriosTab'
+import ImagenesTab from './ImagenesTab'
+import RecetasTab from './RecetasTab'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
 import ModuleChat from './ModuleChat'
@@ -239,9 +242,9 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
         return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="#0F6E56" patient={patient} profile={profile} canEdit={canEditNote} />
       }
       if (key === 'diagnosticos') return <DiagnosticosTab patient={patient} profile={profile} />
-      if (key === 'laboratorios') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de estudios de laboratorio — próximamente</div>
-      if (key === 'imagenes') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de estudios de imágenes — próximamente</div>
-      if (key === 'recetas') return <div style={{ padding:20, color:'#bbb', fontSize:13, textAlign:'center' }}>Módulo de recetas médicas — próximamente</div>
+      if (key === 'laboratorios') return <LaboratoriosTab patient={patient} />
+      if (key === 'imagenes') return <ImagenesTab patient={patient} />
+      if (key === 'recetas') return <RecetasTab patient={patient} profile={profile} />
       if (key === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
       if (key === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
       if (key === 'asignacion') return (
