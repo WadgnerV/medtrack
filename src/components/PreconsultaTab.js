@@ -125,7 +125,14 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     setShowForm(true)
   }
 
+  async function loadPreconsultSupplies(preconsultId) {
+    const { data } = await supabase.from('clinical_note_supplies').select('*').eq('note_id', preconsultId)
+    setInsumosUsados(data ? data.map(s => ({ item_id: s.item_id, cantidad: String(s.cantidad) })) : [])
+    setHizoProcedimiento(data && data.length > 0 ? 'si' : null)
+  }
+
   function startEdit(r) {
+    loadPreconsultSupplies(r.id)
     setForm({
       consultation_type: r.consultation_type || '',
 
@@ -193,11 +200,8 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     if (ready && !alreadyReady) {
       const doctorId = todayAppointment?.doctor_id || null
       const patientName = `${patient.profile?.first_name || ''} ${patient.profile?.last_name || ''}`.trim()
-      console.log('todayAppointment:', todayAppointment)
-      console.log('doctorId:', doctorId)
-      console.log('patientName:', patientName)
       if (doctorId) {
-        const { error: notifError } = await supabase.from('notifications').insert({
+        await supabase.from('notifications').insert({
           profile_id: doctorId,
           clinic_id: profile.clinic_id,
           type: 'preconsult_ready',
@@ -207,30 +211,58 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
           sender_id: profile.id,
           data: { appointment_id: todayAppointment?.id || null, patient_id: patient.profile?.id || patient.id }
         })
-        if (notifError) console.error('Error notificación:', notifError)
-        else console.log('Notificación enviada OK')
-      } else {
-        console.log('Sin doctor asignado, no se notifica')
       }
     }
-    // Descontar inventario si hubo procedimiento
-    if (hizoProcedimiento === 'si' && insumosUsados.length > 0) {
-      for (const uso of insumosUsados) {
-        if (!uso.item_id || !uso.cantidad) continue
-        const item = inventoryItems.find(i => i.id === uso.item_id)
-        if (!item) continue
-        const nuevaCantidad = item.quantity - parseFloat(uso.cantidad)
-        await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
-        await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
-        if (nuevaCantidad <= item.min_quantity) {
-          const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
-          if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
+    // Manejar insumos usados en preconsulta
+    if (hizoProcedimiento !== null) {
+      // Obtener el ID del registro recién guardado o editado
+      let preconsultId = editingId
+      if (!preconsultId) {
+        const { data: last } = await supabase.from('preconsult_records').select('id').eq('patient_id', patient.profile?.id || patient.id).order('recorded_at', { ascending: false }).limit(1).single()
+        preconsultId = last?.id
+      }
+
+      if (preconsultId) {
+        const { data: prevSupplies } = await supabase.from('clinical_note_supplies').select('*').eq('note_id', preconsultId)
+        const prev = prevSupplies || []
+        await supabase.from('clinical_note_supplies').delete().eq('note_id', preconsultId)
+
+        if (hizoProcedimiento === 'si') {
+          for (const uso of insumosUsados) {
+            if (!uso.item_id || !uso.cantidad) continue
+            const item = inventoryItems.find(i => i.id === uso.item_id)
+            if (!item) continue
+            const cantAnterior = prev.find(p => p.item_id === uso.item_id)?.cantidad || 0
+            const diff = parseFloat(uso.cantidad) - parseFloat(cantAnterior)
+            if (diff !== 0) {
+              const nuevaCantidad = item.quantity - diff
+              await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
+              await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
+              if (nuevaCantidad <= item.min_quantity) {
+                const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+                if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
+              }
+            }
+            await supabase.from('clinical_note_supplies').insert({ note_id: preconsultId, clinic_id: profile.clinic_id, item_id: uso.item_id, cantidad: parseFloat(uso.cantidad) })
+          }
+          for (const p of prev) {
+            const enNuevos = insumosUsados.find(u => u.item_id === p.item_id)
+            if (!enNuevos) {
+              const item = inventoryItems.find(i => i.id === p.item_id)
+              if (item) await supabase.from('inventory_items').update({ quantity: item.quantity + parseFloat(p.cantidad), updated_at: new Date().toISOString() }).eq('id', p.item_id)
+            }
+          }
+        } else {
+          for (const p of prev) {
+            const item = inventoryItems.find(i => i.id === p.item_id)
+            if (item) await supabase.from('inventory_items').update({ quantity: item.quantity + parseFloat(p.cantidad), updated_at: new Date().toISOString() }).eq('id', p.item_id)
+          }
         }
+        await loadInventory()
       }
-      await loadInventory()
-      setHizoProcedimiento(null)
-      setInsumosUsados([])
     }
+    setHizoProcedimiento(null)
+    setInsumosUsados([])
     await loadRecords()
     setShowForm(false); setEditingId(null); setSaving(false)
   }
