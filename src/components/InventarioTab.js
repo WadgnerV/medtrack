@@ -267,7 +267,8 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
       </div>
 
       {activeTab === 'solicitudes' && <SolicitudesCompraTab profile={profile} inventoryItems={items} />}
-      {activeTab === 'inventario' && <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
+      {activeTab === 'inventario' && <>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:14 }}>
         <div style={{ ...s.card, marginBottom:0 }}>
           <div style={{ fontSize:11, color:'#999', marginBottom:4 }}>Total ítems</div>
           <div style={{ fontSize:20, fontWeight:500, color:'#1a1a1a' }}>{filtered.length}</div>
@@ -575,6 +576,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </div>
         </div>
       )}
+      </>
       }
       {ajusteItem && <AjusteInventarioModal item={ajusteItem} profile={profile} onClose={() => setAjusteItem(null)} onSaved={() => { setAjusteItem(null); loadItems() }} />
       }
