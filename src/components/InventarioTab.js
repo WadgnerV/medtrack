@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import BodegasModal from './BodegasModal'
 import CatalogoModal from './CatalogoModal'
+import AjusteInventarioModal from './AjusteInventarioModal'
 
 const CATEGORIES = ['Medicamento', 'Producto estético', 'Insumo', 'Equipo']
 const UNITS = ['unidad', 'caja', 'frasco', 'ampolla', 'sobre', 'tubo', 'litro', 'ml', 'gramo', 'kg']
@@ -36,6 +37,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   const [history, setHistory] = useState([])
   const [showBodegas, setShowBodegas] = useState(false)
   const [showCatalogo, setShowCatalogo] = useState(false)
+  const [ajusteItem, setAjusteItem] = useState(null)
   const [catalog, setCatalog] = useState([])
   const [catalogSearch, setCatalogSearch] = useState('')
   const [showCatalogDropdown, setShowCatalogDropdown] = useState(false)
@@ -285,8 +287,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                 <td style={s.td}>{item.cost ? `₡${getItemValueInColones(item).toLocaleString('es-CR', { maximumFractionDigits:0 })}` : '—'}</td>
                 <td style={s.td}>
                   <button style={s.btnSm} onClick={() => { loadHistory(item.id); setHistoryItem(item); setModal('history') }}>Historial</button>
-                  <button style={s.btnSm} onClick={() => { setForm({...item, quantity: String(item.quantity), min_quantity: String(item.min_quantity||''), cost: String(item.cost||''), sale_price: String(item.sale_price||''), sku: item.sku||'', location: item.location||'', lot: item.lot||'', supplier: item.supplier||'', expiry_date: item.expiry_date||''}); setModal('edit') }}>Editar</button>
-                  <button style={s.btnDel} onClick={() => handleDelete(item.id)}>Eliminar</button>
+                  <button style={s.btnSm} onClick={() => setAjusteItem(item)}>Ajuste</button>
                 </td>
               </tr>
             ))}
@@ -451,15 +452,24 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {history.map(h => (
-                    <tr key={h.id}>
-                      <td style={s.td}>{new Date(h.created_at).toLocaleDateString('es-CR')}</td>
-                      <td style={s.td}>{h.quantity_before}</td>
-                      <td style={s.td}>{h.quantity_after}</td>
-                      <td style={s.td}><span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#f0f0f0', color:'#555' }}>{h.change_type === 'initial' ? 'Ingreso inicial' : 'Actualización'}</span></td>
-                      <td style={s.td}>{h.recorded_by ? `${h.recorded_by.first_name} ${h.recorded_by.last_name}` : '—'}</td>
-                    </tr>
-                  ))}
+                  {history.map(h => {
+                    const esEntrada = h.change_amount > 0 || h.change_type === 'initial' || h.change_type?.startsWith('entrada')
+                    const diff = h.change_amount !== undefined && h.change_amount !== null ? h.change_amount : (h.quantity_after - h.quantity_before)
+                    const label = h.motivo || (h.change_type === 'initial' ? 'Ingreso inicial' : h.change_type === 'procedimiento' ? 'Procedimiento' : h.change_type === 'update' ? 'Actualización' : h.change_type || '—')
+                    return (
+                      <tr key={h.id}>
+                        <td style={s.td}>{new Date(h.created_at).toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })}</td>
+                        <td style={s.td}>
+                          <span style={{ fontSize:13, fontWeight:700, color: esEntrada?G:'#D85A30' }}>
+                            {esEntrada?'+':''}{diff} {historyItem?.unit}
+                          </span>
+                        </td>
+                        <td style={s.td}>{h.quantity_after} {historyItem?.unit}</td>
+                        <td style={s.td}><span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background: esEntrada?'#E1F5EE':'#FAECE7', color: esEntrada?G:'#D85A30' }}>{label}</span></td>
+                        <td style={s.td}>{h.nota && <div style={{ fontSize:11, color:'#aaa' }}>{h.nota}</div>}{h.recorded_by ? `${h.recorded_by.first_name} ${h.recorded_by.last_name}` : '—'}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             )}
@@ -488,6 +498,8 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
           </div>
         </div>
       )}
+      {ajusteItem && <AjusteInventarioModal item={ajusteItem} profile={profile} onClose={() => setAjusteItem(null)} onSaved={() => { setAjusteItem(null); loadItems() }} />
+      }
       {showCatalogo && <CatalogoModal profile={profile} onClose={() => { setShowCatalogo(false); loadCatalog() }} />}
       {showBodegas && <BodegasModal profile={profile} onClose={() => { setShowBodegas(false); loadWarehouses() }} />}
     </div>
