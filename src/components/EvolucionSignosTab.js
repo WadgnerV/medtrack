@@ -79,7 +79,7 @@ function MiniChart({ signo, records }) {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend: { display: signo.multi },
+          legend: { display: false },
           tooltip: { mode:'index', intersect:false, callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} ${signo.unit}` } }
         },
         scales: {
@@ -104,16 +104,7 @@ function MiniChart({ signo, records }) {
           {latest} <span style={{ fontSize:11, color:'#aaa', fontWeight:400 }}>{signo.unit}</span>
         </div>
       )}
-      {signo.multi && (
-        <div style={{ display:'flex', gap:10, marginBottom:6 }}>
-          <span style={{ fontSize:10, display:'flex', alignItems:'center', gap:3, color:'#555' }}>
-            <span style={{ width:8, height:8, borderRadius:2, background:signo.color[0], display:'inline-block' }}></span>Sistólica
-          </span>
-          <span style={{ fontSize:10, display:'flex', alignItems:'center', gap:3, color:'#555' }}>
-            <span style={{ width:8, height:8, borderRadius:2, background:signo.color[1], display:'inline-block' }}></span>Diastólica
-          </span>
-        </div>
-      )}
+
       <div style={{ position:'relative', height:90 }}>
         <canvas ref={canvasRef} role="img" aria-label={`Evolución de ${signo.label}`}>{signo.label} en el tiempo.</canvas>
       </div>
