@@ -1071,6 +1071,7 @@ export default function AdminDashboard() {
               doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
               appointment_date: form.date,
               appointment_time: form.time,
+              clinic_id: profile?.clinic_id,
             }
           })
         }
@@ -1083,6 +1084,7 @@ export default function AdminDashboard() {
               patient_email: patient.profile.email,
               patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
               doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
+              clinic_id: profile?.clinic_id,
               appointment_date: form.date,
               appointment_time: form.time,
             }
