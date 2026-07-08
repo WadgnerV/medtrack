@@ -171,6 +171,7 @@ export default function SuperAdminDashboard() {
     if (form.id) {
       const { error: updateErr } = await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
       if (updateErr) { alert('Error al actualizar: ' + updateErr.message); setSaving(false); return }
+      await supabase.from('clinic_settings').update({ clinic_name: form.name }).eq('clinic_id', form.id)
     } else {
       const { error: insertErr } = await supabase.from('clinics').insert({ ...payload, is_active: true })
       if (insertErr) { alert('Error al crear: ' + insertErr.message); setSaving(false); return }
