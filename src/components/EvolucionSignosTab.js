@@ -97,7 +97,7 @@ function MiniChart({ signo, records }) {
   const latest = getLatest()
 
   return (
-    <div style={{ background:'#fff', border:'0.5px solid #e2ede9', borderRadius:12, padding:14 }}>
+    <div style={{ background:'#fff', border:'0.5px solid #e2ede9', borderRadius:12, padding:14, position:'relative' }}>
       <div style={{ fontSize:10, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:2 }}>{signo.label}</div>
       {latest && (
         <div style={{ fontSize:18, fontWeight:500, color:BLUE, marginBottom:8 }}>
@@ -111,6 +111,10 @@ function MiniChart({ signo, records }) {
     </div>
   )
 }
+
+const spinStyle = document.createElement('style')
+spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }'
+if (!document.head.querySelector('[data-spin]')) { spinStyle.setAttribute('data-spin',''); document.head.appendChild(spinStyle) }
 
 export default function EvolucionSignosTab({ patient }) {
   const [records, setRecords] = useState([])
@@ -170,7 +174,10 @@ export default function EvolucionSignosTab({ patient }) {
       </div>
 
       {loading ? (
-        <div style={{ textAlign:'center', padding:40, color:'#bbb', fontSize:13 }}>Cargando datos...</div>
+        <div style={{ textAlign:'center', padding:40 }}>
+        <i className="ti ti-loader-2" style={{ fontSize:24, color:'#bbb', animation:'spin 1s linear infinite' }} aria-hidden="true"></i>
+        <div style={{ fontSize:13, color:'#bbb', marginTop:8 }}>Cargando datos...</div>
+      </div>
       ) : records.length === 0 ? (
         <div style={{ textAlign:'center', padding:40, color:'#bbb', fontSize:13 }}>Sin registros de signos vitales en este período.</div>
       ) : signosConDatos.length === 0 ? (
