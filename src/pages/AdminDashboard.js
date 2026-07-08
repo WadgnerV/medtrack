@@ -387,7 +387,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const v = getViewFromPath()
-    if (v !== view) setView(v)
+    if (v !== view) {
+      setView(v)
+      if (v !== 'perfil-paciente') setSelPatient(null)
+    }
   }, [location.pathname])
 
   function setViewPersist(v) {
@@ -1796,7 +1799,7 @@ export default function AdminDashboard() {
             <PatientExpediente
               patient={selPatient}
               profile={profile}
-              onBack={() => { setSelPatient(null); navigate('/admin/pacientes') }}
+              onBack={() => { setSelPatient(null); setView('pacientes'); navigate('/admin/pacientes') }}
               onEdit={() => {
                 const p = selPatient
                 setEditPatientForm({ profileId:p.profile?.id, patientId:p.id, firstName:p.profile?.first_name||'', lastName:p.profile?.last_name||'', email:p.profile?.email||'', idNumber:p.id_number||'', phone:p.phone||'', birthDate:p.birth_date||'', sex:p.sex||'', province:p.province||'', canton:p.canton||'', height:p.height_cm||'' })
