@@ -3989,7 +3989,7 @@ function Field({ label, value, onChange, type = 'text', placeholder }) {
 }
 
 const s = {
-  btnPrimary: { background:primaryColor, color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
+  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
   btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:13, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
   iconBtn:    { background:'#E6F1FB', color:'#185FA5', border:'none', cursor:'pointer', fontSize:13, fontWeight:500, padding:'4px 8px', borderRadius:6 },
   iconBtnDel: { background:'#FAECE7', color:'#D85A30', border:'none', cursor:'pointer', fontSize:13, fontWeight:500, padding:'4px 8px', borderRadius:6 },
