@@ -37,7 +37,7 @@ function SigPad({ label, value, onChange }) {
         onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
         onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
       <button type="button" onClick={clear} style={{ marginTop:4, background:'none', border:'none', fontSize:12, color:'#999', cursor:'pointer' }}>Limpiar</button>
-      {value && <div style={{ fontSize:11, color:'#1D9E75', marginTop:2 }}>✓ Firma registrada</div>}
+      {value && <div style={{ fontSize:11, color:'var(--clinic-primary, #1D9E75)', marginTop:2 }}>✓ Firma registrada</div>}
     </div>
   )
 }
@@ -227,7 +227,7 @@ export default function ConsentimientosTab({ patient, profile }) {
   const s = {
     wrap: { padding:'16px 0' },
     toolbar: { display:'flex', justifyContent:'flex-end', marginBottom:14 },
-    btn: { background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:500, cursor:'pointer' },
+    btn: { background:'var(--clinic-primary, #1D9E75)', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:500, cursor:'pointer' },
     empty: { textAlign:'center', color:'#aaa', fontSize:14, padding:'40px 0' },
     table: { width:'100%', borderCollapse:'collapse', fontSize:13 },
     th: { textAlign:'left', padding:'8px 12px', color:'#888', fontWeight:500, borderBottom:'1px solid #eee' },
@@ -271,7 +271,7 @@ export default function ConsentimientosTab({ patient, profile }) {
                 <td style={s.td}>{c.sessions || '—'}</td>
                 <td style={s.td}>{new Date(c.signed_at).toLocaleDateString('es-CR')}</td>
                 <td style={s.td}>
-                  <span style={{ padding:'2px 8px', borderRadius:20, fontSize:12, background: c.status === 'signed' ? '#E1F5EE' : '#f0f0f0', color: c.status === 'signed' ? '#0F6E56' : '#888' }}>
+                  <span style={{ padding:'2px 8px', borderRadius:20, fontSize:12, background: c.status === 'signed' ? '#E1F5EE' : '#f0f0f0', color: c.status === 'signed' ? 'var(--clinic-primary, #0F6E56)' : '#888' }}>
                     {c.status === 'signed' ? 'Firmado' : 'Pendiente'}
                   </span>
                 </td>
@@ -309,7 +309,7 @@ export default function ConsentimientosTab({ patient, profile }) {
                       <label key={item} style={{ display:'flex', alignItems:'flex-start', gap:6, cursor:'pointer', fontSize:12, color:'#333', lineHeight:1.4 }}>
                         <input type="checkbox" checked={selectedEffects.includes(item)}
                           onChange={e => setSelectedEffects(prev => e.target.checked ? [...prev, item] : prev.filter(x => x !== item))}
-                          style={{ marginTop:2, accentColor:'#1D9E75', flexShrink:0 }} />
+                          style={{ marginTop:2, accentColor:'var(--clinic-primary, #1D9E75)', flexShrink:0 }} />
                         {item}
                       </label>
                     ))}
@@ -317,7 +317,7 @@ export default function ConsentimientosTab({ patient, profile }) {
                 </div>
               ))}
               {selectedEffects.length > 0 && (
-                <div style={{ marginTop:8, fontSize:11, color:'#1D9E75' }}>{selectedEffects.length} efecto{selectedEffects.length > 1 ? 's' : ''} seleccionado{selectedEffects.length > 1 ? 's' : ''}</div>
+                <div style={{ marginTop:8, fontSize:11, color:'var(--clinic-primary, #1D9E75)' }}>{selectedEffects.length} efecto{selectedEffects.length > 1 ? 's' : ''} seleccionado{selectedEffects.length > 1 ? 's' : ''}</div>
               )}
             </div>
 

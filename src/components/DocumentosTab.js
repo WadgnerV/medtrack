@@ -70,7 +70,7 @@ export default function DocumentosTab({ patient, profile }) {
   const s = {
     wrap: { padding:'16px 0' },
     toolbar: { display:'flex', justifyContent:'flex-end', marginBottom:14 },
-    uploadBtn: { background:'#1D9E75', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:500, cursor:'pointer' },
+    uploadBtn: { background:'var(--clinic-primary, #1D9E75)', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:500, cursor:'pointer' },
     empty: { textAlign:'center', color:'#aaa', fontSize:14, padding:'40px 0' },
     table: { width:'100%', borderCollapse:'collapse', fontSize:13 },
     th: { textAlign:'left', padding:'8px 12px', color:'#888', fontWeight:500, borderBottom:'1px solid #eee' },
