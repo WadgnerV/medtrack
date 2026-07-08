@@ -161,6 +161,7 @@ export default function SuperAdminDashboard() {
       name: form.name, legal_name: form.legal_name||null, legal_id: form.legal_id||null,
       country: form.country||'Costa Rica', province: form.province||null, canton: form.canton||null,
       district: form.district||null, address: form.address||null,
+      primary_color: form.primary_color||'#0F6E56',
       phone: form.phone||null, phone_country_code: form.phone_country_code||'+506',
       whatsapp: form.whatsapp||null, email: form.email||null, website: form.website||null,
       plan: form.plan||'basic', contract_ref: form.contract_ref||null,
@@ -424,7 +425,7 @@ export default function SuperAdminDashboard() {
                 <div style={s.sub}>Gestión de clínicas registradas en MedTrack</div>
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true }); setModal('clinic') }}>+ Nueva clínica</button>
+                <button style={s.btnPrimary} onClick={() => { setForm({ plan:'basic', is_active:true, primary_color:'#0F6E56' }); setModal('clinic') }}>+ Nueva clínica</button>
                 <NotificationBell profile={profile} />
               </div>
             </div>

@@ -21,6 +21,18 @@ import NotificationBell from '../components/NotificationBell'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Dot, PieChart, Pie, Cell, Legend } from 'recharts'
 
 const G = '#1D9E75'
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
+  return { r, g, b }
+}
+function lighten(hex, amount=0.85) {
+  const { r,g,b } = hexToRgb(hex)
+  return `rgb(${Math.round(r+(255-r)*amount)},${Math.round(g+(255-g)*amount)},${Math.round(b+(255-b)*amount)})`
+}
+function darken(hex, amount=0.2) {
+  const { r,g,b } = hexToRgb(hex)
+  return `rgb(${Math.round(r*(1-amount))},${Math.round(g*(1-amount))},${Math.round(b*(1-amount))})`
+}
 const SP = ' '
 
 function EditDoctorForm({ doctor, saving, onSave, onClose }) {
@@ -502,6 +514,7 @@ export default function AdminDashboard() {
   const [cie10Search, setCie10Search] = useState('')
   const [cie10Results, setCie10Results] = useState([])
   const [clinicSettings, setClinicSettings] = useState(null)
+  const [primaryColor, setPrimaryColor] = useState('#0F6E56')
   const [clinicPlan, setClinicPlan] = useState('basic')
   const isClinicAdmin = profile?.role === 'clinic_admin'
   const isBranchAdmin = profile?.role === 'branch_admin' || profile?.role === 'admin'
@@ -549,9 +562,10 @@ export default function AdminDashboard() {
     }
     // Cargar plan de la clínica
     if (profile?.clinic_id) {
-      const { data: clinic } = await supabase.from('clinics').select('plan, enabled_modules').eq('id', profile.clinic_id).single()
+      const { data: clinic } = await supabase.from('clinics').select('plan, enabled_modules, primary_color').eq('id', profile.clinic_id).single()
       if (clinic?.plan) setClinicPlan(clinic.plan)
       if (clinic?.enabled_modules) setEnabledModules(clinic.enabled_modules)
+      if (clinic?.primary_color) setPrimaryColor(clinic.primary_color)
     }
   }
 
@@ -1497,7 +1511,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:primaryColor, borderRight:`0.5px solid ${darken(primaryColor,0.15)}`, display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
         <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
           {!sidebarCollapsed && (
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -3975,7 +3989,7 @@ function Field({ label, value, onChange, type = 'text', placeholder }) {
 }
 
 const s = {
-  btnPrimary: { background:'#1D9E75', color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
+  btnPrimary: { background:primaryColor, color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
   btnCancel:  { background:'none', border:'1px solid #e0e0e0', fontSize:13, color:'#666', padding:'7px 12px', borderRadius:8, cursor:'pointer' },
   iconBtn:    { background:'#E6F1FB', color:'#185FA5', border:'none', cursor:'pointer', fontSize:13, fontWeight:500, padding:'4px 8px', borderRadius:6 },
   iconBtnDel: { background:'#FAECE7', color:'#D85A30', border:'none', cursor:'pointer', fontSize:13, fontWeight:500, padding:'4px 8px', borderRadius:6 },
