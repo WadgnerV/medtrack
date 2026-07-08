@@ -21,7 +21,16 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState('calendario')
+  const navigate = useNavigate()
+  const location = useLocation()
+  const urlPatientId = location.pathname.startsWith('/doctor/pacientes/')
+    ? location.pathname.replace('/doctor/pacientes/', '').split('/')[0]
+    : null
+  const [view, setView] = useState(() => {
+    const path = location.pathname.replace('/doctor', '').replace(/^\//, '') || 'calendario'
+    const valid = ['calendario','pacientes','config']
+    return valid.includes(path.split('/')[0]) ? path.split('/')[0] : 'calendario'
+  })
   const [patients, setPatients] = useState([])
   const [appts, setAppts] = useState([])
   const [msgs, setMsgs] = useState([])
@@ -38,7 +47,10 @@ export default function DoctorDashboard() {
   const [saving, setSaving] = useState(false)
   const [activeChat, setActiveChat] = useState(null)
   const [chatMsg, setChatMsg] = useState('')
-  function setViewPersist(v) { localStorage.setItem('doctorView', v); setView(v) }
+  function setViewPersist(v) {
+    setView(v)
+    navigate(`/doctor/${v}`)
+  }
   function setSelPatientPersist(p) { 
     if (p) localStorage.setItem('doctorSelPatient', JSON.stringify(p))
     else localStorage.removeItem('doctorSelPatient')
@@ -221,11 +233,12 @@ export default function DoctorDashboard() {
   }
 
   function openPatient(p) {
-    setSelPatientPersist(p)
+    setSelPatient(p)
     setPatientTab('progreso')
-    setViewPersist('perfil')
+    setView('perfil')
     loadPatientData(p.id)
     loadPatientCareModules(p.id)
+    window.history.pushState({view:'perfil', patientId:p.id}, '', `/doctor/pacientes/${p.id}`)
   }
 
   function pName(p) { return ((p.profile?.first_name || '') + SP + (p.profile?.last_name || '')).trim() }
