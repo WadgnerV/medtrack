@@ -147,7 +147,7 @@ export default function PatientExpediente({ patient, profile, onBack, onEdit, ca
       .then(({ data }) => { if (data) setNextAppointment(data) })
 
     // Diagnósticos activos
-    supabase.from('diagnoses').select('id', { count: 'exact' })
+    supabase.from('patient_diagnoses').select('id', { count: 'exact' })
       .eq('patient_id', patient.id).eq('is_active', true)
       .then(({ count }) => { if (count) setDiagCount(count) })
   }, [patient.id])
