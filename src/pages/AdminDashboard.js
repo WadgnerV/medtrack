@@ -373,12 +373,31 @@ function EditDoctorForm({ doctor, saving, onSave, onClose }) {
 export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const [view, setView] = useState(() => { const v = localStorage.getItem('adminView'); return ['calendario','pacientes','medicos','citas','biblioteca','permisos','reportes','configuracion','config','sucursales','perfil-paciente'].includes(v) ? v : 'calendario' })
-  function setViewPersist(v) { localStorage.setItem('adminView', v); setView(v) }
-  function setSelPatientPersist(p) { 
-    if (p) localStorage.setItem('adminSelPatientId', p.id)
-    else localStorage.removeItem('adminSelPatientId')
+  const location = useLocation()
+  const { patientId: urlPatientId } = useParams()
+
+  // Extraer la vista actual de la URL
+  const getViewFromPath = () => {
+    const path = location.pathname.replace('/admin', '').replace(/^\//, '') || 'calendario'
+    const valid = ['calendario','pacientes','medicos','biblioteca','permisos','reportes','config','sucursales','inventario','tickets']
+    return valid.includes(path.split('/')[0]) ? path.split('/')[0] : 'calendario'
+  }
+
+  const [view, setView] = useState(getViewFromPath)
+
+  useEffect(() => {
+    const v = getViewFromPath()
+    if (v !== view) setView(v)
+  }, [location.pathname])
+
+  function setViewPersist(v) {
+    setView(v)
+    navigate(`/admin/${v}`)
+  }
+  function setSelPatientPersist(p) {
     setSelPatient(p)
+    if (p) navigate(`/admin/pacientes/${p.id}`)
+    else navigate('/admin/pacientes')
   }
   const [searchPac, setSearchPac] = useState('')
   const [searchDoc, setSearchDoc] = useState('')
@@ -1777,7 +1796,7 @@ export default function AdminDashboard() {
             <PatientExpediente
               patient={selPatient}
               profile={profile}
-              onBack={() => { setSelPatient(null); localStorage.removeItem('adminSelPatientId'); localStorage.removeItem('expedienteSeccion'); setViewPersist('pacientes') }}
+              onBack={() => { setSelPatient(null); navigate('/admin/pacientes') }}
               onEdit={() => {
                 const p = selPatient
                 setEditPatientForm({ profileId:p.profile?.id, patientId:p.id, firstName:p.profile?.first_name||'', lastName:p.profile?.last_name||'', email:p.profile?.email||'', idNumber:p.id_number||'', phone:p.phone||'', birthDate:p.birth_date||'', sex:p.sex||'', province:p.province||'', canton:p.canton||'', height:p.height_cm||'' })
