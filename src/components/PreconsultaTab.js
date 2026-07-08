@@ -336,10 +336,13 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   function QuickView({ r }) {
     const [antecedentes, setAntecedentes] = useState(null)
     const patId = patient.profile?.id || patient.id
+    const [preconsultInsumos, setPreconsultInsumos] = useState([])
     useEffect(() => {
       if (expandedId === r.id) {
         supabase.from('patient_antecedentes').select('*').eq('patient_id', patId).eq('clinic_id', profile.clinic_id).maybeSingle()
           .then(({ data }) => setAntecedentes(data))
+        supabase.from('clinical_note_supplies').select('*, item:item_id(name, unit)').eq('note_id', r.id)
+          .then(({ data }) => setPreconsultInsumos(data || []))
       }
     }, [expandedId, r.id])
     const rec = r.recorder

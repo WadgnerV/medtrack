@@ -97,6 +97,15 @@ function parseNoteText(text) {
 
 function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=false }) {
   const [expanded, setExpanded] = useState(forceExpanded)
+  const [notaInsumos, setNotaInsumos] = useState([])
+
+  useEffect(() => {
+    if (!expanded) return
+    supabase.from('clinical_note_supplies')
+      .select('*, item:item_id(name, unit)')
+      .eq('note_id', n.id)
+      .then(({ data }) => setNotaInsumos(data || []))
+  }, [expanded, n.id])
   const dName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
   const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
   const createdAt = n.created_at ? new Date(n.created_at) : new Date(n.note_date)
@@ -164,6 +173,19 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=fa
               {parsed.tratamiento && <button onClick={() => printFromNote('receta')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:4 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Receta</button>}
               {parsed.imagenes && <button onClick={() => printFromNote('imagenes')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:4 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imágenes</button>}
               {parsed.laboratorios && <button onClick={() => printFromNote('laboratorios')} style={{ padding:'4px 12px', border:'1px solid #1a3a5c', borderRadius:8, cursor:'pointer', fontSize:12, color:'#1a3a5c', background:'#fff', display:'inline-flex', alignItems:'center', gap:4 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Laboratorios</button>}
+            </div>
+          )}
+          {notaInsumos.length > 0 && (
+            <div style={{ padding:'8px 14px 12px', borderTop:'0.5px solid #eee' }}>
+              <div style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>Procedimiento — insumos utilizados</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                {notaInsumos.map(ins => (
+                  <div key={ins.id} style={{ fontSize:12, color:'#555', display:'flex', alignItems:'center', gap:6 }}>
+                    <span style={{ width:5, height:5, borderRadius:'50%', background:'#bbb', flexShrink:0, display:'inline-block' }}></span>
+                    {ins.item?.name} — {ins.cantidad} {ins.item?.unit}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
