@@ -110,7 +110,7 @@ function HistorialCitasTab({ patient }) {
   )
 }
 
-export default function PatientExpediente({ patient, profile, onBack, canEdit = true }) {
+export default function PatientExpediente({ patient, profile, onBack, onEdit, canEdit = true }) {
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('expedienteTab') || 'preconsulta'
   })
@@ -201,7 +201,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
             {patient.province && <span style={{ fontSize:11, color:'rgba(255,255,255,0.7)', display:'flex', alignItems:'center', gap:3 }}><i className="ti ti-map-pin" style={{ fontSize:11 }} aria-hidden="true"></i> {patient.province}</span>}
           </div>
         </div>
-        <button onClick={() => {}} style={{ background:'rgba(255,255,255,0.12)', border:'0.5px solid rgba(255,255,255,0.2)', borderRadius:6, padding:'5px 10px', cursor:'pointer', fontSize:11, color:'#fff', fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
+        <button onClick={() => onEdit && onEdit()} style={{ background:'rgba(255,255,255,0.12)', border:'0.5px solid rgba(255,255,255,0.2)', borderRadius:6, padding:'5px 10px', cursor:'pointer', fontSize:11, color:'#fff', fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-edit" style={{ fontSize:12 }} aria-hidden="true"></i> Editar
         </button>
       </div>
