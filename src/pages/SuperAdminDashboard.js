@@ -6,6 +6,15 @@ import SpotifyBar from '../components/SpotifyBar'
 import NotificationBell from '../components/NotificationBell'
 import ChatBubble from '../components/ChatBubble'
 
+const PALETTES = [
+  { name:'Verde esmeralda', color:'#0F6E56' },
+  { name:'Vino', color:'#7B2D42' },
+  { name:'Azul marino', color:'#1a3a5c' },
+  { name:'Púrpura', color:'#4A3AA7' },
+  { name:'Terracota', color:'#C4531A' },
+  { name:'Antracita', color:'#3D3D3D' },
+]
+
 const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 
@@ -896,6 +905,20 @@ export default function SuperAdminDashboard() {
                   <option value="true">Sí</option>
                   <option value="false">No</option>
                 </select>
+              </div>
+            </div>
+            <div style={{ marginBottom:16 }}>
+              <label style={s.fieldLabel}>Paleta de colores</label>
+              <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginTop:8 }}>
+                {PALETTES.map(pal => (
+                  <div key={pal.color} onClick={() => setForm(prev=>({...prev, primary_color:pal.color}))}
+                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', borderRadius:8, cursor:'pointer',
+                      border: (form.primary_color||'#0F6E56')===pal.color ? `2px solid ${pal.color}` : '1px solid #e0e0e0',
+                      background: (form.primary_color||'#0F6E56')===pal.color ? pal.color+'18' : '#fff' }}>
+                    <div style={{ width:16, height:16, borderRadius:'50%', background:pal.color, flexShrink:0 }}></div>
+                    <span style={{ fontSize:12, color:'#555' }}>{pal.name}</span>
+                  </div>
+                ))}
               </div>
             </div>
             {form.id && (
