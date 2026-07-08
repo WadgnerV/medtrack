@@ -33,10 +33,12 @@ export default function CatalogoModal({ profile, onClose }) {
   }
 
   async function remove(item) {
-    if (!window.confirm(`¿Eliminar "${item.name}" del inventario? Esta acción no se puede deshacer.`)) return
-    await supabase.from('inventory_items').delete().eq('id', item.id)
-    // También eliminar del catálogo si existe
+    if (!window.confirm(`¿Eliminar "${item.name}" del inventario? Esta acción eliminará también el historial y no se puede deshacer.`)) return
+    // Eliminar en cascada: supplies, historial, catálogo e ítem
+    await supabase.from('clinical_note_supplies').delete().eq('item_id', item.id)
+    await supabase.from('inventory_history').delete().eq('item_id', item.id)
     await supabase.from('inventory_catalog').delete().eq('clinic_id', profile.clinic_id).eq('name', item.name)
+    await supabase.from('inventory_items').delete().eq('id', item.id)
     setItems(p => p.filter(x => x.id !== item.id))
   }
 
