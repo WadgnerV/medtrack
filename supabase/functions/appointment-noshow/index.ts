@@ -42,7 +42,7 @@ serve(async (req) => {
       <div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#fff;">
         <div style="text-align:center;margin-bottom:28px;">
           <div style="background:#0F6E56;color:#fff;display:inline-block;padding:10px 24px;border-radius:12px;font-size:18px;font-weight:700;letter-spacing:0.05em;">MEDTRACK</div>
-          <div style="color:#888;font-size:13px;margin-top:6px;">by Glow Clinic</div>
+          <div style="color:#888;font-size:13px;margin-top:6px;">${clinicName}</div>
         </div>
 
         <h2 style="color:#1a1a1a;font-size:20px;margin-bottom:12px;">Hola, ${firstName} 👋</h2>

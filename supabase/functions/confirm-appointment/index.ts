@@ -24,12 +24,28 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
+    const { data: appt } = await supabase
+      .from('appointments')
+      .select('clinic_id')
+      .eq('id', id)
+      .single()
+
     const { error } = await supabase
       .from('appointments')
       .update({ status: 'confirmed_patient' })
       .eq('id', id)
 
     if (error) throw error
+
+    let clinicName = 'MedTrack'
+    if (appt?.clinic_id) {
+      const { data: cs } = await supabase
+        .from('clinic_settings')
+        .select('clinic_name')
+        .eq('clinic_id', appt.clinic_id)
+        .single()
+      if (cs?.clinic_name) clinicName = cs.clinic_name
+    }
 
     // Redirigir a una página de éxito
     return new Response(`
@@ -55,7 +71,7 @@ serve(async (req) => {
           <div class="title">¡Asistencia confirmada!</div>
           <div class="sub">Tu asistencia a la cita ha sido confirmada exitosamente. Te esperamos.</div>
           <div class="badge">MEDTRACK</div>
-          <div class="clinic">by Glow Clinic</div>
+          <div class="clinic">${clinicName}</div>
         </div>
       </body>
       </html>
