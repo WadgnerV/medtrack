@@ -122,7 +122,7 @@ export default function PatientExpediente({ patient, profile, onBack, canEdit = 
   const nombre = pName(patient)
   const edad = calcularEdad(patient.birth_date)
   const ini = initiales(nombre)
-  const sexo = patient.sex === 'F' ? 'Femenina' : patient.sex === 'M' ? 'Masculino' : ''
+  const sexo = patient.sex === 'F' || patient.sex === 'female' ? 'Femenina' : patient.sex === 'M' || patient.sex === 'male' ? 'Masculino' : ''
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
