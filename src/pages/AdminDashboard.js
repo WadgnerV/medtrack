@@ -1504,7 +1504,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
-                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || clinicSettings?.clinic_name || ''}</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{clinicSettings?.clinic_name || profile?.clinic_name || ''}</div>
               </div>
             </div>
           )}
@@ -1594,7 +1594,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <div style={{ fontSize:12, fontWeight:500, color:'#1a1a1a' }}>MedTrack</div>
-                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || clinicSettings?.clinic_name || ''}</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{clinicSettings?.clinic_name || profile?.clinic_name || ''}</div>
                 </div>
               </div>
               <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>
@@ -1654,7 +1654,7 @@ export default function AdminDashboard() {
               <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>
                 {({'dashboard':'Dashboard','medicos':'Personal','pacientes':'Pacientes','calendario':'Calendario','reportes':'Reportes','biblioteca':'Biblioteca','permisos':'Permisos','config':'Configuración','inventario':'Inventario','tickets':'Tickets'})[view]}
               </div>
-              <div style={{ fontSize:13, color:'#999', marginTop:1 }}>{profile?.clinic_name || ''}</div>
+              <div style={{ fontSize:13, color:'#999', marginTop:1 }}>{clinicSettings?.clinic_name || profile?.clinic_name || ''}</div>
             </div>
             {view === 'medicos'    && <button style={s.btnPrimary} onClick={() => { if (!checkLimit('doctor')) return; setFormError(''); setModal('new-doctor') }}>+ Nuevo personal</button>}
             {view === 'medicos' && isClinicAdmin && <button style={{ ...s.btnPrimary, background:'#1a3a5c' }} onClick={() => { setFormError(''); setModal('new-branch-admin') }}>+ Nuevo admin sucursal</button>}
