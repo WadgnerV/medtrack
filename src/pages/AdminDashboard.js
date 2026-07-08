@@ -541,10 +541,12 @@ export default function AdminDashboard() {
   }
 
   async function loadClinicSettings() {
-    const { data } = await supabase.from('clinic_settings').select('*').eq('clinic_id', profile.clinic_id).limit(1).single()
+    const { data } = await supabase.from('clinic_settings').select('*').eq('clinic_id', profile.clinic_id).limit(1).maybeSingle()
     const { data: clinicData } = await supabase.from('clinics').select('sku_prefix').eq('id', profile.clinic_id).single()
-    if (clinicData?.sku_prefix) data.sku_prefix = clinicData.sku_prefix
-    if (data) setClinicSettings(data)
+    if (data) {
+      if (clinicData?.sku_prefix) data.sku_prefix = clinicData.sku_prefix
+      setClinicSettings(data)
+    }
     // Cargar plan de la clínica
     if (profile?.clinic_id) {
       const { data: clinic } = await supabase.from('clinics').select('plan, enabled_modules').eq('id', profile.clinic_id).single()
