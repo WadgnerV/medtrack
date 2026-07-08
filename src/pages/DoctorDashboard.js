@@ -118,11 +118,21 @@ export default function DoctorDashboard() {
   useEffect(() => { 
     if (profile?.id) {
       loadAll()
-      localStorage.setItem('doctorView', 'calendario')
-      localStorage.removeItem('doctorSelPatient')
-      setSelPatient(null)
     }
   }, [profile?.id])
+
+  useEffect(() => {
+    function handlePopState() {
+      const path = window.location.pathname
+      if (!path.startsWith('/doctor/pacientes/')) {
+        setSelPatient(null)
+        const v = path.replace('/doctor/', '').split('/')[0] || 'calendario'
+        setView(v)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   async function loadAll() {
     setLoading(true)
