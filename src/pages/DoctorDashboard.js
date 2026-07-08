@@ -21,7 +21,6 @@ const SP = ' '
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const navigate = useNavigate()
   const location = useLocation()
   const urlPatientId = location.pathname.startsWith('/doctor/pacientes/')
     ? location.pathname.replace('/doctor/pacientes/', '').split('/')[0]
