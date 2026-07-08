@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import DocumentosTab from '../components/DocumentosTab'
@@ -374,7 +374,9 @@ export default function AdminDashboard() {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const { patientId: urlPatientId } = useParams()
+  const urlPatientId = location.pathname.startsWith('/admin/pacientes/') 
+    ? location.pathname.replace('/admin/pacientes/', '').split('/')[0] 
+    : null
 
   // Extraer la vista actual de la URL
   const getViewFromPath = () => {

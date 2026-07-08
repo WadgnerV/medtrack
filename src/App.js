@@ -33,11 +33,6 @@ function App() {
               <ReceptionistDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/admin/pacientes/:patientId" element={
-            <ProtectedRoute allowedRoles={['admin','clinic_admin','branch_admin']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
           <Route path="/admin/*" element={
             <ProtectedRoute allowedRoles={['admin','clinic_admin','branch_admin']}>
               <AdminDashboard />
