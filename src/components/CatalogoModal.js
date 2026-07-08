@@ -41,6 +41,7 @@ export default function CatalogoModal({ profile, onClose }) {
     await supabase.from('inventory_catalog').delete().eq('clinic_id', profile.clinic_id).eq('name', item.name)
     await supabase.from('inventory_items').delete().eq('id', item.id)
     setItems(p => p.filter(x => x.id !== item.id))
+    onClose()
   }
 
   async function uploadImage(file, itemId) {
