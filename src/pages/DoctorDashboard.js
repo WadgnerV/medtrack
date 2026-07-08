@@ -632,7 +632,7 @@ export default function DoctorDashboard() {
             {group.items.map(item => {
               const active = view === item.key || (item.key === 'pacientes' && view === 'perfil')
               return (
-                <div key={item.key} onClick={() => { setView(item.key); setSelPatient(null); if(isMobile) setMobileMenuOpen(false) }}
+                <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null); if(isMobile) setMobileMenuOpen(false) }}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', cursor:'pointer', fontSize:13, background: active ? 'rgba(255,255,255,0.15)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: active ? 500 : 400, borderRadius:6, margin:'1px 8px' }}>
                   <i className={`ti ${item.icon}`} style={{ fontSize:15, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }} aria-hidden="true"></i>
                   {item.label}
