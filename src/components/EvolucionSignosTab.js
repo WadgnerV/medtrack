@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
-const G = '#0F6E56'
+const G = 'var(--clinic-primary, #0F6E56)'
 const BLUE = '#1a3a5c'
 
 const PERIODOS = [

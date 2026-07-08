@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-const G = '#0F6E56'
+const G = 'var(--clinic-primary, #0F6E56)'
 const BLUE = '#1a3a5c'
 const MOTIVOS_ENTRADA = ['Compra', 'Devolución', 'Donación', 'Corrección de conteo', 'Otro']
 const MOTIVOS_SALIDA = ['Procedimiento médico', 'Vencimiento', 'Daño o deterioro', 'Corrección de conteo', 'Consumo interno', 'Otro']

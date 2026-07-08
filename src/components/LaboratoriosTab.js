@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const BLUE = '#1a3a5c'
-const G = '#0F6E56'
+const G = 'var(--clinic-primary, #0F6E56)'
 
 function parseField(text, prefix) {
   if (!text) return null
