@@ -711,7 +711,7 @@ export default function DoctorDashboard() {
                 </div>
               ))}
               <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 16px 3px' }}>Principal</div>
-              {[{ label:'Mis pacientes', key:'pacientes', icon:'ti-users' }, { label:'Dashboard', key:'dashboard', icon:'ti-layout-dashboard' }].map(item => (
+              {[{ label:'Mis pacientes', key:'pacientes', icon:'ti-users' }].map(item => (
                 <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null); setShowDrawer(false) }}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
                   <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
