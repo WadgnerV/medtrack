@@ -1232,7 +1232,6 @@ export default function AdminDashboard() {
 
   async function openPatient(p) {
     setSelPatient(p)
-    setPatientTab('progreso')
     setView('perfil-paciente')
     navigate(`/admin/pacientes/${p.id}`, { replace: false })
     const pid = p.id
@@ -1795,7 +1794,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {view === 'perfil-paciente' && selPatient && (
+          {(view === 'perfil-paciente' || urlPatientId) && selPatient && (
             <PatientExpediente
               patient={selPatient}
               profile={profile}
