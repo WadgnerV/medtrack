@@ -11,72 +11,94 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
-
   try {
-    const { patient_email, patient_name, doctor_name, appointment_date, appointment_time } = await req.json()
+    const { patient_email, patient_name, doctor_name, appointment_date, appointment_time, clinic_id } = await req.json()
 
+    let clinicName = 'MedTrack'
     let clinicAddress = ''
     try {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
       const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
-      const { data: cs } = await sb.from('clinic_settings').select('*').limit(1).single()
+      let q = sb.from('clinic_settings').select('*')
+      if (clinic_id) q = q.eq('clinic_id', clinic_id)
+      const { data: cs } = await q.limit(1).single()
       if (cs) {
-        const parts = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter((x: unknown) => !!x)
-        clinicAddress = parts.join(', ')
+        clinicName = cs.clinic_name || clinicName
+        clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
       }
-    } catch(_e) {
-      clinicAddress = ''
-    }
+    } catch(_e) {}
 
-    const dateFormatted = new Date(appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
-    const [h, m] = appointment_time.split(':')
-    const hour = parseInt(h)
-    const timeFormatted = `${hour > 12 ? hour - 12 : hour}:${m} ${hour >= 12 ? 'PM' : 'AM'}`
+    const dateFormatted = new Date(appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+    const timeFormatted = appointment_time?.substring(0, 5)
 
     const html = `
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="utf-8"></head>
-      <body style="margin:0;padding:0;background:#f5f5f5;font-family:'Helvetica Neue',Arial,sans-serif;">
-        <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-          <div style="background:#1a3a5c;padding:28px 32px;">
-            <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Tu cita fue reprogramada</div>
-            <div style="font-size:14px;color:#a0c4e8;">Glow Clinic · MedTrack</div>
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Inter,Arial,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="background:#1a3a5c;padding:28px 32px;">
+      <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
+      <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
+    </div>
+    <div style="padding:32px;">
+      <div style="font-size:18px;font-weight:600;color:#1a3a5c;margin-bottom:8px;">Tu cita fue reprogramada</div>
+      <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 20px;">
+        Hola <strong>${patient_name}</strong>, te informamos que tu cita en <strong>${clinicName}</strong> ha sido reprogramada con los siguientes datos:
+      </p>
+      <div style="background:#f8fbf9;border:1px solid #e2ede9;border-radius:12px;padding:20px;margin-bottom:24px;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Clínica</span>
+            <span style="font-size:14px;color:#1a3a5c;font-weight:500;">${clinicName}</span>
           </div>
-          <div style="padding:28px 32px;">
-            <p style="font-size:15px;color:#333;margin:0 0 20px;">Hola <strong>${patient_name}</strong>, te informamos que tu cita médica ha sido reprogramada con los siguientes datos:</p>
-            <div style="background:#f0f4f8;border-radius:8px;padding:18px 20px;margin-bottom:20px;">
-              ${clinicAddress ? `<div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📍 Dirección:</strong> ${clinicAddress}</div>` : ''}
-              <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>📅 Fecha:</strong> ${dateFormatted}</div>
-              <div style="margin-bottom:8px;font-size:14px;color:#555;"><strong>🕐 Hora:</strong> ${timeFormatted}</div>
-              <div style="font-size:14px;color:#555;"><strong>👨‍⚕️ Médico:</strong> ${doctor_name}</div>
-            </div>
-            <p style="font-size:13px;color:#777;margin:0 0 20px;">Si este cambio no fue solicitado por vos o tenés alguna consulta, por favor contactanos por WhatsApp.</p>
-            <div style="text-align:center;margin-top:24px;">
-              <a href="https://wa.me/50660464569" style="background:#1a3a5c;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;">Contactar por WhatsApp</a>
-            </div>
+          ${clinicAddress ? `
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Dirección</span>
+            <span style="font-size:14px;color:#333;">${clinicAddress}</span>
+          </div>` : ''}
+          <div style="border-top:1px solid #e2ede9;margin:4px 0;"></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Fecha</span>
+            <span style="font-size:14px;color:#333;font-weight:500;">${dateFormatted}</span>
           </div>
-          <div style="background:#f9f9f9;padding:16px 32px;border-top:1px solid #eee;">
-            <p style="font-size:11px;color:#aaa;margin:0;text-align:center;">Glow Clinic · Este es un mensaje automático, por favor no respondas a este correo.</p>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Hora</span>
+            <span style="font-size:14px;color:#333;font-weight:500;">${timeFormatted}</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Médico</span>
+            <span style="font-size:14px;color:#333;">${doctor_name}</span>
           </div>
         </div>
-      </body>
-      </html>
-    `
+      </div>
+      <p style="color:#888;font-size:13px;line-height:1.6;margin:0 0 20px;">Si este cambio no fue solicitado por vos o tenés alguna consulta, por favor contáctanos por WhatsApp.</p>
+      <div style="text-align:center;">
+        <a href="https://wa.me/50660464569" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:600;">
+          Contactar por WhatsApp
+        </a>
+      </div>
+    </div>
+    <div style="padding:16px 32px;border-top:1px solid #f0f0f0;text-align:center;font-size:12px;color:#aaa;">
+      ${clinicName} · Este correo fue generado automáticamente, por favor no responder.
+    </div>
+  </div>
+</body>
+</html>`
 
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'MedTrack <onboarding@resend.dev>',
+        from: `${clinicName} <noreply@medtrackcr.com>`,
         to: [patient_email],
-        subject: '📅 Tu cita fue reprogramada · Glow Clinic',
+        subject: `Tu cita fue reprogramada · ${clinicName}`,
         html,
       })
     })
 
     return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch(e) {
-    return new Response(JSON.stringify({ error: e.message }), { status:500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
