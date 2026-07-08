@@ -1536,7 +1536,7 @@ export default function AdminDashboard() {
             </div>
           )}
           {sidebarCollapsed && (
-            <div style={{ width:28, height:28, borderRadius:6, background:G, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ width:28, height:28, borderRadius:6, background:'var(--clinic-primary, #0F6E56)', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
             </div>
           )}
@@ -1616,7 +1616,7 @@ export default function AdminDashboard() {
           <div style={{ position:'fixed', top:0, left:0, bottom:0, width:'75vw', maxWidth:280, background:'#fff', zIndex:201, display:'flex', flexDirection:'column', overflowY:'auto' }}>
             <div style={{ padding:'14px', borderBottom:'0.5px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <div style={{ width:26, height:26, background:G, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width:26, height:26, background:'var(--clinic-primary, #0F6E56)', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:13 }} aria-hidden="true"></i>
                 </div>
                 <div>
@@ -2583,7 +2583,7 @@ export default function AdminDashboard() {
                       Cancelar
                     </button>
                     <button onClick={generatePDF}
-                      style={{ padding:'8px 20px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+                      style={{ padding:'8px 20px', background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
                       Generar PDF
                     </button>
                   </div>
@@ -2642,7 +2642,7 @@ export default function AdminDashboard() {
                         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
                         placeholder="Escribe tu respuesta..."
                         style={{ flex:1, padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit' }} />
-                      <button onClick={sendMessage} style={{ width:32, height:32, borderRadius:'50%', background:G, border:'none', cursor:'pointer', color:'#fff', fontSize:13 }}>{'>'}</button>
+                      <button onClick={sendMessage} style={{ width:32, height:32, borderRadius:'50%', background:'var(--clinic-primary, #0F6E56)', border:'none', cursor:'pointer', color:'#fff', fontSize:13 }}>{'>'}</button>
                     </div>
                   </>
                 )}
