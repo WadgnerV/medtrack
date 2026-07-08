@@ -1230,8 +1230,8 @@ export default function AdminDashboard() {
   async function openPatient(p) {
     setSelPatient(p)
     setPatientTab('progreso')
-    navigate(`/admin/pacientes/${p.id}`)
     setView('perfil-paciente')
+    navigate(`/admin/pacientes/${p.id}`)
     const pid = p.id
     const [m, g, t, tr, n] = await Promise.all([
       supabase.from('measurements').select('*').eq('patient_id', pid).order('measured_at', { ascending: false }),
