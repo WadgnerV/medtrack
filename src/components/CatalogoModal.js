@@ -37,6 +37,7 @@ export default function CatalogoModal({ profile, onClose }) {
     // Eliminar en cascada: supplies, historial, catálogo e ítem
     await supabase.from('clinical_note_supplies').delete().eq('item_id', item.id)
     await supabase.from('inventory_history').delete().eq('item_id', item.id)
+    await supabase.from('purchase_order_items').delete().eq('item_id', item.id)
     await supabase.from('inventory_catalog').delete().eq('clinic_id', profile.clinic_id).eq('name', item.name)
     await supabase.from('inventory_items').delete().eq('id', item.id)
     setItems(p => p.filter(x => x.id !== item.id))
