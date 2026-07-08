@@ -1564,7 +1564,7 @@ export default function AdminDashboard() {
                 <i className={`ti ${item.icon}`} style={{ fontSize:16, color: view === item.key ? '#fff' : 'rgba(255,255,255,0.6)', flexShrink:0 }} aria-hidden="true"></i>
                 {!sidebarCollapsed && item.label}
                 {!sidebarCollapsed && item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:'rgba(255,255,255,0.9)', color:'#085041', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
-                {sidebarCollapsed && item.badge > 0 && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:G }} />}
+                {sidebarCollapsed && item.badge > 0 && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:'var(--clinic-primary)' }} />}
               </div>
             ))}
           </div>
@@ -1742,7 +1742,7 @@ export default function AdminDashboard() {
                     <div style={{ fontSize:11, color:'#888' }}>{d.phone || ''}{d.specialty ? (d.phone ? ` · ${d.specialty}` : d.specialty) : ''}</div>
                     <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
                       <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, fontWeight:500, background:roleBg, color:roleColor }}>{roleLabel}</span>
-                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'#E1F5EE', color:'#0F6E56' }}>activo</span>
+                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:20, background:'var(--clinic-primary-light, #E1F5EE)', color:'var(--clinic-primary)' }}>activo</span>
                       <span style={{ fontSize:11, color:'#999' }}>{patients.filter(p=>p.doctor?.id===d.id).length} pac.</span>
                     </div>
                     <div style={{ display:'flex', justifyContent:'flex-end', gap:6 }}>
@@ -1787,7 +1787,7 @@ export default function AdminDashboard() {
           {view === 'pacientes' && showInactive && (
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14, flexWrap:'wrap' }}>
-                <button onClick={() => { setShowInactive(false); setInactiveSearch('') }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#1D9E75', display:'flex', alignItems:'center', gap:4 }}>
+                <button onClick={() => { setShowInactive(false); setInactiveSearch('') }} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'var(--clinic-primary)', display:'flex', alignItems:'center', gap:4 }}>
                   <i className="ti ti-arrow-left" style={{ fontSize:13 }} aria-hidden="true"></i> Volver a pacientes
                 </button>
                 <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Perfiles inactivos</div>
@@ -1828,7 +1828,7 @@ export default function AdminDashboard() {
                           <td style={{ padding:'10px 14px', fontSize:13, borderBottom:'0.5px solid #f0f0f0', color:'#666' }}>{p.profile?.email}</td>
                           <td style={{ padding:'10px 14px', borderBottom:'0.5px solid #f0f0f0' }}>
                             <button onClick={() => reactivatePatient(p)}
-                              style={{ background:'#1D9E75', color:'#fff', border:'none', borderRadius:6, padding:'4px 12px', fontSize:12, cursor:'pointer', fontWeight:500 }}>
+                              style={{ background:'var(--clinic-primary)', color:'#fff', border:'none', borderRadius:6, padding:'4px 12px', fontSize:12, cursor:'pointer', fontWeight:500 }}>
                               Reactivar
                             </button>
                           </td>
@@ -1946,9 +1946,9 @@ export default function AdminDashboard() {
                           setSelDate(cell.dateStr)
                           setCalView('semana')
                         } }}
-                          style={{ textAlign:'center', fontSize:11, padding:'3px 2px', borderRadius:4, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? G : selDate === cell.dateStr ? '#1a3a5c' : 'transparent', color: cell.isToday || selDate === cell.dateStr ? '#fff' : '#444', fontWeight: cell.isToday ? 700 : 400, position:'relative' }}>
+                          style={{ textAlign:'center', fontSize:11, padding:'3px 2px', borderRadius:4, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? 'var(--clinic-primary)' : selDate === cell.dateStr ? '#1a3a5c' : 'transparent', color: cell.isToday || selDate === cell.dateStr ? '#fff' : '#444', fontWeight: cell.isToday ? 700 : 400, position:'relative' }}>
                           {cell.day}
-                          {hasAppts && !cell.isToday && <div style={{ position:'absolute', bottom:1, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background: G }} />}
+                          {hasAppts && !cell.isToday && <div style={{ position:'absolute', bottom:1, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background: 'var(--clinic-primary)' }} />}
                         </div>
                       )
                     })}
@@ -2062,8 +2062,8 @@ export default function AdminDashboard() {
                           setSelDate(cell.dateStr)
                           setCalView('semana')
                         } }}
-                          style={{ minHeight:70, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? ('1px solid '+G) : '1px solid transparent' }}>
-                          <div style={{ fontSize:13, color: cell.isToday ? G : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
+                          style={{ minHeight:70, padding:5, borderRadius:6, cursor: cell.dateStr ? 'pointer' : 'default', opacity: cell.current ? 1 : 0.3, background: cell.isToday ? '#f0fdf9' : 'transparent', border: cell.isToday ? '1px solid var(--clinic-primary)' : '1px solid transparent' }}>
+                          <div style={{ fontSize:13, color: cell.isToday ? 'var(--clinic-primary)' : '#666', fontWeight: cell.isToday ? 600 : 400, marginBottom:2 }}>{cell.day}</div>
                           {dayAppts.filter(a => a.status === 'blocked').slice(0,1).map(a => (
                             <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#5F5E5A', marginBottom:1, background:'#F1EFE8', border:'1px solid #D3D1C7', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:2 }}>
                               <i className="ti ti-ban" style={{ fontSize:8 }} aria-hidden="true"></i> Bloqueado
@@ -2114,7 +2114,7 @@ export default function AdminDashboard() {
                           <div style={{ fontSize:11, color:'#999', textTransform:'uppercase' }}>
                             {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][date.getDay()===0?6:date.getDay()-1]}
                           </div>
-                          <div style={{ fontSize:16, fontWeight: isToday ? 700 : 400, background: isToday ? G : 'transparent', color: isToday ? '#fff' : '#1a1a1a', borderRadius:'50%', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', margin:'2px auto 0' }}>
+                          <div style={{ fontSize:16, fontWeight: isToday ? 700 : 400, background: isToday ? 'var(--clinic-primary)' : 'transparent', color: isToday ? '#fff' : '#1a1a1a', borderRadius:'50%', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', margin:'2px auto 0' }}>
                             {date.getDate()}
                           </div>
                         </div>
@@ -3902,7 +3902,7 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
               <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="Nueva etiqueta..." style={{ flex:1, minWidth:100, padding:'5px 8px', fontSize:12, border:'1px solid #e0e0e0', borderRadius:6, outline:'none', fontFamily:'inherit' }} />
               <input type="color" value={newTagColor} onChange={e => setNewTagColor(e.target.value)} style={{ width:32, height:28, border:'1px solid #e0e0e0', borderRadius:6, cursor:'pointer', padding:2 }} />
               <button onClick={async () => { if (!newTagName.trim()) return; await onCreateTag({ name: newTagName.trim(), color: newTagColor }); setNewTagName(''); setNewTagColor('#1D9E75') }}
-                style={{ padding:'5px 10px', background:'#1D9E75', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:12 }}>+ Crear</button>
+                style={{ padding:'5px 10px', background:'var(--clinic-primary)', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:12 }}>+ Crear</button>
             </div>
             {tags && tags.length > 0 && (
               <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
