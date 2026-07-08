@@ -1860,7 +1860,9 @@ export default function AdminDashboard() {
                 const nombre = ((p.profile?.first_name||'')+' '+(p.profile?.last_name||'')).toLowerCase()
                 const email = (p.profile?.email||'').toLowerCase()
                 const diag = (allDiagnoses.find(d=>d.patient_id===p.id)?.cie10_description||'').toLowerCase()
-                return nombre.includes(q)||email.includes(q)||diag.includes(q)
+                const cedula = (p.id_number||'').toLowerCase()
+                const telefono = (p.phone||'').toLowerCase()
+                return nombre.includes(q)||email.includes(q)||diag.includes(q)||cedula.includes(q)||telefono.includes(q)
               }).sort((a,b) => {
                 const la = (a.profile?.last_name||'').toLowerCase()
                 const lb = (b.profile?.last_name||'').toLowerCase()
