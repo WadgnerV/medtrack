@@ -1,3 +1,15 @@
+
+:root {
+  --clinic-primary: #0F6E56;
+  --clinic-primary-dark: #085041;
+  --clinic-primary-light: rgba(15, 110, 86, 0.12);
+}
+
+/* Aplicar color primario a elementos comunes */
+.clinic-primary-bg { background: var(--clinic-primary) !important; }
+.clinic-primary-color { color: var(--clinic-primary) !important; }
+.clinic-primary-border { border-color: var(--clinic-primary) !important; }
+
 * {
   box-sizing: border-box;
 }
