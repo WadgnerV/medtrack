@@ -188,6 +188,15 @@ export default function SuperAdminDashboard() {
           province: form.province || null,
           is_active: true,
         })
+        await supabase.from('clinic_settings').insert({
+          clinic_id: newClinic.id,
+          clinic_name: form.name,
+          email: form.email || null,
+          province: form.province || null,
+          canton: form.canton || null,
+          district: form.district || null,
+          address: form.address || null,
+        })
       }
       if (form.send_welcome_email !== false && form.email) {
         await supabase.functions.invoke('clinic-welcome', {
