@@ -395,6 +395,19 @@ export default function AdminDashboard() {
     }
   }, [location.pathname])
 
+  useEffect(() => {
+    function handlePopState(e) {
+      const path = window.location.pathname
+      if (!path.startsWith('/admin/pacientes/')) {
+        setSelPatient(null)
+        const v = path.replace('/admin/', '').split('/')[0] || 'calendario'
+        setView(v)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   function setViewPersist(v) {
     setView(v)
     navigate(`/admin/${v}`)
@@ -1235,7 +1248,7 @@ export default function AdminDashboard() {
   async function openPatient(p) {
     setSelPatient(p)
     setView('perfil-paciente')
-    navigate(`/admin/pacientes/${p.id}`, { replace: false })
+    window.history.pushState({view:'perfil-paciente', patientId:p.id}, '', `/admin/pacientes/${p.id}`)
     const pid = p.id
     const [m, g, t, tr, n] = await Promise.all([
       supabase.from('measurements').select('*').eq('patient_id', pid).order('measured_at', { ascending: false }),
