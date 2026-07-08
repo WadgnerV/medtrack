@@ -44,7 +44,7 @@ serve(async (req) => {
     const timeFormatted = appointment_time?.substring(0, 5)
 
     let clinicAddress = ''
-    let clinicName = 'Glow Clinic'
+    let clinicName = 'MedTrack'
     try {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
       const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)

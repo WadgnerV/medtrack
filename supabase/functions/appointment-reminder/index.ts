@@ -52,7 +52,7 @@ serve(async (req) => {
     console.log('Citas encontradas:', appts?.length)
 
     let clinicAddress = ''
-    let clinicName = 'Glow Clinic'
+    let clinicName = 'MedTrack'
     try {
       const { data: cs } = await supabase.from('clinic_settings').select('*').limit(1).single()
       if (cs) {
