@@ -76,7 +76,7 @@ export default function DiagnosticosTab({ patient, profile }) {
                   style={{ padding:'10px 14px', cursor:'pointer', borderBottom:'0.5px solid #f0f5f3', fontSize:13 }}
                   onMouseEnter={e => e.currentTarget.style.background='#f4faf7'}
                   onMouseLeave={e => e.currentTarget.style.background='#fff'}>
-                  <span style={{ fontWeight:700, color:G, marginRight:8 }}>{r.code}</span>
+                  <span style={{ fontWeight:700, color:'var(--clinic-primary, #0F6E56)', marginRight:8 }}>{r.code}</span>
                   {r.description}
                 </div>
               ))}
@@ -98,7 +98,7 @@ export default function DiagnosticosTab({ patient, profile }) {
               <div key={d.id} style={{ background:'#fff', border:'0.5px solid #e2ede9', borderRadius:10, padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                 <div>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                    <span style={{ fontSize:12, fontWeight:700, color:G, background:'#E1F5EE', padding:'2px 8px', borderRadius:20 }}>{d.cie10_code}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:'var(--clinic-primary, #0F6E56)', background:'#E1F5EE', padding:'2px 8px', borderRadius:20 }}>{d.cie10_code}</span>
                     <span style={{ fontSize:13, fontWeight:500, color:BLUE }}>{d.cie10_description}</span>
                   </div>
                   <div style={{ fontSize:11, color:'#aaa' }}>

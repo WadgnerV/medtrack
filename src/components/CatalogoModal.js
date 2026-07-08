@@ -182,7 +182,7 @@ export default function CatalogoModal({ profile, onClose }) {
                     <i className="ti ti-photo" style={{ fontSize:24 }} aria-hidden="true"></i>
                   </div>
                 )}
-                <label style={{ padding:'6px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
+                <label style={{ padding:'6px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:'var(--clinic-primary, #0F6E56)', fontWeight:500 }}>
                   {editing.image_url || editing._previewUrl ? 'Cambiar imagen' : 'Agregar imagen'}
                   <input type="file" accept="image/*" style={{ display:'none' }}
                     onChange={e => {
@@ -200,7 +200,7 @@ export default function CatalogoModal({ profile, onClose }) {
             <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
               <button onClick={() => setEditing(null)} style={{ border:'0.5px solid #e0e0e0', background:'#fff', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, color:'#555' }}>Cancelar</button>
               <button onClick={saveEdit} disabled={saving || !editing.name}
-                style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving||!editing.name?0.5:1 }}>
+                style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving||!editing.name?0.5:1 }}>
                 {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>

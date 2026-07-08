@@ -240,7 +240,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
 
   const s = {
     card: { background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:'14px 16px', marginBottom:12 },
-    btn: { background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' },
+    btn: { background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' },
     btnOutline: { background:'#fff', color:BLUE, border:`1px solid ${BLUE}`, borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' },
     btnSm: { background:'none', border:'1px solid #eee', borderRadius:6, padding:'3px 10px', fontSize:12, cursor:'pointer', color:'#555', marginRight:6 },
     btnDel: { background:'none', border:'1px solid #fde0e0', borderRadius:6, padding:'3px 10px', fontSize:12, cursor:'pointer', color:'#d9534f' },
@@ -339,7 +339,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
             ) : filtered.map(item => (
               <tr key={item.id}>
                 <td style={s.td}>
-                  <span style={{ fontSize:11, fontWeight:600, color:'#0F6E56', background:'#E1F5EE', padding:'2px 7px', borderRadius:20 }}>{item.sku || '—'}</span>
+                  <span style={{ fontSize:11, fontWeight:600, color:'var(--clinic-primary, #0F6E56)', background:'#E1F5EE', padding:'2px 7px', borderRadius:20 }}>{item.sku || '—'}</span>
                 </td>
                 <td style={s.td}>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -410,7 +410,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
                       </div>
                     ))}
                     <div onMouseDown={() => { setShowNewCatalogItem(true); setShowCatalogDropdown(false) }}
-                      style={{ padding:'8px 12px', cursor:'pointer', fontSize:12, color:'#0F6E56', fontWeight:500, borderTop:'0.5px solid #e2ede9' }}
+                      style={{ padding:'8px 12px', cursor:'pointer', fontSize:12, color:'var(--clinic-primary, #0F6E56)', fontWeight:500, borderTop:'0.5px solid #e2ede9' }}
                       onMouseEnter={e => e.currentTarget.style.background='#f4faf7'}
                       onMouseLeave={e => e.currentTarget.style.background='#fff'}>
                       + Agregar "{catalogSearch || 'nuevo ítem'}" al catálogo

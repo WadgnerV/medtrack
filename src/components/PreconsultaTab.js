@@ -296,7 +296,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     const imc = (p / Math.pow(h/100, 2)).toFixed(1)
     const n = parseFloat(imc)
     const cat = n < 18.5 ? { label:'Desnutrición', color:'#185FA5', bg:'#E6F1FB' }
-      : n < 25 ? { label:'IMC normal', color:'#0F6E56', bg:'#E1F5EE' }
+      : n < 25 ? { label:'IMC normal', color:'var(--clinic-primary, #0F6E56)', bg:'#E1F5EE' }
       : n < 30 ? { label:'Sobrepeso', color:'#BA7517', bg:'#FAEEDA' }
       : { label:'Obesidad', color:'#D85A30', bg:'#FAECE7' }
     return (
@@ -498,7 +498,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
         <div style={{ fontSize:14, fontWeight:700, color:BLUE }}>Pre-consulta / Triage</div>
         {canEdit && !showForm && (
-          <button onClick={startNew} style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+          <button onClick={startNew} style={{ padding:'7px 16px', background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
             + Nueva pre-consulta
           </button>
         )}
@@ -698,7 +698,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
                   )
                 })}
                 <button onClick={() => setInsumosUsados(p=>[...p,{item_id:'',cantidad:''}])}
-                  style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
+                  style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:'var(--clinic-primary, #0F6E56)', fontWeight:500 }}>
                   + Agregar insumo
                 </button>
               </div>
@@ -711,7 +711,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
             </button>
             {editingId && records.find(r => r.id === editingId)?.status === 'ready' ? (
               <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type || hizoProcedimiento === null}
-                style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
+                style={{ padding:'8px 18px', background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
                 {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             ) : (
@@ -721,7 +721,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
                   {saving ? 'Guardando...' : 'Guardar borrador'}
                 </button>
                 <button onClick={() => handleSave(true)} disabled={saving || !form.consultation_type}
-                  style={{ padding:'8px 18px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
+                  style={{ padding:'8px 18px', background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600, opacity:saving?0.7:1 }}>
                   {saving ? 'Guardando...' : 'Guardar y trasladar paciente'}
                 </button>
               </>

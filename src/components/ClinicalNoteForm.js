@@ -181,7 +181,7 @@ function CollapsibleSection({ label, count, color, children }) {
         style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 10px', borderRadius:8, background:'#f8f8f8', cursor:'pointer', border:'0.5px solid #eee' }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <span style={{ fontSize:12, fontWeight:500, color:'#555' }}>{label}</span>
-          {count > 0 && <span style={{ fontSize:11, background:G, color:'#fff', borderRadius:20, padding:'1px 7px', fontWeight:500 }}>{count}</span>}
+          {count > 0 && <span style={{ fontSize:11, background:'var(--clinic-primary, #0F6E56)', color:'#fff', borderRadius:20, padding:'1px 7px', fontWeight:500 }}>{count}</span>}
         </div>
         <i className={`ti ${open ? 'ti-chevron-up' : 'ti-chevron-down'}`} style={{ fontSize:14, color:'#999' }} aria-hidden="true"></i>
       </div>
@@ -618,7 +618,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             <button onClick={() => setShowPrint(true)} style={{ background:'#f0f4f8', color:'#1a3a5c', border:'1px solid #e2e8f0', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:500, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}><i className="ti ti-printer" style={{ fontSize:13 }} aria-hidden="true"></i> Imprimir notas</button>
           )}
           <button onClick={() => { setShowForm(true); setForm({ ...emptyForm, consultation_type: lastConsultType }); setEditingId(null); setHizoProcedimiento(null); setInsumosUsados([]) }}
-            style={{ padding:'7px 16px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
+            style={{ padding:'7px 16px', background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500 }}>
             + Nueva nota
           </button>
         </div>
@@ -823,7 +823,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                   )
                 })}
                 <button onClick={() => setInsumosUsados(p=>[...p,{item_id:'',cantidad:''}])}
-                  style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
+                  style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:'var(--clinic-primary, #0F6E56)', fontWeight:500 }}>
                   + Agregar insumo
                 </button>
               </div>
@@ -853,7 +853,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
               </button>
             )}
             <button onClick={save} disabled={saving || hizoProcedimiento === null}
-              style={{ flex:1, padding:'8px', background:G, color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: (saving || hizoProcedimiento === null) ? 0.5 : 1 }}>
+              style={{ flex:1, padding:'8px', background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:500, opacity: (saving || hizoProcedimiento === null) ? 0.5 : 1 }}>
               {saving ? 'Guardando...' : editingId ? 'Actualizar nota' : 'Guardar nota'}
             </button>
           </div>

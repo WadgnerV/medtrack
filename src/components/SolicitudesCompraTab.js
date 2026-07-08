@@ -9,8 +9,8 @@ const lbl = { fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercas
 const STATUS = {
   draft:    { label:'Borrador',   bg:'#f0f4f8', color:'#555' },
   sent:     { label:'Enviada',    bg:'#E6F1FB', color:'#185FA5' },
-  approved: { label:'Aprobada',  bg:'#E1F5EE', color:'#0F6E56' },
-  received: { label:'Recibida',  bg:'#E1F5EE', color:'#0F6E56' },
+  approved: { label:'Aprobada',  bg:'#E1F5EE', color:'var(--clinic-primary, #0F6E56)' },
+  received: { label:'Recibida',  bg:'#E1F5EE', color:'var(--clinic-primary, #0F6E56)' },
   rejected: { label:'Rechazada', bg:'#FAECE7', color:'#D85A30' },
   modified: { label:'Modificada',bg:'#FAEEDA', color:'#BA7517' },
 }
@@ -241,7 +241,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
           </div>
         ))}
         <button onClick={() => setNewItems(p => [...p, { item_id:'', quantity:'' }])}
-          style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:G, fontWeight:500, marginBottom:12 }}>
+          style={{ padding:'5px 12px', background:'#fff', border:`1px dashed ${G}`, borderRadius:8, cursor:'pointer', fontSize:12, color:'var(--clinic-primary, #0F6E56)', fontWeight:500, marginBottom:12 }}>
           + Agregar ítem
         </button>
         <div style={{ marginBottom:10 }}>
@@ -262,7 +262,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
             Cancelar
           </button>
           <button onClick={() => submitOrder(isEdit)} disabled={saving}
-            style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.6:1 }}>
+            style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.6:1 }}>
             {saving ? 'Enviando...' : isEdit ? 'Guardar cambios' : 'Enviar solicitud'}
           </button>
         </div>
@@ -282,7 +282,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
           )}
         </div>
         {canCreate && !showNew && !editingOrder && (
-          <button onClick={() => setShowNew(true)} style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' }}>
+          <button onClick={() => setShowNew(true)} style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:500, cursor:'pointer' }}>
             + Nueva solicitud
           </button>
         )}
@@ -325,13 +325,13 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
               <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
                 <button onClick={() => rejectOrder(selectedOrder)} style={{ border:'0.5px solid #fde0e0', background:'#fff', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, color:'#D85A30' }}>Rechazar</button>
                 <button onClick={() => approveOrder(selectedOrder, true)} style={{ border:`1px solid ${BLUE}`, background:'#fff', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, color:BLUE, fontWeight:500 }}>Aprobar con cambios</button>
-                <button onClick={() => approveOrder(selectedOrder, false)} style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500 }}>Aprobar</button>
+                <button onClick={() => approveOrder(selectedOrder, false)} style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500 }}>Aprobar</button>
               </div>
             )}
             {(selectedOrder.status === 'approved' || selectedOrder.status === 'modified') && (
               <div style={{ display:'flex', justifyContent:'flex-end' }}>
                 <button onClick={() => receiveOrder(selectedOrder)} disabled={saving}
-                  style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.6:1 }}>
+                  style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving?0.6:1 }}>
                   {saving ? 'Procesando...' : 'Confirmar recepción de mercancía'}
                 </button>
               </div>
@@ -359,7 +359,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
                     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
                       <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:20, background:st.bg, color:st.color }}>{st.label}</span>
                       {pendingMe && <span style={{ fontSize:11, color:'#BA7517', fontWeight:500 }}>⚠ Pendiente tu aprobación</span>}
-                      {canReceive && <span style={{ fontSize:11, color:G, fontWeight:500 }}>Lista para recibir</span>}
+                      {canReceive && <span style={{ fontSize:11, color:'var(--clinic-primary, #0F6E56)', fontWeight:500 }}>Lista para recibir</span>}
                     </div>
                     {order.status === 'sent' && isMine && order.assignee && (
                       <div style={{ fontSize:11, color:'#aaa', marginBottom:4 }}>

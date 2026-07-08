@@ -172,7 +172,7 @@ export default function BodegasModal({ profile, onClose }) {
             )}
             <div style={{ display:'flex', justifyContent:'space-between' }}>
               <button onClick={onClose} style={{ border:'0.5px solid #e0e0e0', background:'#fff', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, color:'#555' }}>Cerrar</button>
-              <button onClick={() => setShowForm(true)} style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500 }}>+ Nueva bodega</button>
+              <button onClick={() => setShowForm(true)} style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500 }}>+ Nueva bodega</button>
             </div>
           </>
         ) : (
@@ -201,7 +201,7 @@ export default function BodegasModal({ profile, onClose }) {
                 Cancelar
               </button>
               <button onClick={save} disabled={saving || !form.name}
-                style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving||!form.name?0.6:1 }}>
+                style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving||!form.name?0.6:1 }}>
                 {saving ? 'Guardando...' : 'Guardar bodega'}
               </button>
             </div>

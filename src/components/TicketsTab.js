@@ -8,14 +8,14 @@ const lbl = { fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercas
 
 const CATEGORIES = ['Infraestructura', 'Equipos médicos', 'Sistema', 'Administrativo', 'Otro']
 const PRIORITIES = [
-  { value:'baja',  label:'Baja',  bg:'#E1F5EE', color:'#0F6E56' },
+  { value:'baja',  label:'Baja',  bg:'#E1F5EE', color:'var(--clinic-primary, #0F6E56)' },
   { value:'media', label:'Media', bg:'#FAEEDA', color:'#BA7517' },
   { value:'alta',  label:'Alta',  bg:'#FAECE7', color:'#D85A30' },
 ]
 const STATUSES = [
   { value:'abierto',     label:'Pendiente de resolución', bg:'#E6F1FB', color:'#185FA5' },
   { value:'en_proceso',  label:'En proceso de resolución', bg:'#FAEEDA', color:'#BA7517' },
-  { value:'resuelto',    label:'Resuelto', bg:'#E1F5EE', color:'#0F6E56' },
+  { value:'resuelto',    label:'Resuelto', bg:'#E1F5EE', color:'var(--clinic-primary, #0F6E56)' },
   { value:'cerrado',     label:'Cerrado', bg:'#f0f4f8', color:'#555' },
 ]
 
@@ -168,7 +168,7 @@ export default function TicketsTab({ profile }) {
     <div style={{ display:'flex', gap:16, height:'calc(100vh - 180px)' }}>
       {/* Lista izquierda */}
       <div style={{ width:280, flexShrink:0, display:'flex', flexDirection:'column', gap:0 }}>
-        <button onClick={() => setShowNew(true)} style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'8px 14px', fontSize:13, fontWeight:500, cursor:'pointer', marginBottom:12 }}>
+        <button onClick={() => setShowNew(true)} style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'8px 14px', fontSize:13, fontWeight:500, cursor:'pointer', marginBottom:12 }}>
           + Crear ticket
         </button>
 
@@ -261,7 +261,7 @@ export default function TicketsTab({ profile }) {
             <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
               <button onClick={() => setShowNew(false)} style={{ border:'0.5px solid #e0e0e0', background:'#fff', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, color:'#555' }}>Cancelar</button>
               <button onClick={createTicket} disabled={saving || !form.title || !form.assigned_to}
-                style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving||!form.title||!form.assigned_to?0.5:1 }}>
+                style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving||!form.title||!form.assigned_to?0.5:1 }}>
                 {saving ? 'Creando...' : 'Crear ticket'}
               </button>
             </div>
@@ -297,7 +297,7 @@ export default function TicketsTab({ profile }) {
                     <button onClick={() => changeStatus('resuelto')} style={{ border:`1px solid ${G}`, background:'#fff', borderRadius:8, padding:'5px 12px', cursor:'pointer', fontSize:12, color:G }}>Marcar como resuelto</button>
                   )}
                   {selectedTicket.created_by === profile.id && selectedTicket.status === 'resuelto' && (
-                    <button onClick={cerrarTicket} style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'5px 12px', cursor:'pointer', fontSize:12 }}>Confirmar recepción y cerrar</button>
+                    <button onClick={cerrarTicket} style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'5px 12px', cursor:'pointer', fontSize:12 }}>Confirmar recepción y cerrar</button>
                   )}
                   <button onClick={() => { setReasignando(true); setNewAssignee('') }}
                     style={{ border:'0.5px solid #e2ede9', background:'#fff', borderRadius:8, padding:'5px 12px', cursor:'pointer', fontSize:12, color:'#555' }}>
@@ -360,7 +360,7 @@ export default function TicketsTab({ profile }) {
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment() } }}
                   placeholder="Agregar comentario..." />
                 <button onClick={addComment} disabled={saving || !newComment.trim()}
-                  style={{ background:G, color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving||!newComment.trim()?0.5:1 }}>
+                  style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:saving||!newComment.trim()?0.5:1 }}>
                   Guardar
                 </button>
               </div>
