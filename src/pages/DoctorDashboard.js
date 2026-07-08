@@ -48,7 +48,7 @@ export default function DoctorDashboard() {
   const [chatMsg, setChatMsg] = useState('')
   function setViewPersist(v) {
     setView(v)
-    navigate(`/doctor/${v}`)
+    window.history.pushState({view:v}, '', `/doctor/${v}`)
   }
   function setSelPatientPersist(p) { 
     if (p) localStorage.setItem('doctorSelPatient', JSON.stringify(p))
