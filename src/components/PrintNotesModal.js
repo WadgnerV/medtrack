@@ -146,7 +146,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
 
             {/* Previsualización */}
             <div style={{ flex:1, overflowY:'auto', padding:24, background:'#f0f4f8' }}>
-              <div id="print-content" style={{ background:'#fff', padding:40, maxWidth:760, margin:'0 auto', fontFamily:'Arial, sans-serif', fontSize:14, color:'#222', lineHeight:1.8 }}>
+              <div id="print-content" style={{ background:'#fff', padding:40, maxWidth:760, margin:'0 auto', fontFamily:'Arial, sans-serif', fontSize:12, color:'#222', lineHeight:1.6 }}>
 
                 {/* ENCABEZADO */}
                 <div style={{ borderBottom:'2px solid #1a3a5c', paddingBottom:14, marginBottom:20 }}>
