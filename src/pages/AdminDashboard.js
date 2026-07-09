@@ -1039,14 +1039,6 @@ export default function AdminDashboard() {
     if (type === 'patient') { await supabase.from('profiles').update({ is_active: false }).eq('id', id); await supabase.from('patients').update({ status: 'inactive' }).eq('id', id); await loadPatients() }
     if (type === 'note') { await supabase.from('clinical_notes').delete().eq('id', id); if (selPatient) { const { data } = await supabase.from('clinical_notes').select('*').eq('patient_id', selPatient.id).order('note_date', { ascending: false }); setNotes(data || []) } }
     if (type === 'doctor') {
-      // Borrar registros relacionados antes de eliminar el perfil
-      await supabase.from('aesthetic_procedures').delete().eq('created_by', id)
-      await supabase.from('clinical_notes').delete().eq('recorded_by', id)
-      await supabase.from('appointments').update({ doctor_id: null }).eq('doctor_id', id)
-      await supabase.from('notifications').delete().eq('sender_id', id)
-      await supabase.from('notifications').delete().eq('profile_id', id)
-      await supabase.from('profiles').delete().eq('id', id)
-      // Borrar usuario de auth completamente
       await supabase.functions.invoke('delete-user', { body: { user_id: id } })
       await loadDoctors()
     }
