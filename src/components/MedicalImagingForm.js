@@ -47,6 +47,7 @@ export default function MedicalImagingForm({ value, onChange, color }) {
   const [openCategory, setOpenCategory] = useState(null)
   const [selectedSite, setSelectedSite] = useState(null)
   const [selectedIncidences, setSelectedIncidences] = useState([])
+  const [lateralidad, setLateralidad] = useState('')
   const [otherText, setOtherText] = useState('')
   const [showOther, setShowOther] = useState(false)
 
@@ -71,10 +72,12 @@ export default function MedicalImagingForm({ value, onChange, color }) {
 
   function addRadiography() {
     if (!selectedSite || selectedIncidences.length === 0) return
-    const text = `Rx ${selectedSite} — ${selectedIncidences.join(', ')}`
+    const lat = lateralidad ? ` (${lateralidad})` : ''
+    const text = `Rx ${selectedSite}${lat} — ${selectedIncidences.join(', ')}`
     addItem(text)
     setSelectedSite(null)
     setSelectedIncidences([])
+    setLateralidad('')
   }
 
   function toggleIncidence(inc) {
@@ -119,6 +122,15 @@ export default function MedicalImagingForm({ value, onChange, color }) {
                     </select>
                     {selectedSite && (
                       <div>
+                        <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Lateralidad:</div>
+                        <div style={{ display:'flex', gap:5, marginBottom:10 }}>
+                          {['Derecho','Izquierdo','Ambos'].map(lat => (
+                            <button key={lat} onClick={() => setLateralidad(p => p === lat ? '' : lat)}
+                              style={{ padding:'4px 10px', borderRadius:20, border:`1px solid ${lateralidad === lat ? color : '#e2e8f0'}`, background: lateralidad === lat ? color : '#f7fafc', color: lateralidad === lat ? '#fff' : '#555', fontSize:11, cursor:'pointer' }}>
+                              {lat}
+                            </button>
+                          ))}
+                        </div>
                         <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Incidencias:</div>
                         <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:8 }}>
                           {data.sites.find(s => s.name === selectedSite)?.incidences.map(inc => (
