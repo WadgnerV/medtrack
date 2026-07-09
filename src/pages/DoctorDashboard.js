@@ -606,7 +606,7 @@ export default function DoctorDashboard() {
         </div>
       )}
 
-      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'#0F6E56', borderRight:'0.5px solid #085041', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
+      {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'var(--clinic-primary, #0F6E56)', borderRight:'0.5px solid rgba(0,0,0,0.15)', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
         <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
           {!sidebarCollapsed && (
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -615,7 +615,7 @@ export default function DoctorDashboard() {
               </div>
               <div>
                 <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
-                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>Glow Clinic</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || ''}</div>
               </div>
             </div>
           )}
@@ -634,24 +634,20 @@ export default function DoctorDashboard() {
         </div>
 
         {[
-          { section:'Clínica', items:[{ label:'Calendario', key:'calendario', icon:'ti-calendar', badge:appts.filter(a => a.status === 'scheduled').length }] },
-          { section:'Principal', items:[{ label:'Mis pacientes', key:'pacientes', icon:'ti-users', badge:patients.length }, { label:'Dashboard', key:'dashboard', icon:'ti-layout-dashboard' }] },
-        ].map(group => (
-          <div key={group.section}>
-            {!sidebarCollapsed && <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.07em', textTransform:'uppercase', padding:'10px 14px 3px' }}>{group.section}</div>}
-            {group.items.map(item => {
-              const active = view === item.key || (item.key === 'pacientes' && view === 'perfil')
-              return (
-                <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null); if(isMobile) setMobileMenuOpen(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', cursor:'pointer', fontSize:13, background: active ? 'rgba(255,255,255,0.15)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: active ? 500 : 400, borderRadius:6, margin:'1px 8px' }}>
-                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }} aria-hidden="true"></i>
-                  {item.label}
-                  {item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:'rgba(255,255,255,0.9)', color:'#085041', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
-                </div>
-              )
-            })}
-          </div>
-        ))}
+          { label:'Calendario', key:'calendario', icon:'ti-calendar', badge:appts.filter(a => a.status === 'scheduled').length },
+          { label:'Mis pacientes', key:'pacientes', icon:'ti-users', badge:patients.length },
+        ].map(item => {
+          const active = view === item.key || (item.key === 'pacientes' && view === 'perfil')
+          return (
+            <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null) }}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', cursor:'pointer', fontSize:13, background: active ? 'rgba(255,255,255,0.15)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,0.75)', fontWeight: active ? 500 : 400, borderRadius:6, margin:'1px 8px' }}>
+              <i className={`ti ${item.icon}`} style={{ fontSize:15, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }} aria-hidden="true"></i>
+              {!sidebarCollapsed && item.label}
+              {!sidebarCollapsed && item.badge > 0 && <span style={{ marginLeft:'auto', fontSize:11, background:'rgba(255,255,255,0.9)', color:'var(--clinic-primary, #085041)', borderRadius:10, padding:'1px 6px', fontWeight:500 }}>{item.badge}</span>}
+              {sidebarCollapsed && item.badge > 0 && <span style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:'rgba(255,255,255,0.9)' }} />}
+            </div>
+          )
+        })}
 
         <div style={{ marginTop:'auto', paddingBottom:8 }}>
           {!sidebarCollapsed && <UserMenu />}
@@ -702,19 +698,10 @@ export default function DoctorDashboard() {
               <button onClick={() => setShowDrawer(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#aaa' }}>×</button>
             </div>
             <div style={{ flex:1, padding:'8px 0' }}>
-              <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 16px 3px' }}>Clínica</div>
-              {[{ label:'Calendario', key:'calendario', icon:'ti-calendar' }].map(item => (
+              {[{ label:'Calendario', key:'calendario', icon:'ti-calendar' }, { label:'Mis pacientes', key:'pacientes', icon:'ti-users' }].map(item => (
                 <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null); setShowDrawer(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
-                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
-                  {item.label}
-                </div>
-              ))}
-              <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.07em', padding:'8px 16px 3px' }}>Principal</div>
-              {[{ label:'Mis pacientes', key:'pacientes', icon:'ti-users' }].map(item => (
-                <div key={item.key} onClick={() => { setViewPersist(item.key); setSelPatient(null); setShowDrawer(false) }}
-                  style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'#E1F5EE':'transparent', color: view===item.key?G:'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
-                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?G:'#999' }} aria-hidden="true"></i>
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', cursor:'pointer', background: view===item.key?'var(--clinic-primary-light, #E1F5EE)':'transparent', color: view===item.key?'var(--clinic-primary, #0F6E56)':'#555', fontWeight: view===item.key?500:400, fontSize:13 }}>
+                  <i className={`ti ${item.icon}`} style={{ fontSize:15, color: view===item.key?'var(--clinic-primary, #0F6E56)':'#999' }} aria-hidden="true"></i>
                   {item.label}
                 </div>
               ))}
