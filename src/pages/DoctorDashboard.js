@@ -141,22 +141,12 @@ export default function DoctorDashboard() {
   }
 
   async function loadPatients() {
-    // Pacientes asignados por assigned_doctor_id O por módulo de atención
-    const [byDoctor, byModule] = await Promise.all([
-      supabase.from('patients')
-        .select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, profile:profile_id(id, first_name, last_name, email)')
-        .eq('assigned_doctor_id', profile.id),
-      supabase.from('patient_care_modules')
-        .select('patient:patient_id(id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, profile:profile_id(id, first_name, last_name, email))')
-        .eq('assigned_professional_id', profile.id)
-        .eq('is_active', true)
-    ])
-    const fromDoctor = byDoctor.data || []
-    const fromModule = (byModule.data || []).map(m => m.patient).filter(Boolean)
-    // Combinar sin duplicados
-    const allIds = new Set(fromDoctor.map(p => p.id))
-    const combined = [...fromDoctor, ...fromModule.filter(p => !allIds.has(p.id))]
-    setPatients(combined)
+    const { data } = await supabase.from('patients')
+      .select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, profile:profile_id(id, first_name, last_name, email)')
+      .eq('clinic_id', profile.clinic_id)
+      .eq('status', 'active')
+      .order('profile(last_name)')
+    setPatients(data || [])
   }
 
   async function loadAppts() {
