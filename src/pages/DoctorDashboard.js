@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase'
 import SpotifyBar from '../components/SpotifyBar'
 import ChatBubble from '../components/ChatBubble'
 import NotificationBell from '../components/NotificationBell'
+import NewUserForm from '../components/NewUserForm'
 import UserMenu from '../components/UserMenu'
 
 const G = '#1D9E75'
@@ -44,6 +45,7 @@ export default function DoctorDashboard() {
   const [modal, setModal] = useState(null)
   const [modalData, setModalData] = useState({})
   const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState('')
   const [activeChat, setActiveChat] = useState(null)
   const [chatMsg, setChatMsg] = useState('')
   function setViewPersist(v) {
@@ -133,6 +135,39 @@ export default function DoctorDashboard() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  async function createPatient(form) {
+    setSaving(true); setFormError('')
+    window.__skipAuthChange = true
+    const { data: { session: currentSession } } = await supabase.auth.getSession()
+    const { data: signUpData, error } = await supabase.auth.signUp({
+      email: form.email, password: form.password,
+      options: { data: { first_name: form.firstName, last_name: form.lastName, role: 'patient',
+        id_number: form.idNumber||'', phone: form.phone||'', birth_date: form.birthDate||'',
+        sex: form.sex||'', province: form.province||'', canton: form.canton||'', height_cm: form.height ? String(form.height) : '' }}
+    })
+    if (error) {
+      const msg = error.message?.toLowerCase().includes('already registered') ? 'Este correo ya está registrado.' : error.message
+      setFormError(msg); setSaving(false); return
+    }
+    const userId = signUpData?.user?.id
+    if (userId) {
+      for (let i = 0; i < 10; i++) {
+        await new Promise(r => setTimeout(r, 500))
+        const { data } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
+        if (data?.id) break
+      }
+      await supabase.from('patients').update({ clinic_id: profile?.clinic_id || null }).eq('profile_id', userId)
+      await supabase.from('profiles').update({ clinic_id: profile?.clinic_id || null }).eq('id', userId)
+    }
+    if (currentSession) {
+      await supabase.auth.setSession({ access_token: currentSession.access_token, refresh_token: currentSession.refresh_token })
+    }
+    window.__skipAuthChange = false
+    await loadPatients()
+    setModal(null)
+    setSaving(false)
+  }
 
   async function loadAll() {
     setLoading(true)
@@ -510,6 +545,15 @@ export default function DoctorDashboard() {
             {modal === 'edit-note' && (
               <NoteForm saving={saving} note={modalData.note} onSave={form => editNote(modalData.note.id, form)} onClose={() => setModal(null)} />
             )}
+            {modal === 'new-patient' && (
+              <NewUserForm
+                type="patient"
+                doctors={[]}
+                saving={saving}
+                error={formError}
+                onSave={form => createPatient(form)}
+                onClose={() => { setModal(null); setFormError('') }} />
+            )}
             {modal === 'edit-patient' && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
                 <div style={{ background:'#fff', borderRadius:14, padding:28, width:480, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
@@ -725,6 +769,7 @@ export default function DoctorDashboard() {
             {view === 'pacientes' && <div style={{ fontSize:13, color:'#666' }}>{patients.length} pacientes asignados</div>}
 
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}
+            {view === 'pacientes' && <button style={s.btnPrimary} onClick={() => setModal('new-patient')}>+ Nuevo paciente</button>}
             <NotificationBell profile={profile} />
           </div>
         )}
