@@ -1043,19 +1043,8 @@ export default function AdminDashboard() {
   }
 
   async function openDeleteDoctor(doctor) {
-    // Verificar si tiene pacientes asignados en módulos
-    const { data: mods } = await supabase.from('patient_care_modules')
-      .select('patient_id, module_type')
-      .eq('assigned_professional_id', doctor.id)
-      .eq('is_active', true)
-    
-    if (mods && mods.length > 0) {
-      setModal('confirm-delete-doctor-blocked')
-      setModalData({ doctor, modCount: mods.length })
-    } else {
-      setModal('confirm-delete')
-      setModalData({ type:'doctor', id: doctor.id, name: doctor.first_name + SP + doctor.last_name })
-    }
+    setModal('confirm-delete')
+    setModalData({ type:'doctor', id: doctor.id, name: doctor.first_name + SP + doctor.last_name })
   }
   async function updateApptStatus(id, status, appt = null) {
     await supabase.from('appointments').update({ status }).eq('id', id)
