@@ -161,12 +161,12 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=fa
     } else if (type === 'imagenes') {
       const IMG_PREFIXES = {
         'Radiografías': ['Rx '],
-        'Ultrasonido': ['US ','Eco ','Ecografía ','Ultrasonido '],
-        'Tomografía': ['TC ','TAC ','Tomografía '],
-        'Resonancia magnética': ['RM ','RMN ','Resonancia '],
-        'Mamografía': ['Mamografía'],
-        'Densitometría': ['Densitometría'],
-        'Medicina nuclear': ['Gammagrafía','PET','SPECT'],
+        'Ultrasonidos': ['US '],
+        'Tomografías': ['TC '],
+        'Resonancias': ['RM '],
+        'Mamografías': ['Mamografía '],
+        'Densitometrías': ['DEXA '],
+        'Estudios nucleares': ['NM '],
       }
       const cleanLines = lines.map(l => l.replace(/^•\s*/, '').trim()).filter(Boolean)
       const grouped = {}

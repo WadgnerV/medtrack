@@ -153,7 +153,11 @@ export default function MedicalImagingForm({ value, onChange, color }) {
                 {cat !== 'Radiografías' && (
                   <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
                     {data.items.map(item => (
-                      <button key={item} onClick={() => addItem(item)}
+                      <button key={item} onClick={() => {
+                        const prefixes = { 'Ultrasonidos':'US ', 'Tomografías':'TC ', 'Resonancias':'RM ', 'Estudios nucleares':'NM ', 'Mamografías':'Mamografía ', 'Densitometrías':'DEXA ' }
+                        const prefix = prefixes[cat] || ''
+                        addItem(prefix + item)
+                      }}
                         disabled={selected.some(s => s.text === item)}
                         style={{ padding:'5px 10px', background: selected.some(s => s.text === item) ? '#e2e8f0' : '#f7fafc', border:'1px solid #e2e8f0', borderRadius:6, cursor: selected.some(s => s.text === item) ? 'default' : 'pointer', fontSize:11, textAlign:'left', color: selected.some(s => s.text === item) ? '#999' : '#333' }}>
                         {selected.some(s => s.text === item) ? '✓ ' : '+ '}{item}
