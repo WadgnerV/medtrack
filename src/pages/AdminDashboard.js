@@ -575,9 +575,9 @@ export default function AdminDashboard() {
   const filteredPatients = myBranchId
     ? patients.filter(p => p.branch_id === myBranchId || p.clinic_id === profile?.clinic_id)
     : patients
-  const filteredDoctors = myBranchId
+  const filteredDoctors = (myBranchId
     ? doctors.filter(d => d.branch_id === myBranchId)
-    : doctors
+    : doctors).filter(d => d.role === 'doctor')
   const filteredAppts = myBranchId
     ? appts.filter(a => a.branch_id === myBranchId)
     : appts
@@ -2004,7 +2004,7 @@ export default function AdminDashboard() {
                     Hoy
                   </button>
                   <div style={{ marginTop:12, borderTop:'0.5px solid #eee', paddingTop:10, display:'flex', flexDirection:'column', gap:6 }}>
-                    {doctors.map(d => (
+                    {doctors.filter(d => d.role === 'doctor').map(d => (
                       <div key={d.id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11, color:'#555' }}>
                         <label style={{ position:'relative', cursor:'pointer', flexShrink:0 }} title="Cambiar color">
                           <div style={{ width:10, height:10, borderRadius:3, background: doctorColor(d.id) }} />
