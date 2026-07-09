@@ -64,9 +64,9 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
     setTimeout(() => { printWindow.print(); printWindow.close() }, 500)
   }
 
-  const fieldStyle = { marginBottom: 8 }
-  const labelStyle = { fontSize: 12, fontWeight: 700, color: '#1a3a5c', display: 'block', marginBottom: 2 }
-  const valueStyle = { fontSize: 14, color: '#333', borderBottom: '1px solid #e2e8f0', paddingBottom: 4, minHeight: 20, display: 'block' }
+  const fieldStyle = { marginBottom: 4 }
+  const labelStyle = { fontSize: 11, fontWeight: 700, color: '#1a3a5c', display: 'block', marginBottom: 1 }
+  const valueStyle = { fontSize: 13, color: '#333', borderBottom: '1px solid #e2e8f0', paddingBottom: 3, minHeight: 18, display: 'block' }
 
   return (
     <>
@@ -159,8 +159,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                     <div style={{ textAlign:'right' }}>
                       <div style={{ fontSize:12, color:'#666' }}>Fecha de exportación</div>
                       <div style={{ fontSize:13, fontWeight:700, color:'#333' }}>{new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'})}</div>
-                      <div style={{ fontSize:12, color:'#666', marginTop:4 }}>Módulo</div>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c' }}>{MODULE_LABELS[moduleType]}</div>
+
                     </div>
                   </div>
                 </div>
