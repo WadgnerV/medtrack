@@ -63,6 +63,12 @@ const LAB_DATA = {
   'Osteoporosis': [
     'Calcio sérico', 'Vitamina D 25-OH', 'PTH', 'Marcadores de remodelado óseo'
   ],
+  'Vitaminas': [
+    'Vitamina D', 'Complejo B', 'Vitamina B12', 'Vitamina A', 'Vitamina E'
+  ],
+  'Anemia': [
+    'Recuento de reticulocitos', 'Hierro sérico', 'Ferritina sérica', 'Transferrina', 'Ácido fólico', 'Vitamina B12'
+  ],
 }
 
 export default function LabStudiesForm({ value, onChange, color }) {
