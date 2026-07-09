@@ -496,6 +496,41 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
                 </div>
               </div>`).join('')
           }
+          if (type === 'imagenes') {
+            const IMG_PREFIXES = {
+              'Radiografías': ['Rx '],
+              'Ultrasonido': ['US ','Eco ','Ecografía ','Ultrasonido '],
+              'Tomografía': ['TC ','TAC ','Tomografía '],
+              'Resonancia magnética': ['RM ','RMN ','Resonancia '],
+              'Mamografía': ['Mamografía'],
+              'Densitometría': ['Densitometría'],
+              'Medicina nuclear': ['Gammagrafía','PET','SPECT'],
+            }
+            const grouped = {}
+            cleanLines.forEach(line => {
+              let found = false
+              for (const [cat, prefixes] of Object.entries(IMG_PREFIXES)) {
+                if (prefixes.some(p => line.startsWith(p))) {
+                  if (!grouped[cat]) grouped[cat] = []
+                  const dashIdx = line.indexOf(' — ')
+                  const nombre = dashIdx !== -1 ? line.substring(line.indexOf(' ') + 1, dashIdx) : line.substring(line.indexOf(' ') + 1)
+                  const incidencias = dashIdx !== -1 ? line.substring(dashIdx + 3) : ''
+                  grouped[cat].push({ nombre, incidencias }); found = true; break
+                }
+              }
+              if (!found) { if (!grouped['Otros']) grouped['Otros'] = []; grouped['Otros'].push({ nombre: line, incidencias: '' }) }
+            })
+            return Object.entries(grouped).map(([cat, items]) => `
+              <div style="margin-bottom:16px;">
+                <div style="font-size:10pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:8px;">${cat}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;">
+                  ${items.map(i => `<div style="font-size:10pt;padding:3px 0;border-bottom:0.5px solid #f0f0f0;">
+                    <span style="font-weight:500;">${i.nombre}</span>
+                    ${i.incidencias ? `<span style="color:#888;font-size:9pt;"> — ${i.incidencias}</span>` : ''}
+                  </div>`).join('')}
+                </div>
+              </div>`).join('')
+          }
           return cleanLines.map((l, i) => `<div style="display:flex;gap:10px;margin-bottom:10px;font-size:11pt;">
             <span style="color:#1D9E75;font-weight:700;">${i+1}.</span><span>${l}</span>
           </div>`).join('')
