@@ -1,3 +1,4 @@
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import SpotifyBar from '../components/SpotifyBar'
@@ -39,7 +40,13 @@ const MODULE_COLORS = { integral:'#1D9E75', metabolica:'#185FA5', estetica:'#8e4
 
 export default function ReceptionistDashboard() {
   const { profile, signOut } = useAuth()
-  const [view, setView] = useState(() => localStorage.getItem('recepView') || 'calendario')
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [view, setView] = useState(() => {
+    const path = location.pathname.replace('/recepcion', '').replace(/^\//, '') || 'calendario'
+    const valid = ['calendario','pacientes','config']
+    return valid.includes(path.split('/')[0]) ? path.split('/')[0] : 'calendario'
+  })
   const [patients, setPatients] = useState([])
   const [doctors, setDoctors] = useState([])
   const [appts, setAppts] = useState([])
@@ -61,7 +68,10 @@ export default function ReceptionistDashboard() {
   })
   const [currentTime, setCurrentTime] = useState(new Date())
 
-  function setViewPersist(v) { localStorage.setItem('recepView', v); setView(v) }
+  function setViewPersist(v) {
+    setView(v)
+    window.history.pushState({view:v}, '', `/recepcion/${v}`)
+  }
 
   useEffect(() => { if (profile?.clinic_id) loadAll() }, [profile?.clinic_id])
   useEffect(() => { const t = setInterval(() => setCurrentTime(new Date()), 60000); return () => clearInterval(t) }, [])
