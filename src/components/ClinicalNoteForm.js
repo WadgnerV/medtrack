@@ -382,7 +382,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       supabase.from('patient_antecedentes').select('*').eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId).maybeSingle(),
       supabase.from('clinic_settings').select('*').limit(1).single(),
       supabase.from('measurements').select('*').eq('patient_id', patientId).order('measured_at', { ascending: false }),
-      supabase.from('clinical_notes').select('*').eq('patient_id', patientId).eq('module_type', moduleType).not('pas', 'is', null).order('note_date', { ascending: false }),
+      supabase.from('preconsult_records').select('recorded_at, pas, pad, frecuencia_cardiaca, frecuencia_respiratoria, spo2, peso_kg, estatura_cm, glicemia, temperatura').eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId).order('recorded_at', { ascending: false }),
       supabase.from('treatments').select('*').eq('patient_id', patientId).eq('status', 'active').order('appointment_date', { ascending: false }),
       supabase.from('patient_diagnoses').select('*').eq('patient_id', patientId).eq('is_active', true).order('diagnosis_date', { ascending: false }),
     ])
