@@ -382,6 +382,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     const body = content_map[type] || ''
     const lines = body.split('\n').filter(Boolean)
     const doctorName = `${profile?.prefix ? profile.prefix + ' ' : ''}${profile?.first_name||''} ${profile?.last_name||''}`
+    const doctorCode = profile?.medical_code ? ` — ${profile.medical_code}` : ''
     const clinicName = clinicSettings?.clinic_name || 'Clínica'
     const clinicAddress = [clinicSettings?.address, clinicSettings?.canton, clinicSettings?.province].filter(Boolean).join(', ')
     const clinicPhone = clinicSettings?.phone || ''
@@ -419,9 +420,9 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             })
             return Object.entries(grouped).map(([cat, exams]) => `
               <div style="margin-bottom:14px;">
-                <div style="font-size:9pt;font-weight:700;color:#085041;text-transform:uppercase;letter-spacing:0.07em;border-bottom:1.5px solid #1D9E75;padding-bottom:4px;margin-bottom:8px;">${cat}</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;">
-                  ${exams.map(e => `<div style="display:flex;align-items:center;gap:6px;font-size:10pt;"><span style="color:#1D9E75;font-size:14pt;line-height:1;">·</span>${e}</div>`).join('')}
+                <div style="font-size:10pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:6px;">${cat}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px 16px;">
+                  ${exams.map(e => `<div style="font-size:10pt;padding:2px 0;">${e}</div>`).join('')}
                 </div>
               </div>`).join('')
           }
