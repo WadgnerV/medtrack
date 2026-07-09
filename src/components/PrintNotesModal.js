@@ -270,7 +270,9 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   {notesToPrint.map((note, idx) => {
                     const isFirst = idx === 0
                     const noteDate = note.note_date
+                    console.log('signosVitales:', signosVitales, 'noteDate:', noteDate)
                     const signo = (signosVitales || []).find(s => s.recorded_at?.startsWith(noteDate) || s.note_date === noteDate)
+                    console.log('signo encontrado:', signo)
                     const meas = (measurements || []).find(m => m.measured_at?.startsWith(noteDate))
                     return (
                     <div className="note-block" key={note.id} style={{ marginBottom:20, paddingBottom:16, borderBottom: idx < notesToPrint.length-1 ? '2px dashed #e2e8f0' : 'none' }}>
