@@ -198,7 +198,6 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=fa
     }
     const authorName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
     const authorCode = n.author?.medical_code ? ` — ${n.author.medical_code}` : ''
-    const authorCode = n.author?.medical_code ? ` — ${n.author.medical_code}` : ''
     const pName = `${patient?.profile?.last_name||''} ${patient?.profile?.first_name||''}`.trim()
     const cName = clinicSettings?.clinic_name || 'MedTrack'
     const cAddr = [clinicSettings?.address, clinicSettings?.district, clinicSettings?.canton, clinicSettings?.province].filter(Boolean).join(', ')
