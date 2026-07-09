@@ -118,8 +118,51 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=fa
     const content_map = { receta: parsed.tratamiento, imagenes: parsed.imagenes, laboratorios: parsed.laboratorios }
     const body = content_map[type] || ''
     const lines = body.split('\n').filter(Boolean)
-    const itemsHtml = lines.map(l => `<div style="margin-bottom:8px;font-size:14pt;">${l}</div>`).join('')
+
+    // Para laboratorios, agrupar por categoría
+    let itemsHtml = ''
+    if (type === 'laboratorios') {
+      const LAB_CATS = {
+        'Hematología': ['Hemograma completo','Velocidad de sedimentación','Frotis de sangre periférica','Reticulocitos','Tiempo de protrombina','INR','Tiempo parcial de tromboplastina'],
+        'Química sanguínea': ['Glucosa en ayunas','Glucosa postprandial','HbA1c','Creatinina','BUN','Ácido úrico','Colesterol total','HDL','LDL','Triglicéridos','ALT','AST','Bilirrubinas totales','Fosfatasa alcalina','GGT','Proteínas totales','Albúmina','LDH','CPK'],
+        'Hormonales': ['FSH','LH','Estradiol','Progesterona','Testosterona total','Testosterona libre','Prolactina','DHEA-S','Cortisol matutino','Insulina en ayunas','Péptido C','IGF-1'],
+        'Tiroides': ['TSH','T3 libre','T4 libre','T3 total','T4 total','Anti-TPO','Anti-tiroglobulina','Tiroglobulina'],
+        'Electrolitos': ['Sodio','Potasio','Cloro','Calcio','Fósforo','Magnesio','Bicarbonato'],
+        'Orina': ['Uroanálisis completo','Urocultivo','Proteínas en orina 24h','Creatinina en orina','Microalbuminuria'],
+        'Heces': ['Examen general de heces','Coprocultivo','Parásitos en heces','Sangre oculta en heces','Calprotectina fecal','H. pylori en heces'],
+        'Embarazo': ['Beta HCG cuantitativa','Beta HCG cualitativa','Prueba de tolerancia a la glucosa'],
+        'Inmunología': ['ANA','Anti-DNA','Factor reumatoide','Anti-CCP','Complemento C3','Complemento C4','ANCA','Inmunoglobulinas IgG/IgA/IgM'],
+        'Reumático': ['PCR ultrasensible','VSG','Ácido úrico','HLA-B27'],
+        'Marcadores tumorales': ['PSA','CEA','CA 125','CA 19-9','AFP','CA 15-3','Beta-2 microglobulina'],
+        'Hepatitis': ['HBsAg','Anti-HBs','Anti-HBc total','Anti-VHC','Anti-VHA IgM'],
+        'Bacteriología': ['Hemocultivo','Cultivo de secreción','VDRL','FTA-ABS','VIH','HTLV'],
+        'Osteoporosis': ['Calcio sérico','Vitamina D 25-OH','PTH','Marcadores de remodelado óseo'],
+        'Vitaminas': ['Vitamina D','Complejo B','Vitamina B12','Vitamina A','Vitamina E'],
+        'Anemia': ['Recuento de reticulocitos','Hierro sérico','Ferritina sérica','Transferrina','Ácido fólico','Vitamina B12'],
+      }
+      const grouped = {}
+      lines.forEach(exam => {
+        let found = false
+        for (const [cat, list] of Object.entries(LAB_CATS)) {
+          if (list.some(e => e.toLowerCase() === exam.toLowerCase())) {
+            if (!grouped[cat]) grouped[cat] = []
+            grouped[cat].push(exam); found = true; break
+          }
+        }
+        if (!found) { if (!grouped['Otros']) grouped['Otros'] = []; grouped['Otros'].push(exam) }
+      })
+      itemsHtml = Object.entries(grouped).map(([cat, items]) => `
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:6px;">${cat}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px 16px;">
+            ${items.map(e => `<div style="font-size:10pt;padding:2px 0;">${e}</div>`).join('')}
+          </div>
+        </div>`).join('')
+    } else {
+      itemsHtml = lines.map(l => `<div style="margin-bottom:8px;font-size:14pt;">${l}</div>`).join('')
+    }
     const authorName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
+    const authorCode = n.author?.medical_code ? ` — ${n.author.medical_code}` : ''
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titles[type]}</title>
     <style>body{font-family:Arial,sans-serif;margin:20mm;color:#222;font-size:13pt;} .doc-title{font-size:22pt;font-weight:900;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:0.08em;border-bottom:3px solid #1a3a5c;padding-bottom:10px;margin-bottom:20px;} .sub{font-size:12pt;color:#666;margin-bottom:16px;} .divider{border:none;border-top:1px solid #e2e8f0;margin:16px 0;} .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:8px;} .col-label{font-size:10pt;color:#888;margin-bottom:2px;} .col-value{font-size:12pt;color:#222;font-weight:500;border-bottom:1px solid #e2e8f0;padding-bottom:3px;} .section{font-size:13pt;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid #1a3a5c;padding-bottom:4px;margin:20px 0 12px;} .sign{margin-top:48px;text-align:center;} .sign-line{border-top:1px solid #1a3a5c;width:260px;margin:0 auto 6px;} .sign-name{font-size:13pt;font-weight:700;color:#1a3a5c;} .footer{margin-top:32px;font-size:10pt;color:#aaa;font-style:italic;border-top:1px solid #eee;padding-top:8px;}</style>
     </head><body>
@@ -134,11 +177,11 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=fa
     <hr class="divider">
     <div class="section">${titles[type]}</div>
     <div class="two-col">
-      <div><div class="col-label">Prescrito por</div><div class="col-value">${authorName}</div></div>
+      <div><div class="col-label">Prescrito por</div><div class="col-value">${authorName}${authorCode}</div></div>
     </div>
     <hr class="divider">
     <div style="margin-top:16px;">${itemsHtml}</div>
-    <div class="sign"><div class="sign-line"></div><div class="sign-name">${authorName}</div><div style="font-size:10pt;color:#888;">Firma y sello</div></div>
+    <div class="sign"><div class="sign-line"></div><div class="sign-name">${authorName}${authorCode}</div><div style="font-size:10pt;color:#888;">Firma y sello</div></div>
     <div class="footer">Documento generado por MedTrack.</div>
     </body></html>`
     const w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.focus(); setTimeout(() => { w.print(); w.close() }, 500)
