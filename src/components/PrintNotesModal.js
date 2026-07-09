@@ -15,6 +15,7 @@ const PAP_LABELS = { normal:'Normal', abnormal:'Anormal', pending:'Pendiente', n
 export default function PrintNotesModal({ notes, patient, profile, moduleType, antecedents, apnpData, agoData, clinicSettings, measurements, signosVitales, diagnoses, onClose }) {
   const [mode, setMode] = useState('all')
   const [selected, setSelected] = useState([])
+  const [incluirAntecedentes, setIncluirAntecedentes] = useState(true)
 
   // Nueva estructura patient_antecedentes — apnpData es el registro completo
   const antData = apnpData || {}
@@ -114,6 +115,13 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
             {/* Controles */}
             <div id="print-modal-controls" style={{ padding:'12px 24px', borderBottom:'1px solid #eee', display:'flex', gap:8, alignItems:'center', flexShrink:0, flexWrap:'wrap' }}>
               <span style={{ fontSize:13, color:'#555', marginRight:4 }}>Seleccionar:</span>
+              <div style={{ display:'flex', alignItems:'center', gap:6, marginLeft:'auto' }}>
+                <span style={{ fontSize:12, color:'#555' }}>Incluir antecedentes</span>
+                <div onClick={() => setIncluirAntecedentes(p => !p)}
+                  style={{ width:36, height:20, borderRadius:10, background:incluirAntecedentes?'#1a3a5c':'#ddd', position:'relative', cursor:'pointer', transition:'background 0.2s' }}>
+                  <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:2, left:incluirAntecedentes?18:2, transition:'left 0.2s' }} />
+                </div>
+              </div>
               {[['all','Todo el historial'],['last','Última nota'],['select','Selección manual']].map(([v,l]) => (
                 <button key={v} onClick={() => { setMode(v); setSelected([]) }}
                   style={{ padding:'5px 14px', borderRadius:20, border:`1px solid ${mode===v?'#1a3a5c':'#e2e8f0'}`, background:mode===v?'#1a3a5c':'#f7fafc', color:mode===v?'#fff':'#555', fontSize:12, cursor:'pointer', fontWeight:mode===v?600:400 }}>
@@ -181,8 +189,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                   </div>
                 </div>
 
-                {/* ANTECEDENTES */}
-                {(appItems.length > 0 || apnpData || (agoData && patient?.sex === 'female') || aqxItems.length > 0) && (
+                {incluirAntecedentes && (appItems.length > 0 || apnpData || (agoData && patient?.sex === 'female') || aqxItems.length > 0) && (
                   <div style={{ marginBottom:20 }}>
                     <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>
                       Antecedentes
@@ -271,7 +278,7 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                       {idx === 0 && <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>Notas clínicas</div>}
 
                       {/* SIGNOS VITALES (módulo integral) */}
-                      {signo && moduleType === 'integral' && (
+                      {signo && (
                         <div style={{ marginBottom:12 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6 }}>Signos clínicos — {fmtDate(noteDate)}</div>
                           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
