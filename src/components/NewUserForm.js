@@ -1,6 +1,22 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
+
+const s = {
+  fieldLabel: { display:'block', fontSize:13, color:'#666', marginBottom:4, fontWeight:500 },
+  fieldInput: { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box', color:'#1a1a1a', appearance:'none' },
+  btnPrimary: { background:'var(--clinic-primary, #1D9E75)', color:'#fff', border:'none', fontSize:13, fontWeight:500, padding:'7px 14px', borderRadius:8, cursor:'pointer' },
+}
+
+function Field({ label, value, onChange, type = 'text', placeholder }) {
+  return (
+    <div>
+      <label style={s.fieldLabel}>{label}</label>
+      <input type={type} value={value} onChange={onChange} placeholder={placeholder} style={s.fieldInput} />
+    </div>
+  )
+}
+
 export default function NewUserForm({ type, doctors, saving, error, onSave, onClose, initialData }) {
   const [specialties, setSpecialties] = useState([])
 
