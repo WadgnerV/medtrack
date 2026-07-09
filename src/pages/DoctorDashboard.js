@@ -13,11 +13,47 @@ import { supabase } from '../lib/supabase'
 import SpotifyBar from '../components/SpotifyBar'
 import ChatBubble from '../components/ChatBubble'
 import NotificationBell from '../components/NotificationBell'
-import NewUserForm from '../components/NewUserForm'
 import UserMenu from '../components/UserMenu'
 
 const G = '#1D9E75'
 const SP = ' '
+
+
+function NewPatientForm({ saving, onSave, onClose }) {
+  const [form, setForm] = useState({ firstName:'', lastName:'', email:'', password:'', idNumber:'', phone:'', birthDate:'', sex:'', province:'', canton:'' })
+  const f = k => e => setForm(p => ({...p, [k]: e.target.value}))
+  const inp = { width:'100%', padding:'8px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', boxSizing:'border-box' }
+  const lbl = { fontSize:12, fontWeight:500, color:'#555', marginBottom:4, display:'block' }
+  return (
+    <div>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+        <div><label style={lbl}>Nombre *</label><input style={inp} value={form.firstName} onChange={f('firstName')} /></div>
+        <div><label style={lbl}>Apellido *</label><input style={inp} value={form.lastName} onChange={f('lastName')} /></div>
+        <div><label style={lbl}>Correo *</label><input style={inp} type="email" value={form.email} onChange={f('email')} /></div>
+        <div><label style={lbl}>Contraseña *</label><input style={inp} type="password" value={form.password} onChange={f('password')} /></div>
+        <div><label style={lbl}>Cédula</label><input style={inp} value={form.idNumber} onChange={f('idNumber')} /></div>
+        <div><label style={lbl}>Teléfono</label><input style={inp} value={form.phone} onChange={f('phone')} /></div>
+        <div><label style={lbl}>Fecha de nacimiento</label><input style={inp} type="date" value={form.birthDate} onChange={f('birthDate')} /></div>
+        <div><label style={lbl}>Sexo</label>
+          <select style={inp} value={form.sex} onChange={f('sex')}>
+            <option value="">Seleccionar...</option>
+            <option value="female">Femenina</option>
+            <option value="male">Masculino</option>
+          </select>
+        </div>
+        <div><label style={lbl}>Provincia</label><input style={inp} value={form.province} onChange={f('province')} /></div>
+        <div><label style={lbl}>Cantón</label><input style={inp} value={form.canton} onChange={f('canton')} /></div>
+      </div>
+      <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+        <button onClick={onClose} style={{ border:'1px solid #eee', background:'#fff', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, color:'#555' }}>Cancelar</button>
+        <button onClick={() => onSave(form)} disabled={saving || !form.firstName || !form.email || !form.password}
+          style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500, opacity: saving||!form.firstName||!form.email||!form.password ? 0.6 : 1 }}>
+          {saving ? 'Creando...' : 'Crear paciente'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function DoctorDashboard() {
   const { profile, signOut } = useAuth()
@@ -546,13 +582,13 @@ export default function DoctorDashboard() {
               <NoteForm saving={saving} note={modalData.note} onSave={form => editNote(modalData.note.id, form)} onClose={() => setModal(null)} />
             )}
             {modal === 'new-patient' && (
-              <NewUserForm
-                type="patient"
-                doctors={[]}
-                saving={saving}
-                error={formError}
-                onSave={form => createPatient(form)}
-                onClose={() => { setModal(null); setFormError('') }} />
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={e => { if(e.target===e.currentTarget){setModal(null);setFormError('')} }}>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:520, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e=>e.stopPropagation()}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>Nuevo paciente</div>
+                  {formError && <div style={{ background:'#fde0e0', color:'#d9534f', borderRadius:8, padding:'8px 12px', marginBottom:14, fontSize:13 }}>{formError}</div>}
+                  <NewPatientForm saving={saving} onSave={createPatient} onClose={() => { setModal(null); setFormError('') }} />
+                </div>
+              </div>
             )}
             {modal === 'edit-patient' && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
