@@ -3214,21 +3214,7 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
   const [patientModules, setPatientModules] = useState([])
   const MODULE_LABELS_A = { integral:'Atención integral', metabolica:'Atención metabólica', estetica:'Atención estética', fisioterapia:'Fisioterapia', enfermeria:'Enfermería', odontologia:'Odontología', nutricion:'Nutrición' }
 
-  useEffect(() => {
-    if (form.patientId && form.doctorId) loadModules(form.patientId, form.doctorId)
-  }, [form.patientId, form.doctorId])
 
-  async function loadModules(patientId, doctorId) {
-    const { data } = await supabase.from('patient_care_modules')
-      .select('module_type')
-      .eq('patient_id', patientId)
-      .eq('assigned_professional_id', doctorId)
-      .eq('is_active', true)
-    const mods = data || []
-    setPatientModules(mods)
-    if (mods.length === 1) setForm(p => ({ ...p, moduleType: mods[0].module_type }))
-    else if (mods.length === 0) setForm(p => ({ ...p, moduleType: '' }))
-  }
   const f = k => e => setForm(p => ({ ...p, [k]:e.target.value }))
 
   const pn = p => ((p.profile?.first_name || '') + ' ' + (p.profile?.last_name || '')).trim()
