@@ -553,6 +553,7 @@ export default function AdminDashboard() {
   const [cie10Results, setCie10Results] = useState([])
   const [clinicSettings, setClinicSettings] = useState(null)
   const [primaryColor, setPrimaryColor] = useState('#0F6E56')
+  const [expedienteInitialTab, setExpedienteInitialTab] = useState('preconsulta')
 
   useEffect(() => {
     const r = parseInt(primaryColor.slice(1,3),16)
@@ -1542,7 +1543,7 @@ export default function AdminDashboard() {
                   const p = patients.find(p => p.id === appt.patient_id)
                   if (p) {
                     setModal(null)
-                    openPatient(p)
+                    setExpedienteInitialTab('preconsulta'); openPatient(p)
                     setPatientTab(appt.module_type ? 'modulo_' + appt.module_type : 'modulos')
                   }
                 }} />
@@ -2464,7 +2465,8 @@ export default function AdminDashboard() {
 
                     {/* Paciente */}
                     <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:4 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:'#1a3a5c', marginBottom:4, cursor:'pointer', textDecoration:'underline' }}
+                        onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); setExpedienteInitialTab('preconsulta'); openPatient(p) } }}>
                         {popupAppt.patient?.profile?.last_name} {popupAppt.patient?.profile?.first_name}
                       </div>
                       {popupAppt.patient?.phone && <div style={{ fontSize:11, color:'#666' }}>📞 {popupAppt.patient.phone}</div>}
@@ -2475,10 +2477,7 @@ export default function AdminDashboard() {
 
                     {/* Acciones */}
                     <div style={{ padding:'10px 14px', display:'flex', gap:6, flexWrap:'wrap' }}>
-                      <button onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); openPatient(p) } }}
-                        style={{ flex:1, padding:'6px', background:'#1a3a5c', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:500 }}>
-                        Ver expediente
-                      </button>
+
                       <button onClick={() => { setPopupAppt(null); setModal('edit-appt'); setModalData({appt:popupAppt}) }}
                         style={{ padding:'6px 10px', background:'#fff', color:'#555', border:'1px solid #e2e8f0', borderRadius:8, cursor:'pointer', fontSize:11 }}>
                         Editar
