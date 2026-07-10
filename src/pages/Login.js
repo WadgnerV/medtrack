@@ -71,6 +71,7 @@ export default function Login() {
           if (clinicData) allClinics[0].clinic = clinicData
         }
         setClinics(allClinics)
+        console.log('Clínicas seteadas:', allClinics)
         setLoading(false)
         return
       }
