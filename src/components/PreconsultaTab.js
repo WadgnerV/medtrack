@@ -125,8 +125,8 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   function startNew() {
     setHizoProcedimiento(null)
     setInsumosUsados([])
-    const lastRecord = records[0]
-    setForm(emptyForm)
+    const lastWithHeight = records.find(r => r.estatura_cm)
+    setForm({ ...emptyForm, estatura_cm: lastWithHeight?.estatura_cm || '' })
     setEditingId(null)
     setShowForm(true)
   }
