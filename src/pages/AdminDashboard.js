@@ -2465,9 +2465,17 @@ export default function AdminDashboard() {
 
                     {/* Paciente */}
                     <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:'#1a3a5c', marginBottom:4, cursor:'pointer', textDecoration:'underline' }}
-                        onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); setExpedienteInitialTab('preconsulta'); openPatient(p) } }}>
-                        {popupAppt.patient?.profile?.last_name} {popupAppt.patient?.profile?.first_name}
+                      <div onClick={() => { const p = patients.find(x => x.id === popupAppt.patient_id); if(p) { setPopupAppt(null); setExpedienteInitialTab('preconsulta'); openPatient(p) } }}
+                        style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background:'var(--clinic-primary-light, #E1F5EE)', cursor:'pointer', marginBottom:8 }}>
+                        <div style={{ width:32, height:32, borderRadius:'50%', background:'var(--clinic-primary, #0F6E56)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0 }}>
+                          {(popupAppt.patient?.profile?.first_name?.[0]||'')+( popupAppt.patient?.profile?.last_name?.[0]||'')}
+                        </div>
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:600, color:'var(--clinic-primary, #0F6E56)' }}>
+                            {popupAppt.patient?.profile?.last_name} {popupAppt.patient?.profile?.first_name}
+                          </div>
+                          <div style={{ fontSize:10, color:'var(--clinic-primary, #0F6E56)', opacity:0.7 }}>Ver expediente →</div>
+                        </div>
                       </div>
                       {popupAppt.patient?.phone && <div style={{ fontSize:11, color:'#666' }}>📞 {popupAppt.patient.phone}</div>}
                       {popupAppt.patient?.profile?.email && <div style={{ fontSize:11, color:'#666' }}>✉️ {popupAppt.patient.profile.email}</div>}
