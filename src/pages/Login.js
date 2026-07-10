@@ -32,12 +32,13 @@ export default function Login() {
     setError('')
 
     // Buscar clínicas asociadas a este correo
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, role')
-      .eq('email', email)
+      .eq('email', email.toLowerCase().trim())
       .maybeSingle()
 
+    console.log('profile:', profile, 'error:', profileError)
     if (!profile) {
       setError('No encontramos una cuenta con ese correo.')
       setCheckingEmail(false)
