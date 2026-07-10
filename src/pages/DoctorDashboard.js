@@ -141,8 +141,9 @@ export default function DoctorDashboard() {
     setSaving(true); setFormError('')
     window.__skipAuthChange = true
     const { data: { session: currentSession } } = await supabase.auth.getSession()
+    const tempPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10).toUpperCase() + '!1'
     const { data: signUpData, error } = await supabase.auth.signUp({
-      email: form.email, password: form.password,
+      email: form.email, password: tempPassword,
       options: { data: { first_name: form.firstName, last_name: form.lastName, role: 'patient',
         id_number: form.idNumber||'', phone: form.phone||'', birth_date: form.birthDate||'',
         sex: form.sex||'', province: form.province||'', canton: form.canton||'', height_cm: form.height ? String(form.height) : '' }}

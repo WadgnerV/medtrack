@@ -81,7 +81,6 @@ export default function NewUserForm({ type, doctors, saving, error, onSave, onCl
         <Field label="Nombre" value={form.firstName} onChange={f('firstName')} placeholder="Maria" />
         <Field label="Apellido" value={form.lastName} onChange={f('lastName')} placeholder="Rodriguez" />
         <div style={{ gridColumn:'1/-1' }}><Field label="Correo electronico" value={form.email} onChange={f('email')} type="email" placeholder="correo@ejemplo.com" /></div>
-        {!initialData && <div style={{ gridColumn:'1/-1' }}><Field label="Contrasena temporal" value={form.password} onChange={f('password')} type="password" placeholder="Minimo 6 caracteres" /></div>}
         {type === 'doctor' && <>
           <div style={{ gridColumn:'1/-1' }}>
             <label style={s.fieldLabel}>Tipo de consulta</label>
@@ -354,7 +353,6 @@ export default function NewUserForm({ type, doctors, saving, error, onSave, onCl
         {type === 'patient' && (
           <>
             <Field label="Fecha de nacimiento" value={form.birthDate} onChange={f('birthDate')} type="date" />
-            <Field label="Estatura (cm)" value={form.height} onChange={f('height')} type="number" placeholder="165" />
             <div>
               <label style={s.fieldLabel}>Sexo</label>
               <select value={form.sex} onChange={f('sex')} style={s.fieldInput}>
