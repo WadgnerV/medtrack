@@ -30,44 +30,7 @@ export default function Login() {
     if (!email) return
     setCheckingEmail(true)
     setError('')
-
-    // Buscar clínicas asociadas a este correo
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, role')
-      .eq('email', email.toLowerCase().trim())
-      .maybeSingle()
-
-    console.log('profile:', profile, 'error:', profileError)
-    if (!profile) {
-      setError('No encontramos una cuenta con ese correo.')
-      setCheckingEmail(false)
-      return
-    }
-
-    // Buscar membresías de clínicas
-    const { data: memberships } = await supabase
-      .from('professional_clinic_memberships')
-      .select('clinic_id, role, clinic:clinic_id(id, name)')
-      .eq('profile_id', profile.id)
-      .eq('is_active', true)
-
-    if (!memberships || memberships.length === 0) {
-      // Sin membresías — usar clinic_id del perfil directamente
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('clinic_id, clinic:clinic_id(id, name)')
-        .eq('id', profile.id)
-        .single()
-      if (prof?.clinic_id) {
-        setClinics([{ clinic_id: prof.clinic_id, clinic: prof.clinic }])
-        setSelectedClinicId(prof.clinic_id)
-      }
-    } else {
-      setClinics(memberships)
-      if (memberships.length === 1) setSelectedClinicId(memberships[0].clinic_id)
-    }
-
+    // Solo validar que el campo no esté vacío y pasar al paso 2
     setStep(2)
     setCheckingEmail(false)
   }
@@ -76,7 +39,7 @@ export default function Login() {
     e.preventDefault()
     setLoading(true); setError('')
 
-    const { data, error: err } = await signIn(email, password)
+    const { error: err } = await signIn(email, password)
     if (err) { setError('Contraseña incorrecta'); setLoading(false); return }
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -88,9 +51,24 @@ export default function Login() {
 
     const role = profileData?.role || user?.user_metadata?.role
 
-    // Si seleccionó una clínica diferente a la actual, actualizar temporalmente
-    if (selectedClinicId && selectedClinicId !== profileData?.clinic_id) {
-      await supabase.from('profiles').update({ clinic_id: selectedClinicId }).eq('id', user.id)
+    // Buscar clínicas del profesional
+    const { data: memberships } = await supabase
+      .from('professional_clinic_memberships')
+      .select('clinic_id, clinic:clinic_id(id, name)')
+      .eq('profile_id', user.id)
+      .eq('is_active', true)
+
+    if (memberships && memberships.length > 1 && !selectedClinicId) {
+      // Tiene múltiples clínicas — mostrar selector
+      setClinics(memberships)
+      setLoading(false)
+      return
+    }
+
+    // Usar clínica seleccionada o la única disponible
+    const targetClinicId = selectedClinicId || memberships?.[0]?.clinic_id || profileData?.clinic_id
+    if (targetClinicId && targetClinicId !== profileData?.clinic_id) {
+      await supabase.from('profiles').update({ clinic_id: targetClinicId }).eq('id', user.id)
     }
 
     if (role === 'superadmin') navigate('/superadmin')
