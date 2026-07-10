@@ -185,12 +185,8 @@ export default function Login() {
 
                   <div style={{ marginBottom:16 }}>
                     <label style={lbl}>Clínica</label>
-                    {clinics.length === 1 ? (
-                      <div style={{ padding:'12px 16px', background:'#f0fdf8', border:'1.5px solid #9FE1CB', borderRadius:10, fontSize:14, color:BLUE, fontWeight:500 }}>
-                        {clinics[0].clinic?.name || 'Clínica'}
-                      </div>
-                    ) : (
-                      <select value={selectedClinicId} onChange={e => setSelectedClinicId(e.target.value)} required
+                    {clinics.length > 0 && (
+                      <select value={selectedClinicId} onChange={e => setSelectedClinicId(e.target.value)}
                         style={{ ...inp, appearance:'none' }}>
                         <option value="">Seleccioná una clínica...</option>
                         {clinics.map(m => (
@@ -213,8 +209,8 @@ export default function Login() {
                     </button>
                   </div>
 
-                  <button type="submit" disabled={loading || !selectedClinicId} className="login-btn"
-                    style={{ width:'100%', padding:'14px', background:(loading||!selectedClinicId)?'#9CA3AF':G, color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:600, cursor:(loading||!selectedClinicId)?'not-allowed':'pointer', letterSpacing:'0.01em', boxShadow:'0 4px 14px rgba(29,158,117,0.25)' }}>
+                  <button type="submit" disabled={loading} className="login-btn"
+                    style={{ width:'100%', padding:'14px', background:loading?'#9CA3AF':G, color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:600, cursor:loading?'not-allowed':'pointer', letterSpacing:'0.01em', boxShadow:'0 4px 14px rgba(29,158,117,0.25)' }}>
                     {loading ? 'Iniciando sesión...' : 'Ingresar'}
                   </button>
                 </form>
