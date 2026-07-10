@@ -3295,20 +3295,8 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
         </select>
       </div>
 
-      {patientModules.length > 1 && (
-        <div style={{ marginBottom:12, background:'#FFF8E1', border:'1px solid #F59E0B', borderRadius:8, padding:'10px 12px' }}>
-          <label style={{ ...s.fieldLabel, color:'#854F0B' }}>⚠️ ¿A qué módulo pertenece esta cita?</label>
-          <select value={form.moduleType} onChange={f('moduleType')} style={s.fieldInput}>
-            <option value="">Selecciona un módulo...</option>
-            {patientModules.map(m => <option key={m.module_type} value={m.module_type}>{MODULE_LABELS_A[m.module_type]}</option>)}
-          </select>
-        </div>
-      )}
-      {patientModules.length === 1 && (
-        <div style={{ marginBottom:12, background:'#E1F5EE', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#0F6E56' }}>
-          📋 Módulo: <strong>{MODULE_LABELS_A[patientModules[0].module_type]}</strong>
-        </div>
-      )}
+
+      
       <div style={{ marginBottom:12 }}>
         <label style={s.fieldLabel}>Estado de la cita</label>
         <select value={form.status} onChange={f('status')} style={s.fieldInput}>
