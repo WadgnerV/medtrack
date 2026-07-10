@@ -112,8 +112,14 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
       .select('*, recorder:recorded_by(first_name, last_name, prefix, role)')
       .eq('patient_id', patient.profile?.id || patient.id)
       .order('recorded_at', { ascending: false })
-    setRecords(data || [])
+    const recs = data || []
+    setRecords(recs)
     setLoading(false)
+    // Pre-rellenar estatura de la última preconsulta que tenga estatura
+    const lastWithHeight = recs.find(r => r.estatura_cm)
+    if (lastWithHeight) {
+      setForm(prev => ({ ...prev, estatura_cm: lastWithHeight.estatura_cm }))
+    }
   }
 
   function startNew() {
