@@ -237,7 +237,8 @@ export default function Login() {
                 </div>
               )}
 
-                      ) : (
+            </>
+          ) : (
             <>
               <button onClick={() => { setShowReset(false); setResetSent(false); setResetEmail('') }}
                 style={{ background:'none', border:'none', cursor:'pointer', color:'#aaa', fontSize:13, display:'flex', alignItems:'center', gap:4, marginBottom:28, padding:0 }}>
