@@ -3293,7 +3293,7 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
         <label style={s.fieldLabel}>Médico asignado</label>
         <select value={form.doctorId} onChange={f('doctorId')} style={s.fieldInput}>
           <option value="">Selecciona...</option>
-          {doctors.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
+          {doctors.filter(d => d.is_health_professional || d.role === 'doctor').map(d => <option key={d.id} value={d.id}>{d.prefix ? d.prefix+' ' : ''}{d.first_name} {d.last_name}</option>)}
         </select>
       </div>
 
