@@ -58,17 +58,27 @@ export default function Login() {
       .eq('profile_id', user.id)
       .eq('is_active', true)
 
-    if (memberships && memberships.length > 1 && !selectedClinicId) {
-      // Tiene múltiples clínicas — mostrar selector
-      setClinics(memberships)
-      setLoading(false)
-      return
+    // Siempre mostrar selector de clínica
+    if (!selectedClinicId) {
+      const allClinics = memberships && memberships.length > 0
+        ? memberships
+        : profileData?.clinic_id ? [{ clinic_id: profileData.clinic_id, clinic: { id: profileData.clinic_id, name: 'Mi clínica' } }] : []
+      
+      if (allClinics.length > 0) {
+        // Cargar nombre de la clínica si no viene en memberships
+        if (allClinics.length === 1 && allClinics[0].clinic?.name === 'Mi clínica') {
+          const { data: clinicData } = await supabase.from('clinics').select('id, name').eq('id', allClinics[0].clinic_id).single()
+          if (clinicData) allClinics[0].clinic = clinicData
+        }
+        setClinics(allClinics)
+        setLoading(false)
+        return
+      }
     }
 
-    // Usar clínica seleccionada o la única disponible
-    const targetClinicId = selectedClinicId || memberships?.[0]?.clinic_id || profileData?.clinic_id
-    if (targetClinicId && targetClinicId !== profileData?.clinic_id) {
-      await supabase.from('profiles').update({ clinic_id: targetClinicId }).eq('id', user.id)
+    // Ya seleccionó clínica — navegar
+    if (selectedClinicId && selectedClinicId !== profileData?.clinic_id) {
+      await supabase.from('profiles').update({ clinic_id: selectedClinicId }).eq('id', user.id)
     }
 
     if (role === 'superadmin') navigate('/superadmin')
