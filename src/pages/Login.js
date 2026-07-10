@@ -171,52 +171,73 @@ export default function Login() {
                 </form>
               )}
 
-              {/* PASO 2: Clínica + contraseña */}
-              {step === 2 && (
+                            {/* PASO 2: Contraseña */}
+              {step === 2 && clinics.length === 0 && (
                 <form onSubmit={handleLogin}>
                   <div style={{ marginBottom:16 }}>
                     <label style={lbl}>Correo</label>
                     <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'#f8f8f8', borderRadius:10, border:'1.5px solid #e5e7eb' }}>
                       <span style={{ fontSize:13, color:'#555', flex:1 }}>{email}</span>
-                      <button type="button" onClick={() => { setStep(1); setError(''); setClinics([]); setSelectedClinicId('') }}
+                      <button type="button" onClick={() => { setStep(1); setError('') }}
                         style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>Cambiar</button>
                     </div>
                   </div>
-
-                  <div style={{ marginBottom:16 }}>
-                    <label style={lbl}>Clínica</label>
-                    {clinics.length > 0 && (
-                      <select value={selectedClinicId} onChange={e => setSelectedClinicId(e.target.value)}
-                        style={{ ...inp, appearance:'none' }}>
-                        <option value="">Seleccioná una clínica...</option>
-                        {clinics.map(m => (
-                          <option key={m.clinic_id} value={m.clinic_id}>{m.clinic?.name}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
                   <div style={{ marginBottom:10 }}>
                     <label style={lbl}>Contraseña</label>
                     <input className="login-input" type="password" value={password} onChange={e => setPassword(e.target.value)} required
                       placeholder="••••••••" style={inp} autoFocus />
                   </div>
-
                   <div style={{ textAlign:'right', marginBottom:28 }}>
                     <button type="button" onClick={() => setShowReset(true)}
                       style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:G, fontWeight:500 }}>
                       ¿Olvidaste tu contraseña?
                     </button>
                   </div>
-
                   <button type="submit" disabled={loading} className="login-btn"
                     style={{ width:'100%', padding:'14px', background:loading?'#9CA3AF':G, color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:600, cursor:loading?'not-allowed':'pointer', letterSpacing:'0.01em', boxShadow:'0 4px 14px rgba(29,158,117,0.25)' }}>
                     {loading ? 'Iniciando sesión...' : 'Ingresar'}
                   </button>
                 </form>
               )}
-            </>
-          ) : (
+
+              {/* PASO 3: Selección de clínica (múltiples clínicas) */}
+              {step === 2 && clinics.length > 0 && (
+                <div>
+                  <div style={{ marginBottom:16 }}>
+                    <label style={lbl}>Seleccioná la clínica</label>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {clinics.map(m => (
+                        <div key={m.clinic_id} onClick={() => setSelectedClinicId(m.clinic_id)}
+                          style={{ padding:'12px 16px', borderRadius:10, border:`1.5px solid ${selectedClinicId===m.clinic_id?G:'#e5e7eb'}`, background:selectedClinicId===m.clinic_id?'#f0fdf8':'#fafafa', cursor:'pointer', fontSize:14, fontWeight:selectedClinicId===m.clinic_id?600:400, color:selectedClinicId===m.clinic_id?BLUE:'#555', display:'flex', alignItems:'center', gap:10 }}>
+                          <div style={{ width:8, height:8, borderRadius:'50%', background:selectedClinicId===m.clinic_id?G:'#ddd', flexShrink:0 }} />
+                          {m.clinic?.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={async () => {
+                    if (!selectedClinicId) return
+                    setLoading(true)
+                    const { data: { user } } = await supabase.auth.getUser()
+                    const { data: profileData } = await supabase.from('profiles').select('role, clinic_id').eq('id', user.id).single()
+                    if (selectedClinicId !== profileData?.clinic_id) {
+                      await supabase.from('profiles').update({ clinic_id: selectedClinicId }).eq('id', user.id)
+                    }
+                    const role = profileData?.role
+                    if (role === 'superadmin') navigate('/superadmin')
+                    else if (['admin','clinic_admin','branch_admin'].includes(role)) navigate('/admin')
+                    else if (role === 'receptionist') navigate('/recepcion')
+                    else if (role === 'doctor') navigate('/doctor')
+                    else navigate('/paciente')
+                    setLoading(false)
+                  }} disabled={!selectedClinicId || loading} className="login-btn"
+                    style={{ width:'100%', padding:'14px', background:(!selectedClinicId||loading)?'#9CA3AF':G, color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:600, cursor:(!selectedClinicId||loading)?'not-allowed':'pointer', letterSpacing:'0.01em', boxShadow:'0 4px 14px rgba(29,158,117,0.25)', marginTop:8 }}>
+                    {loading ? 'Ingresando...' : 'Ingresar a esta clínica'}
+                  </button>
+                </div>
+              )}
+
+                      ) : (
             <>
               <button onClick={() => { setShowReset(false); setResetSent(false); setResetEmail('') }}
                 style={{ background:'none', border:'none', cursor:'pointer', color:'#aaa', fontSize:13, display:'flex', alignItems:'center', gap:4, marginBottom:28, padding:0 }}>
