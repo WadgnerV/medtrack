@@ -2448,19 +2448,16 @@ export default function AdminDashboard() {
                     {/* Estado */}
                     <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
                       <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Estado</div>
-                      <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                        {[
-                          { key:'pending_confirmation', label:'Sin confirmar' },
-                          { key:'confirmed_patient', label:'Confirmado paciente ✅' },
-                          { key:'confirmed_doctor', label:'Confirmado médico ✅' },
-                          { key:'no_show', label:'No asistió ❌' },
-                        ].map(st => (
-                          <button key={st.key} onClick={() => { updateApptStatus(popupAppt.id, st.key, popupAppt); setPopupAppt(p => ({...p, status: st.key})) }}
-                            style={{ padding:'3px 8px', borderRadius:20, border:'1px solid #bfdbfe', background: popupAppt.status === st.key ? '#1a3a5c' : '#eff6ff', color: popupAppt.status === st.key ? '#fff' : '#555', fontSize:10, cursor:'pointer', fontWeight: popupAppt.status === st.key ? 600 : 400 }}>
-                            {st.label}
-                          </button>
-                        ))}
-                      </div>
+                      <select value={popupAppt.status || 'pending_confirmation'}
+                        onChange={e => { updateApptStatus(popupAppt.id, e.target.value, popupAppt); setPopupAppt(p => ({...p, status: e.target.value})) }}
+                        style={{ width:'100%', padding:'6px 10px', fontSize:12, border:'1px solid #e2e8f0', borderRadius:8, outline:'none', fontFamily:'inherit', color:'#1a3a5c', fontWeight:500 }}>
+                        <option value="pending_confirmation">Sin confirmar</option>
+                        <option value="confirmed_patient">Confirmado por paciente</option>
+                        <option value="confirmed_doctor">Confirmado por médico</option>
+                        <option value="completed">Completada</option>
+                        <option value="no_show">No asistió</option>
+                        <option value="cancelled">Cancelada</option>
+                      </select>
                     </div>
 
                     {/* Paciente */}
