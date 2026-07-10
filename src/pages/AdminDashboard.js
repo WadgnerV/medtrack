@@ -2115,8 +2115,8 @@ export default function AdminDashboard() {
                             return (
                               <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background: doctorColor(a.doctor_id), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                                 <span>{a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}</span>
-                                {a.status === 'confirmed_patient' && <span style={{ fontSize:8 }}>✅</span>}
-                                {a.status === 'confirmed_doctor' && <span style={{ fontSize:8, color:'#7EC8E3' }}>✅</span>}
+                                {a.status === 'confirmed_patient' && <i className='ti ti-check' style={{ fontSize:9, color:'#0F6E56' }} aria-hidden='true'></i>}
+                                {a.status === 'confirmed_doctor' && <i className='ti ti-check' style={{ fontSize:9, color:'#185FA5' }} aria-hidden='true'></i>}
                                 {a.status === 'no_show' && <span style={{ fontSize:8, background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center' }}>-</span>}
                               </div>
                             )
@@ -2265,8 +2265,8 @@ export default function AdminDashboard() {
                                         onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
-                                          {a.status === 'confirmed_patient' && <span>✅</span>}
-                                          {a.status === 'confirmed_doctor' && <span style={{ color:'#7EC8E3' }}>✅</span>}
+                                          {a.status === 'confirmed_patient' && <i className='ti ti-check' style={{ fontSize:10, color:'#0F6E56' }} aria-hidden='true'></i>}
+                                          {a.status === 'confirmed_doctor' && <i className='ti ti-check' style={{ fontSize:10, color:'#185FA5' }} aria-hidden='true'></i>}
                                           {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
                                         </div>
                                         <div style={{ fontSize:10, fontWeight:500, color:'#1a1a1a', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
@@ -2376,7 +2376,7 @@ export default function AdminDashboard() {
                             const top = ((ah - HORA_INI) * 60 + am) / 60 * SLOT_H
                             const height = Math.max((a.duration_min||30) / 60 * SLOT_H, 28)
                             const color = doctorColor(a.doctor_id)
-                            const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada ✅', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada ✅', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#854F0B' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }
+                            const statusConfig = { pending_confirmation:{ label:'Pendiente', bg:'#FFF8E1', color:'#F59E0B' }, confirmed_patient:{ label:'Confirmada', bg:'#E1F5EE', color:'#0F6E56' }, confirmed_doctor:{ label:'Confirmada', bg:'#E6F1FB', color:'#185FA5' }, no_show:{ label:'No asistió', bg:'#FAEEDA', color:'#C4531A' }, scheduled:{ label:'Agendada', bg:'#f0f0f0', color:'#888' } }
                             const st = statusConfig[a.status] || statusConfig.scheduled
                             const endMin = ah*60 + am + (a.duration_min||30)
                             const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
@@ -2396,7 +2396,7 @@ export default function AdminDashboard() {
                                 <div style={{ display:'flex', gap:4 }}>
                                   {a.status !== 'confirmed_doctor' && a.status !== 'no_show' && (
                                     <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
-                                      onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'confirmed_doctor') }}>✅ Confirmar</button>
+                                      onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'confirmed_doctor') }}><i className='ti ti-check' style={{ fontSize:12 }} aria-hidden='true'></i> Confirmar</button>
                                   )}
                                   {a.status !== 'no_show' && (
                                     <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#FAEEDA', color:'#854F0B' }}
@@ -2454,7 +2454,6 @@ export default function AdminDashboard() {
                         <option value="pending_confirmation">Sin confirmar</option>
                         <option value="confirmed_patient">Confirmado por paciente</option>
                         <option value="confirmed_doctor">Confirmado por médico</option>
-                        <option value="completed">Completada</option>
                         <option value="no_show">No asistió</option>
                         <option value="cancelled">Cancelada</option>
                       </select>
@@ -3329,9 +3328,9 @@ function ApptForm({ appt, patients, doctors, tags, saving, error, defaultDate, d
         <label style={s.fieldLabel}>Estado de la cita</label>
         <select value={form.status} onChange={f('status')} style={s.fieldInput}>
           <option value="pending_confirmation">⏳ Pendiente confirmación</option>
-          <option value="confirmed_patient">✅ Confirmada por paciente</option>
-          <option value="confirmed_doctor">✅ Confirmada por médico</option>
-          <option value="no_show">🟡 No asistió</option>
+          <option value="confirmed_patient">Confirmada por paciente</option>
+          <option value="confirmed_doctor">Confirmada por médico</option>
+          <option value="no_show">No asistió</option>
         </select>
       </div>
 
