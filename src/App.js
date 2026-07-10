@@ -13,8 +13,6 @@ import Landing from './pages/Landing'
 import Demo from './pages/Demo'
 import Privacidad from './pages/Privacidad'
 import Terminos from './pages/Terminos'
-import ContextSelector from './pages/ContextSelector'
-import HospitalizacionDashboard from './pages/HospitalizacionDashboard'
 import ConfirmAppointment from './pages/ConfirmAppointment'
 
 function App() {
@@ -48,9 +46,7 @@ function App() {
               <PatientDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/seleccionar-contexto" element={<ContextSelector />} />
           <Route path="/confirm-appointment" element={<ConfirmAppointment />} />
-          <Route path="/hospitalizacion/*" element={<HospitalizacionDashboard />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/spotify-callback" element={<SpotifyCallback />} />
           <Route path="/demo" element={<Demo />} />

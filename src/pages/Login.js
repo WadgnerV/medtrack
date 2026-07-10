@@ -29,20 +29,7 @@ export default function Login() {
 
     const { data: { user } } = await supabase.auth.getUser()
     const { data: profileData } = await supabase.from('profiles').select('contexts, role').eq('id', user.id).single()
-    const contexts = profileData?.contexts || ['outpatient']
     const role = profileData?.role || user?.user_metadata?.role
-
-    if (contexts.includes('outpatient') && contexts.includes('hospitalization')) {
-      setLoading(false)
-      navigate('/seleccionar-contexto')
-      return
-    }
-
-    if (contexts.includes('hospitalization') && !contexts.includes('outpatient')) {
-      setLoading(false)
-      navigate('/hospitalizacion')
-      return
-    }
 
     if (role === 'superadmin') navigate('/superadmin')
     else if (['admin','clinic_admin','branch_admin'].includes(role)) navigate('/admin')
