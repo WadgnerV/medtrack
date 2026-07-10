@@ -382,7 +382,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
       supabase.from('patient_antecedentes').select('*').eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId).maybeSingle(),
       supabase.from('clinic_settings').select('*').limit(1).single(),
       supabase.from('measurements').select('*').eq('patient_id', patientId).order('measured_at', { ascending: false }),
-      (console.log('patient para preconsult:', patient?.profile?.id, patient?.profile_id, patientId) || supabase.from('preconsult_records').select('recorded_at, pas, pad, frecuencia_cardiaca, frecuencia_respiratoria, spo2, peso_kg, estatura_cm, glicemia').eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId).order('recorded_at', { ascending: false })),
+      (console.log('patient para preconsult:', patient?.profile?.id, patient?.profile_id, patientId) || supabase.from('preconsult_records').select('recorded_at, pas, pad, frecuencia_cardiaca, frecuencia_respiratoria, spo2, peso_kg, estatura_cm, glicemia, grasa_pct, masa_muscular_kg, grasa_visceral_pt, ancho_cintura_cm, fcf_lpm, altura_uterina_cm, movimientos_fetales, temperatura_axilar').eq('patient_id', patient?.profile?.id || patient?.profile_id || patientId).order('recorded_at', { ascending: false })),
       supabase.from('treatments').select('*').eq('patient_id', patientId).eq('status', 'active').order('appointment_date', { ascending: false }),
       supabase.from('patient_diagnoses').select('*').eq('patient_id', patientId).eq('is_active', true).order('diagnosis_date', { ascending: false }),
     ])
