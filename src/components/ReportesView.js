@@ -282,7 +282,6 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
           <div style={{ display:'flex', gap:8, marginBottom:20, flexWrap:'wrap' }}>
             <TabBtn active={reporteTab==='citas_doctor'} onClick={() => setReporteTab('citas_doctor')}>Citas por doctor</TabBtn>
             <TabBtn active={reporteTab==='personal_sede'} onClick={() => setReporteTab('personal_sede')}>Personal por sede</TabBtn>
-            <TabBtn active={reporteTab==='pacientes_modulo'} onClick={() => setReporteTab('pacientes_modulo')}>Pacientes por módulo</TabBtn>
           </div>
 
           {/* Reporte 1: Citas por doctor */}
