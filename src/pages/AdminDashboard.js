@@ -2115,9 +2115,9 @@ export default function AdminDashboard() {
                             return (
                               <div key={a.id} style={{ fontSize:9, padding:'1px 3px', borderRadius:2, color:'#fff', marginBottom:1, background: doctorColor(a.doctor_id), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                                 <span>{a.appointment_time?.substring(0,5)} {a.patient?.profile?.first_name}</span>
-                                {a.status === 'confirmed_patient' && <i className='ti ti-check' style={{ fontSize:9, color:'#0F6E56' }} aria-hidden='true'></i>}
-                                {a.status === 'confirmed_doctor' && <i className='ti ti-check' style={{ fontSize:9, color:'#185FA5' }} aria-hidden='true'></i>}
-                                {a.status === 'no_show' && <span style={{ fontSize:8, background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center' }}>-</span>}
+                                {a.status === 'confirmed_patient' && <i className='ti ti-check-bold' style={{ fontSize:11, color:'#085041', fontWeight:900 }} aria-hidden='true'></i>}
+                                {a.status === 'confirmed_doctor' && <i className='ti ti-check-bold' style={{ fontSize:11, color:'#0C447C', fontWeight:900 }} aria-hidden='true'></i>}
+                                {a.status === 'no_show' && <span style={{ fontSize:11, fontWeight:900, color:'#D97706', lineHeight:1 }}>—</span>}
                               </div>
                             )
                           })}
@@ -2265,9 +2265,9 @@ export default function AdminDashboard() {
                                         onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
                                         <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
                                           <span>{timeStr}</span>
-                                          {a.status === 'confirmed_patient' && <i className='ti ti-check' style={{ fontSize:10, color:'#0F6E56' }} aria-hidden='true'></i>}
-                                          {a.status === 'confirmed_doctor' && <i className='ti ti-check' style={{ fontSize:10, color:'#185FA5' }} aria-hidden='true'></i>}
-                                          {a.status === 'no_show' && <span style={{ background:'#F59E0B', borderRadius:'50%', width:10, height:10, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:8, color:'#fff' }}>-</span>}
+                                          {a.status === 'confirmed_patient' && <i className='ti ti-check-bold' style={{ fontSize:12, color:'#085041', fontWeight:900 }} aria-hidden='true'></i>}
+                                          {a.status === 'confirmed_doctor' && <i className='ti ti-check-bold' style={{ fontSize:12, color:'#0C447C', fontWeight:900 }} aria-hidden='true'></i>}
+                                          {a.status === 'no_show' && <span style={{ fontSize:12, fontWeight:900, color:'#D97706', lineHeight:1 }}>—</span>}
                                         </div>
                                         <div style={{ fontSize:10, fontWeight:500, color:'#1a1a1a', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
                                         {a.notes && <div style={{ fontSize:9, color:'#777', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.notes}</div>}
@@ -2455,7 +2455,6 @@ export default function AdminDashboard() {
                         <option value="confirmed_patient">Confirmado por paciente</option>
                         <option value="confirmed_doctor">Confirmado por médico</option>
                         <option value="no_show">No asistió</option>
-                        <option value="cancelled">Cancelada</option>
                       </select>
                     </div>
 
