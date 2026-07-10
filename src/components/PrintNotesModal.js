@@ -277,35 +277,31 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                       {idx === 0 && <div style={{ fontSize:13, fontWeight:700, color:'#1a3a5c', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:12, background:'#edf2f7', padding:'5px 10px', borderRadius:4 }}>Notas clínicas</div>}
 
                       {/* SIGNOS VITALES (módulo integral) */}
-                      {signo && (
-                        <div style={{ marginBottom:12 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#1a3a5c', marginBottom:6 }}>Signos clínicos — {fmtDate(noteDate)}</div>
-                          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
-                            <thead>
-                              <tr style={{ background:'#edf2f7' }}>
-                                {['PAS', 'PAD', 'PAM', 'FC', 'SpO2', 'Glucosa', 'Peso'].map(h => (
-                                  <th key={h} style={{ padding:'4px 8px', textAlign:'center', color:'#1a3a5c', fontWeight:700, border:'1px solid #e2e8f0' }}>{h}</th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                {[
-                                  signo.pas ? `${signo.pas}${signo.pad ? `/${signo.pad}` : ''} mmHg` : '—',
-                                  signo.pad || '—',
-                                  signo.pam || '—',
-                                  signo.heart_rate ? `${signo.heart_rate} lpm` : '—',
-                                  signo.spo2 ? `${signo.spo2}%` : '—',
-                                  signo.glucose ? `${signo.glucose} mg/dL` : '—',
-                                  signo.weight_kg ? `${signo.weight_kg} kg` : '—',
-                                ].map((v, i) => (
-                                  <td key={i} style={{ padding:'4px 8px', textAlign:'center', border:'1px solid #e2e8f0', color:'#333' }}>{v}</td>
-                                ))}
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                      {signo && (() => {
+                        const signosItems = [
+                          signo.pas && { label:'Presión arterial', value:`${signo.pas}${signo.pad ? `/${signo.pad}` : ''} mmHg` },
+                          signo.frecuencia_cardiaca && { label:'FC', value:`${signo.frecuencia_cardiaca} lpm` },
+                          signo.frecuencia_respiratoria && { label:'FR', value:`${signo.frecuencia_respiratoria} rpm` },
+                          signo.spo2 && { label:'SpO2', value:`${signo.spo2}%` },
+                          signo.glicemia && { label:'Glicemia', value:`${signo.glicemia} mg/dL` },
+                          signo.peso_kg && { label:'Peso', value:`${signo.peso_kg} kg` },
+                          signo.estatura_cm && { label:'Talla', value:`${signo.estatura_cm} cm` },
+                        ].filter(Boolean)
+                        if (signosItems.length === 0) return null
+                        return (
+                          <div style={{ marginBottom:10, background:'#f8fbf9', border:'0.5px solid #e2ede9', borderRadius:6, padding:'8px 12px' }}>
+                            <div style={{ fontSize:11, fontWeight:700, color:'#1a3a5c', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Signos de pre-consulta — {fmtDate(noteDate)}</div>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'6px 20px' }}>
+                              {signosItems.map(s => (
+                                <div key={s.label} style={{ fontSize:11 }}>
+                                  <span style={{ color:'#888', marginRight:3 }}>{s.label}:</span>
+                                  <span style={{ fontWeight:600, color:'#1a3a5c' }}>{s.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })()}
 
                       {/* COMPOSICIÓN CORPORAL (módulo metabólico) */}
                       {meas && moduleType === 'metabolica' && (
