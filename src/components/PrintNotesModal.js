@@ -283,7 +283,6 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                           signo.frecuencia_cardiaca && { label:'FC', value:`${signo.frecuencia_cardiaca} lpm` },
                           signo.frecuencia_respiratoria && { label:'FR', value:`${signo.frecuencia_respiratoria} rpm` },
                           signo.spo2 && { label:'SpO2', value:`${signo.spo2}%` },
-                          signo.temperatura_axilar && { label:'Temperatura', value:`${signo.temperatura_axilar} °C` },
                           signo.glicemia && { label:'Glicemia', value:`${signo.glicemia} mg/dL` },
                           signo.peso_kg && { label:'Peso', value:`${signo.peso_kg} kg` },
                           signo.estatura_cm && { label:'Talla', value:`${signo.estatura_cm} cm` },
@@ -292,8 +291,8 @@ export default function PrintNotesModal({ notes, patient, profile, moduleType, a
                           signo.grasa_visceral_pt && { label:'Grasa visceral', value:`${signo.grasa_visceral_pt} pt` },
                           signo.ancho_cintura_cm && { label:'Cintura', value:`${signo.ancho_cintura_cm} cm` },
                           signo.fcf_lpm && { label:'FCF', value:`${signo.fcf_lpm} lpm` },
+                          signo.tono_uterino && { label:'Tono uterino', value:signo.tono_uterino },
                           signo.altura_uterina_cm && { label:'Altura uterina', value:`${signo.altura_uterina_cm} cm` },
-                          signo.movimientos_fetales && { label:'Mov. fetales', value:signo.movimientos_fetales },
                         ].filter(Boolean)
                         if (signosItems.length === 0) return null
                         return (
