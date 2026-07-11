@@ -30,7 +30,21 @@ export default function Login() {
     if (!email) return
     setCheckingEmail(true)
     setError('')
-    // Solo validar que el campo no esté vacío y pasar al paso 2
+    try {
+      const res = await supabase.functions.invoke('get-user-clinics', { body: { email: email.toLowerCase().trim() } })
+      const data = res.data
+      if (!data || data.clinics.length === 0) {
+        setError('No encontramos una cuenta con ese correo.')
+        setCheckingEmail(false)
+        return
+      }
+      setClinics(data.clinics)
+      if (data.clinics.length === 1) setSelectedClinicId(data.clinics[0].clinic_id)
+    } catch(e) {
+      setError('Error al verificar el correo. Intentá de nuevo.')
+      setCheckingEmail(false)
+      return
+    }
     setStep(2)
     setCheckingEmail(false)
   }
