@@ -159,7 +159,21 @@ export default function SuperAdminDashboard() {
   }
 
   async function loadAdmins() {
-    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','clinic_admin','branch_admin']).order('last_name')
+    // Cargar admins desde membresías para soportar múltiples clínicas
+    const { data: memberships } = await supabase
+      .from('professional_clinic_memberships')
+      .select('*, profile:profile_id(*), clinic:clinic_id(id, name)')
+      .in('role', ['admin','clinic_admin','branch_admin'])
+      .eq('is_active', true)
+    
+    // También cargar perfiles que tienen rol admin pero sin membresía aún
+    const { data: directProfiles } = await supabase.from('profiles').select('*').in('role', ['admin','clinic_admin','branch_admin']).order('last_name')
+    
+    // Combinar — priorizar membresías
+    const fromMemberships = (memberships || []).map(m => ({ ...m.profile, _clinic_name: m.clinic?.name, _membership_clinic_id: m.clinic_id, _membership_role: m.role }))
+    const membershipProfileIds = new Set(fromMemberships.map(p => p.id))
+    const fromDirect = (directProfiles || []).filter(p => !membershipProfileIds.has(p.id))
+    const data = [...fromMemberships, ...fromDirect].sort((a,b) => (a.last_name||'').localeCompare(b.last_name||''))
     setAdmins(data || [])
   }
 
