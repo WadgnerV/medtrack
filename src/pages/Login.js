@@ -99,9 +99,9 @@ export default function Login() {
 
     // Guardar clínica seleccionada en localStorage — NO modificar profiles
 
-    // Guardar clínica activa en sesión
+    // Actualizar active_clinic_id en BD con la clínica seleccionada
     if (selectedClinicId && selectedClinicId !== 'superadmin') {
-      localStorage.setItem('activeClinicId', selectedClinicId)
+      await supabase.from('profiles').update({ active_clinic_id: selectedClinicId }).eq('id', user.id)
     }
     if (role === 'superadmin') navigate('/superadmin')
     else if (['admin','clinic_admin','branch_admin'].includes(role)) navigate('/admin')
