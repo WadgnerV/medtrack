@@ -110,7 +110,7 @@ function HistorialCitasTab({ patient }) {
   )
 }
 
-export default function PatientExpediente({ patient, profile, onBack, onEdit, canEdit = true, initialTab = 'preconsulta' }) {
+export default function PatientExpediente({ patient, profile, onBack, onEdit, canEdit = true, initialTab = 'preconsulta', effectiveClinicId }) {
   const [activeTab, setActiveTab] = useState(initialTab)
   const [todayAppointment, setTodayAppointment] = useState(null)
   const [lastVisit, setLastVisit] = useState(null)
@@ -156,7 +156,7 @@ export default function PatientExpediente({ patient, profile, onBack, onEdit, ca
   }
 
   function renderContent() {
-    if (activeTab === 'preconsulta') return <PreconsultaTab patient={patient} profile={profile} todayAppointment={todayAppointment} />
+    if (activeTab === 'preconsulta') return <PreconsultaTab patient={patient} profile={effectiveClinicId ? {...profile, clinic_id: effectiveClinicId} : profile} todayAppointment={todayAppointment} />
     if (activeTab === 'evolucion_signos') return <EvolucionSignosTab patient={patient} />
     if (activeTab === 'nota_medica') {
       const canEditNote = ['clinic_admin','admin','branch_admin','doctor'].includes(profile?.role)

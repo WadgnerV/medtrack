@@ -2717,7 +2717,7 @@ export default function AdminDashboard() {
               appts={appts}
               patients={patients}
               doctors={doctors}
-              profile={profile}
+              profile={{...profile, clinic_id: effectiveClinicId}}
               isMobile={isMobile}
               branches={branches}
               isClinicAdmin={isClinicAdmin}
