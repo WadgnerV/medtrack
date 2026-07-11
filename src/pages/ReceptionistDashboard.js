@@ -73,12 +73,12 @@ export default function ReceptionistDashboard() {
     window.history.pushState({view:v}, '', `/recepcion/${v}`)
   }
 
-  useEffect(() => { if (profile?.clinic_id) loadAll() }, [profile?.clinic_id])
+  useEffect(() => { if (profile?.active_clinic_id || profile?.clinic_id) loadAll() }, [profile?.active_clinic_id || profile?.clinic_id])
   useEffect(() => { const t = setInterval(() => setCurrentTime(new Date()), 60000); return () => clearInterval(t) }, [])
 
   async function loadAll() {
     setLoading(true)
-    const clinicId = profile.clinic_id
+    const clinicId = profile.active_clinic_id || profile.clinic_id
     const [{ data: pats }, { data: docs }, { data: apts }, { data: clinic }] = await Promise.all([
       supabase.from('patients').select('id, status, birth_date, sex, profile:profile_id(id, first_name, last_name, email, phone)').eq('clinic_id', clinicId),
       supabase.from('profiles').select('*').in('role', ['admin','doctor']).eq('clinic_id', clinicId).eq('is_active', true),
@@ -94,7 +94,7 @@ export default function ReceptionistDashboard() {
 
   async function saveAppt(form) {
     setSaving(true)
-    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType || 'Consulta', duration_min: parseInt(form.duration)||30, notes: form.notes||'', status: form.status||'pending_confirmation', module_type: form.moduleType||null, clinic_id: profile.clinic_id, created_by: profile.id }
+    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType || 'Consulta', duration_min: parseInt(form.duration)||30, notes: form.notes||'', status: form.status||'pending_confirmation', module_type: form.moduleType||null, clinic_id: profile.active_clinic_id || profile.clinic_id, created_by: profile.id }
     
     const prevAppt = form.id ? appts.find(a => a.id === form.id) : null
     const prevStatus = prevAppt?.status || null
@@ -131,7 +131,7 @@ export default function ReceptionistDashboard() {
       }
     }
 
-    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name, prefix)').eq('clinic_id', profile.clinic_id).order('appointment_date').order('appointment_time')
+    const { data } = await supabase.from('appointments').select('*, patient:patient_id(id, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name, prefix)').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('appointment_date').order('appointment_time')
     setAppts(data||[]); setModal(null); setSaving(false)
   }
 
@@ -149,11 +149,11 @@ export default function ReceptionistDashboard() {
         await new Promise(r => setTimeout(r, 600))
         const { data } = await supabase.from('patients').select('id').eq('profile_id', authData.user.id).single()
         if (data?.id) {
-          await supabase.from('patients').update({ clinic_id: profile.clinic_id, status: 'active' }).eq('profile_id', authData.user.id)
-          await supabase.from('profiles').update({ clinic_id: profile.clinic_id }).eq('id', authData.user.id)
+          await supabase.from('patients').update({ clinic_id: profile.active_clinic_id || profile.clinic_id, status: 'active' }).eq('profile_id', authData.user.id)
+          await supabase.from('profiles').update({ clinic_id: profile.active_clinic_id || profile.clinic_id }).eq('id', authData.user.id)
           // Asignar módulo y doctor si se seleccionaron
           if (form.moduleType && form.doctorId) {
-            await supabase.from('patient_care_modules').insert({ patient_id: data.id, module_type: form.moduleType, assigned_professional_id: form.doctorId, is_active: true, clinic_id: profile.clinic_id })
+            await supabase.from('patient_care_modules').insert({ patient_id: data.id, module_type: form.moduleType, assigned_professional_id: form.doctorId, is_active: true, clinic_id: profile.active_clinic_id || profile.clinic_id })
           }
           break
         }
@@ -259,7 +259,7 @@ export default function ReceptionistDashboard() {
         <div style={s.topbar}>
           <div>
             <div style={s.pageTitle}>{view === 'calendario' ? 'Calendario' : 'Pacientes'}</div>
-            <div style={s.pageSub}>{profile?.clinic_id ? 'Glow Clinic' : ''}</div>
+            <div style={s.pageSub}>{profile?.active_clinic_id || profile?.clinic_id ? 'Glow Clinic' : ''}</div>
           </div>
           <div style={{ display:'flex', gap:8 }}>
             {view === 'calendario' && <button style={s.btnPrimary} onClick={() => { setModal('new-appt'); setModalData({}) }}>+ Nueva cita</button>}

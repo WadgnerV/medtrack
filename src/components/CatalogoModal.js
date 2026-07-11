@@ -22,13 +22,13 @@ export default function CatalogoModal({ profile, onClose }) {
   async function load() {
     setLoading(true)
     const { data } = await supabase.from('inventory_items')
-      .select('*').eq('clinic_id', profile.clinic_id).order('category').order('name')
+      .select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('category').order('name')
     setItems(data || [])
     setLoading(false)
   }
 
   async function loadWarehouses() {
-    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     setWarehouses(data || [])
   }
 
@@ -38,7 +38,7 @@ export default function CatalogoModal({ profile, onClose }) {
     await supabase.from('clinical_note_supplies').delete().eq('item_id', item.id)
     await supabase.from('inventory_history').delete().eq('item_id', item.id)
     await supabase.from('purchase_order_items').delete().eq('item_id', item.id)
-    await supabase.from('inventory_catalog').delete().eq('clinic_id', profile.clinic_id).eq('name', item.name)
+    await supabase.from('inventory_catalog').delete().eq('clinic_id', profile.active_clinic_id || profile.clinic_id).eq('name', item.name)
     await supabase.from('inventory_items').delete().eq('id', item.id)
     setItems(p => p.filter(x => x.id !== item.id))
     onClose()
@@ -46,7 +46,7 @@ export default function CatalogoModal({ profile, onClose }) {
 
   async function uploadImage(file, itemId) {
     const ext = file.name.split('.').pop()
-    const path = `${profile.clinic_id}/${itemId}.${ext}`
+    const path = `${profile.active_clinic_id || profile.clinic_id}/${itemId}.${ext}`
     const { error } = await supabase.storage.from('inventory-images').upload(path, file, { upsert: true })
     if (error) return null
     const { data } = supabase.storage.from('inventory-images').getPublicUrl(path)

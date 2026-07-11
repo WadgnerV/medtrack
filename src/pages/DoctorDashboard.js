@@ -159,8 +159,8 @@ export default function DoctorDashboard() {
         const { data } = await supabase.from('patients').select('id').eq('profile_id', userId).single()
         if (data?.id) break
       }
-      await supabase.from('patients').update({ clinic_id: profile?.clinic_id || null }).eq('profile_id', userId)
-      await supabase.from('profiles').update({ clinic_id: profile?.clinic_id || null }).eq('id', userId)
+      await supabase.from('patients').update({ clinic_id: profile?.active_clinic_id || profile?.clinic_id || null }).eq('profile_id', userId)
+      await supabase.from('profiles').update({ clinic_id: profile?.active_clinic_id || profile?.clinic_id || null }).eq('id', userId)
     }
     if (currentSession) {
       await supabase.auth.setSession({ access_token: currentSession.access_token, refresh_token: currentSession.refresh_token })
@@ -180,7 +180,7 @@ export default function DoctorDashboard() {
   async function loadPatients() {
     const { data } = await supabase.from('patients')
       .select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, profile:profile_id(id, first_name, last_name, email)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .eq('status', 'active')
       .order('profile(last_name)')
     setPatients(data || [])

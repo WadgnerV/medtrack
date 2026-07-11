@@ -549,7 +549,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
 
   async function saveAqx(form, id = null) {
     setSaving(true)
-    const payload = { patient_id: patient.id, clinic_id: profile?.clinic_id, type: 'aqx', condition: form.procedure, diagnosis_year: form.year ? parseInt(form.year) : null, observations: [form.hospital, form.complications === 'yes' ? `Complicaciones: ${form.complications_detail}` : null, form.observations].filter(Boolean).join(' | ') || null, updated_by: profile?.id }
+    const payload = { patient_id: patient.id, clinic_id: profile?.active_clinic_id || profile?.clinic_id, type: 'aqx', condition: form.procedure, diagnosis_year: form.year ? parseInt(form.year) : null, observations: [form.hospital, form.complications === 'yes' ? `Complicaciones: ${form.complications_detail}` : null, form.observations].filter(Boolean).join(' | ') || null, updated_by: profile?.id }
     if (id) {
       await supabase.from('patient_antecedents').update(payload).eq('id', id)
     } else {
@@ -564,7 +564,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
   async function saveAgo(form) {
     setSaving(true)
     const existing = antecedents.find(a => a.type === 'ago')
-    const payload = { patient_id: patient.id, clinic_id: profile?.clinic_id, type: 'ago', ago_data: form, updated_by: profile?.id }
+    const payload = { patient_id: patient.id, clinic_id: profile?.active_clinic_id || profile?.clinic_id, type: 'ago', ago_data: form, updated_by: profile?.id }
     if (existing) {
       await supabase.from('patient_antecedents').update(payload).eq('id', existing.id)
     } else {
@@ -578,7 +578,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
   async function saveApnp(form) {
     setSaving(true)
     const existing = antecedents.find(a => a.type === 'apnp')
-    const payload = { patient_id: patient.id, clinic_id: profile?.clinic_id, type: 'apnp', apnp_data: form, updated_by: profile?.id }
+    const payload = { patient_id: patient.id, clinic_id: profile?.active_clinic_id || profile?.clinic_id, type: 'apnp', apnp_data: form, updated_by: profile?.id }
     if (existing) {
       await supabase.from('patient_antecedents').update(payload).eq('id', existing.id)
     } else {
@@ -594,7 +594,7 @@ export default function AntecedentsSection({ patient, profile, canEdit = true, c
     setSaving(true)
     const payload = {
       patient_id: patient.id,
-      clinic_id: profile?.clinic_id,
+      clinic_id: profile?.active_clinic_id || profile?.clinic_id,
       type: 'app',
       condition: form.condition,
       condition_other: form.condition_other || null,

@@ -43,7 +43,7 @@ export default function TicketsTab({ profile }) {
     setLoading(true)
     const { data } = await supabase.from('tickets')
       .select('*, creator:created_by(id, first_name, last_name), assignee:assigned_to(id, first_name, last_name)')
-      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id)
       .order('created_at', { ascending: false })
     setTickets(data || [])
     setLoading(false)
@@ -52,7 +52,7 @@ export default function TicketsTab({ profile }) {
   async function loadAdmins() {
     const { data } = await supabase.from('profiles')
       .select('id, first_name, last_name')
-      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id)
       .in('role', ['clinic_admin','admin'])
     setAdmins(data || [])
   }
@@ -69,7 +69,7 @@ export default function TicketsTab({ profile }) {
     if (!form.title || !form.assigned_to) return
     setSaving(true)
     const { data: ticket } = await supabase.from('tickets').insert({
-      clinic_id: profile.active_clinic_id || profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id,
       created_by: profile.id,
       assigned_to: form.assigned_to,
       title: form.title,
@@ -85,7 +85,7 @@ export default function TicketsTab({ profile }) {
         comment: `Ticket creado y asignado a ${admins.find(a => a.id === form.assigned_to)?.first_name} ${admins.find(a => a.id === form.assigned_to)?.last_name}.`
       })
       await supabase.from('notifications').insert({
-        profile_id: form.assigned_to, clinic_id: profile.active_clinic_id || profile.clinic_id,
+        profile_id: form.assigned_to, clinic_id: profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id,
         type: 'ticket', title: 'Nuevo ticket asignado',
         message: `**${profile.first_name} ${profile.last_name}** te asignó un ticket: "${form.title}"`,
         is_read: false, sender_id: profile.id
@@ -120,7 +120,7 @@ export default function TicketsTab({ profile }) {
     // Notificar al creador si fue resuelto
     if (status === 'resuelto' && selectedTicket.created_by !== profile.id) {
       await supabase.from('notifications').insert({
-        profile_id: selectedTicket.created_by, clinic_id: profile.active_clinic_id || profile.clinic_id,
+        profile_id: selectedTicket.created_by, clinic_id: profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id,
         type: 'ticket', title: 'Ticket resuelto',
         message: `**${profile.first_name} ${profile.last_name}** marcó como resuelto tu ticket: "${selectedTicket.title}". Por favor confirmá la recepción para cerrarlo.`,
         is_read: false, sender_id: profile.id
@@ -142,7 +142,7 @@ export default function TicketsTab({ profile }) {
       comment: `Ticket reasignado a ${newAdmin?.first_name} ${newAdmin?.last_name} por ${profile.first_name} ${profile.last_name}.`
     })
     await supabase.from('notifications').insert({
-      profile_id: newAssignee, clinic_id: profile.active_clinic_id || profile.clinic_id,
+      profile_id: newAssignee, clinic_id: profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id,
       type: 'ticket', title: 'Ticket reasignado',
       message: `**${profile.first_name} ${profile.last_name}** te asignó el ticket: "${selectedTicket.title}"`,
       is_read: false, sender_id: profile.id

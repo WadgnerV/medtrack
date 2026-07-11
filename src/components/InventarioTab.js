@@ -114,19 +114,19 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   useEffect(() => { fetchExchangeRate().then(r => { if (r) setExchangeRate(r) }) }, [])
 
   async function loadSkuPrefix() {
-    const { data } = await supabase.from('clinics').select('sku_prefix').eq('id', profile.clinic_id).single()
+    const { data } = await supabase.from('clinics').select('sku_prefix').eq('id', profile.active_clinic_id || profile.clinic_id).single()
     setSkuPrefix(data?.sku_prefix || 'SKU')
   }
 
   async function loadCatalog() {
-    const { data } = await supabase.from('inventory_catalog').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    const { data } = await supabase.from('inventory_catalog').select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     setCatalog(data || [])
   }
 
   async function generateSku(category) {
     const prefix = skuPrefix || 'SKU'
     const catCode = { 'Medicamento':'MED', 'Insumo':'IN', 'Producto estético':'EST', 'Equipo':'EQ' }[category] || 'OTR'
-    const { data } = await supabase.from('inventory_catalog').select('sku').eq('clinic_id', profile.clinic_id).eq('category', category).order('created_at', { ascending: false })
+    const { data } = await supabase.from('inventory_catalog').select('sku').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).eq('category', category).order('created_at', { ascending: false })
     const count = (data || []).length + 1
     return `${prefix}-${catCode}-${String(count).padStart(5, '0')}`
   }
@@ -135,7 +135,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
     if (!newCatalogItem.name) return
     const sku = await generateSku(newCatalogItem.category)
     const { data } = await supabase.from('inventory_catalog').insert({
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       name: newCatalogItem.name,
       category: newCatalogItem.category,
       sku
@@ -151,19 +151,19 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
   }
 
   async function loadWarehouses() {
-    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     setWarehouses(data || [])
   }
 
   async function loadItems() {
     setLoading(true)
-    let q = supabase.from('inventory_items').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    let q = supabase.from('inventory_items').select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     if (!isClinicAdmin && profile.branch_id) q = q.eq('branch_id', profile.branch_id)
     const { data } = await q
     setItems(data || [])
     // Cargar historial del día
     const today = new Date().toISOString().split('T')[0]
-    const { data: hist } = await supabase.from('inventory_history').select('*').eq('clinic_id', profile.clinic_id).gte('created_at', today + 'T00:00:00')
+    const { data: hist } = await supabase.from('inventory_history').select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).gte('created_at', today + 'T00:00:00')
     setAllHistory(hist || [])
     setLoading(false)
   }
@@ -179,7 +179,7 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
     const rate = exchangeRate || 462
     const costInColones = form.cost ? (form.currency === 'USD' ? parseFloat(form.cost) * rate : parseFloat(form.cost)) : null
     const payload = {
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       branch_id: form.branch_id || null,
       name: form.name,
       category: form.category,
@@ -203,11 +203,11 @@ export default function InventarioTab({ profile, branches, isClinicAdmin }) {
       const old = items.find(i => i.id === form.id)
       await supabase.from('inventory_items').update(payload).eq('id', form.id)
       if (old && old.quantity !== parseFloat(form.quantity)) {
-        await supabase.from('inventory_history').insert({ item_id: form.id, clinic_id: profile.clinic_id, branch_id: form.branch_id || null, quantity_before: old.quantity, quantity_after: parseFloat(form.quantity), change_type: 'update', recorded_by: profile.id })
+        await supabase.from('inventory_history').insert({ item_id: form.id, clinic_id: profile.active_clinic_id || profile.clinic_id, branch_id: form.branch_id || null, quantity_before: old.quantity, quantity_after: parseFloat(form.quantity), change_type: 'update', recorded_by: profile.id })
       }
     } else {
       const { data } = await supabase.from('inventory_items').insert(payload).select().single()
-      if (data) await supabase.from('inventory_history').insert({ item_id: data.id, clinic_id: profile.clinic_id, branch_id: form.branch_id || null, quantity_before: 0, quantity_after: parseFloat(form.quantity), change_type: 'initial', recorded_by: profile.id })
+      if (data) await supabase.from('inventory_history').insert({ item_id: data.id, clinic_id: profile.active_clinic_id || profile.clinic_id, branch_id: form.branch_id || null, quantity_before: 0, quantity_after: parseFloat(form.quantity), change_type: 'initial', recorded_by: profile.id })
     }
     await loadItems()
     setModal(null)

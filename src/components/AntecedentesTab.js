@@ -150,7 +150,7 @@ export default function AntecedentesTab({ patient, profile, saveRef }) {
   async function load() {
     setLoading(true)
     const { data: d } = await supabase.from('patient_antecedentes')
-      .select('*').eq('patient_id', patientId).eq('clinic_id', profile.clinic_id).maybeSingle()
+      .select('*').eq('patient_id', patientId).eq('clinic_id', profile.active_clinic_id || profile.clinic_id).maybeSingle()
     if (d) {
       setData({ ...emptyData, ...d,
         app_patologias: d.app_patologias || [],
@@ -179,7 +179,7 @@ export default function AntecedentesTab({ patient, profile, saveRef }) {
     saveRef.current = async () => {
       const intFields = ['apnp_fumado_año_suspension','apnp_alcohol_veces_semana','apnp_drogas_año_suspension','apnp_ejercicio_veces_semana','apnp_ejercicio_tiempo_sesion','ago_mpf_implante_año','ago_menopausia_año','ago_gestas','ago_partos','ago_abortos','ago_cesareas','ago_menopausia_año','aped_apgar_1min','aped_apgar_5min','ager_caidas_fecha']
       const numFields = ['apnp_fumado_paquetes_dia','apnp_fumado_años','aped_peso_nacer','aped_estatura_nacer','aped_cc_nacer']
-      const raw = { ...data, patient_id: patientId, clinic_id: profile.clinic_id, updated_by: profile.id, updated_at: new Date().toISOString() }
+      const raw = { ...data, patient_id: patientId, clinic_id: profile.active_clinic_id || profile.clinic_id, updated_by: profile.id, updated_at: new Date().toISOString() }
       delete raw.id; delete raw.created_at
       const payload = Object.fromEntries(Object.entries(raw).map(([k, v]) => {
         if (intFields.includes(k)) return [k, v === '' || v === null || v === undefined ? null : parseInt(v)]

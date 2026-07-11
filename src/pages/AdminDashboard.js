@@ -555,7 +555,7 @@ export default function AdminDashboard() {
   const [primaryColor, setPrimaryColor] = useState('#0F6E56')
   const [expedienteInitialTab, setExpedienteInitialTab] = useState('preconsulta')
   // Clínica activa — usa active_clinic_id si existe, sino clinic_id
-  const effectiveClinicId = profile?.active_clinic_id || profile?.clinic_id
+  const effectiveClinicId = profile?.active_clinic_id || profile?.active_clinic_id || profile?.clinic_id
 
   useEffect(() => {
     const r = parseInt(primaryColor.slice(1,3),16)

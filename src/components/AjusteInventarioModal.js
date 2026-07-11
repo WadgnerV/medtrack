@@ -27,7 +27,7 @@ export default function AjusteInventarioModal({ item, profile, onClose, onSaved 
     await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', item.id)
     await supabase.from('inventory_history').insert({
       item_id: item.id,
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       quantity_before: item.quantity,
       quantity_after: nuevaCantidad,
       change_type: tipo === 'entrada' ? `entrada_${motivo}` : `salida_${motivo}`,
@@ -38,10 +38,10 @@ export default function AjusteInventarioModal({ item, profile, onClose, onSaved 
     })
     // Notificar si stock bajo
     if (nuevaCantidad <= item.min_quantity && item.min_quantity > 0) {
-      const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+      const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
       if (admins && admins.length > 0) {
         await supabase.from('notifications').insert(admins.map(a => ({
-          profile_id: a.id, clinic_id: profile.clinic_id,
+          profile_id: a.id, clinic_id: profile.active_clinic_id || profile.clinic_id,
           type: 'low_stock', title: 'Stock bajo',
           message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo: ${item.min_quantity}.`,
           is_read: false, sender_id: profile.id

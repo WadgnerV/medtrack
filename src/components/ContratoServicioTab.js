@@ -165,7 +165,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
     setSaving(true)
     await supabase.from('service_contracts').insert({
       patient_id: patient.profile?.id || patient.id,
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       contract_type: 'perdida_peso',
       patient_name: pName,
       patient_id_number: pId,
@@ -296,7 +296,7 @@ export default function ContratoServicioTab({ patient, profile, clinic }) {
     td: { padding:'10px 12px', borderBottom:'0.5px solid #f0f0f0', color:'#333', verticalAlign:'middle' },
   }
 
-  if (profile?.clinic_id !== 'c49f2d94-a599-423a-b0d4-5f57f77cd95f') return null
+  if (profile?.active_clinic_id || profile?.clinic_id !== 'c49f2d94-a599-423a-b0d4-5f57f77cd95f') return null
 
   return (
     <div style={{ marginTop:28, paddingTop:20, borderTop:'0.5px solid #e2ede9' }}>

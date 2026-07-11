@@ -450,7 +450,7 @@ export default function HospitalizacionDashboard() {
     const { data, error } = await supabase.auth.admin ? null : await supabase.functions.invoke('create-user', {
       body: { email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName,
         role: 'patient', idNumber: form.idNumber, phone: form.phone, birthDate: form.birthDate,
-        sex: form.sex, clinicId: profile.clinic_id }
+        sex: form.sex, clinicId: profile.active_clinic_id || profile.clinic_id }
     })
     if (error) { alert('Error al crear paciente: ' + error.message); return }
     await loadPatients()
@@ -460,7 +460,7 @@ export default function HospitalizacionDashboard() {
   async function loadExistingProfiles() {
     const { data } = await supabase.from('profiles')
       .select('id, first_name, last_name, email, role, prefix, specialty')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .neq('role', 'patient')
     setExistingProfiles(data || [])
   }
@@ -473,22 +473,22 @@ export default function HospitalizacionDashboard() {
   async function loadStaff() {
     const { data } = await supabase.from('hospital_staff_assignments')
       .select('*, profile:profile_id(id, first_name, last_name, email, role)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
     setStaffList(data || [])
   }
 
   async function loadServices() {
     const { data: svcs } = await supabase.from('hospital_services')
-      .select('*').eq('clinic_id', profile.clinic_id).eq('is_active', true).order('order_index')
+      .select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).eq('is_active', true).order('order_index')
     if (!svcs) return setServices([])
 
     const { data: allBeds } = await supabase.from('hospital_beds')
       .select('*')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
 
     const { data: activeHosps } = await supabase.from('hospitalizations')
       .select('id, admission_date, status, bed_id, patient_id, attending_doctor_id, patient:patient_id(id, first_name, last_name, birth_date), doctor:attending_doctor_id(id, first_name, last_name, prefix)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .eq('status', 'active')
 
     const bedsProcessed = (allBeds || []).map(bed => {
@@ -503,14 +503,14 @@ export default function HospitalizacionDashboard() {
   async function loadPatients() {
     const { data } = await supabase.from('patients')
       .select('id, id_number, birth_date, sex, profile:profile_id(id, first_name, last_name, email)')
-      .eq('clinic_id', profile.clinic_id).neq('status', 'inactive')
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id).neq('status', 'inactive')
     setPatients(data || [])
   }
 
   async function loadDoctors() {
     const { data } = await supabase.from('profiles')
       .select('id, first_name, last_name, prefix, specialty')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .in('role', ['doctor','clinic_admin'])
     setDoctors(data || [])
   }
@@ -536,7 +536,7 @@ export default function HospitalizacionDashboard() {
   async function admitPatient({ patientId, doctorId, reason, diagnosis }) {
     const bed = modalData.bed
     const { data: hosp } = await supabase.from('hospitalizations').insert({
-      clinic_id: profile.clinic_id, patient_id: patientId, bed_id: bed.id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id, patient_id: patientId, bed_id: bed.id,
       service_id: bed.service_id, attending_doctor_id: doctorId || null,
       admission_date: new Date().toISOString(), admission_reason: reason || null,
       admission_diagnosis: diagnosis || null, status: 'active', created_by: profile.id,
@@ -550,7 +550,7 @@ export default function HospitalizacionDashboard() {
   async function saveService(data) {
     const svc = modalData.service
     if (svc) await supabase.from('hospital_services').update(data).eq('id', svc.id)
-    else await supabase.from('hospital_services').insert({ ...data, clinic_id: profile.clinic_id, order_index: services.length })
+    else await supabase.from('hospital_services').insert({ ...data, clinic_id: profile.active_clinic_id || profile.clinic_id, order_index: services.length })
     setModal(null); await loadServices()
   }
 
@@ -566,7 +566,7 @@ export default function HospitalizacionDashboard() {
         alert(`Ya existe una cama con el número "${data.bed_number}" en este servicio.`)
         return
       }
-      await supabase.from('hospital_beds').insert({ ...data, clinic_id: profile.clinic_id, service_id: svc.id })
+      await supabase.from('hospital_beds').insert({ ...data, clinic_id: profile.active_clinic_id || profile.clinic_id, service_id: svc.id })
     }
     setModal(null); await loadServices()
   }
@@ -899,10 +899,10 @@ export default function HospitalizacionDashboard() {
           const { data: pd } = await supabase.from('profiles').select('id').eq('id', data.user?.id).single()
           if (pd?.id) break
         }
-        await supabase.from('profiles').update({ clinic_id: profile.clinic_id }).eq('id', data.user?.id)
+        await supabase.from('profiles').update({ clinic_id: profile.active_clinic_id || profile.clinic_id }).eq('id', data.user?.id)
         await supabase.from('patients').upsert({ profile_id: data.user?.id, status:'active',
           id_number: form.idNumber||null, phone: form.phone||null, birth_date: form.birthDate||null,
-          sex: form.sex||null, clinic_id: profile.clinic_id }, { onConflict:'profile_id' })
+          sex: form.sex||null, clinic_id: profile.active_clinic_id || profile.clinic_id }, { onConflict:'profile_id' })
         await loadPatients()
         setModal(null)
       }} />}
@@ -912,7 +912,7 @@ export default function HospitalizacionDashboard() {
         setStaffSearch={setStaffSearch}
         staffList={staffList}
         services={services}
-        clinicId={profile.clinic_id}
+        clinicId={profile.active_clinic_id || profile.clinic_id}
         onClose={() => { setModal(null); setStaffSearch('') }}
         onSave={async () => { await loadStaff(); setModal(null); setStaffSearch('') }}
       />}

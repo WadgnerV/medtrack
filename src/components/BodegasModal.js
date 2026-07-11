@@ -23,7 +23,7 @@ export default function BodegasModal({ profile, onClose }) {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.clinic_id).order('name')
+    const { data } = await supabase.from('warehouses').select('*').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     setBodegas(data || [])
     setLoading(false)
   }
@@ -108,7 +108,7 @@ export default function BodegasModal({ profile, onClose }) {
     if (!form.name) return
     setSaving(true)
     const payload = {
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       name: form.name,
       description: form.description || null,
       address: form.address || null,

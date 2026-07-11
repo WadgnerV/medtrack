@@ -52,19 +52,19 @@ export default function ReportesView({ appts, patients, doctors, profile, branch
     setLoading(true)
     const { data: ap } = await supabase.from('appointments')
       .select('*, patient:patient_id(id, id_number, phone, province, canton, profile:profile_id(first_name, last_name, email)), doctor:doctor_id(id, first_name, last_name, prefix, specialty), tags:appointment_tag_links(tag:tag_id(name, color)), branch:branch_id(name)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .order('appointment_date')
     setAllAppts(ap || [])
 
     const { data: pt } = await supabase.from('patients')
       .select('id, id_number, phone, birth_date, sex, province, canton, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .neq('status', 'inactive')
     setAllPatients(pt || [])
 
     const { data: mod } = await supabase.from('patient_care_modules')
       .select('module_type, patient_id, patient:patient_id(sex)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .eq('is_active', true)
     setAllModules(mod || [])
 

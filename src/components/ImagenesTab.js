@@ -20,7 +20,7 @@ export default function ImagenesTab({ patient, profile }) {
   const [clinicSettings, setClinicSettings] = useState(null)
   useEffect(() => {
     load()
-    supabase.from('clinic_settings').select('*').eq('clinic_id', profile?.active_clinic_id || profile?.clinic_id || '').limit(1).maybeSingle()
+    supabase.from('clinic_settings').select('*').eq('clinic_id', profile?.active_clinic_id || profile?.active_clinic_id || profile?.clinic_id || '').limit(1).maybeSingle()
       .then(({ data }) => setClinicSettings(data))
   }, [patientId])
 

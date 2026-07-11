@@ -69,7 +69,7 @@ export default function ChatBubble({ profile }) {
       .select(`*, participants:chat_participants(profile_id, last_read_at, profile:profile_id(first_name, last_name, role)), last_message:chat_messages(content, created_at, sender_id)`)
       .order('updated_at', { ascending: false })
     
-    if (!isSuperAdmin) query = query.eq('clinic_id', profile.clinic_id)
+    if (!isSuperAdmin) query = query.eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
     
     const { data } = await query
 
@@ -116,7 +116,7 @@ export default function ChatBubble({ profile }) {
     const { data } = await supabase
       .from('profiles')
       .select('id, first_name, last_name, role, profession')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .eq('is_active', true)
       .neq('id', profile.id)
       .in('role', ['doctor', 'receptionist', 'admin', 'clinic_admin', 'branch_admin'])
@@ -152,7 +152,7 @@ export default function ChatBubble({ profile }) {
     setSending(true)
 
     // Determinar participantes
-    const targetClinicId = isSuperAdmin ? selClinic?.id : profile.clinic_id
+    const targetClinicId = isSuperAdmin ? selClinic?.id : profile.active_clinic_id || profile.clinic_id
     let participants = [profile.id]
     if (convType === 'support') {
       // Buscar superadmin o soporte definido
@@ -173,7 +173,7 @@ export default function ChatBubble({ profile }) {
 
     const { data: conv } = await supabase
       .from('chat_conversations')
-      .insert({ clinic_id: profile.clinic_id, type: convType, title, created_by: profile.id })
+      .insert({ clinic_id: profile.active_clinic_id || profile.clinic_id, type: convType, title, created_by: profile.id })
       .select().single()
 
     if (conv) {

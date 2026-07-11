@@ -159,7 +159,7 @@ export default function NutricionPlanForm({ patientId, profile, patient }) {
     if (!title.trim()) return
     setSaving(true)
     const { data: plan } = await supabase.from('nutrition_plans').insert({
-      patient_id: patientId, clinic_id: profile?.clinic_id,
+      patient_id: patientId, clinic_id: profile?.active_clinic_id || profile?.clinic_id,
       title: title.trim(), mode,
       start_date: startDate || null, end_date: endDate || null,
       notes: planNotes || null, created_by: profile?.id,

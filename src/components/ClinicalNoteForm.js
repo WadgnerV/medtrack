@@ -359,10 +359,10 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   const label = { fontSize:12, fontWeight:600, color:'#555', marginBottom:4, display:'block' }
 
   useEffect(() => { if (patientId) { load(); loadInventoryItems() } }, [patientId])
-  useEffect(() => { if (profile?.clinic_id && moduleType) loadTemplates() }, [profile?.clinic_id, moduleType])
+  useEffect(() => { if (profile?.active_clinic_id || profile?.clinic_id && moduleType) loadTemplates() }, [profile?.active_clinic_id || profile?.clinic_id, moduleType])
 
   async function loadInventoryItems() {
-    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity, category').eq('clinic_id', profile.clinic_id).order('name')
+    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity, category').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     setInventoryItems(data || [])
   }
 
@@ -442,8 +442,8 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
 
     // Consecutivo
     let consecutive = ''
-    if (type === 'receta' && profile?.clinic_id) {
-      const { data: consData } = await supabase.rpc('get_next_prescription_number', { p_clinic_id: profile.clinic_id })
+    if (type === 'receta' && profile?.active_clinic_id || profile?.clinic_id) {
+      const { data: consData } = await supabase.rpc('get_next_prescription_number', { p_clinic_id: profile.active_clinic_id || profile.clinic_id })
       if (consData) consecutive = consData
     }
 
@@ -625,10 +625,10 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
   }
 
   async function loadTemplates() {
-    if (!moduleType || !profile?.clinic_id) return
+    if (!moduleType || !profile?.active_clinic_id || profile?.clinic_id) return
     const { data } = await supabase.from('exam_templates')
       .select('*, creator:created_by(first_name, last_name, prefix)')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .eq('module_type', moduleType)
       .order('created_at', { ascending: false })
     setTemplates(data || [])
@@ -638,7 +638,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     if (!newTemplate.title.trim() || !newTemplate.content.trim()) return
     setSavingTemplate(true)
     await supabase.from('exam_templates').insert({
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       module_type: moduleType,
       title: newTemplate.title.trim(),
       content: newTemplate.content.trim(),
@@ -699,15 +699,15 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
             if (diff !== 0) {
               const nuevaCantidad = item.quantity - diff
               await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
-              await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
+              await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.active_clinic_id || profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
               if (nuevaCantidad <= item.min_quantity) {
-                const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
-                if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo permitido: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
+                const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+                if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.active_clinic_id || profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo permitido: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
               }
             }
 
             // Guardar nuevo registro
-            await supabase.from('clinical_note_supplies').insert({ note_id: noteId, clinic_id: profile.clinic_id, item_id: uso.item_id, cantidad: parseFloat(uso.cantidad) })
+            await supabase.from('clinical_note_supplies').insert({ note_id: noteId, clinic_id: profile.active_clinic_id || profile.clinic_id, item_id: uso.item_id, cantidad: parseFloat(uso.cantidad) })
           }
 
           // Devolver al inventario los insumos que se quitaron

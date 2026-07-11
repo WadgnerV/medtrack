@@ -38,7 +38,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
     setLoading(true)
     const { data } = await supabase.from('purchase_orders')
       .select('*, creator:created_by(id, first_name, last_name, role), approver:approved_by(first_name, last_name), assignee:assigned_to(first_name, last_name), items:purchase_order_items(*, inventory_item:item_id(name, unit, sku))')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .order('created_at', { ascending: false })
     setOrders(data || [])
     setLoading(false)
@@ -47,7 +47,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
   async function loadAdmins() {
     const { data } = await supabase.from('profiles')
       .select('id, first_name, last_name, email')
-      .eq('clinic_id', profile.clinic_id)
+      .eq('clinic_id', profile.active_clinic_id || profile.clinic_id)
       .in('role', ['clinic_admin','admin'])
       .neq('id', profile.id)
     setAdmins(data || [])
@@ -84,7 +84,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
       })))
     } else {
       const { data: order } = await supabase.from('purchase_orders').insert({
-        clinic_id: profile.clinic_id, created_by: profile.id,
+        clinic_id: profile.active_clinic_id || profile.clinic_id, created_by: profile.id,
         approved_by: autoApprove ? profile.id : null,
         status, notes: newNotes || null,
         assigned_to: selectedAdmin || null,
@@ -104,7 +104,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
           }).join(', ')
 
           await supabase.from('notifications').insert({
-            profile_id: targetAdmin.id, clinic_id: profile.clinic_id,
+            profile_id: targetAdmin.id, clinic_id: profile.active_clinic_id || profile.clinic_id,
             type: 'purchase_order', title: 'Nueva solicitud de compra',
             message: `**${profile.first_name} ${profile.last_name}** solicitó tu aprobación para: ${itemNames}`,
             is_read: false, sender_id: profile.id, data: { order_id: order.id }
@@ -157,7 +157,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
     }).eq('id', order.id)
 
     await supabase.from('notifications').insert({
-      profile_id: order.created_by, clinic_id: profile.clinic_id,
+      profile_id: order.created_by, clinic_id: profile.active_clinic_id || profile.clinic_id,
       type: 'purchase_order',
       title: modified ? 'Orden de compra modificada' : 'Orden de compra aprobada',
       message: modified
@@ -174,7 +174,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
     if (!window.confirm('¿Rechazar esta orden?')) return
     await supabase.from('purchase_orders').update({ status: 'rejected', approved_by: profile.id, updated_at: new Date().toISOString() }).eq('id', order.id)
     await supabase.from('notifications').insert({
-      profile_id: order.created_by, clinic_id: profile.clinic_id,
+      profile_id: order.created_by, clinic_id: profile.active_clinic_id || profile.clinic_id,
       type: 'purchase_order', title: 'Orden de compra rechazada',
       message: `Tu solicitud fue **rechazada** por ${profile.first_name} ${profile.last_name}.`,
       is_read: false, sender_id: profile.id
@@ -193,7 +193,7 @@ export default function SolicitudesCompraTab({ profile, inventoryItems }) {
         const nuevaCantidad = inv.quantity + qty
         await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', item.item_id)
         await supabase.from('inventory_history').insert({
-          item_id: item.item_id, clinic_id: profile.clinic_id,
+          item_id: item.item_id, clinic_id: profile.active_clinic_id || profile.clinic_id,
           quantity_before: inv.quantity, quantity_after: nuevaCantidad,
           change_amount: qty, change_type: 'entrada_Compra',
           motivo: 'Compra', nota: `Orden de compra #${order.id.slice(0,8)}`,

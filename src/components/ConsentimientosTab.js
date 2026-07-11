@@ -84,8 +84,8 @@ export default function ConsentimientosTab({ patient, profile }) {
   async function loadAll() {
     setLoading(true)
     const [{ data: c }, { data: b }, { data: cs }] = await Promise.all([
-      supabase.from('clinics').select('name, legal_name, legal_id, address').eq('id', profile.active_clinic_id || profile.clinic_id).single(),
-      supabase.from('branches').select('address').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).limit(1).single(),
+      supabase.from('clinics').select('name, legal_name, legal_id, address').eq('id', profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id).single(),
+      supabase.from('branches').select('address').eq('clinic_id', profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id).limit(1).single(),
       supabase.from('informed_consents').select('*, doctor:signed_by(first_name, last_name, prefix, medical_code)').eq('patient_id', patient.id).order('created_at', { ascending: false })
     ])
     setClinic(c)
@@ -109,7 +109,7 @@ export default function ConsentimientosTab({ patient, profile }) {
     setSaving(true)
     await supabase.from('informed_consents').insert({
       patient_id: patient.id,
-      clinic_id: profile.active_clinic_id || profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id,
       signed_by: profile.id,
       procedure_type: form.procedure_type,
       sessions: form.sessions ? parseInt(form.sessions) : null,

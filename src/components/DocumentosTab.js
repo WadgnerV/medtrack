@@ -32,7 +32,7 @@ export default function DocumentosTab({ patient, profile }) {
     if (upErr) { alert('Error al subir archivo'); setUploading(false); return }
     await supabase.from('patient_documents').insert({
       patient_id: patient.id,
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       uploaded_by: profile.id,
       file_name: file.name,
       file_path: path,

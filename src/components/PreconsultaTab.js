@@ -102,7 +102,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   useEffect(() => { if (patient?.id) { loadRecords(); loadInventory() } }, [patient?.id])
 
   async function loadInventory() {
-    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
+    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity').eq('clinic_id', profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id).order('name')
     setInventoryItems(data || [])
   }
 
@@ -164,7 +164,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     if (antecedentesRef.current) await antecedentesRef.current()
     const payload = {
       patient_id: patient.profile?.id || patient.id,
-      clinic_id: profile.active_clinic_id || profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id,
       recorded_by: profile.id,
       recorded_at: new Date().toISOString(),
       appointment_id: todayAppointment?.id || null,
@@ -209,7 +209,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
       if (doctorId) {
         await supabase.from('notifications').insert({
           profile_id: doctorId,
-          clinic_id: profile.clinic_id,
+          clinic_id: profile.active_clinic_id || profile.clinic_id,
           type: 'preconsult_ready',
           title: 'Paciente listo',
           message: `El paciente **${patientName}** agendado para su cita con fecha ${todayAppointment?.appointment_date ? new Date(todayAppointment.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { day:'2-digit', month:'long', year:'numeric' }) : ''} a las ${todayAppointment?.appointment_time?.slice(0,5) || ''} ya terminó el proceso de preconsulta y está listo para ser atendido.`,
@@ -243,13 +243,13 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
             if (diff !== 0) {
               const nuevaCantidad = item.quantity - diff
               await supabase.from('inventory_items').update({ quantity: nuevaCantidad, updated_at: new Date().toISOString() }).eq('id', uso.item_id)
-              await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
+              await supabase.from('inventory_history').insert({ item_id: uso.item_id, clinic_id: profile.active_clinic_id || profile.clinic_id, quantity_before: item.quantity, quantity_after: nuevaCantidad, change_type: 'procedimiento', recorded_by: profile.id })
               if (nuevaCantidad <= item.min_quantity) {
-                const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
-                if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
+                const { data: admins } = await supabase.from('profiles').select('id').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).in('role', ['clinic_admin','admin','receptionist'])
+                if (admins && admins.length > 0) await supabase.from('notifications').insert(admins.map(a => ({ profile_id: a.id, clinic_id: profile.active_clinic_id || profile.clinic_id, type: 'low_stock', title: 'Stock bajo', message: `**${item.name}** ha llegado a ${nuevaCantidad} ${item.unit}${nuevaCantidad < 0 ? ' (stock negativo)' : ''} — mínimo: ${item.min_quantity}.`, is_read: false, sender_id: profile.id })))
               }
             }
-            await supabase.from('clinical_note_supplies').insert({ note_id: preconsultId, clinic_id: profile.clinic_id, item_id: uso.item_id, cantidad: parseFloat(uso.cantidad) })
+            await supabase.from('clinical_note_supplies').insert({ note_id: preconsultId, clinic_id: profile.active_clinic_id || profile.clinic_id, item_id: uso.item_id, cantidad: parseFloat(uso.cantidad) })
           }
           for (const p of prev) {
             const enNuevos = insumosUsados.find(u => u.item_id === p.item_id)
@@ -345,7 +345,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     const [preconsultInsumos, setPreconsultInsumos] = useState([])
     useEffect(() => {
       if (expandedId === r.id) {
-        supabase.from('patient_antecedentes').select('*').eq('patient_id', patId).eq('clinic_id', profile.active_clinic_id || profile.clinic_id).maybeSingle()
+        supabase.from('patient_antecedentes').select('*').eq('patient_id', patId).eq('clinic_id', profile.active_clinic_id || profile.active_clinic_id || profile.clinic_id).maybeSingle()
           .then(({ data }) => setAntecedentes(data))
         supabase.from('clinical_note_supplies').select('*, item:item_id(name, unit)').eq('note_id', r.id)
           .then(({ data }) => setPreconsultInsumos(data || []))
