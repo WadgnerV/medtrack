@@ -604,7 +604,8 @@ export default function AdminDashboard() {
   }
 
   async function loadClinicSettings() {
-    const { data } = await supabase.from('clinic_settings').select('*').eq('clinic_id', profile.clinic_id).limit(1).maybeSingle()
+    const activeClinicId = localStorage.getItem('activeClinicId') || profile.clinic_id
+    const { data } = await supabase.from('clinic_settings').select('*').eq('clinic_id', activeClinicId).limit(1).maybeSingle()
     const { data: clinicData } = await supabase.from('clinics').select('sku_prefix').eq('id', profile.clinic_id).single()
     if (data) {
       if (clinicData?.sku_prefix) data.sku_prefix = clinicData.sku_prefix
@@ -612,7 +613,8 @@ export default function AdminDashboard() {
     }
     // Cargar plan de la clínica
     if (profile?.clinic_id) {
-      const { data: clinic } = await supabase.from('clinics').select('plan, enabled_modules, primary_color').eq('id', profile.clinic_id).single()
+      const activeClinicId = localStorage.getItem('activeClinicId') || profile.clinic_id
+      const { data: clinic } = await supabase.from('clinics').select('plan, enabled_modules, primary_color').eq('id', activeClinicId).single()
       if (clinic?.plan) setClinicPlan(clinic.plan)
       if (clinic?.enabled_modules) setEnabledModules(clinic.enabled_modules)
       if (clinic?.primary_color) setPrimaryColor(clinic.primary_color)

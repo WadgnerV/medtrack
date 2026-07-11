@@ -97,11 +97,12 @@ export default function Login() {
       }
     }
 
-    // Ya seleccionó clínica — navegar
-    if (selectedClinicId && selectedClinicId !== 'superadmin' && selectedClinicId !== profileData?.clinic_id) {
-      await supabase.from('profiles').update({ clinic_id: selectedClinicId }).eq('id', user.id)
-    }
+    // Guardar clínica seleccionada en localStorage — NO modificar profiles
 
+    // Guardar clínica activa en sesión
+    if (selectedClinicId && selectedClinicId !== 'superadmin') {
+      localStorage.setItem('activeClinicId', selectedClinicId)
+    }
     if (role === 'superadmin') navigate('/superadmin')
     else if (['admin','clinic_admin','branch_admin'].includes(role)) navigate('/admin')
     else if (role === 'receptionist') navigate('/recepcion')
