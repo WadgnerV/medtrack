@@ -1507,7 +1507,7 @@ export default function AdminDashboard() {
                 onSave={docId => reassignPatient(modalData.patient.id, docId)}
                 onClose={() => setModal(null)} />
             )}
-            {showProfileModal && (
+            {console.log('render showProfileModal:', showProfileModal) || showProfileModal && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={e => { if(e.target===e.currentTarget) setShowProfileModal(false) }}>
                 <div style={{ background:'#fff', borderRadius:14, padding:28, width:560, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e=>e.stopPropagation()}>
                   <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>Mi perfil</div>
@@ -1706,7 +1706,7 @@ export default function AdminDashboard() {
                     <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
                     <div style={{ color:'#999', fontSize:11, marginTop:2 }}>{profile?.email}</div>
                   </div>
-                  <div onClick={() => { console.log('Mi perfil click'); setCollapsedMenuOpen(false); setProfileForm({ firstName: profile?.first_name||'',  lastName: profile?.last_name||'', prefix: profile?.prefix||'', phone: profile?.phone||'', idNumber: profile?.id_number||'', profession: profile?.profession||'', specialty: profile?.specialty||'', medicalCode: profile?.medical_code||'', formacion: profile?.formacion_academica || [] }); setShowProfileModal(true) }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                  <div onClick={() => { console.log('Mi perfil click - showProfileModal antes:', showProfileModal); setCollapsedMenuOpen(false); setProfileForm({ firstName: profile?.first_name||'',  lastName: profile?.last_name||'', prefix: profile?.prefix||'', phone: profile?.phone||'', idNumber: profile?.id_number||'', profession: profile?.profession||'', specialty: profile?.specialty||'', medicalCode: profile?.medical_code||'', formacion: profile?.formacion_academica || [] }); setShowProfileModal(true) }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
                     onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                     <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Mi perfil
                   </div>
