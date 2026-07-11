@@ -160,7 +160,7 @@ export default function PatientExpediente({ patient, profile, onBack, onEdit, ca
     if (activeTab === 'evolucion_signos') return <EvolucionSignosTab patient={patient} />
     if (activeTab === 'nota_medica') {
       const canEditNote = ['clinic_admin','admin','branch_admin','doctor'].includes(profile?.role)
-      return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="var(--clinic-primary, #0F6E56)" patient={patient} profile={profile} canEdit={canEditNote} />
+      return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="var(--clinic-primary, #0F6E56)" patient={patient} profile={effectiveClinicId ? {...profile, clinic_id: effectiveClinicId} : profile} canEdit={canEditNote} />
     }
     if (activeTab === 'diagnosticos') return <DiagnosticosTab patient={patient} profile={profile} />
     if (activeTab === 'laboratorios') return <LaboratoriosTab patient={patient} />
