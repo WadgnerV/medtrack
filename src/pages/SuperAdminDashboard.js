@@ -692,10 +692,11 @@ export default function SuperAdminDashboard() {
                   {admins.filter(admin => {
                     const q = searchAdmin.toLowerCase()
                     if (q && !`${admin.first_name} ${admin.last_name}`.toLowerCase().includes(q) && !admin.email?.toLowerCase().includes(q)) return false
-                    if (filterClinic && admin.clinic_id !== filterClinic) return false
+                    const adminClinicId = admin._membership_clinic_id || admin.clinic_id
+                    if (filterClinic && adminClinicId !== filterClinic) return false
                     return true
                   }).map(admin => {
-                    const clinic = clinics.find(c => c.id === admin.clinic_id)
+                    const clinic = clinics.find(c => c.id === (admin._membership_clinic_id || admin.clinic_id))
                     return (
                       <tr key={admin.id} style={{ borderBottom:'0.5px solid #f5f5f5' }}>
                         <td style={{ ...s.td, fontWeight:500, color:'#1a1a1a' }}>{admin.last_name} {admin.first_name}</td>
@@ -722,10 +723,11 @@ export default function SuperAdminDashboard() {
                   {admins.filter(admin => {
                     const q = searchAdmin.toLowerCase()
                     if (q && !`${admin.first_name} ${admin.last_name}`.toLowerCase().includes(q) && !admin.email?.toLowerCase().includes(q)) return false
-                    if (filterClinic && admin.clinic_id !== filterClinic) return false
+                    const adminClinicId = admin._membership_clinic_id || admin.clinic_id
+                    if (filterClinic && adminClinicId !== filterClinic) return false
                     return true
                   }).map(admin => {
-                    const clinic = clinics.find(c => c.id === admin.clinic_id)
+                    const clinic = clinics.find(c => c.id === (admin._membership_clinic_id || admin.clinic_id))
                     return (
                       <div key={admin.id} style={{ background:'#f8fafc', borderRadius:10, padding:'12px 14px', border:'0.5px solid #eee' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
