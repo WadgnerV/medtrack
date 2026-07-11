@@ -242,14 +242,11 @@ export default function SuperAdminDashboard() {
 
   async function createAdmin() {
     setError('')
-    if (!form.first_name || !form.last_name || !form.email || !form.password || !form.clinic_id || !form.profession) {
+    if (!form.first_name || !form.last_name || !form.email || !form.clinic_id || !form.profession) {
       setError('Todos los campos son obligatorios'); return
     }
     if (form.role === 'branch_admin' && !form.branch_id) {
       setError('Debes seleccionar una sucursal para el admin de sucursal'); return
-    }
-    if (form.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres'); return
     }
     setSaving(true)
     try {
@@ -981,11 +978,25 @@ export default function SuperAdminDashboard() {
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Correo electrónico <span style={{ color:'#D85A30' }}>*</span></label>
-              <input value={form.email||''} onChange={f('email')} type="email" placeholder="admin@clinica.com" style={s.input} />
-            </div>
-            <div style={{ marginBottom:14 }}>
-              <label style={s.fieldLabel}>Contraseña temporal <span style={{ color:'#D85A30' }}>*</span></label>
-              <input value={form.password||''} onChange={f('password')} type="password" placeholder="Mínimo 6 caracteres" style={s.input} />
+              <input value={form.email||''} onChange={f('email')} type="email" placeholder="admin@clinica.com" style={s.input}
+                onBlur={async e => {
+                  const emailVal = e.target.value.toLowerCase().trim()
+                  if (!emailVal) return
+                  const { data: existing } = await supabase.from('profiles').select('id, first_name, last_name, profession, prefix, medical_code, role').eq('email', emailVal).maybeSingle()
+                  if (existing) {
+                    setForm(p => ({ ...p,
+                      first_name: existing.first_name || p.first_name,
+                      last_name: existing.last_name || p.last_name,
+                      profession: existing.profession || p.profession,
+                      prefix: existing.prefix || p.prefix,
+                      medical_code: existing.medical_code || p.medical_code,
+                    }))
+                    setError('Este correo ya existe — se completaron los datos del perfil. Solo seleccioná el rol y la clínica.')
+                  } else {
+                    setError('')
+                  }
+                }}
+              />
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={s.fieldLabel}>Profesión <span style={{ color:'#D85A30' }}>*</span></label>
