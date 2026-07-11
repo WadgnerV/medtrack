@@ -102,7 +102,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
   useEffect(() => { if (patient?.id) { loadRecords(); loadInventory() } }, [patient?.id])
 
   async function loadInventory() {
-    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity').eq('clinic_id', profile.clinic_id).order('name')
+    const { data } = await supabase.from('inventory_items').select('id, name, sku, unit, quantity, min_quantity').eq('clinic_id', profile.active_clinic_id || profile.clinic_id).order('name')
     setInventoryItems(data || [])
   }
 
@@ -164,7 +164,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     if (antecedentesRef.current) await antecedentesRef.current()
     const payload = {
       patient_id: patient.profile?.id || patient.id,
-      clinic_id: profile.clinic_id,
+      clinic_id: profile.active_clinic_id || profile.clinic_id,
       recorded_by: profile.id,
       recorded_at: new Date().toISOString(),
       appointment_id: todayAppointment?.id || null,
@@ -345,7 +345,7 @@ export default function PreconsultaTab({ patient, profile, todayAppointment }) {
     const [preconsultInsumos, setPreconsultInsumos] = useState([])
     useEffect(() => {
       if (expandedId === r.id) {
-        supabase.from('patient_antecedentes').select('*').eq('patient_id', patId).eq('clinic_id', profile.clinic_id).maybeSingle()
+        supabase.from('patient_antecedentes').select('*').eq('patient_id', patId).eq('clinic_id', profile.active_clinic_id || profile.clinic_id).maybeSingle()
           .then(({ data }) => setAntecedentes(data))
         supabase.from('clinical_note_supplies').select('*, item:item_id(name, unit)').eq('note_id', r.id)
           .then(({ data }) => setPreconsultInsumos(data || []))
