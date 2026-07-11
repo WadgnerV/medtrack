@@ -256,30 +256,55 @@ export default function SuperAdminDashboard() {
       // Guardar sesión actual del superadmin
       const { data: { session: currentSession } } = await supabase.auth.getSession()
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: { data: { first_name: form.first_name, last_name: form.last_name, role: form.role || 'admin' } }
-      })
-      if (authError) { setError('Error: ' + authError.message); setSaving(false); return }
-      for (let i = 0; i < 10; i++) {
-        await new Promise(r => setTimeout(r, 600))
-        const { data } = await supabase.from('profiles').select('id').eq('id', authData.user.id).single()
-        if (data?.id) break
+      // Verificar si el correo ya existe
+      const { data: existingProfile } = await supabase.from('profiles').select('id, clinic_id').eq('email', form.email.toLowerCase().trim()).maybeSingle()
+
+      let profileId = null
+
+      if (existingProfile) {
+        // El usuario ya existe — solo agregar membresía a la nueva clínica
+        profileId = existingProfile.id
+        await supabase.from('profiles').update({
+          is_active: true,
+        }).eq('id', profileId)
+      } else {
+        // Crear nuevo usuario
+        const tempPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10).toUpperCase() + '!1'
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: form.email,
+          password: tempPassword,
+          options: { data: { first_name: form.first_name, last_name: form.last_name, role: form.role || 'admin' } }
+        })
+        if (authError) { setError('Error: ' + authError.message); setSaving(false); return }
+        for (let i = 0; i < 10; i++) {
+          await new Promise(r => setTimeout(r, 600))
+          const { data } = await supabase.from('profiles').select('id').eq('id', authData.user.id).single()
+          if (data?.id) { profileId = authData.user.id; break }
+        }
+        await supabase.from('profiles').update({
+          first_name: form.first_name,
+          last_name: form.last_name,
+          role: form.role || 'admin',
+          clinic_id: form.clinic_id,
+          profession: form.profession,
+          prefix: form.prefix || null,
+          medical_code: form.medical_code || null,
+          is_active: true,
+          is_health_professional: isHealthPro(form.profession),
+        }).eq('id', profileId)
+        if (form.role === 'branch_admin' && form.branch_id) {
+          await supabase.from('branch_staff').insert({ branch_id: form.branch_id, profile_id: profileId })
+        }
       }
-      await supabase.from('profiles').update({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        role: form.role || 'admin',
-        clinic_id: form.clinic_id,
-        profession: form.profession,
-        prefix: form.prefix || null,
-        medical_code: form.medical_code || null,
-        is_active: true,
-        is_health_professional: isHealthPro(form.profession),
-      }).eq('id', authData.user.id)
-      if (form.role === 'branch_admin' && form.branch_id) {
-        await supabase.from('branch_staff').insert({ branch_id: form.branch_id, profile_id: authData.user.id })
+
+      // Agregar membresía a la clínica seleccionada
+      if (profileId && form.clinic_id) {
+        await supabase.from('professional_clinic_memberships').upsert({
+          profile_id: profileId,
+          clinic_id: form.clinic_id,
+          role: form.role || 'admin',
+          is_active: true,
+        }, { onConflict: 'profile_id,clinic_id' })
       }
 
       // Restaurar sesión del superadmin
