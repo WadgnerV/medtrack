@@ -111,7 +111,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, activeContext, setActiveContext: setActiveContextPersist, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, activeContext, setActiveContext: setActiveContextPersist, signIn, signUp, signOut, refreshProfile: fetchProfile }}>
       {children}
     </AuthContext.Provider>
   )

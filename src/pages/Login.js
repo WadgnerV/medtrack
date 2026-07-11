@@ -7,7 +7,7 @@ const G = '#1D9E75'
 const BLUE = '#1a3a5c'
 
 export default function Login() {
-  const { signIn } = useAuth()
+  const { signIn, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -102,6 +102,8 @@ export default function Login() {
     // Actualizar active_clinic_id en BD con la clínica seleccionada
     if (selectedClinicId && selectedClinicId !== 'superadmin') {
       await supabase.from('profiles').update({ active_clinic_id: selectedClinicId }).eq('id', user.id)
+      // Refrescar profile en el contexto para que tenga el active_clinic_id actualizado
+      if (refreshProfile) await refreshProfile(user.id)
     }
     if (role === 'superadmin') navigate('/superadmin')
     else if (['admin','clinic_admin','branch_admin'].includes(role)) navigate('/admin')
