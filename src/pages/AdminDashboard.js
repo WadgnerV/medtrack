@@ -554,6 +554,9 @@ export default function AdminDashboard() {
   const [clinicSettings, setClinicSettings] = useState(null)
   const [primaryColor, setPrimaryColor] = useState('#0F6E56')
   const [expedienteInitialTab, setExpedienteInitialTab] = useState('preconsulta')
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [profileForm, setProfileForm] = useState({})
+  const [profileSaving, setProfileSaving] = useState(false)
   // Clínica activa — usa active_clinic_id si existe, sino clinic_id
   const effectiveClinicId = profile?.active_clinic_id || profile?.active_clinic_id || profile?.clinic_id
 
@@ -1072,6 +1075,24 @@ export default function AdminDashboard() {
     setModal('confirm-delete')
     setModalData({ type:'doctor', id: doctor.id, name: doctor.first_name + SP + doctor.last_name })
   }
+  async function saveUserProfile() {
+    setProfileSaving(true)
+    await supabase.from('profiles').update({
+      first_name: profileForm.firstName,
+      last_name: profileForm.lastName,
+      prefix: profileForm.prefix || null,
+      phone: profileForm.phone || null,
+      id_number: profileForm.idNumber || null,
+      profession: profileForm.profession || null,
+      specialty: profileForm.specialty || null,
+      medical_code: profileForm.medicalCode || null,
+      formacion_academica: profileForm.formacion || [],
+    }).eq('id', profile.id)
+    setProfileSaving(false)
+    setShowProfileModal(false)
+    window.location.reload()
+  }
+
   async function updateApptStatus(id, status, appt = null) {
     await supabase.from('appointments').update({ status }).eq('id', id)
     await loadAppts()
@@ -1486,6 +1507,52 @@ export default function AdminDashboard() {
                 onSave={docId => reassignPatient(modalData.patient.id, docId)}
                 onClose={() => setModal(null)} />
             )}
+            {showProfileModal && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={e => { if(e.target===e.currentTarget) setShowProfileModal(false) }}>
+                <div style={{ background:'#fff', borderRadius:14, padding:28, width:560, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e=>e.stopPropagation()}>
+                  <div style={{ fontSize:16, fontWeight:600, color:'#1a3a5c', marginBottom:20 }}>Mi perfil</div>
+                  
+                  <div style={{ fontSize:12, fontWeight:600, color:'#aaa', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10 }}>Datos personales</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+                    <div><label style={s.fieldLabel}>Prefijo</label><input value={profileForm.prefix||''} onChange={e=>setProfileForm(p=>({...p,prefix:e.target.value}))} placeholder="Dr./Dra./Lic." style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Nombre</label><input value={profileForm.firstName||''} onChange={e=>setProfileForm(p=>({...p,firstName:e.target.value}))} style={s.fieldInput} /></div>
+                    <div style={{ gridColumn:'1/-1' }}><label style={s.fieldLabel}>Apellido</label><input value={profileForm.lastName||''} onChange={e=>setProfileForm(p=>({...p,lastName:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Teléfono</label><input value={profileForm.phone||''} onChange={e=>setProfileForm(p=>({...p,phone:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Cédula</label><input value={profileForm.idNumber||''} onChange={e=>setProfileForm(p=>({...p,idNumber:e.target.value}))} style={s.fieldInput} /></div>
+                  </div>
+
+                  <div style={{ fontSize:12, fontWeight:600, color:'#aaa', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10, marginTop:4 }}>Datos profesionales</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+                    <div><label style={s.fieldLabel}>Profesión</label><input value={profileForm.profession||''} onChange={e=>setProfileForm(p=>({...p,profession:e.target.value}))} style={s.fieldInput} /></div>
+                    <div><label style={s.fieldLabel}>Especialidad</label><input value={profileForm.specialty||''} onChange={e=>setProfileForm(p=>({...p,specialty:e.target.value}))} style={s.fieldInput} /></div>
+                    <div style={{ gridColumn:'1/-1' }}><label style={s.fieldLabel}>Código profesional (colegiado)</label><input value={profileForm.medicalCode||''} onChange={e=>setProfileForm(p=>({...p,medicalCode:e.target.value}))} placeholder="MED-12345" style={s.fieldInput} /></div>
+                  </div>
+
+                  <div style={{ fontSize:12, fontWeight:600, color:'#aaa', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10, marginTop:4 }}>Formación académica</div>
+                  <div style={{ marginBottom:12 }}>
+                    {(profileForm.formacion||[]).map((item, i) => (
+                      <div key={i} style={{ display:'flex', gap:8, marginBottom:8, alignItems:'center' }}>
+                        <div style={{ flex:1 }}>
+                          <input value={item.titulo||''} onChange={e=>{const f=[...profileForm.formacion];f[i]={...f[i],titulo:e.target.value};setProfileForm(p=>({...p,formacion:f}))}} placeholder="Título o certificación" style={{...s.fieldInput, marginBottom:4}} />
+                          <input value={item.institucion||''} onChange={e=>{const f=[...profileForm.formacion];f[i]={...f[i],institucion:e.target.value};setProfileForm(p=>({...p,formacion:f}))}} placeholder="Institución" style={{...s.fieldInput, marginBottom:4}} />
+                          <input value={item.año||''} onChange={e=>{const f=[...profileForm.formacion];f[i]={...f[i],año:e.target.value};setProfileForm(p=>({...p,formacion:f}))}} placeholder="Año" style={s.fieldInput} />
+                        </div>
+                        <button onClick={()=>{const f=profileForm.formacion.filter((_,j)=>j!==i);setProfileForm(p=>({...p,formacion:f}))}} style={{ background:'#FAECE7', border:'none', borderRadius:6, padding:'6px 10px', cursor:'pointer', color:'#D85A30', fontSize:12 }}>✕</button>
+                      </div>
+                    ))}
+                    <button onClick={()=>setProfileForm(p=>({...p,formacion:[...(p.formacion||[]),{titulo:'',institucion:'',año:''}]}))} style={{ background:'none', border:'1px dashed #ccc', borderRadius:8, padding:'7px 14px', cursor:'pointer', fontSize:12, color:'#888', width:'100%' }}>+ Agregar título o certificación</button>
+                  </div>
+
+                  <div style={{ display:'flex', gap:8, justifyContent:'flex-end', marginTop:8 }}>
+                    <button onClick={()=>setShowProfileModal(false)} style={{ border:'1px solid #eee', background:'#fff', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, color:'#555' }}>Cancelar</button>
+                    <button onClick={saveUserProfile} disabled={profileSaving} style={{ background:'var(--clinic-primary, #0F6E56)', color:'#fff', border:'none', borderRadius:8, padding:'7px 16px', cursor:'pointer', fontSize:13, fontWeight:500, opacity:profileSaving?0.7:1 }}>
+                      {profileSaving ? 'Guardando...' : 'Guardar cambios'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {modal === 'edit-patient' && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:50 }} onClick={() => setModal(null)}>
                 <div style={{ background:'#fff', borderRadius:14, padding:28, width:520, maxWidth:'95vw', boxShadow:'0 8px 32px rgba(0,0,0,0.12)', maxHeight:'90vh', overflowY:'auto' }} onClick={e => e.stopPropagation()}>
@@ -1639,7 +1706,7 @@ export default function AdminDashboard() {
                     <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
                     <div style={{ color:'#999', fontSize:11, marginTop:2 }}>{profile?.email}</div>
                   </div>
-                  <div onClick={() => { setCollapsedMenuOpen(false); setViewPersist('config') }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                  <div onClick={() => { setCollapsedMenuOpen(false); setProfileForm({ firstName: profile?.first_name||'', lastName: profile?.last_name||'', prefix: profile?.prefix||'', phone: profile?.phone||'', idNumber: profile?.id_number||'', profession: profile?.profession||'', specialty: profile?.specialty||'', medicalCode: profile?.medical_code||'', formacion: profile?.formacion_academica || [] }); setShowProfileModal(true) }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
                     onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                     <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Mi perfil
                   </div>
