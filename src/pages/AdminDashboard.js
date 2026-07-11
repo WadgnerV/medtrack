@@ -554,7 +554,6 @@ export default function AdminDashboard() {
   const [clinicSettings, setClinicSettings] = useState(null)
   const [primaryColor, setPrimaryColor] = useState('#0F6E56')
   const [expedienteInitialTab, setExpedienteInitialTab] = useState('preconsulta')
-  const profile?.clinic_id = profile?.clinic_id
 
   useEffect(() => {
     const r = parseInt(primaryColor.slice(1,3),16)
