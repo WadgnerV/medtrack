@@ -111,6 +111,7 @@ function HistorialCitasTab({ patient }) {
 }
 
 export default function PatientExpediente({ patient, profile, onBack, onEdit, canEdit = true, initialTab = 'preconsulta', effectiveClinicId }) {
+  console.log('PatientExpediente effectiveClinicId:', effectiveClinicId, 'profile.clinic_id:', profile?.clinic_id, 'profile.active_clinic_id:', profile?.active_clinic_id)
   const [activeTab, setActiveTab] = useState(initialTab)
   const [todayAppointment, setTodayAppointment] = useState(null)
   const [lastVisit, setLastVisit] = useState(null)
