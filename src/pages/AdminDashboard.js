@@ -1639,11 +1639,11 @@ export default function AdminDashboard() {
                     <div style={{ fontWeight:500, color:'#1a1a1a' }}>{profile?.first_name} {profile?.last_name}</div>
                     <div style={{ color:'#999', fontSize:11, marginTop:2 }}>{profile?.email}</div>
                   </div>
-                  <div onClick={() => { setCollapsedMenuOpen(false); }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                  <div onClick={() => { setCollapsedMenuOpen(false); setViewPersist('config') }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
                     onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                     <i className="ti ti-user" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Mi perfil
                   </div>
-                  <div onClick={() => { setCollapsedMenuOpen(false); }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
+                  <div onClick={async () => { setCollapsedMenuOpen(false); await supabase.auth.resetPasswordForEmail(profile?.email, { redirectTo: `${window.location.origin}/reset-password` }); alert('Te enviamos un correo para cambiar tu contraseña.') }} style={{ padding:'8px 14px', cursor:'pointer', fontSize:13, color:'#555', display:'flex', alignItems:'center', gap:8 }}
                     onMouseEnter={e => e.currentTarget.style.background='#f8f8f8'} onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                     <i className="ti ti-lock" style={{ fontSize:15, color:'#888' }} aria-hidden="true"></i> Cambiar contraseña
                   </div>
