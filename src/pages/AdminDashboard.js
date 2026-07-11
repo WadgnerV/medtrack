@@ -1840,6 +1840,7 @@ export default function AdminDashboard() {
               enabledModules={enabledModules}
               clinicPlan={clinicPlan}
               doctors={doctors}
+              effectiveClinicId={effectiveClinicId}
             />
           )}
 
