@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
     const { email } = await req.json()
-    if (!email) return new Response(JSON.stringify({ clinics: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (!email) return new Response(JSON.stringify({ clinics: [], isSuperadmin: false }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
     const sb = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -18,9 +18,15 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const { data: profile } = await sb.from('profiles').select('id, clinic_id').eq('email', email.toLowerCase().trim()).maybeSingle()
-    if (!profile) return new Response(JSON.stringify({ clinics: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    const { data: profile } = await sb.from('profiles').select('id, clinic_id, role').eq('email', email.toLowerCase().trim()).maybeSingle()
+    if (!profile) return new Response(JSON.stringify({ clinics: [], isSuperadmin: false, notFound: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
+    // Superadmin — no necesita clínica
+    if (profile.role === 'superadmin') {
+      return new Response(JSON.stringify({ clinics: [], isSuperadmin: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Buscar membresías
     const { data: memberships } = await sb
       .from('professional_clinic_memberships')
       .select('clinic_id, clinic:clinic_id(id, name)')
@@ -28,16 +34,17 @@ serve(async (req) => {
       .eq('is_active', true)
 
     if (memberships && memberships.length > 0) {
-      return new Response(JSON.stringify({ clinics: memberships }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ clinics: memberships, isSuperadmin: false }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
+    // Fallback: clinic_id del perfil
     if (profile.clinic_id) {
       const { data: clinic } = await sb.from('clinics').select('id, name').eq('id', profile.clinic_id).single()
-      return new Response(JSON.stringify({ clinics: [{ clinic_id: profile.clinic_id, clinic }] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ clinics: [{ clinic_id: profile.clinic_id, clinic }], isSuperadmin: false }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    return new Response(JSON.stringify({ clinics: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ clinics: [], isSuperadmin: false }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch(e) {
-    return new Response(JSON.stringify({ error: e.message, clinics: [] }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: e.message, clinics: [], isSuperadmin: false }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

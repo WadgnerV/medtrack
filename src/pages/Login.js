@@ -33,13 +33,19 @@ export default function Login() {
     try {
       const res = await supabase.functions.invoke('get-user-clinics', { body: { email: email.toLowerCase().trim() } })
       const data = res.data
-      if (!data || data.clinics.length === 0) {
-        setError('No encontramos una cuenta con ese correo.')
+      if (!data || (data.clinics.length === 0 && !data.isSuperadmin)) {
+        setError(data?.notFound ? 'No encontramos una cuenta con ese correo.' : 'No encontramos una cuenta con ese correo.')
         setCheckingEmail(false)
         return
       }
-      setClinics(data.clinics)
-      if (data.clinics.length === 1) setSelectedClinicId(data.clinics[0].clinic_id)
+      if (data.isSuperadmin) {
+        // Superadmin — pasar directo a contraseña sin clínica
+        setClinics([])
+        setSelectedClinicId('superadmin')
+      } else {
+        setClinics(data.clinics)
+        if (data.clinics.length === 1) setSelectedClinicId(data.clinics[0].clinic_id)
+      }
     } catch(e) {
       setError('Error al verificar el correo. Intentá de nuevo.')
       setCheckingEmail(false)
@@ -92,7 +98,7 @@ export default function Login() {
     }
 
     // Ya seleccionó clínica — navegar
-    if (selectedClinicId && selectedClinicId !== profileData?.clinic_id) {
+    if (selectedClinicId && selectedClinicId !== 'superadmin' && selectedClinicId !== profileData?.clinic_id) {
       await supabase.from('profiles').update({ clinic_id: selectedClinicId }).eq('id', user.id)
     }
 
@@ -208,7 +214,7 @@ export default function Login() {
                     </div>
                   </div>
 
-                  <div style={{ marginBottom:16 }}>
+                  {selectedClinicId !== 'superadmin' && <div style={{ marginBottom:16 }}>
                     <label style={lbl}>Clínica</label>
                     {clinics.length === 1 ? (
                       <div style={{ padding:'12px 16px', background:'#f0fdf8', border:'1.5px solid #9FE1CB', borderRadius:10, fontSize:14, color:BLUE, fontWeight:500 }}>
@@ -223,7 +229,7 @@ export default function Login() {
                         ))}
                       </select>
                     )}
-                  </div>
+                  </div>}
 
                   <div style={{ marginBottom:10 }}>
                     <label style={lbl}>Contraseña</label>
@@ -238,8 +244,8 @@ export default function Login() {
                     </button>
                   </div>
 
-                  <button type="submit" disabled={loading || !selectedClinicId} className="login-btn"
-                    style={{ width:'100%', padding:'14px', background:(loading||!selectedClinicId)?'#9CA3AF':G, color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:600, cursor:(loading||!selectedClinicId)?'not-allowed':'pointer', letterSpacing:'0.01em', boxShadow:'0 4px 14px rgba(29,158,117,0.25)' }}>
+                  <button type="submit" disabled={loading} className="login-btn"
+                    style={{ width:'100%', padding:'14px', background:loading?'#9CA3AF':G, color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:600, cursor:loading?'not-allowed':'pointer', letterSpacing:'0.01em', boxShadow:'0 4px 14px rgba(29,158,117,0.25)' }}>
                     {loading ? 'Iniciando sesión...' : 'Ingresar'}
                   </button>
                 </form>
