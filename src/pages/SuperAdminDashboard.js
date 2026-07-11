@@ -612,8 +612,8 @@ export default function SuperAdminDashboard() {
             {adminViewMode === 'diagrama' && (
               <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap:16 }}>
                 {clinics.map(clinic => {
-                  const clinicAdmins = admins.filter(a => a.clinic_id === clinic.id && a.role === 'clinic_admin')
-                  const branchAdmins = admins.filter(a => a.clinic_id === clinic.id && ['admin','branch_admin'].includes(a.role))
+                  const clinicAdmins = admins.filter(a => (a._membership_clinic_id || a.clinic_id) === clinic.id && (a._membership_role || a.role) === 'clinic_admin')
+                  const branchAdmins = admins.filter(a => (a._membership_clinic_id || a.clinic_id) === clinic.id && ['admin','branch_admin'].includes(a._membership_role || a.role))
                   return (
                     <div key={clinic.id} style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:20 }}>
                       {/* Clínica */}
