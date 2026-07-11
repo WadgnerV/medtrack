@@ -554,6 +554,8 @@ export default function AdminDashboard() {
   const [clinicSettings, setClinicSettings] = useState(null)
   const [primaryColor, setPrimaryColor] = useState('#0F6E56')
   const [expedienteInitialTab, setExpedienteInitialTab] = useState('preconsulta')
+  // Clínica activa — usa active_clinic_id si existe, sino clinic_id
+  const effectiveClinicId = profile?.active_clinic_id || effectiveClinicId
 
   useEffect(() => {
     const r = parseInt(primaryColor.slice(1,3),16)
@@ -574,7 +576,7 @@ export default function AdminDashboard() {
 
   // Filtros automáticos para branch_admin
   const filteredPatients = myBranchId
-    ? patients.filter(p => p.branch_id === myBranchId || p.clinic_id === profile?.clinic_id)
+    ? patients.filter(p => p.branch_id === myBranchId || p.clinic_id === effectiveClinicId)
     : patients
   const filteredDoctors = (myBranchId
     ? doctors.filter(d => d.branch_id === myBranchId)
@@ -604,7 +606,7 @@ export default function AdminDashboard() {
   }
 
   async function loadClinicSettings() {
-    const cid = profile?.active_clinic_id || profile?.clinic_id
+    const cid = profile?.active_clinic_id || effectiveClinicId
     const { data } = await supabase.from('clinic_settings').select('*').eq('clinic_id', cid).limit(1).maybeSingle()
     const { data: clinicData } = await supabase.from('clinics').select('sku_prefix').eq('id', cid).single()
     if (data) {
@@ -657,7 +659,7 @@ export default function AdminDashboard() {
     if (!clinicSettings) return
     setSavingSettings(true)
     if (clinicSettings.sku_prefix) {
-      await supabase.from('clinics').update({ sku_prefix: clinicSettings.sku_prefix.toUpperCase().slice(0,5) }).eq('id', profile?.clinic_id)
+      await supabase.from('clinics').update({ sku_prefix: clinicSettings.sku_prefix.toUpperCase().slice(0,5) }).eq('id', effectiveClinicId)
     }
     await supabase.from('clinic_settings').update({
       clinic_name: clinicSettings.clinic_name,
@@ -704,20 +706,20 @@ export default function AdminDashboard() {
   }
 
   async function loadBranches() {
-    if (!profile?.clinic_id) return
-    const { data } = await supabase.from('branches').select('*').eq('clinic_id', profile?.clinic_id).order('name')
+    if (!effectiveClinicId) return
+    const { data } = await supabase.from('branches').select('*').eq('clinic_id', effectiveClinicId).order('name')
     setBranches(data || [])
   }
 
   async function loadDoctors() {
-    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist']).eq('is_active', true).eq('clinic_id', profile?.clinic_id).order('first_name')
+    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist']).eq('is_active', true).eq('clinic_id', effectiveClinicId).order('first_name')
     setDoctors(data || [])
   }
 
   async function loadInactivePatients() {
     const { data } = await supabase.from('patients')
       .select('id, status, id_number, profile:profile_id(id, first_name, last_name, email, is_active)')
-      .eq('clinic_id', profile?.clinic_id)
+      .eq('clinic_id', effectiveClinicId)
       .eq('status', 'inactive')
       .order('created_at', { ascending: false })
     setInactivePatients(data || [])
@@ -731,7 +733,7 @@ export default function AdminDashboard() {
   }
 
   async function loadPatients(branchId) {
-    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').eq('clinic_id', profile?.clinic_id).neq('status', 'inactive').order('created_at', { ascending: false })
+    let query = supabase.from('patients').select('id, status, specialty_type, birth_date, sex, province, canton, id_number, phone, height_cm, clinic_id, profile:profile_id(id, first_name, last_name, email, role), doctor:assigned_doctor_id(id, first_name, last_name)').eq('clinic_id', effectiveClinicId).neq('status', 'inactive').order('created_at', { ascending: false })
     if (branchId) query = query.eq('branch_id', branchId)
     const { data } = await query
     const loadedPatients = data || []
@@ -749,7 +751,7 @@ export default function AdminDashboard() {
   }
 
   async function loadAvailability() {
-    const { data } = await supabase.from('doctor_availability').select('*, doctor:doctor_id(id, first_name, last_name, prefix, sex)').eq('clinic_id', profile?.clinic_id).eq('is_active', true)
+    const { data } = await supabase.from('doctor_availability').select('*, doctor:doctor_id(id, first_name, last_name, prefix, sex)').eq('clinic_id', effectiveClinicId).eq('is_active', true)
     setAvailability(data || [])
   }
 
@@ -758,7 +760,7 @@ export default function AdminDashboard() {
     if (!doctorId || !availForm.start_time || !availForm.end_time) { alert('Complete todos los campos obligatorios'); return }
     if (availForm.repeat_type === 'weekly' && (!availForm.days_of_week || availForm.days_of_week.length === 0)) { alert('Seleccioná al menos un día de la semana'); return }
     const payload = {
-      clinic_id: profile?.clinic_id,
+      clinic_id: effectiveClinicId,
       doctor_id: doctorId,
       start_time: availForm.start_time,
       end_time: availForm.end_time,
@@ -805,7 +807,7 @@ export default function AdminDashboard() {
   }
 
   async function createApptTag({ name, color }) {
-    const { data } = await supabase.from('appointment_tags').insert({ clinic_id: profile?.clinic_id, name, color }).select().single()
+    const { data } = await supabase.from('appointment_tags').insert({ clinic_id: effectiveClinicId, name, color }).select().single()
     await loadApptTags()
     return { data }
   }
@@ -829,7 +831,7 @@ export default function AdminDashboard() {
       cur.setDate(cur.getDate() + 1)
     }
     await supabase.from('appointments').insert(dates.map(d => ({
-      clinic_id: profile?.clinic_id,
+      clinic_id: effectiveClinicId,
       doctor_id: blockForm.doctor_id || null,
       appointment_date: d,
       appointment_time: blockForm.start_time,
@@ -858,7 +860,7 @@ export default function AdminDashboard() {
   }
 
   async function loadApptTags() {
-    const { data } = await supabase.from('appointment_tags').select('*').eq('clinic_id', profile?.clinic_id).order('name')
+    const { data } = await supabase.from('appointment_tags').select('*').eq('clinic_id', effectiveClinicId).order('name')
     setApptTags(data || [])
   }
 
@@ -931,10 +933,10 @@ export default function AdminDashboard() {
       }
       await supabase.from('patients').update({
         assigned_doctor_id: form.doctorId || null,
-        clinic_id: profile?.clinic_id || null,
+        clinic_id: effectiveClinicId || null,
       }).eq('profile_id', userId)
       await supabase.from('profiles').update({
-        clinic_id: profile?.clinic_id || null,
+        clinic_id: effectiveClinicId || null,
       }).eq('id', userId)
     }
 
@@ -971,7 +973,7 @@ export default function AdminDashboard() {
         phone:        form.phone        || null,
         province:     form.province     || null,
         canton:       form.canton       || null,
-        clinic_id:    profile?.clinic_id || null,
+        clinic_id:    effectiveClinicId || null,
         prefix:       form.prefix       || null,
         profession:   form.profession   || null,
       }).eq('id', userId)
@@ -991,7 +993,7 @@ export default function AdminDashboard() {
       })
     }
     if (role === 'doctor' || role === 'receptionist') {
-      await supabase.from('profiles').update({ clinic_id: profile?.clinic_id || null }).eq('id', userId)
+      await supabase.from('profiles').update({ clinic_id: effectiveClinicId || null }).eq('id', userId)
       await loadDoctors(); setModal(null)
     }
     else if (role === 'patient') {
@@ -1000,7 +1002,7 @@ export default function AdminDashboard() {
       setViewPersist('pacientes')
       if (newPatientDbId) { setModal(null) } else { setModal(null) }
     } else {
-      if (userId) await supabase.from('profiles').update({ clinic_id: profile?.clinic_id || null }).eq('id', userId)
+      if (userId) await supabase.from('profiles').update({ clinic_id: effectiveClinicId || null }).eq('id', userId)
       await loadDoctors(); setModal(null)
     }
     setSaving(false); setSelPatient(null)
@@ -1074,7 +1076,7 @@ export default function AdminDashboard() {
   }
 
   async function saveAppt(form, selectedTags = []) {
-    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id, clinic_id: profile?.clinic_id }
+    const payload = { patient_id: form.patientId, doctor_id: form.doctorId, appointment_date: form.date, appointment_time: form.time, visit_type: form.visitType, duration_min: parseInt(form.duration), notes: form.notes, status: form.status || 'pending_confirmation', module_type: form.moduleType || null, created_by: profile?.id, clinic_id: effectiveClinicId }
     const prevAppt = form.id ? appts.find(a => a.id === form.id) : null
     const prevStatus = prevAppt?.status || null
     if (form.id) {
@@ -1103,7 +1105,7 @@ export default function AdminDashboard() {
               doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
               appointment_date: form.date,
               appointment_time: form.time,
-              clinic_id: profile?.clinic_id,
+              clinic_id: effectiveClinicId,
             }
           })
         }
@@ -1116,7 +1118,7 @@ export default function AdminDashboard() {
               patient_email: patient.profile.email,
               patient_name: `${patient.profile.first_name} ${patient.profile.last_name}`,
               doctor_name: `Dr. ${doctor?.first_name} ${doctor?.last_name}`,
-              clinic_id: profile?.clinic_id,
+              clinic_id: effectiveClinicId,
               appointment_date: form.date,
               appointment_time: form.time,
             }
@@ -1151,7 +1153,7 @@ export default function AdminDashboard() {
     if (form.id) {
       await supabase.from('appointment_tag_links').delete().eq('appointment_id', form.id)
     } else {
-      const { data: newAppt } = await supabase.from('appointments').select('id').eq('clinic_id', profile?.clinic_id).order('created_at', { ascending: false }).limit(1).single()
+      const { data: newAppt } = await supabase.from('appointments').select('id').eq('clinic_id', effectiveClinicId).order('created_at', { ascending: false }).limit(1).single()
       if (newAppt?.id && selectedTags.length > 0) {
         await supabase.from('appointment_tag_links').insert(selectedTags.map(tagId => ({ appointment_id: newAppt.id, tag_id: tagId })))
       }
@@ -1164,7 +1166,7 @@ export default function AdminDashboard() {
 
   async function addLibraryItem(form) {
     setSaving(true)
-    await supabase.from('library_items').insert({ type: form.type, name: form.name, category: form.category || null, is_global: true, created_by: profile?.id, clinic_id: profile?.clinic_id })
+    await supabase.from('library_items').insert({ type: form.type, name: form.name, category: form.category || null, is_global: true, created_by: profile?.id, clinic_id: effectiveClinicId })
     await loadLibrary(); setModal(null); setSaving(false)
   }
 
@@ -2769,7 +2771,7 @@ export default function AdminDashboard() {
             <div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
                 <div style={{ fontSize:14, fontWeight:500, color:'#1a1a1a' }}>Sucursales de la clínica</div>
-                <button style={s.btnPrimary} onClick={() => { setBranchForm({ clinic_id: profile?.clinic_id, name:'', is_active:true }); setModal('branch') }}>+ Nueva sucursal</button>
+                <button style={s.btnPrimary} onClick={() => { setBranchForm({ clinic_id: effectiveClinicId, name:'', is_active:true }); setModal('branch') }}>+ Nueva sucursal</button>
               </div>
               {branches.length === 0 && <div style={{ textAlign:'center', padding:40, color:'#999', fontSize:13 }}>No hay sucursales registradas</div>}
               <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap:10 }}>
@@ -3095,7 +3097,7 @@ export default function AdminDashboard() {
                           module_type: mod,
                           assigned_professional_id: docId || null,
                           is_active: true,
-                          clinic_id: profile?.clinic_id,
+                          clinic_id: effectiveClinicId,
                         }, { onConflict: 'patient_id,module_type' })
                       ))
                     }
