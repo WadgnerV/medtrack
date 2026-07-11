@@ -2046,7 +2046,7 @@ export default function AdminDashboard() {
           )}
 
           {view === 'calendario' && (
-            <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+            <div style={{ display:'flex', gap:12, alignItems:'flex-start', height:'calc(100vh - 120px)', overflow:'hidden' }}>
               {/* Mini calendario lateral */}
               {!isMobile && (
                 <div style={{ width:220, flexShrink:0, background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:14 }}>
