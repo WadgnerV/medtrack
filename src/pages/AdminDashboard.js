@@ -712,21 +712,27 @@ export default function AdminDashboard() {
   }
 
   async function loadDoctors() {
-    // Cargar doctores desde membresías para soportar múltiples clínicas
+    // Cargar desde membresías
     const { data: memberships } = await supabase
       .from('professional_clinic_memberships')
       .select('profile:profile_id(*)')
       .eq('clinic_id', effectiveClinicId)
       .eq('is_active', true)
     
-    if (memberships && memberships.length > 0) {
-      const profiles = memberships.map(m => m.profile).filter(Boolean)
-      setDoctors(profiles)
-    } else {
-      // Fallback: cargar por clinic_id directo
-      const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist']).eq('is_active', true).eq('clinic_id', effectiveClinicId).order('first_name')
-      setDoctors(data || [])
-    }
+    // Cargar perfiles directos por clinic_id (personal sin membresía explícita)
+    const { data: directProfiles } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist'])
+      .eq('is_active', true)
+      .eq('clinic_id', effectiveClinicId)
+      .order('first_name')
+
+    const fromMemberships = (memberships || []).map(m => m.profile).filter(Boolean)
+    const membershipIds = new Set(fromMemberships.map(p => p?.id))
+    const fromDirect = (directProfiles || []).filter(p => !membershipIds.has(p.id))
+    const combined = [...fromMemberships, ...fromDirect].sort((a,b) => (a.first_name||'').localeCompare(b.first_name||''))
+    setDoctors(combined)
   }
 
   async function loadInactivePatients() {
