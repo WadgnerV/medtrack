@@ -111,7 +111,6 @@ function HistorialCitasTab({ patient }) {
 }
 
 export default function PatientExpediente({ patient, profile, onBack, onEdit, canEdit = true, initialTab = 'preconsulta', effectiveClinicId }) {
-  console.log('PatientExpediente effectiveClinicId:', effectiveClinicId, 'profile.clinic_id:', profile?.clinic_id, 'profile.active_clinic_id:', profile?.active_clinic_id)
   const [activeTab, setActiveTab] = useState(initialTab)
   const [todayAppointment, setTodayAppointment] = useState(null)
   const [lastVisit, setLastVisit] = useState(null)
@@ -164,8 +163,8 @@ export default function PatientExpediente({ patient, profile, onBack, onEdit, ca
       return <ClinicalNoteForm patientId={patient.id} moduleType="general" color="var(--clinic-primary, #0F6E56)" patient={patient} profile={effectiveClinicId ? {...profile, clinic_id: effectiveClinicId} : profile} canEdit={canEditNote} />
     }
     if (activeTab === 'diagnosticos') return <DiagnosticosTab patient={patient} profile={profile} />
-    if (activeTab === 'laboratorios') return <LaboratoriosTab patient={patient} />
-    if (activeTab === 'imagenes') return <ImagenesTab patient={patient} />
+    if (activeTab === 'laboratorios') return <LaboratoriosTab patient={patient} profile={effectiveClinicId ? {...profile, clinic_id: effectiveClinicId} : profile} />
+    if (activeTab === 'imagenes') return <ImagenesTab patient={patient} profile={effectiveClinicId ? {...profile, clinic_id: effectiveClinicId} : profile} />
     if (activeTab === 'recetas') return <RecetasTab patient={patient} profile={profile} />
     if (activeTab === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
     if (activeTab === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
