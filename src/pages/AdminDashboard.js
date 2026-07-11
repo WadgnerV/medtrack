@@ -3132,7 +3132,7 @@ export default function AdminDashboard() {
           )}
 
           {view === 'inventario' && (
-            <InventarioTab profile={profile} branches={branches} isClinicAdmin={isClinicAdmin} />
+            <InventarioTab profile={{...profile, clinic_id: effectiveClinicId}} branches={branches} isClinicAdmin={isClinicAdmin} />
           )}
           {view === 'tickets' && ['clinic_admin','admin'].includes(profile?.role) && (
             <TicketsTab profile={profile} />
