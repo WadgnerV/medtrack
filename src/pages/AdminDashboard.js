@@ -712,8 +712,21 @@ export default function AdminDashboard() {
   }
 
   async function loadDoctors() {
-    const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist']).eq('is_active', true).eq('clinic_id', effectiveClinicId).order('first_name')
-    setDoctors(data || [])
+    // Cargar doctores desde membresías para soportar múltiples clínicas
+    const { data: memberships } = await supabase
+      .from('professional_clinic_memberships')
+      .select('profile:profile_id(*)')
+      .eq('clinic_id', effectiveClinicId)
+      .eq('is_active', true)
+    
+    if (memberships && memberships.length > 0) {
+      const profiles = memberships.map(m => m.profile).filter(Boolean)
+      setDoctors(profiles)
+    } else {
+      // Fallback: cargar por clinic_id directo
+      const { data } = await supabase.from('profiles').select('*').in('role', ['admin','doctor','clinic_admin','branch_admin','receptionist']).eq('is_active', true).eq('clinic_id', effectiveClinicId).order('first_name')
+      setDoctors(data || [])
+    }
   }
 
   async function loadInactivePatients() {
