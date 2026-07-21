@@ -127,8 +127,11 @@ export default function SuperAdminDashboard() {
     const { data } = await query
     const filtered = (data || []).filter(p => {
       if (!q) return true
-      const name = `${p.profile?.first_name||''} ${p.profile?.last_name||''}`.toLowerCase()
-      return name.includes(q) || (p.id_number||'').includes(q)
+      const firstName = (p.profile?.first_name||'').toLowerCase()
+      const lastName = (p.profile?.last_name||'').toLowerCase()
+      const fullName = `${firstName} ${lastName}`
+      const fullNameRev = `${lastName} ${firstName}`
+      return fullName.includes(q) || fullNameRev.includes(q) || firstName.includes(q) || lastName.includes(q) || (p.id_number||'').toLowerCase().includes(q) || (p.profile?.email||'').toLowerCase().includes(q)
     })
     setMigPatients(filtered)
     setMigLoading(false)
