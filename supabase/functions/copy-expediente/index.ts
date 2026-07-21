@@ -59,7 +59,7 @@ serve(async (req) => {
 
     // 4. Copiar notas clínicas
     const { data: notes } = await sb.from('clinical_notes')
-      .select('*').eq('patient_id', oldPatientId).eq('clinic_id', migClinicOrigen)
+      .select('*').eq('patient_id', oldPatientId)
     let notesCount = 0
     for (const n of (notes || [])) {
       const { id, created_at, ...rest } = n
