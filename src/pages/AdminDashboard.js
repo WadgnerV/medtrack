@@ -763,10 +763,8 @@ export default function AdminDashboard() {
     // Restaurar paciente seleccionado si venimos de un refresh
     const savedId = localStorage.getItem('adminSelPatientId')
     const savedView = localStorage.getItem('adminView')
-    console.log('Restaurando — savedId:', savedId, 'savedView:', savedView, 'patients:', loadedPatients.length)
     if (savedId && savedView === 'perfil-paciente') {
       const p = loadedPatients.find(x => x.id === savedId)
-      console.log('Paciente encontrado:', p?.id)
       if (p) setSelPatient(p)
       else { localStorage.removeItem('adminSelPatientId'); setViewPersist('calendario') }
     }
