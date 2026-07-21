@@ -768,7 +768,7 @@ export default function SuperAdminDashboard() {
                 <div style={{ background:'#f0fdf8', border:'1px solid #9FE1CB', borderRadius:10, padding:16, marginBottom:16 }}>
                   <div style={{ fontSize:13, fontWeight:600, color:BLUE, marginBottom:4 }}>Resumen de la copia</div>
                   <div style={{ fontSize:12, color:'#555' }}>
-                    Se copiará el expediente completo de <strong>{migSelectedPatient.profile?.first_name} {migSelectedPatient.profile?.last_name}</strong> a la clínica destino, incluyendo: preconsultas, notas clínicas, diagnósticos, antecedentes y documentos.
+                    Se copiará el expediente completo de <strong>{migSelectedPatient.profile?.first_name} {migSelectedPatient.profile?.last_name}</strong> a la clínica destino, incluyendo: preconsultas, notas clínicas, diagnósticos, antecedentes médicos y documentos.
                   </div>
                   <div style={{ fontSize:11, color:'#888', marginTop:6 }}>Los datos originales no se eliminarán.</div>
                 </div>
