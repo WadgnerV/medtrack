@@ -141,88 +141,17 @@ export default function SuperAdminDashboard() {
     if (!migSelectedPatient || !migClinicDestino || !migClinicOrigen) return
     setMigCopying(true)
     setMigResult(null)
-    
-    const pat = migSelectedPatient
-    const profileId = pat.profile?.id
-    const oldPatientId = pat.id
-
     try {
-      // 1. Verificar si ya existe el paciente en la clínica destino
-      const { data: existing } = await supabase.from('patients')
-        .select('id').eq('profile_id', profileId).eq('clinic_id', migClinicDestino).maybeSingle()
-      
-      let newPatientId = existing?.id
-
-      if (!newPatientId) {
-        // 2. Crear nuevo registro de paciente en clínica destino
-        const { data: oldPat } = await supabase.from('patients')
-          .select('*').eq('id', oldPatientId).single()
-        
-        const { data: newPat } = await supabase.from('patients').insert({
-          profile_id: profileId,
-          clinic_id: migClinicDestino,
-          status: oldPat.status,
-          birth_date: oldPat.birth_date,
-          sex: oldPat.sex,
-          id_number: oldPat.id_number,
-          phone: oldPat.phone,
-          province: oldPat.province,
-          canton: oldPat.canton,
-          district: oldPat.district,
-          address: oldPat.address,
-          height_cm: oldPat.height_cm,
-        }).select('id').single()
-        newPatientId = newPat?.id
-      }
-
-      if (!newPatientId) throw new Error('No se pudo crear el paciente en la clínica destino')
-
-      // 3. Copiar preconsultas
-      const { data: preconsults } = await supabase.from('preconsult_records')
-        .select('*').eq('patient_id', profileId).eq('clinic_id', migClinicOrigen)
-      for (const r of (preconsults || [])) {
-        const { id, ...rest } = r
-        await supabase.from('preconsult_records').insert({ ...rest, clinic_id: migClinicDestino })
-      }
-
-      // 4. Copiar notas clínicas
-      const { data: notes } = await supabase.from('clinical_notes')
-        .select('*').eq('patient_id', oldPatientId).eq('clinic_id', migClinicOrigen)
-      for (const n of (notes || [])) {
-        const { id, ...rest } = n
-        await supabase.from('clinical_notes').insert({ ...rest, patient_id: newPatientId, clinic_id: migClinicDestino })
-      }
-
-      // 5. Copiar diagnósticos
-      const { data: diags } = await supabase.from('patient_diagnoses')
-        .select('*').eq('patient_id', oldPatientId)
-      for (const d of (diags || [])) {
-        const { id, ...rest } = d
-        await supabase.from('patient_diagnoses').insert({ ...rest, patient_id: newPatientId })
-      }
-
-      // 6. Copiar antecedentes
-      const { data: ant } = await supabase.from('patient_antecedentes')
-        .select('*').eq('patient_id', profileId).eq('clinic_id', migClinicOrigen).maybeSingle()
-      if (ant) {
-        const { id, ...rest } = ant
-        await supabase.from('patient_antecedentes').insert({ ...rest, clinic_id: migClinicDestino })
-      }
-
-      // 7. Copiar documentos
-      const { data: docs } = await supabase.from('patient_documents')
-        .select('*').eq('patient_id', oldPatientId).eq('clinic_id', migClinicOrigen)
-      for (const d of (docs || [])) {
-        const { id, ...rest } = d
-        await supabase.from('patient_documents').insert({ ...rest, patient_id: newPatientId, clinic_id: migClinicDestino })
-      }
-
-      setMigResult({ success: true, counts: {
-        preconsults: preconsults?.length || 0,
-        notes: notes?.length || 0,
-        diags: diags?.length || 0,
-        docs: docs?.length || 0,
-      }})
+      const { data, error } = await supabase.functions.invoke('copy-expediente', {
+        body: {
+          oldPatientId: migSelectedPatient.id,
+          profileId: migSelectedPatient.profile?.id,
+          migClinicOrigen,
+          migClinicDestino,
+        }
+      })
+      if (error || data?.error) throw new Error(data?.error || error.message)
+      setMigResult({ success: true, counts: data.counts })
     } catch(e) {
       setMigResult({ success: false, error: e.message })
     }
