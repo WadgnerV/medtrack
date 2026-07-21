@@ -60,6 +60,14 @@ const s = {
 export default function SuperAdminDashboard() {
   const { profile, signOut } = useAuth()
   const [view, setView] = useState(() => localStorage.getItem('superadminView') || 'clinicas')
+  const [migClinicOrigen, setMigClinicOrigen] = useState('')
+  const [migClinicDestino, setMigClinicDestino] = useState('')
+  const [migSearch, setMigSearch] = useState('')
+  const [migPatients, setMigPatients] = useState([])
+  const [migSelectedPatient, setMigSelectedPatient] = useState(null)
+  const [migLoading, setMigLoading] = useState(false)
+  const [migCopying, setMigCopying] = useState(false)
+  const [migResult, setMigResult] = useState(null)
   const [adminViewMode, setAdminViewMode] = useState('lista')
   const [branches, setBranches] = useState([])
   const [branchStaff, setBranchStaff] = useState([])
@@ -107,6 +115,115 @@ export default function SuperAdminDashboard() {
     setLoading(true)
     await Promise.all([loadClinics(), loadAdmins()])
     setLoading(false)
+  }
+
+  async function searchMigPatients() {
+    if (!migClinicOrigen) return
+    setMigLoading(true)
+    const q = migSearch.toLowerCase().trim()
+    let query = supabase.from('patients')
+      .select('id, id_number, birth_date, profile:profile_id(id, first_name, last_name, email)')
+      .eq('clinic_id', migClinicOrigen)
+    const { data } = await query
+    const filtered = (data || []).filter(p => {
+      if (!q) return true
+      const name = `${p.profile?.first_name||''} ${p.profile?.last_name||''}`.toLowerCase()
+      return name.includes(q) || (p.id_number||'').includes(q)
+    })
+    setMigPatients(filtered)
+    setMigLoading(false)
+  }
+
+  async function copyExpediente() {
+    if (!migSelectedPatient || !migClinicDestino || !migClinicOrigen) return
+    setMigCopying(true)
+    setMigResult(null)
+    
+    const pat = migSelectedPatient
+    const profileId = pat.profile?.id
+    const oldPatientId = pat.id
+
+    try {
+      // 1. Verificar si ya existe el paciente en la clínica destino
+      const { data: existing } = await supabase.from('patients')
+        .select('id').eq('profile_id', profileId).eq('clinic_id', migClinicDestino).maybeSingle()
+      
+      let newPatientId = existing?.id
+
+      if (!newPatientId) {
+        // 2. Crear nuevo registro de paciente en clínica destino
+        const { data: oldPat } = await supabase.from('patients')
+          .select('*').eq('id', oldPatientId).single()
+        
+        const { data: newPat } = await supabase.from('patients').insert({
+          profile_id: profileId,
+          clinic_id: migClinicDestino,
+          status: oldPat.status,
+          birth_date: oldPat.birth_date,
+          sex: oldPat.sex,
+          id_number: oldPat.id_number,
+          phone: oldPat.phone,
+          province: oldPat.province,
+          canton: oldPat.canton,
+          district: oldPat.district,
+          address: oldPat.address,
+          height_cm: oldPat.height_cm,
+        }).select('id').single()
+        newPatientId = newPat?.id
+      }
+
+      if (!newPatientId) throw new Error('No se pudo crear el paciente en la clínica destino')
+
+      // 3. Copiar preconsultas
+      const { data: preconsults } = await supabase.from('preconsult_records')
+        .select('*').eq('patient_id', profileId).eq('clinic_id', migClinicOrigen)
+      for (const r of (preconsults || [])) {
+        const { id, ...rest } = r
+        await supabase.from('preconsult_records').insert({ ...rest, clinic_id: migClinicDestino })
+      }
+
+      // 4. Copiar notas clínicas
+      const { data: notes } = await supabase.from('clinical_notes')
+        .select('*').eq('patient_id', oldPatientId).eq('clinic_id', migClinicOrigen)
+      for (const n of (notes || [])) {
+        const { id, ...rest } = n
+        await supabase.from('clinical_notes').insert({ ...rest, patient_id: newPatientId, clinic_id: migClinicDestino })
+      }
+
+      // 5. Copiar diagnósticos
+      const { data: diags } = await supabase.from('patient_diagnoses')
+        .select('*').eq('patient_id', oldPatientId)
+      for (const d of (diags || [])) {
+        const { id, ...rest } = d
+        await supabase.from('patient_diagnoses').insert({ ...rest, patient_id: newPatientId })
+      }
+
+      // 6. Copiar antecedentes
+      const { data: ant } = await supabase.from('patient_antecedentes')
+        .select('*').eq('patient_id', profileId).eq('clinic_id', migClinicOrigen).maybeSingle()
+      if (ant) {
+        const { id, ...rest } = ant
+        await supabase.from('patient_antecedentes').insert({ ...rest, clinic_id: migClinicDestino })
+      }
+
+      // 7. Copiar documentos
+      const { data: docs } = await supabase.from('patient_documents')
+        .select('*').eq('patient_id', oldPatientId).eq('clinic_id', migClinicOrigen)
+      for (const d of (docs || [])) {
+        const { id, ...rest } = d
+        await supabase.from('patient_documents').insert({ ...rest, patient_id: newPatientId, clinic_id: migClinicDestino })
+      }
+
+      setMigResult({ success: true, counts: {
+        preconsults: preconsults?.length || 0,
+        notes: notes?.length || 0,
+        diags: diags?.length || 0,
+        docs: docs?.length || 0,
+      }})
+    } catch(e) {
+      setMigResult({ success: false, error: e.message })
+    }
+    setMigCopying(false)
   }
 
   async function loadClinics() {
@@ -372,6 +489,7 @@ export default function SuperAdminDashboard() {
   const menuItems = [
     { key:'clinicas', label:'Clínicas', icon:'ti-building-hospital' },
     { key:'admins', label:'Administradores', icon:'ti-users' },
+    { key:'migracion', label:'Migración', icon:'ti-transfer' },
     { key:'reportes', label:'Reportes', icon:'ti-chart-bar' },
   ]
 
@@ -584,6 +702,98 @@ export default function SuperAdminDashboard() {
               })}
               {clinics.length === 0 && <div style={{ gridColumn:'1/-1', textAlign:'center', padding:40, color:'#999', fontSize:13 }}>No hay clínicas registradas</div>}
             </div>
+          </div>
+        )}
+
+        {/* Vista Migración */}
+        {view === 'migracion' && (
+          <div style={{ maxWidth:700, margin:'0 auto' }}>
+            <div style={s.header}>
+              <div>
+                <div style={{ fontSize:18, fontWeight:700, color:BLUE }}>Migración de expedientes</div>
+                <div style={{ fontSize:13, color:'#888', marginTop:2 }}>Crea una copia del expediente de un paciente en otra clínica</div>
+              </div>
+            </div>
+
+            <div style={{ background:'#fff', border:'0.5px solid #eee', borderRadius:12, padding:24, marginBottom:16 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
+                <div>
+                  <label style={s.fieldLabel}>Clínica origen <span style={{ color:'#D85A30' }}>*</span></label>
+                  <select value={migClinicOrigen} onChange={e => { setMigClinicOrigen(e.target.value); setMigSelectedPatient(null); setMigPatients([]) }} style={s.input}>
+                    <option value="">Seleccioná...</option>
+                    {clinics.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={s.fieldLabel}>Clínica destino <span style={{ color:'#D85A30' }}>*</span></label>
+                  <select value={migClinicDestino} onChange={e => setMigClinicDestino(e.target.value)} style={s.input}>
+                    <option value="">Seleccioná...</option>
+                    {clinics.filter(c => c.id !== migClinicOrigen).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {migClinicOrigen && (
+                <div style={{ marginBottom:16 }}>
+                  <label style={s.fieldLabel}>Buscar paciente</label>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <input value={migSearch} onChange={e => setMigSearch(e.target.value)} onKeyDown={e => e.key==='Enter' && searchMigPatients()} placeholder="Nombre o cédula..." style={{ ...s.input, flex:1 }} />
+                    <button onClick={searchMigPatients} disabled={migLoading} style={s.btnPrimary}>{migLoading ? 'Buscando...' : 'Buscar'}</button>
+                  </div>
+                </div>
+              )}
+
+              {migPatients.length > 0 && (
+                <div style={{ marginBottom:16 }}>
+                  <label style={s.fieldLabel}>Seleccioná el paciente</label>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:200, overflowY:'auto' }}>
+                    {migPatients.map(p => (
+                      <div key={p.id} onClick={() => setMigSelectedPatient(p)}
+                        style={{ padding:'10px 14px', borderRadius:8, border:`1.5px solid ${migSelectedPatient?.id===p.id?G:'#e2e8f0'}`, background:migSelectedPatient?.id===p.id?'#f0fdf8':'#fafafa', cursor:'pointer', display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:8, height:8, borderRadius:'50%', background:migSelectedPatient?.id===p.id?G:'#ddd', flexShrink:0 }} />
+                        <div>
+                          <div style={{ fontSize:13, fontWeight:500, color:BLUE }}>{p.profile?.last_name} {p.profile?.first_name}</div>
+                          <div style={{ fontSize:11, color:'#888' }}>{p.id_number || p.profile?.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {migSelectedPatient && migClinicDestino && (
+                <div style={{ background:'#f0fdf8', border:'1px solid #9FE1CB', borderRadius:10, padding:16, marginBottom:16 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:BLUE, marginBottom:4 }}>Resumen de la copia</div>
+                  <div style={{ fontSize:12, color:'#555' }}>
+                    Se copiará el expediente completo de <strong>{migSelectedPatient.profile?.first_name} {migSelectedPatient.profile?.last_name}</strong> a la clínica destino, incluyendo: preconsultas, notas clínicas, diagnósticos, antecedentes y documentos.
+                  </div>
+                  <div style={{ fontSize:11, color:'#888', marginTop:6 }}>Los datos originales no se eliminarán.</div>
+                </div>
+              )}
+
+              <button onClick={copyExpediente} disabled={!migSelectedPatient || !migClinicDestino || migCopying}
+                style={{ ...s.btnPrimary, opacity:(!migSelectedPatient||!migClinicDestino||migCopying)?0.6:1 }}>
+                {migCopying ? 'Copiando expediente...' : 'Crear copia del expediente'}
+              </button>
+            </div>
+
+            {migResult && (
+              <div style={{ background:migResult.success?'#f0fdf8':'#FAECE7', border:`1px solid ${migResult.success?'#9FE1CB':'#D85A30'}`, borderRadius:10, padding:16 }}>
+                {migResult.success ? (
+                  <>
+                    <div style={{ fontSize:14, fontWeight:600, color:'#085041', marginBottom:8 }}>✓ Expediente copiado exitosamente</div>
+                    <div style={{ fontSize:12, color:'#555' }}>
+                      Se copiaron: {migResult.counts.preconsults} preconsultas · {migResult.counts.notes} notas clínicas · {migResult.counts.diags} diagnósticos · {migResult.counts.docs} documentos
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize:14, fontWeight:600, color:'#D85A30', marginBottom:4 }}>Error al copiar</div>
+                    <div style={{ fontSize:12, color:'#555' }}>{migResult.error}</div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 
