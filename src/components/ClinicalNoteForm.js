@@ -68,7 +68,7 @@ const emptyForm = {
   motivo: '', padecimiento: '', examen: '', procedimiento: '', tratamiento: '',
   imagenes: '', laboratorios: '',
   planOpciones: [], planOtroChecked: false, planOtro: '',
-  note_date: new Date().toISOString().split('T')[0],
+  note_date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
   consultation_type: '',
 }
 
@@ -663,7 +663,7 @@ export default function ClinicalNoteForm({ patientId, moduleType, color, patient
     const { data: { user } } = await supabase.auth.getUser()
     const payload = {
       patient_id: patientId, module_type: moduleType, consultation_type: form.consultation_type || null,
-      note_text: text, note_date: form.note_date || new Date().toISOString().split('T')[0],
+      note_text: text, note_date: form.note_date || new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
       recorded_by: user.id,
     }
     if (editingId) {
