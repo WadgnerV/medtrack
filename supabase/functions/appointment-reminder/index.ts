@@ -5,6 +5,7 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const APP_URL = 'https://medtrackcr.com'
+const FUNCTIONS_URL = 'https://mdcqdigxbmfajlmaxrta.supabase.co/functions/v1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,7 +74,7 @@ serve(async (req) => {
       const { clinicName, clinicAddress } = await getClinicInfo(appt.clinic_id)
       const dateFormatted = new Date(appt.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
       const timeFormatted = appt.appointment_time?.substring(0, 5)
-      const confirmUrl = `${APP_URL}/confirm-appointment?id=${appt.id}`
+      const confirmUrl = `${FUNCTIONS_URL}/confirm-appointment?id=${appt.id}`
       const gcalUrl = googleCalendarUrl(appt.appointment_date, appt.appointment_time, doctor_name, clinicName, clinicAddress)
       const icsContent = generateICS(appt.appointment_date, appt.appointment_time, doctor_name, clinicName, clinicAddress, patient_name)
       const icsBase64 = btoa(unescape(encodeURIComponent(icsContent)))
