@@ -107,7 +107,7 @@ function CollapsibleNote({ n, color, onEdit, onDelete, patient, forceExpanded=fa
       .then(({ data }) => setNotaInsumos(data || []))
   }, [expanded, n.id])
   const dName = n.author ? `${n.author.prefix ? n.author.prefix + ' ' : ''}${n.author.first_name} ${n.author.last_name}` : 'Médico'
-  const fecha = new Date(n.note_date).toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+  const fecha = new Date(n.note_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
   const createdAt = n.created_at ? new Date(n.created_at) : new Date(n.note_date)
   const canEdit = (Date.now() - createdAt.getTime()) < 24 * 60 * 60 * 1000
   const parsed = parseNoteText(n.note_text || '')
