@@ -107,7 +107,7 @@ serve(async (req) => {
             <span style="font-size:14px;color:#333;">${clinicAddress}</span>
           </div>` : ''}
           ${wazeLink ? `
-          <div style="margin-top:8px;">
+          <div style="margin-top:8px;text-align:center;">
             <a href="${wazeLink}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#1ABCD4;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">
               <img src="https://www.waze.com/favicon.ico" width="16" height="16" style="border-radius:3px;" />
               Cómo llegar en Waze
