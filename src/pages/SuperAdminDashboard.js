@@ -406,8 +406,10 @@ export default function SuperAdminDashboard() {
   async function deleteAdminPermanent(id) {
     if (!window.confirm('¿Estás seguro que querés ELIMINAR PERMANENTEMENTE este usuario? Esta acción no se puede deshacer.')) return
     if (!window.confirm('Confirmá de nuevo — se eliminarán todos los datos del usuario.')) return
-    const { error } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
-    if (error) { alert('Error al eliminar: ' + error.message); return }
+    const { data, error } = await supabase.functions.invoke('delete-user', { body: { user_id: id } })
+    console.log('delete-user response:', data, error)
+    if (error) { alert('Error al eliminar: ' + JSON.stringify(error)); return }
+    if (data?.error) { alert('Error al eliminar: ' + data.error); return }
     await loadAdmins()
   }
 
