@@ -403,6 +403,14 @@ export default function SuperAdminDashboard() {
     await loadAdmins()
   }
 
+  async function deleteAdminPermanent(id) {
+    if (!window.confirm('¿Estás seguro que querés ELIMINAR PERMANENTEMENTE este usuario? Esta acción no se puede deshacer.')) return
+    if (!window.confirm('Confirmá de nuevo — se eliminarán todos los datos del usuario.')) return
+    const { error } = await supabase.functions.invoke('delete-user', { body: { userId: id } })
+    if (error) { alert('Error al eliminar: ' + error.message); return }
+    await loadAdmins()
+  }
+
   const f = key => e => setForm(p => ({ ...p, [key]: e.target.value }))
   const clinicAdminCount = (clinicId) => admins.filter(a => a.clinic_id === clinicId).length
 
@@ -855,6 +863,7 @@ export default function SuperAdminDashboard() {
                           <div style={{ display:'flex', gap:6 }}>
                             <button style={s.btnEdit} onClick={() => { setForm({ ...admin }); setModal('edit-admin') }}>Editar</button>
                             <button style={s.btnDanger} onClick={() => deleteAdmin(admin.id)}>Desactivar</button>
+                            <button style={{ ...s.btnDanger, background:'#7f1d1d' }} onClick={() => deleteAdminPermanent(admin.id)}>Eliminar</button>
                           </div>
                         </td>
                       </tr>
@@ -883,6 +892,7 @@ export default function SuperAdminDashboard() {
                         <div style={{ display:'flex', gap:6, marginTop:8 }}>
                           <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...admin }); setModal('edit-admin') }}>Editar</button>
                           <button style={{ ...s.btnDanger, flex:1, textAlign:'center' }} onClick={() => deleteAdmin(admin.id)}>Desactivar</button>
+                          <button style={{ ...s.btnDanger, flex:1, textAlign:'center', background:'#7f1d1d' }} onClick={() => deleteAdminPermanent(admin.id)}>Eliminar</button>
                         </div>
                       </div>
                     )
