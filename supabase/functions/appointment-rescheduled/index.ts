@@ -16,6 +16,7 @@ serve(async (req) => {
 
     let clinicName = 'MedTrack'
     let clinicAddress = ''
+    let wazeLink = ''
     try {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
       const sb = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
@@ -25,6 +26,7 @@ serve(async (req) => {
       if (cs) {
         clinicName = cs.clinic_name || clinicName
         clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
+        if (cs.waze_link) wazeLink = cs.waze_link
       }
     } catch(_e) {}
 
@@ -56,6 +58,13 @@ serve(async (req) => {
           <div style="display:flex;gap:10px;align-items:flex-start;">
             <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Dirección</span>
             <span style="font-size:14px;color:#333;">${clinicAddress}</span>
+          </div>` : ''}
+          ${wazeLink ? `
+          <div style="margin-top:8px;">
+            <a href="${wazeLink}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#1ABCD4;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">
+              <img src="https://www.waze.com/favicon.ico" width="16" height="16" style="border-radius:3px;" />
+              Cómo llegar en Waze
+            </a>
           </div>` : ''}
           <div style="border-top:1px solid #e2ede9;margin:4px 0;"></div>
           <div style="display:flex;gap:10px;align-items:flex-start;">

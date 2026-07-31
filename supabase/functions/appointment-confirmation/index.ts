@@ -44,6 +44,7 @@ serve(async (req) => {
 
     let clinicAddress = ''
     let clinicName = 'MedTrack'
+    let wazeLink = ''
 
     try {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
@@ -54,6 +55,7 @@ serve(async (req) => {
       if (cs) {
         clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
         if (cs.clinic_name) clinicName = cs.clinic_name
+        if (cs.waze_link) wazeLink = cs.waze_link
       }
     } catch(_e) {}
 

@@ -57,7 +57,8 @@ serve(async (req) => {
       const { data: cs } = await supabase.from('clinic_settings').select('*').eq('clinic_id', clinicId).limit(1).single()
       const info = {
         clinicName: cs?.clinic_name || 'MedTrack',
-        clinicAddress: cs ? [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ') : ''
+        clinicAddress: cs ? [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ') : '',
+        wazeLink: cs?.waze_link || ''
       }
       clinicCache[clinicId] = info
       return info
@@ -71,7 +72,7 @@ serve(async (req) => {
       const doctor_name = `${prefix}${appt.doctor?.first_name} ${appt.doctor?.last_name}`
       if (!patient_email) continue
 
-      const { clinicName, clinicAddress } = await getClinicInfo(appt.clinic_id)
+      const { clinicName, clinicAddress, wazeLink } = await getClinicInfo(appt.clinic_id)
       const dateFormatted = new Date(appt.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
       const timeFormatted = appt.appointment_time?.substring(0, 5)
       const confirmUrl = `${FUNCTIONS_URL}/confirm-appointment?id=${appt.id}`
@@ -104,6 +105,13 @@ serve(async (req) => {
           <div style="display:flex;gap:10px;align-items:flex-start;">
             <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Dirección</span>
             <span style="font-size:14px;color:#333;">${clinicAddress}</span>
+          </div>` : ''}
+          ${wazeLink ? `
+          <div style="margin-top:8px;">
+            <a href="${wazeLink}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#1ABCD4;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">
+              <img src="https://www.waze.com/favicon.ico" width="16" height="16" style="border-radius:3px;" />
+              Cómo llegar en Waze
+            </a>
           </div>` : ''}
           <div style="border-top:1px solid #e2ede9;margin:4px 0;"></div>
           <div style="display:flex;gap:10px;align-items:flex-start;">
