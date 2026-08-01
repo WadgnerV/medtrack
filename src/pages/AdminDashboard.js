@@ -3224,8 +3224,18 @@ export default function AdminDashboard() {
               ].map((row,i) => (
                 <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, padding:'9px 0', borderBottom:'1px solid #ebebeb', alignItems:'center' }}>
                   <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>{row.l}</div>
-                  <input value={clinicSettings[row.k]||''} onChange={e => setClinicSettings(p=>({...p,[row.k]:e.target.value}))}
-                    placeholder={row.ph} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' }} />
+                  {row.k === 'whatsapp' ? (
+                    <div style={{ display:'flex', alignItems:'center', border:'1px solid #e0e0e0', borderRadius:8, overflow:'hidden' }}>
+                      <span style={{ padding:'7px 10px', fontSize:13, background:'#f5f5f5', color:'#666', borderRight:'1px solid #e0e0e0', flexShrink:0 }}>+506</span>
+                      <input value={(clinicSettings.whatsapp||'').replace(/\D/g,'').slice(-8)}
+                        onChange={e => setClinicSettings(p=>({...p, whatsapp:e.target.value.replace(/\D/g,'').slice(0,8)}))}
+                        placeholder='88888888' inputMode='numeric'
+                        style={{ padding:'7px 10px', fontSize:13, border:'none', outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' }} />
+                    </div>
+                  ) : (
+                    <input value={clinicSettings[row.k]||''} onChange={e => setClinicSettings(p=>({...p,[row.k]:e.target.value}))}
+                      placeholder={row.ph} style={{ padding:'7px 10px', fontSize:13, border:'1px solid #e0e0e0', borderRadius:8, outline:'none', fontFamily:'inherit', width:'100%', boxSizing:'border-box' }} />
+                  )}
                 </div>
               ))}
 
