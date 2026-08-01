@@ -2622,16 +2622,16 @@ export default function AdminDashboard() {
                 .clinic-name { font-size: 20pt; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; }
                 .clinic-sub { font-size: 10pt; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
                 .header-logo-img { width: 220px; max-width: 100%; height: auto; display: block; margin-bottom: 10px; }
-                .meta-bar { background: #f1f8e9; border-bottom: 2px solid #c8e6c9; padding: 10px 36px; font-size: 10pt; color: #2e7d32; font-weight: 500; }
+                .meta-bar { background: #f7f7f7; border-bottom: 1px solid #e5e5e5; padding: 10px 36px; font-size: 10pt; color: #444; font-weight: 500; }
                 .body { padding: 28px 36px 36px; position: relative; }
                 .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-30deg); font-size: 13pt; font-weight: 700; color: rgba(15,110,86,0.08); text-align: center; pointer-events: none; white-space: nowrap; line-height: 1.6; }
                 .intro { font-size: 11pt; color: #555; line-height: 1.7; margin-bottom: 20px; }
                 .field { display: flex; gap: 8px; margin-bottom: 11px; font-size: 11pt; padding-bottom: 11px; border-bottom: 1px solid #f0f0f0; }
-                .label { color: #6b8f7e; min-width: 220px; font-size: 10pt; }
+                .label { color: #777; min-width: 220px; font-size: 10pt; }
                 .value { font-weight: 600; color: #1a1a1a; }
                 .sig-section { margin-top: 28px; display: flex; flex-direction: column; align-items: flex-end; }
-                .sig-line { border-top: 1.5px solid #2e7d32; width: 220px; margin-bottom: 6px; }
-                .sig-label { font-size: 10pt; color: #2e7d32; font-weight: 600; text-align: right; }
+                .sig-line { border-top: 1.5px solid #1a1a1a; width: 220px; margin-bottom: 6px; }
+                .sig-label { font-size: 10pt; color: #1a1a1a; font-weight: 600; text-align: right; }
                 .sig-sub { font-size: 9pt; color: #888; text-align: right; margin-top: 2px; }
                  .sig-img { width: 220px; height: 80px; border: none; object-fit: contain; margin-bottom: 0; }
                  .footer { display: none; }
@@ -2641,9 +2641,9 @@ export default function AdminDashboard() {
               <div class="page">
                 <div class="header">
                   ${clinicSettings?.logo_url ? `<img src="${clinicSettings.logo_url}" alt="${clinicName||''}" class="header-logo-img" />` : `<div class="clinic-name" style="color:${primaryColor};">${clinicName||''}</div>`}
-                  <div class="clinic-sub" style="color:${primaryColor};">Comprobante de asistencia a cita médica</div>
+                  <div class="clinic-sub" style="color:#666;opacity:1;">Comprobante de asistencia a cita médica</div>
                 </div>
-                 <div class="meta-bar" style="color:${primaryColor};border-bottom-color:${primaryColor};">Documento oficial</div>
+                 <div class="meta-bar">Documento oficial</div>
                 <div class="body">
                   <div class="watermark">Este comprobante es verificado<br/>por el centro de atención</div>
                   <p class="intro">El presente comprobante se extiende para confirmar la asistencia a cita médica de:</p>
@@ -2655,8 +2655,8 @@ export default function AdminDashboard() {
                   <div class="field"><span class="label">Atención médica brindada por</span><span class="value">${doctorName}${doctorCode?' — '+doctorCode:''}</span></div>
                   <div class="sig-section">
                     ${firmaDataUrl ? `<img src="${firmaDataUrl}" class="sig-img" />` : '<div class="sig-img"></div>'}
-                    <div class="sig-line" style="border-top-color:${primaryColor};"></div>
-                    <div class="sig-label" style="color:${primaryColor};">Firma del médico tratante</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Firma del médico tratante</div>
                     <div class="sig-sub">${doctorName}</div>
                   </div>
                 </div>
