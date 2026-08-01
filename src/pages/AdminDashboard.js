@@ -1645,15 +1645,21 @@ export default function AdminDashboard() {
       {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:primaryColor, borderRight:`0.5px solid ${darken(primaryColor,0.15)}`, display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
         <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
           {!sidebarCollapsed && (
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+            clinicSettings?.logo_url ? (
+              <div style={{ background:'#fff', borderRadius:8, padding:'6px 10px', display:'flex', alignItems:'center', justifyContent:'center', flex:1, marginRight:8, minWidth:0 }}>
+                <img src={clinicSettings.logo_url} alt={clinicSettings?.clinic_name || 'Logo'} style={{ maxWidth:'100%', maxHeight:34, objectFit:'contain', display:'block' }} />
               </div>
-              <div>
-                <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
-                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{clinicSettings?.clinic_name || profile?.clinic_name || ''}</div>
+            ) : (
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{clinicSettings?.clinic_name || profile?.clinic_name || ''}</div>
+                </div>
               </div>
-            </div>
+            )
           )}
           {sidebarCollapsed && (
             <div style={{ width:28, height:28, borderRadius:6, background:'var(--clinic-primary, #0F6E56)', display:'flex', alignItems:'center', justifyContent:'center' }}>
