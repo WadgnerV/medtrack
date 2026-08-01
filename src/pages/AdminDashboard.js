@@ -2621,6 +2621,7 @@ export default function AdminDashboard() {
                 .header { background: linear-gradient(135deg,#1b5e20,#2e7d32,#43a047); padding: 28px 36px 22px; color: #fff; }
                 .clinic-name { font-size: 20pt; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; }
                 .clinic-sub { font-size: 10pt; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
+                .header-logo-img { width: 220px; max-width: 100%; height: auto; display: block; margin-bottom: 10px; }
                 .meta-bar { background: #f1f8e9; border-bottom: 2px solid #c8e6c9; padding: 10px 36px; font-size: 10pt; color: #2e7d32; font-weight: 500; }
                 .body { padding: 28px 36px 36px; position: relative; }
                 .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-30deg); font-size: 13pt; font-weight: 700; color: rgba(15,110,86,0.08); text-align: center; pointer-events: none; white-space: nowrap; line-height: 1.6; }
@@ -2638,9 +2639,9 @@ export default function AdminDashboard() {
                 @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
               </style></head><body>
               <div class="page">
-                <div class="header">
-                  <div class="clinic-name">${clinicName||''}</div>
-                  <div class="clinic-sub">Comprobante de asistencia a cita médica</div>
+                <div class="header" style="${clinicSettings?.logo_url ? 'background:#f7f7f5;border-bottom:1px solid #ececea;' : ''}">
+                  ${clinicSettings?.logo_url ? `<img src="${clinicSettings.logo_url}" alt="${clinicName||''}" class="header-logo-img" />` : `<div class="clinic-name">${clinicName||''}</div>`}
+                  <div class="clinic-sub" style="${clinicSettings?.logo_url ? 'color:#6b8f7e;opacity:1;' : ''}">Comprobante de asistencia a cita médica</div>
                 </div>
                  <div class="meta-bar">Documento oficial</div>
                 <div class="body">
