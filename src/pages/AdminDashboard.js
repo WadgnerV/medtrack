@@ -2618,7 +2618,8 @@ export default function AdminDashboard() {
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { font-family: 'Inter', sans-serif; color: #1a1a1a; background: #fff; }
                 .page { max-width: 680px; margin: 0 auto; position: relative; }
-                .header { background: linear-gradient(135deg,#1b5e20,#2e7d32,#43a047); padding: 28px 36px 22px; color: #fff; }
+                .header { padding: 28px 36px 22px; color: #fff; }
+                .header-logo-box { background:#fff; border-radius:10px; padding:12px 20px; display:inline-block; margin-bottom:10px; }
                 .clinic-name { font-size: 20pt; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; }
                 .clinic-sub { font-size: 10pt; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
                 .header-logo-img { width: 220px; max-width: 100%; height: auto; display: block; margin-bottom: 10px; }
@@ -2639,9 +2640,9 @@ export default function AdminDashboard() {
                 @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
               </style></head><body>
               <div class="page">
-                <div class="header" style="${clinicSettings?.logo_url ? 'background:#f7f7f5;border-bottom:1px solid #ececea;' : ''}">
-                  ${clinicSettings?.logo_url ? `<img src="${clinicSettings.logo_url}" alt="${clinicName||''}" class="header-logo-img" />` : `<div class="clinic-name">${clinicName||''}</div>`}
-                  <div class="clinic-sub" style="${clinicSettings?.logo_url ? 'color:#6b8f7e;opacity:1;' : ''}">Comprobante de asistencia a cita médica</div>
+                <div class="header" style="background:${primaryColor};">
+                  ${clinicSettings?.logo_url ? `<div class="header-logo-box"><img src="${clinicSettings.logo_url}" alt="${clinicName||''}" class="header-logo-img" /></div>` : `<div class="clinic-name">${clinicName||''}</div>`}
+                  <div class="clinic-sub">Comprobante de asistencia a cita médica</div>
                 </div>
                  <div class="meta-bar">Documento oficial</div>
                 <div class="body">
