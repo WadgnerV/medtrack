@@ -941,7 +941,7 @@ export default function SuperAdminDashboard() {
                 const { error } = await supabase.storage.from('clinic-logos').upload(path, file, { upsert: true })
                 if (error) { alert('Error subiendo logo: ' + error.message); return }
                 const { data: urlData } = supabase.storage.from('clinic-logos').getPublicUrl(path)
-                setForm(p => ({...p, logo_url: urlData.publicUrl}))
+                setForm(p => ({...p, logo_url: `${urlData.publicUrl}?v=${Date.now()}`}))
               }} style={{ fontSize:12, color:'#555' }} />
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
