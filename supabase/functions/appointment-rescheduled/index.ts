@@ -16,6 +16,8 @@ serve(async (req) => {
 
     let clinicName = 'MedTrack'
     let clinicAddress = ''
+    let clinicWhatsapp = ''
+    let clinicLogo = ''
     let wazeLink = ''
     try {
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
@@ -26,6 +28,8 @@ serve(async (req) => {
       if (cs) {
         clinicName = cs.clinic_name || clinicName
         clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
+        clinicWhatsapp = (cs.whatsapp || '').replace(/\D/g,'').slice(-8)
+        clinicLogo = cs.logo_url || ''
         if (cs.waze_link) wazeLink = cs.waze_link
       }
     } catch(_e) {}
@@ -39,10 +43,14 @@ serve(async (req) => {
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Inter,Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-    <div style="background:#1a3a5c;padding:28px 32px;">
-      <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
-      <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
-    </div>
+    ${clinicLogo
+      ? `<div style="background:#f7f7f5;padding:30px 32px;border-bottom:1px solid #ececea;">
+        <img src="${clinicLogo}" alt="${clinicName}" width="240" style="display:block;width:240px;max-width:100%;height:auto;border:0;" />
+      </div>`
+      : `<div style="background:#1a3a5c;padding:28px 32px;">
+        <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
+        <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
+      </div>`}
     <div style="padding:32px;">
       <div style="font-size:18px;font-weight:600;color:#1a3a5c;margin-bottom:8px;">Tu cita fue reprogramada</div>
       <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 20px;">
@@ -81,12 +89,13 @@ serve(async (req) => {
           </div>
         </div>
       </div>
+      ${clinicWhatsapp ? `
       <p style="color:#888;font-size:13px;line-height:1.6;margin:0 0 20px;">Si este cambio no fue solicitado por vos o tenés alguna consulta, por favor contáctanos por WhatsApp.</p>
       <div style="text-align:center;">
-        <a href="https://wa.me/50660464569" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:600;">
+        <a href="https://wa.me/506${clinicWhatsapp}" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:600;">
           Contactar por WhatsApp
         </a>
-      </div>
+      </div>` : ''}
     </div>
     <div style="padding:16px 32px;border-top:1px solid #f0f0f0;text-align:center;font-size:12px;color:#aaa;">
       ${clinicName} · Este correo fue generado automáticamente, por favor no responder.

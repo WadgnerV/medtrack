@@ -44,6 +44,8 @@ serve(async (req) => {
 
     let clinicAddress = ''
     let clinicName = 'MedTrack'
+    let clinicLogo = ''
+    let clinicWhatsapp = ''
     let wazeLink = ''
 
     try {
@@ -55,6 +57,8 @@ serve(async (req) => {
       if (cs) {
         clinicAddress = [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ')
         if (cs.clinic_name) clinicName = cs.clinic_name
+        clinicLogo = cs.logo_url || ''
+        clinicWhatsapp = (cs.whatsapp || '').replace(/\D/g,'').slice(-8)
         if (cs.waze_link) wazeLink = cs.waze_link
       }
     } catch(_e) {}
@@ -69,10 +73,14 @@ serve(async (req) => {
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Inter,Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-    <div style="background:#1a3a5c;padding:28px 32px;">
-      <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
-      <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
-    </div>
+    ${clinicLogo
+      ? `<div style="background:#f7f7f5;padding:30px 32px;border-bottom:1px solid #ececea;">
+        <img src="${clinicLogo}" alt="${clinicName}" width="240" style="display:block;width:240px;max-width:100%;height:auto;border:0;" />
+      </div>`
+      : `<div style="background:#1a3a5c;padding:28px 32px;">
+        <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
+        <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
+      </div>`}
     <div style="padding:32px;">
       <div style="font-size:18px;font-weight:600;color:#1a3a5c;margin-bottom:8px;">Cita agendada</div>
       <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 20px;">
@@ -104,6 +112,16 @@ serve(async (req) => {
           </div>
         </div>
       </div>
+      ${clinicWhatsapp ? `
+      <div style="background:#f8fbf9;border:1px solid #e2ede9;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:600;color:#0F6E56;margin-bottom:6px;">¿Necesitás reprogramar o tenés alguna consulta?</div>
+        <div style="font-size:13px;color:#555;line-height:1.6;">Escribinos por WhatsApp y con gusto te ayudamos.</div>
+      </div>
+      <div style="text-align:center;margin-bottom:20px;">
+        <a href="https://wa.me/506${clinicWhatsapp}" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:600;">
+          Contactar por WhatsApp
+        </a>
+      </div>` : ''}
       <div style="text-align:center;margin-bottom:20px;">
         <a href="${gcalUrl}" style="display:inline-block;background:#4285F4;color:#fff;text-decoration:none;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:600;">
           Agregar a Google Calendar

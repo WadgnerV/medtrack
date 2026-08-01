@@ -58,7 +58,8 @@ serve(async (req) => {
       const info = {
         clinicName: cs?.clinic_name || 'MedTrack',
         clinicAddress: cs ? [cs.address, cs.district, cs.canton, cs.province, cs.office_number].filter(Boolean).join(', ') : '',
-        wazeLink: cs?.waze_link || ''
+        wazeLink: cs?.waze_link || '',
+        clinicLogo: cs?.logo_url || ''
       }
       clinicCache[clinicId] = info
       return info
@@ -72,7 +73,7 @@ serve(async (req) => {
       const doctor_name = `${prefix}${appt.doctor?.first_name} ${appt.doctor?.last_name}`
       if (!patient_email) continue
 
-      const { clinicName, clinicAddress, wazeLink } = await getClinicInfo(appt.clinic_id)
+      const { clinicName, clinicAddress, wazeLink, clinicLogo } = await getClinicInfo(appt.clinic_id)
       const dateFormatted = new Date(appt.appointment_date + 'T12:00:00').toLocaleDateString('es-CR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
       const timeFormatted = appt.appointment_time?.substring(0, 5)
       const confirmUrl = `${FUNCTIONS_URL}/confirm-appointment?id=${appt.id}`
@@ -86,10 +87,14 @@ serve(async (req) => {
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Inter,Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-    <div style="background:#1a3a5c;padding:28px 32px;">
-      <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
-      <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
-    </div>
+    ${clinicLogo
+      ? `<div style="background:#f7f7f5;padding:30px 32px;border-bottom:1px solid #ececea;">
+        <img src="${clinicLogo}" alt="${clinicName}" width="240" style="display:block;width:240px;max-width:100%;height:auto;border:0;" />
+      </div>`
+      : `<div style="background:#1a3a5c;padding:28px 32px;">
+        <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${clinicName}</div>
+        <div style="color:rgba(255,255,255,0.65);font-size:13px;margin-top:4px;">Sistema de gestión médica</div>
+      </div>`}
     <div style="padding:32px;">
       <div style="font-size:18px;font-weight:600;color:#1a3a5c;margin-bottom:8px;">Recordatorio de cita</div>
       <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 20px;">
