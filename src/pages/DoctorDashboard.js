@@ -101,6 +101,14 @@ export default function DoctorDashboard() {
   const [collapsedMenuOpen, setCollapsedMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
+  const [clinicLogoUrl, setClinicLogoUrl] = useState(null)
+
+  useEffect(() => {
+    const cid = profile?.active_clinic_id || profile?.clinic_id
+    if (!cid) return
+    supabase.from('clinic_settings').select('logo_url').eq('clinic_id', cid).maybeSingle()
+      .then(({ data }) => setClinicLogoUrl(data?.logo_url || null))
+  }, [profile?.active_clinic_id, profile?.clinic_id])
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 640)
@@ -645,15 +653,21 @@ export default function DoctorDashboard() {
       {!isMobile && <div style={{ width: sidebarCollapsed ? 52 : 210, minWidth: sidebarCollapsed ? 52 : 210, background:'var(--clinic-primary, #0F6E56)', borderRight:'0.5px solid rgba(0,0,0,0.15)', display:'flex', flexDirection:'column', overflowY:'auto', overflowX:'hidden', transition:'width 0.2s ease, min-width 0.2s ease' }}>
         <div style={{ padding:'10px 12px', borderBottom:'0.5px solid rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between' }}>
           {!sidebarCollapsed && (
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+            clinicLogoUrl ? (
+              <div style={{ background:'#fff', borderRadius:8, padding:'6px 10px', display:'flex', alignItems:'center', justifyContent:'center', flex:1, marginRight:8, minWidth:0 }}>
+                <img src={clinicLogoUrl} alt={profile?.clinic_name || 'Logo'} style={{ maxWidth:'100%', maxHeight:34, objectFit:'contain', display:'block' }} />
               </div>
-              <div>
-                <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
-                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || ''}</div>
+            ) : (
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <i className="ti ti-heart-rate-monitor" style={{ color:'white', fontSize:15 }} aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:500, color:'#fff' }}>MedTrack</div>
+                  <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)' }}>{profile?.clinic_name || ''}</div>
+                </div>
               </div>
-            </div>
+            )
           )}
           {sidebarCollapsed && (
             <div style={{ width:28, height:28, borderRadius:6, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
