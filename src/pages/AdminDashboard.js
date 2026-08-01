@@ -2618,8 +2618,7 @@ export default function AdminDashboard() {
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { font-family: 'Inter', sans-serif; color: #1a1a1a; background: #fff; }
                 .page { max-width: 680px; margin: 0 auto; position: relative; }
-                .header { padding: 28px 36px 22px; color: #fff; }
-                .header-logo-box { background:#fff; border-radius:10px; padding:12px 20px; display:inline-block; margin-bottom:10px; }
+                .header { padding: 30px 36px 24px; background:#f7f7f5; border-bottom:1px solid #ececea; }
                 .clinic-name { font-size: 20pt; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; }
                 .clinic-sub { font-size: 10pt; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
                 .header-logo-img { width: 220px; max-width: 100%; height: auto; display: block; margin-bottom: 10px; }
@@ -2640,11 +2639,11 @@ export default function AdminDashboard() {
                 @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
               </style></head><body>
               <div class="page">
-                <div class="header" style="background:${primaryColor};">
-                  ${clinicSettings?.logo_url ? `<div class="header-logo-box"><img src="${clinicSettings.logo_url}" alt="${clinicName||''}" class="header-logo-img" /></div>` : `<div class="clinic-name">${clinicName||''}</div>`}
-                  <div class="clinic-sub">Comprobante de asistencia a cita médica</div>
+                <div class="header">
+                  ${clinicSettings?.logo_url ? `<img src="${clinicSettings.logo_url}" alt="${clinicName||''}" class="header-logo-img" />` : `<div class="clinic-name" style="color:${primaryColor};">${clinicName||''}</div>`}
+                  <div class="clinic-sub" style="color:${primaryColor};">Comprobante de asistencia a cita médica</div>
                 </div>
-                 <div class="meta-bar">Documento oficial</div>
+                 <div class="meta-bar" style="color:${primaryColor};border-bottom-color:${primaryColor};">Documento oficial</div>
                 <div class="body">
                   <div class="watermark">Este comprobante es verificado<br/>por el centro de atención</div>
                   <p class="intro">El presente comprobante se extiende para confirmar la asistencia a cita médica de:</p>
@@ -2656,8 +2655,8 @@ export default function AdminDashboard() {
                   <div class="field"><span class="label">Atención médica brindada por</span><span class="value">${doctorName}${doctorCode?' — '+doctorCode:''}</span></div>
                   <div class="sig-section">
                     ${firmaDataUrl ? `<img src="${firmaDataUrl}" class="sig-img" />` : '<div class="sig-img"></div>'}
-                    <div class="sig-line"></div>
-                    <div class="sig-label">Firma del médico tratante</div>
+                    <div class="sig-line" style="border-top-color:${primaryColor};"></div>
+                    <div class="sig-label" style="color:${primaryColor};">Firma del médico tratante</div>
                     <div class="sig-sub">${doctorName}</div>
                   </div>
                 </div>
