@@ -160,6 +160,12 @@ export default function SuperAdminDashboard() {
 
   async function loadClinics() {
     const { data } = await supabase.from('clinics').select('*').order('name')
+    // Enriquecer con logo_url de clinic_settings
+    if (data && data.length > 0) {
+      const { data: settings } = await supabase.from('clinic_settings').select('clinic_id, logo_url')
+      const settingsMap = Object.fromEntries((settings||[]).map(s => [s.clinic_id, s]))
+      data.forEach(c => { c._logo_url = settingsMap[c.id]?.logo_url || '' })
+    }
     setClinics(data || [])
     const { data: br } = await supabase.from('branches').select('*').order('created_at', { ascending: true })
     setBranches(br || [])
@@ -244,7 +250,7 @@ export default function SuperAdminDashboard() {
     if (form.id) {
       const { error: updateErr } = await supabase.from('clinics').update({ ...payload, is_active: form.is_active }).eq('id', form.id)
       if (updateErr) { alert('Error al actualizar: ' + updateErr.message); setSaving(false); return }
-      await supabase.from('clinic_settings').update({ clinic_name: form.name }).eq('clinic_id', form.id)
+      await supabase.from('clinic_settings').update({ clinic_name: form.name, logo_url: form.logo_url||null }).eq('clinic_id', form.id)
     } else {
       const { error: insertErr } = await supabase.from('clinics').insert({ ...payload, is_active: true })
       if (insertErr) { alert('Error al crear: ' + insertErr.message); setSaving(false); return }
@@ -918,6 +924,25 @@ export default function SuperAdminDashboard() {
             <div style={{ marginBottom:12 }}>
               <label style={s.fieldLabel}>Nombre comercial <span style={{ color:'#D85A30' }}>*</span></label>
               <input value={form.name||''} onChange={f('name')} placeholder="Ej: Glow Clinic" style={s.input} />
+            </div>
+            <div style={{ marginBottom:12 }}>
+              <label style={s.fieldLabel}>Logo de la clínica</label>
+              {form.logo_url && (
+                <div style={{ marginBottom:8, display:'flex', alignItems:'center', gap:10 }}>
+                  <img src={form.logo_url} alt="Logo" style={{ height:48, objectFit:'contain', borderRadius:6, border:'1px solid #eee', padding:4 }} />
+                  <button type="button" onClick={() => setForm(p => ({...p, logo_url:''}))} style={{ background:'none', border:'none', cursor:'pointer', fontSize:12, color:'#D85A30' }}>Quitar logo</button>
+                </div>
+              )}
+              <input type="file" accept="image/*" onChange={async e => {
+                const file = e.target.files[0]
+                if (!file) return
+                const ext = file.name.split('.').pop()
+                const path = `${form.id || 'new'}/logo.${ext}`
+                const { error } = await supabase.storage.from('clinic-logos').upload(path, file, { upsert: true })
+                if (error) { alert('Error subiendo logo: ' + error.message); return }
+                const { data: urlData } = supabase.storage.from('clinic-logos').getPublicUrl(path)
+                setForm(p => ({...p, logo_url: urlData.publicUrl}))
+              }} style={{ fontSize:12, color:'#555' }} />
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
               <div>
