@@ -642,7 +642,7 @@ export default function SuperAdminDashboard() {
                     </div>
                     {/* Footer card */}
                     <div style={{ padding:'10px 18px', borderTop:'0.5px solid #f0f0f0', display:'flex', gap:8 }}>
-                      <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...clinic }); setModal('clinic') }}>Editar</button>
+                      <button style={{ ...s.btnEdit, flex:1, textAlign:'center' }} onClick={() => { setForm({ ...clinic, logo_url: clinic._logo_url || '' }); setModal('clinic') }}>Editar</button>
                       <button style={{ ...s.btnDanger, flex:1, textAlign:'center' }} onClick={() => deleteClinic(clinic.id)}>Eliminar</button>
                     </div>
                   </div>
