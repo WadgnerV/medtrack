@@ -87,30 +87,36 @@ serve(async (req) => {
         Hola <strong>${patient_name}</strong>, tu cita ha sido agendada exitosamente en <strong>${clinicName}</strong>.
       </p>
       <div style="background:#f8fbf9;border:1px solid #e2ede9;border-radius:12px;padding:20px;margin-bottom:24px;">
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Clínica</span>
-            <span style="font-size:14px;color:#1a3a5c;font-weight:500;">${clinicName}</span>
-          </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+          <tr>
+            <td width="90" valign="top" style="font-size:12px;color:#888;padding:5px 10px 5px 0;">Clínica</td>
+            <td valign="top" style="font-size:14px;color:#1a3a5c;font-weight:500;padding:5px 0;">${clinicName}</td>
+          </tr>
           ${clinicAddress ? `
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Dirección</span>
-            <span style="font-size:14px;color:#333;">${clinicAddress}</span>
-          </div>` : ''}
-          <div style="border-top:1px solid #e2ede9;margin:4px 0;"></div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Fecha</span>
-            <span style="font-size:14px;color:#333;font-weight:500;">${dateFormatted}</span>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Hora</span>
-            <span style="font-size:14px;color:#333;font-weight:500;">${timeFormatted}</span>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <span style="font-size:12px;color:#888;min-width:80px;padding-top:1px;">Médico</span>
-            <span style="font-size:14px;color:#333;">${doctor_name}</span>
-          </div>
-        </div>
+          <tr>
+            <td width="90" valign="top" style="font-size:12px;color:#888;padding:5px 10px 5px 0;">Dirección</td>
+            <td valign="top" style="font-size:14px;color:#333;padding:5px 0;">${clinicAddress}</td>
+          </tr>` : ''}
+          ${wazeLink ? `
+          <tr>
+            <td colspan="2" align="center" style="padding:10px 0;">
+              <a href="${wazeLink}" target="_blank" style="display:inline-block;background:#1ABCD4;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Cómo llegar en Waze</a>
+            </td>
+          </tr>` : ''}
+          <tr><td colspan="2" style="border-top:1px solid #e2ede9;font-size:0;line-height:0;padding:4px 0;">&nbsp;</td></tr>
+          <tr>
+            <td width="90" valign="top" style="font-size:12px;color:#888;padding:5px 10px 5px 0;">Fecha</td>
+            <td valign="top" style="font-size:14px;color:#333;font-weight:500;padding:5px 0;">${dateFormatted}</td>
+          </tr>
+          <tr>
+            <td width="90" valign="top" style="font-size:12px;color:#888;padding:5px 10px 5px 0;">Hora</td>
+            <td valign="top" style="font-size:14px;color:#333;font-weight:500;padding:5px 0;">${timeFormatted}</td>
+          </tr>
+          <tr>
+            <td width="90" valign="top" style="font-size:12px;color:#888;padding:5px 10px 5px 0;">Médico</td>
+            <td valign="top" style="font-size:14px;color:#333;padding:5px 0;">${doctor_name}</td>
+          </tr>
+        </table>
       </div>
       ${clinicWhatsapp ? `
       <div style="background:#f8fbf9;border:1px solid #e2ede9;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
