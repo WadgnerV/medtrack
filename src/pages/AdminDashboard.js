@@ -2373,15 +2373,16 @@ export default function AdminDashboard() {
                                     const fmt = (h,m) => { const p=h>=12?'pm':'am'; const h12=h%12||12; return h12+':'+(m<10?'0':'')+m+p }
                                     const timeStr = fmt(ah2,am2)+' - '+fmt(Math.floor(endMin/60)%24,endMin%60)
                                     return (
-                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:`calc(${leftPct}% + 1px)`, width:`calc(${widthPct}% - 2px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5, boxSizing:'border-box' }}
+                                      <div key={a.id} draggable={true} onDragStart={e => { e.stopPropagation(); setDraggingAppt(a); e.dataTransfer.effectAllowed='move' }} style={{ position:'absolute', left:`calc(${leftPct}% + 1px)`, width:`calc(${widthPct}% - 2px)`, top, height, background: a.status==='cancelled' ? '#f0f0f0' : color+'22', borderLeft:'3px solid '+(a.status==='cancelled' ? '#bbb' : color), borderRadius:4, padding:'3px 5px', overflow:'hidden', cursor:'grab', zIndex:5, boxSizing:'border-box', opacity: a.status==='cancelled' ? 0.75 : 1 }}
                                         onClick={e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setPopupAppt(a); setPopupPos({ x: Math.min(r.right+8, window.innerWidth-320), y: Math.min(r.top, window.innerHeight-400) }) }}>
-                                        <div style={{ fontSize:10, fontWeight:600, color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
-                                          <span>{timeStr}</span>
+                                        <div style={{ fontSize:10, fontWeight:600, color: a.status==='cancelled' ? '#888' : color, lineHeight:1.3, display:'flex', justifyContent:'space-between' }}>
+                                          <span style={{ textDecoration: a.status==='cancelled' ? 'line-through' : 'none' }}>{timeStr}</span>
+                                          {a.status === 'cancelled' && <span style={{ fontSize:9, fontWeight:600, color:'#888' }}>Cancelada</span>}
                                           {a.status === 'confirmed_patient' && <i className='ti ti-check' style={{ fontSize:12, color:'#085041', WebkitTextStroke:'0.5px #085041' }} aria-hidden='true'></i>}
                                           {a.status === 'confirmed_doctor' && <i className='ti ti-check' style={{ fontSize:12, color:'#0C447C', WebkitTextStroke:'0.5px #0C447C' }} aria-hidden='true'></i>}
                                           {a.status === 'no_show' && <span style={{ fontSize:12, fontWeight:900, color:'#D97706', lineHeight:1 }}>—</span>}
                                         </div>
-                                        <div style={{ fontSize:10, fontWeight:500, color:'#1a1a1a', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
+                                        <div style={{ fontSize:10, fontWeight:500, color: a.status==='cancelled' ? '#888' : '#1a1a1a', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: a.status==='cancelled' ? 'line-through' : 'none' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
                                         {a.notes && <div style={{ fontSize:9, color:'#777', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.notes}</div>}
                                         {a.tags?.length > 0 && (
                                           <div style={{ position:'absolute', bottom:3, left:4, display:'flex', gap:2 }}>
