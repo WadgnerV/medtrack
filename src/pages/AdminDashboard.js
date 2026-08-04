@@ -448,6 +448,15 @@ export default function AdminDashboard() {
   const [availability, setAvailability] = useState([])
   const [availForm, setAvailForm] = useState({ doctor_id:'', branch_id:'', start_time:'08:00', end_time:'17:00', repeat_type:'weekly', days_of_week:[], start_date:'', end_type:'indefinite', repeat_until:'' })
   const [popupAppt, setPopupAppt] = useState(null)
+  const [popupTab, setPopupTab] = useState('general')
+  const [apptEvents, setApptEvents] = useState([])
+
+  useEffect(() => {
+    setPopupTab('general')
+    if (!popupAppt?.id) { setApptEvents([]); return }
+    supabase.from('appointment_events').select('*').eq('appointment_id', popupAppt.id).order('created_at', { ascending: false })
+      .then(({ data }) => setApptEvents(data || []))
+  }, [popupAppt?.id])
   const [comprobanteAppt, setComprobanteAppt] = useState(null)
   const [comprobanteHoraIngreso, setComprobanteHoraIngreso] = useState('')
   const [comprobanteHoraSalida, setComprobanteHoraSalida] = useState('')
@@ -2539,6 +2548,13 @@ export default function AdminDashboard() {
                       <button onClick={() => setPopupAppt(null)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:16, color:'#999', padding:0 }}>✕</button>
                     </div>
 
+                    {/* Pestañas */}
+                    <div style={{ display:'flex', borderBottom:'0.5px solid #eee' }}>
+                      <div onClick={() => setPopupTab('general')} style={{ flex:1, textAlign:'center', padding:'8px 0', fontSize:12, cursor:'pointer', fontWeight: popupTab==='general'?500:400, color: popupTab==='general'?'#1a1a1a':'#888', borderBottom: popupTab==='general'?'2px solid var(--clinic-primary, #0F6E56)':'2px solid transparent' }}>Información general</div>
+                      <div onClick={() => setPopupTab('historial')} style={{ flex:1, textAlign:'center', padding:'8px 0', fontSize:12, cursor:'pointer', fontWeight: popupTab==='historial'?500:400, color: popupTab==='historial'?'#1a1a1a':'#888', borderBottom: popupTab==='historial'?'2px solid var(--clinic-primary, #0F6E56)':'2px solid transparent' }}>Historial de cita</div>
+                    </div>
+
+                    {popupTab === 'general' && (<>
                     {/* Estado */}
                     <div style={{ padding:'10px 14px', borderBottom:'0.5px solid #eee' }}>
                       <div style={{ fontSize:11, color:'#888', marginBottom:6 }}>Estado</div>
@@ -2590,6 +2606,37 @@ export default function AdminDashboard() {
                         Generar comprobante de asistencia
                       </button>
                     </div>
+                    </>)}
+
+                    {popupTab === 'historial' && (
+                    <div style={{ padding:'14px' }}>
+                      {apptEvents.length === 0 && <div style={{ fontSize:12, color:'#999', textAlign:'center', padding:'10px 0' }}>Sin eventos registrados</div>}
+                      {apptEvents.map((ev, i) => {
+                        const cfg = {
+                          created:     { bg:'#E1F5EE', color:'#0F6E56', icon:'+', label:'agendó la cita' },
+                          rescheduled: { bg:'#E6F1FB', color:'#185FA5', icon:'↻', label:'reprogramó la cita' },
+                          cancelled:   { bg:'#FCEBEB', color:'#A32D2D', icon:'✕', label:'canceló la cita' },
+                        }[ev.action] || { bg:'#f0f0f0', color:'#666', icon:'•', label:ev.action }
+                        const fmtDT = ts => new Date(ts).toLocaleString('es-CR', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true })
+                        const fmtDate = (d,t) => new Date(d+'T'+(t||'00:00')).toLocaleDateString('es-CR',{ day:'numeric', month:'short' }) + ', ' + (() => { const [h,m]=(t||'00:00').split(':').map(Number); const p=h>=12?'p.m.':'a.m.'; return (h%12||12)+':'+(m<10?'0':'')+m+' '+p })()
+                        return (
+                          <div key={ev.id} style={{ display:'flex', gap:10, paddingBottom: i < apptEvents.length-1 ? 14 : 0 }}>
+                            <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                              <div style={{ width:26, height:26, borderRadius:'50%', background:cfg.bg, color:cfg.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, flexShrink:0 }}>{cfg.icon}</div>
+                              {i < apptEvents.length-1 && <div style={{ width:1.5, flex:1, background:'#eee', marginTop:4 }} />}
+                            </div>
+                            <div style={{ paddingTop:2 }}>
+                              <div style={{ fontSize:12, color:'#1a1a1a' }}><span style={{ fontWeight:500 }}>{ev.actor_name || 'Alguien'}</span> {cfg.label}</div>
+                              {ev.action === 'rescheduled' && ev.old_date && (
+                                <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{fmtDate(ev.old_date, ev.old_time)} → {fmtDate(ev.new_date, ev.new_time)}</div>
+                              )}
+                              <div style={{ fontSize:11, color:'#999', marginTop:2 }}>{fmtDT(ev.created_at)}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    )}
                   </div>
                 </div>
               )}
