@@ -450,6 +450,15 @@ export default function AdminDashboard() {
   const [popupAppt, setPopupAppt] = useState(null)
   const [popupTab, setPopupTab] = useState('general')
   const [apptEvents, setApptEvents] = useState([])
+  const [showCancelled, setShowCancelled] = useState(!!profile?.agenda_prefs?.show_cancelled)
+  const [savingAgendaPrefs, setSavingAgendaPrefs] = useState(false)
+
+  async function saveAgendaPrefs(next) {
+    setSavingAgendaPrefs(true)
+    const prefs = { ...(profile?.agenda_prefs || {}), show_cancelled: next }
+    await supabase.from('profiles').update({ agenda_prefs: prefs }).eq('id', profile.id)
+    setSavingAgendaPrefs(false)
+  }
 
   useEffect(() => {
     setPopupTab('general')
@@ -1245,7 +1254,7 @@ export default function AdminDashboard() {
   }
 
   function apptsByDate(dateStr) {
-    return appts.filter(a => a.appointment_date === dateStr && a.status !== 'cancelled' && (!selBranch || a.branch_id === selBranch) && (!filterDoctorId || a.doctor_id === filterDoctorId)).sort((a,b) => a.appointment_time.localeCompare(b.appointment_time))
+    return appts.filter(a => a.appointment_date === dateStr && (showCancelled || a.status !== 'cancelled') && (!selBranch || a.branch_id === selBranch) && (!filterDoctorId || a.doctor_id === filterDoctorId)).sort((a,b) => a.appointment_time.localeCompare(b.appointment_time))
   }
 
   function doctorColor(doctorId) {
@@ -2487,21 +2496,21 @@ export default function AdminDashboard() {
                             const widthPct = 100 / cols
                             const leftPct = widthPct * col
                             return (
-                              <div key={a.id} style={{ position:'absolute', left:`calc(${leftPct}% + 4px)`, width:`calc(${widthPct}% - 8px)`, top, height, background:color+'22', borderLeft:'3px solid '+color, borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5, boxSizing:'border-box' }}
+                              <div key={a.id} style={{ position:'absolute', left:`calc(${leftPct}% + 4px)`, width:`calc(${widthPct}% - 8px)`, top, height, background: a.status==='cancelled' ? '#f0f0f0' : color+'22', borderLeft:'3px solid '+(a.status==='cancelled' ? '#bbb' : color), borderRadius:6, padding:'5px 8px', overflow:'hidden', cursor:'pointer', zIndex:5, boxSizing:'border-box', opacity: a.status==='cancelled' ? 0.75 : 1 }}
                                 onClick={() => { setModal('edit-appt'); setModalData({appt:a}) }}>
-                                <div style={{ fontSize:11, fontWeight:700, color, display:'flex', justifyContent:'space-between', marginBottom:2 }}>
-                                  <span>{timeStr}</span>
-                                  <span style={{ fontSize:10, padding:'0 5px', borderRadius:10, background:st.bg, color:st.color }}>{st.label}</span>
+                                <div style={{ fontSize:11, fontWeight:700, color: a.status==='cancelled' ? '#888' : color, display:'flex', justifyContent:'space-between', marginBottom:2 }}>
+                                  <span style={{ textDecoration: a.status==='cancelled' ? 'line-through' : 'none' }}>{timeStr}</span>
+                                  <span style={{ fontSize:10, padding:'0 5px', borderRadius:10, background: a.status==='cancelled' ? '#e0e0e0' : st.bg, color: a.status==='cancelled' ? '#777' : st.color }}>{a.status==='cancelled' ? 'Cancelada' : st.label}</span>
                                 </div>
-                                <div style={{ fontSize:11, fontWeight:600, color:'#1a1a1a', marginBottom:1 }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
+                                <div style={{ fontSize:11, fontWeight:600, color: a.status==='cancelled' ? '#888' : '#1a1a1a', marginBottom:1, textDecoration: a.status==='cancelled' ? 'line-through' : 'none' }}>{a.patient?.profile?.last_name} {a.patient?.profile?.first_name}</div>
                                 {a.module_type && <div style={{ fontSize:10, color:'#555', marginBottom:1 }}>{ML[a.module_type]}</div>}
                                 {a.visit_type && <div style={{ fontSize:10, color:'#777', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:4 }}>{a.visit_type}</div>}
                                 <div style={{ display:'flex', gap:4 }}>
-                                  {a.status !== 'confirmed_doctor' && a.status !== 'no_show' && (
+                                  {a.status !== 'cancelled' && a.status !== 'confirmed_doctor' && a.status !== 'no_show' && (
                                     <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#E6F1FB', color:'#185FA5' }}
                                       onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'confirmed_doctor') }}><i className='ti ti-check' style={{ fontSize:12 }} aria-hidden='true'></i> Confirmar</button>
                                   )}
-                                  {a.status !== 'no_show' && (
+                                  {a.status !== 'cancelled' && a.status !== 'no_show' && (
                                     <button style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'none', cursor:'pointer', background:'#FAEEDA', color:'#854F0B' }}
                                       onClick={e => { e.stopPropagation(); updateApptStatus(a.id, 'no_show', a) }}>No asistió</button>
                                   )}
@@ -3323,6 +3332,25 @@ export default function AdminDashboard() {
               <button style={{ ...s.btnPrimary, marginTop:20, opacity:savingSettings?0.7:1 }} disabled={savingSettings} onClick={saveClinicSettings}>
                 {savingSettings ? 'Guardando...' : 'Guardar configuración'}
               </button>
+
+              <div style={{ borderTop:'1px solid #ebebeb', marginTop:28, paddingTop:20 }}>
+                <div style={{ fontSize:12, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:4 }}>Preferencias de agenda</div>
+                <div style={{ fontSize:12, color:'#999', marginBottom:14 }}>Estas preferencias son personales y solo afectan cómo vos ves la agenda.</div>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #ebebeb' }}>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:500, color:'#1a1a1a' }}>Mostrar citas canceladas</div>
+                    <div style={{ fontSize:12, color:'#999', marginTop:2 }}>Aparecen en gris y tachadas en su última fecha y hora</div>
+                  </div>
+                  <label style={{ position:'relative', display:'inline-block', width:42, height:24, flexShrink:0 }}>
+                    <input type="checkbox" checked={showCancelled}
+                      onChange={e => { const v = e.target.checked; setShowCancelled(v); saveAgendaPrefs(v) }}
+                      style={{ opacity:0, width:0, height:0 }} />
+                    <span style={{ position:'absolute', cursor:'pointer', inset:0, background: showCancelled ? 'var(--clinic-primary, #0F6E56)' : '#ccc', borderRadius:24, transition:'0.2s' }}>
+                      <span style={{ position:'absolute', height:18, width:18, left: showCancelled ? 21 : 3, bottom:3, background:'#fff', borderRadius:'50%', transition:'0.2s' }} />
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
           )}
 
