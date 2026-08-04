@@ -2530,10 +2530,13 @@ export default function AdminDashboard() {
                     {/* Header con color del médico */}
                     <div style={{ background: doctorColor(popupAppt.doctor_id)+'15', borderBottom:'0.5px solid #eee', padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                       <div>
+                        <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a', marginBottom:2 }}>
+                          {`${popupAppt.patient?.profile?.first_name||''} ${popupAppt.patient?.profile?.last_name||''}`.trim() || 'Paciente'}
+                        </div>
                         <div style={{ fontSize:11, color:'#888', marginBottom:2 }}>
                           {popupAppt.doctor ? `${popupAppt.doctor.first_name} ${popupAppt.doctor.last_name}` : 'Sin médico asignado'}
                         </div>
-                        <div style={{ fontSize:13, fontWeight:600, color:'#1a1a1a' }}>
+                        <div style={{ fontSize:12, fontWeight:500, color:'#555' }}>
                           {new Date(popupAppt.appointment_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}
                         </div>
                         <div style={{ fontSize:12, color:'#555' }}>
