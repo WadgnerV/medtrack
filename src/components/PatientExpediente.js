@@ -9,6 +9,7 @@ import ImagenesTab from './ImagenesTab'
 import RecetasTab from './RecetasTab'
 import DocumentosTab from './DocumentosTab'
 import ConsentimientosTab from './ConsentimientosTab'
+import AnalisisFacialTab from './AnalisisFacialTab'
 
 const BLUE = '#1a3a5c'
 
@@ -22,6 +23,7 @@ const TABS = [
   { key: 'recetas',          label: 'Recetas',                icon: 'ti-pill'           },
   { key: 'documentos',       label: 'Documentos',             icon: 'ti-paperclip'      },
   { key: 'consentimientos',  label: 'Consentimientos',        icon: 'ti-writing'        },
+  { key: 'analisis_facial',  label: 'Análisis facial',        icon: 'ti-face-id'        },
   { key: 'historial_citas',  label: 'Historial de citas',     icon: 'ti-calendar-event' },
 ]
 
@@ -168,6 +170,7 @@ export default function PatientExpediente({ patient, profile, onBack, onEdit, ca
     if (activeTab === 'recetas') return <RecetasTab patient={patient} profile={profile} />
     if (activeTab === 'documentos') return <DocumentosTab patient={patient} profile={profile} />
     if (activeTab === 'consentimientos') return <ConsentimientosTab patient={patient} profile={profile} />
+    if (activeTab === 'analisis_facial') return <AnalisisFacialTab patient={patient} profile={profile} />
     if (activeTab === 'historial_citas') return <HistorialCitasTab patient={patient} />
     return null
   }
