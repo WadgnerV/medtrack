@@ -19,7 +19,7 @@ serve(async (req) => {
     const id = url.searchParams.get('id')
 
     if (!id) {
-      return new Response(errorPage('No se encontró el ID de la cita.'), { status: 400, headers: { 'Content-Type': 'text/html' } })
+      return new Response(errorPage('No se encontró el ID de la cita.'), { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
@@ -34,7 +34,7 @@ serve(async (req) => {
       .single()
 
     if (apptError || !appt) {
-      return new Response(errorPage('No se encontró la cita en el sistema.'), { status: 404, headers: { 'Content-Type': 'text/html' } })
+      return new Response(errorPage('No se encontró la cita en el sistema.'), { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
 
     // Actualizar estado
@@ -44,7 +44,7 @@ serve(async (req) => {
       .eq('id', id)
 
     if (updateError) {
-      return new Response(errorPage('Error al confirmar la cita. Por favor contactá a tu clínica directamente.'), { status: 500, headers: { 'Content-Type': 'text/html' } })
+      return new Response(errorPage('Error al confirmar la cita. Por favor contactá a tu clínica directamente.'), { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
 
     // Obtener nombre de la clínica
@@ -59,13 +59,13 @@ serve(async (req) => {
     }
 
     return new Response(successPage(clinicName), {
-      headers: { 'Content-Type': 'text/html' }
+      headers: { 'Content-Type': 'text/html; charset=utf-8' }
     })
 
   } catch (e) {
     return new Response(errorPage('Error inesperado. Por favor contactá a tu clínica directamente.'), {
       status: 500,
-      headers: { 'Content-Type': 'text/html' }
+      headers: { 'Content-Type': 'text/html; charset=utf-8' }
     })
   }
 })
